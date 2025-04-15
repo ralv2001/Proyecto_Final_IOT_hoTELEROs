@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:background="#FFFFFF"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".AuthActivity">
+
+    <ScrollView
+        android:id="@+id/scrollViewLogin"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:background="@drawable/cr40bffffff">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <!-- Eliminada la barra de estado superior -->
+
+            <LinearLayout
+                android:id="@+id/tabLayout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="30dp"
+                android:layout_marginBottom="6dp"
+                android:paddingHorizontal="40dp"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/tvLoginTab"
+                    style="@style/ActiveTabTextStyle"
+                    android:layout_height="wrap_content"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:text="Iniciar Sesión"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:gravity="center"
+                    />
+
+                <TextView
+                    android:id="@+id/tvRegisterTab"
+                    style="@style/InactiveTabTextStyle"
+                    android:layout_height="wrap_content"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:text="Registro"
+                    android:clickable="true"
+                    android:focusable="true"
+                    />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginBottom="50dp"
+                android:paddingHorizontal="40dp">
+
+                <View
+                    android:id="@+id/viewTabIndicatorLogin"
+                    android:layout_width="0dp"
+                    android:layout_height="2dp"
+                    android:layout_weight="1"
+                    android:background="#F35D38"
+                    />
+                <View
+                    android:id="@+id/viewTabIndicatorRegister"
+                    android:layout_width="0dp"
+                    android:layout_height="2dp"
+                    android:layout_weight="1"
+                    android:background="#ffffff"
+                    />
+
+            </LinearLayout>
+
+            <FrameLayout
+                android:id="@+id/fragmentContainer"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                />
+
+        </LinearLayout>
+    </ScrollView>
+</LinearLayout>

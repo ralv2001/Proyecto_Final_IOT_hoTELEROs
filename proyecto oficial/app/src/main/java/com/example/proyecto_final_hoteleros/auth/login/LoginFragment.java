@@ -1,17 +1,28 @@
-package com.example.proyecto_final_hoteleros;
+package com.example.proyecto_final_hoteleros.auth.login;
 
-import androidx.appcompat.app.AppCompatActivity;
+import androidx.lifecycle.ViewModelProvider;
+
 import android.os.Bundle;
-import android.text.InputType;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
+
 import android.text.method.PasswordTransformationMethod;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
-public class LoginActivity extends AppCompatActivity {
+import com.example.proyecto_final_hoteleros.R;
+
+public class LoginFragment extends Fragment {
+
+    private LoginViewModel mViewModel;
 
     private EditText etEmail;
     private EditText etPassword;
@@ -22,29 +33,27 @@ public class LoginActivity extends AppCompatActivity {
     private Button btnFacebookLogin;
     private Button btnGoogleLogin;
     private TextView tvRegisterPrompt;
-    private TextView tvLoginTab;
-    private TextView tvRegisterTab;
-    private View viewTabIndicator;
-
 
     private boolean isPasswordVisible = false;
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_login);
+    public static LoginFragment newInstance() {
+        return new LoginFragment();
+    }
 
+    @Override
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
+                             @Nullable Bundle savedInstanceState) {
+        View view = inflater.inflate(R.layout.fragment_login, container, false);
         // Inicializar vistas
-        etEmail = findViewById(R.id.etEmail);
-        etPassword = findViewById(R.id.etPassword);
-        ibTogglePassword = findViewById(R.id.ibTogglePassword);
-        tvErrorMessage = findViewById(R.id.tvErrorMessage);
-        tvForgotPassword = findViewById(R.id.tvForgotPassword);
-        btnContinue = findViewById(R.id.btnContinue);
-        btnFacebookLogin = findViewById(R.id.btnFacebookLogin);
-        btnGoogleLogin = findViewById(R.id.btnGoogleLogin);
-        tvLoginTab = findViewById(R.id.tvLoginTab);
-        tvRegisterTab = findViewById(R.id.tvRegisterTab);
+        etEmail = view.findViewById(R.id.etEmail);
+        etPassword = view.findViewById(R.id.etPassword);
+        ibTogglePassword = view.findViewById(R.id.ibTogglePassword);
+        tvErrorMessage = view.findViewById(R.id.tvErrorMessage);
+        tvForgotPassword = view.findViewById(R.id.tvForgotPassword);
+        btnContinue = view.findViewById(R.id.btnContinue);
+        btnFacebookLogin = view.findViewById(R.id.btnFacebookLogin);
+        btnGoogleLogin = view.findViewById(R.id.btnGoogleLogin);
+        tvRegisterPrompt = view.findViewById(R.id.tvRegisterPrompt);
 
         // Ocultar mensaje de error inicialmente
         tvErrorMessage.setVisibility(View.INVISIBLE);
@@ -67,7 +76,7 @@ public class LoginActivity extends AppCompatActivity {
         tvForgotPassword.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Toast.makeText(LoginActivity.this, "Recuperar contraseña", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getContext(), "Recuperar contraseña", Toast.LENGTH_SHORT).show();
                 // Implementar navegación a pantalla de recuperación de contraseña
             }
         });
@@ -75,7 +84,7 @@ public class LoginActivity extends AppCompatActivity {
         btnFacebookLogin.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Toast.makeText(LoginActivity.this, "Iniciar sesión con Facebook", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getContext(), "Iniciar sesión con Facebook", Toast.LENGTH_SHORT).show();
                 // Implementar inicio de sesión con Facebook
             }
         });
@@ -83,7 +92,7 @@ public class LoginActivity extends AppCompatActivity {
         btnGoogleLogin.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Toast.makeText(LoginActivity.this, "Iniciar sesión con Google", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getContext(), "Iniciar sesión con Google", Toast.LENGTH_SHORT).show();
                 // Implementar inicio de sesión con Google
             }
         });
@@ -91,20 +100,19 @@ public class LoginActivity extends AppCompatActivity {
         tvRegisterPrompt.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Toast.makeText(LoginActivity.this, "Ir a pantalla de registro", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getContext(), "Ir a pantalla de registro", Toast.LENGTH_SHORT).show();
                 // Implementar navegación a pantalla de registro
             }
         });
 
-        tvRegisterTab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                // Cambiar a pestaña de registro
-                tvLoginTab.setTextColor(getResources().getColor(android.R.color.darker_gray));
-                tvRegisterTab.setTextColor(getResources().getColor(R.color.colorAccent));
-                // Implementar lógica para mostrar pantalla de registro
-            }
-        });
+        return view;
+    }
+
+    @Override
+    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+        mViewModel = new ViewModelProvider(this).get(LoginViewModel.class);
+        // TODO: Use the ViewModel
     }
 
     private void togglePasswordVisibility() {
@@ -129,22 +137,23 @@ public class LoginActivity extends AppCompatActivity {
 
         // Validación básica
         if (email.isEmpty()) {
-            Toast.makeText(this, "Ingrese su correo electrónico", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getContext(), "Ingrese su correo electrónico", Toast.LENGTH_SHORT).show();
             return;
         }
 
         if (password.isEmpty()) {
-            Toast.makeText(this, "Ingrese su contraseña", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getContext(), "Ingrese su contraseña", Toast.LENGTH_SHORT).show();
             return;
         }
 
         // Simulación de login (para demostración)
         if (email.equals("luchito@stuardiño.com") && password.equals("password")) {
-            Toast.makeText(this, "Inicio de sesión exitoso", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getContext(), "Inicio de sesión exitoso", Toast.LENGTH_SHORT).show();
             tvErrorMessage.setVisibility(View.INVISIBLE);
             // Implementar navegación a la siguiente pantalla
         } else {
             tvErrorMessage.setVisibility(View.VISIBLE);
         }
     }
+
 }
