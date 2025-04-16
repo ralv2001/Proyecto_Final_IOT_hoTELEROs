@@ -1,3 +1,8 @@
 <resources>
     <string name="app_name">Proyecto_Final_hoTELEROs</string>
+    <string name="explora_text">Explora nuestro maravilloso <font color="#FA5D31">Perú!</font></string>
+
+    <!-- Descripción del ícono de notificación, útil para accesibilidad -->
+    <string name="notification_desc">Icono de notificaciones</string>
+    <string name="star_icon_desc" />
 </resources>
