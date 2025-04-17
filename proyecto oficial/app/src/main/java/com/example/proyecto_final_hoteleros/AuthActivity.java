@@ -70,15 +70,20 @@ public class AuthActivity extends AppCompatActivity implements MessagerRegister 
         ft.commit(); // Ejecutar la transacción
     }
 
+    // Reemplaza el método gotoMainRegister en AuthActivity.java con:
     @Override
     public void gotoMainRegister(String userType) {
         Toast.makeText(this, "userType: " + userType, Toast.LENGTH_SHORT).show();
         // Cambiar a pestaña de registro Principal
-        FragmentManager fm = getSupportFragmentManager();
-        FragmentTransaction ft = fm.beginTransaction(); // Crear una transacción de fragmento
-        ft.replace(R.id.fragmentContainer, new RegisterFragment()); // Reemplazar el fragmento actual con LoginFragment
-        ft.addToBackStack(null); // Agregar a la pila de retroceso
-        ft.commit(); // Ejecutar la transacción
+        try {
+            FragmentManager fm = getSupportFragmentManager();
+            FragmentTransaction ft = fm.beginTransaction();
+            ft.replace(R.id.fragmentContainer, RegisterFragment.newInstance(userType));
+            ft.addToBackStack(null);
+            ft.commit();
+        } catch (Exception e) {
+            Toast.makeText(this, "Error navegando: " + e.getMessage(), Toast.LENGTH_LONG).show();
+        }
     }
 
     @Override
