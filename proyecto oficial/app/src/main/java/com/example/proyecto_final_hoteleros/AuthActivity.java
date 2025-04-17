@@ -31,15 +31,19 @@ public class AuthActivity extends AppCompatActivity implements MessagerRegister 
         tvRegisterTab = findViewById(R.id.tvRegisterTab);
         viewTabIndicatorRegister = findViewById(R.id.viewTabIndicatorRegister);
 
-        goToLogin();
+        // Verificar si debemos mostrar login o registro basado en el intent
+        String mode = getIntent().getStringExtra("mode");
+        if (mode != null && mode.equals("register")) {
+            goToRegister();
+        } else {
+            goToLogin();
+        }
 
         tvRegisterTab.setOnClickListener(view -> {
-            // Implementar lógica para mostrar pantalla de registro
             goToRegister();
         });
 
         tvLoginTab.setOnClickListener(view -> {
-            // Implementar lógica para mostrar pantalla de registro
             goToLogin();
         });
     }
@@ -70,7 +74,7 @@ public class AuthActivity extends AppCompatActivity implements MessagerRegister 
         ft.commit(); // Ejecutar la transacción
     }
 
-    // Reemplaza el método gotoMainRegister en AuthActivity.java con:
+    // Implementación de MessagerRegister
     @Override
     public void gotoMainRegister(String userType) {
         Toast.makeText(this, "userType: " + userType, Toast.LENGTH_SHORT).show();
@@ -88,11 +92,11 @@ public class AuthActivity extends AppCompatActivity implements MessagerRegister 
 
     @Override
     public void gotoRegisterPasswordClient() {
-
+        // Implementación pendiente
     }
 
     @Override
     public void gotoRegisterPasswordDriver() {
-
+        // Implementación pendiente
     }
 }

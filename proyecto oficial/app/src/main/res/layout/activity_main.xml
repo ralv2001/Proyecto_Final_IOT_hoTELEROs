@@ -7,19 +7,131 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Hello World!"
+    <!-- Fondo de pantalla -->
+    <ImageView
+        android:id="@+id/ivBackground"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:scaleType="centerCrop"
+        android:src="@drawable/fondito_pagina_inicial"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
-    <FrameLayout
-        android:id="@+id/fragment_container"
+
+    <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_height="match_parent"
+        android:fillViewport="true"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
 
-    
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_horizontal"
+            android:orientation="vertical"
+            android:paddingHorizontal="26dp"
+            android:paddingBottom="16dp">
 
+            <!-- Logo como TextView -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="60dp"
+                android:text="hoTELITOs"
+                android:textColor="#000000"
+                android:textSize="36sp"
+                android:textStyle="bold" />
+
+            <!-- Imagen del hotel -->
+            <ImageView
+                android:layout_width="160dp"
+                android:layout_height="160dp"
+                android:layout_marginTop="20dp"
+                android:src="@drawable/ic_hotelitos" />
+
+            <!-- Título principal -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:fontFamily="@font/inter_semibold"
+                android:gravity="center"
+                android:text="Viajes infinitamente gratificantes"
+                android:textColor="#0C0D0E"
+                android:textSize="30sp" />
+
+            <!-- Subtítulo -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:fontFamily="@font/inter_18pt_medium"
+                android:gravity="center"
+                android:text="Donde cada estancia es inolvidable. Descansa, disfruta, repite."
+                android:textColor="#79817D"
+                android:textSize="18sp" />
+
+            <!-- Botón de registro -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnRegister"
+                style="@style/ButtonTextStyle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:paddingVertical="16dp"
+                android:text="Inscríbete ahora"
+                android:textSize="22sp"
+                app:backgroundTint="#F35D38"
+                app:cornerRadius="12dp"
+                app:elevation="4dp" />
+
+            <!-- Botón de inicio de sesión -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnLogin"
+                style="@style/ButtonTextStyle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:paddingVertical="16dp"
+                android:text="Iniciar Sesión"
+                android:textColor="#1A1A1A"
+                android:textSize="22sp"
+                app:backgroundTint="#FFFFFF"
+                app:cornerRadius="12dp"
+                app:elevation="4dp"
+                app:strokeColor="#E1E1E1"
+                app:strokeWidth="1dp" />
+
+            <!-- Opción "Continuar como huésped" -->
+            <LinearLayout
+                android:id="@+id/layoutContinueAsGuest"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:clickable="true"
+                android:focusable="true"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="4dp"
+                    android:fontFamily="@font/inter_18pt_medium"
+                    android:letterSpacing="-0.025"
+                    android:text="Continuar como huésped"
+                    android:textColor="#0C0D0E"
+                    android:textSize="16sp" />
+
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/flecha_inicial" />
+            </LinearLayout>
+        </LinearLayout>
+    </ScrollView>
 </androidx.constraintlayout.widget.ConstraintLayout>
