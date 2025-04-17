@@ -53,7 +53,12 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 Toast.makeText(MainActivity.this, "Continuando como huésped...", Toast.LENGTH_SHORT).show();
-                // Aquí se implementaría la lógica para continuar como huésped
+
+                // Cargar el fragmento de Home
+                getSupportFragmentManager().beginTransaction()
+                        .replace(R.id.main, new com.example.proyecto_final_hoteleros.client.fragment.HomeFragment())
+                        .addToBackStack(null)
+                        .commit();
             }
         });
     }
