@@ -6,13 +6,17 @@ import androidx.fragment.app.FragmentTransaction;
 
 import android.os.Bundle;
 import android.view.View;
+import android.view.ViewGroup;
+import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.proyecto_final_hoteleros.auth.interfaces.MessagerRegister;
 import com.example.proyecto_final_hoteleros.auth.login.LoginFragment;
+import com.example.proyecto_final_hoteleros.auth.password.ForgotPasswordFragment;
 import com.example.proyecto_final_hoteleros.auth.register.RegisterFragment;
 import com.example.proyecto_final_hoteleros.auth.register.SelectUserTypeFragment;
+import com.example.proyecto_final_hoteleros.auth.password.ForgotPasswordFragment;
 
 public class AuthActivity extends AppCompatActivity implements MessagerRegister {
 
@@ -72,6 +76,47 @@ public class AuthActivity extends AppCompatActivity implements MessagerRegister 
         ft.replace(R.id.fragmentContainer, new SelectUserTypeFragment()); // Reemplazar el fragmento actual con LoginFragment
         ft.addToBackStack(null); // Agregar a la pila de retroceso
         ft.commit(); // Ejecutar la transacción
+    }
+
+    public void goToForgotPassword() {
+        // Guardar referencia al ScrollView para restaurarlo después
+        final ScrollView scrollView = findViewById(R.id.scrollViewLogin);
+        final int scrollY = (scrollView != null) ? scrollView.getScrollY() : 0;
+
+        // Ocultar las pestañas para este fragmento específico
+        View tabLayout = findViewById(R.id.tabLayout);
+        View viewTabIndicatorLogin = findViewById(R.id.viewTabIndicatorLogin);
+        ViewGroup indicatorLayout = null;
+        if (viewTabIndicatorLogin != null) {
+            indicatorLayout = (ViewGroup) viewTabIndicatorLogin.getParent();
+        }
+
+        if (tabLayout != null) tabLayout.setVisibility(View.GONE);
+        if (indicatorLayout != null) indicatorLayout.setVisibility(View.GONE);
+
+        // Cambiar al fragmento de recuperación de contraseña
+        FragmentManager fm = getSupportFragmentManager();
+        fm.addOnBackStackChangedListener(new FragmentManager.OnBackStackChangedListener() {
+            @Override
+            public void onBackStackChanged() {
+                // Restaurar el scroll cuando volvamos atrás
+                if (fm.getBackStackEntryCount() == 0 && scrollView != null) {
+                    scrollView.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            scrollView.scrollTo(0, scrollY);
+                        }
+                    });
+                }
+                // Eliminar el listener después de su uso
+                fm.removeOnBackStackChangedListener(this);
+            }
+        });
+
+        FragmentTransaction ft = fm.beginTransaction();
+        ft.replace(R.id.fragmentContainer, ForgotPasswordFragment.newInstance());
+        ft.addToBackStack(null);
+        ft.commit();
     }
 
     // Implementación de MessagerRegister

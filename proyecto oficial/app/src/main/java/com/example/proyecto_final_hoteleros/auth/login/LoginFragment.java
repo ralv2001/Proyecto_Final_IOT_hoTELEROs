@@ -18,6 +18,7 @@ import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.proyecto_final_hoteleros.AuthActivity;
 import com.example.proyecto_final_hoteleros.R;
 
 public class LoginFragment extends Fragment {
@@ -76,8 +77,7 @@ public class LoginFragment extends Fragment {
         tvForgotPassword.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Toast.makeText(getContext(), "Recuperar contraseña", Toast.LENGTH_SHORT).show();
-                // Implementar navegación a pantalla de recuperación de contraseña
+                ((AuthActivity) getActivity()).goToForgotPassword();
             }
         });
 
