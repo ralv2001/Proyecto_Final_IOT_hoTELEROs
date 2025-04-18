@@ -9,7 +9,6 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import android.text.Editable;
 import android.text.InputFilter;
-import android.text.Spanned;
 import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -29,7 +28,7 @@ import java.util.Calendar;
 import java.util.Locale;
 import java.util.regex.Pattern;
 
-public class RegisterFragment extends Fragment {
+public class RegisterFragmentUser extends Fragment {
 
     private RegisterViewModel mViewModel;
 
@@ -64,8 +63,8 @@ public class RegisterFragment extends Fragment {
 
 
 
-    public static RegisterFragment newInstance(String userType) {
-        RegisterFragment fragment = new RegisterFragment();
+    public static RegisterFragmentUser newInstance(String userType) {
+        RegisterFragmentUser fragment = new RegisterFragmentUser();
         Bundle args = new Bundle();
         args.putString("userType", userType);
         fragment.setArguments(args);
@@ -75,7 +74,7 @@ public class RegisterFragment extends Fragment {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_register, container, false);
+        View view = inflater.inflate(R.layout.fragment_register_user, container, false);
 
         // Inicializar vistas
         ImageButton btnBack = view.findViewById(R.id.btnBack);

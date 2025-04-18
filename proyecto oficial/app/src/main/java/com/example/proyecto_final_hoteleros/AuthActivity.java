@@ -14,9 +14,8 @@ import android.widget.Toast;
 import com.example.proyecto_final_hoteleros.auth.interfaces.MessagerRegister;
 import com.example.proyecto_final_hoteleros.auth.login.LoginFragment;
 import com.example.proyecto_final_hoteleros.auth.password.ForgotPasswordFragment;
-import com.example.proyecto_final_hoteleros.auth.register.RegisterFragment;
+import com.example.proyecto_final_hoteleros.auth.register.RegisterFragmentUser;
 import com.example.proyecto_final_hoteleros.auth.register.SelectUserTypeFragment;
-import com.example.proyecto_final_hoteleros.auth.password.ForgotPasswordFragment;
 
 public class AuthActivity extends AppCompatActivity implements MessagerRegister {
 
@@ -127,7 +126,7 @@ public class AuthActivity extends AppCompatActivity implements MessagerRegister 
         try {
             FragmentManager fm = getSupportFragmentManager();
             FragmentTransaction ft = fm.beginTransaction();
-            ft.replace(R.id.fragmentContainer, RegisterFragment.newInstance(userType));
+            ft.replace(R.id.fragmentContainer, RegisterFragmentUser.newInstance(userType));
             ft.addToBackStack(null);
             ft.commit();
         } catch (Exception e) {
