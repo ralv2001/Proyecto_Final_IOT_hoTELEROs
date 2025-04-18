@@ -20,6 +20,7 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
+import androidx.core.content.res.ResourcesCompat;
 
 import com.example.proyecto_final_hoteleros.R;
 
@@ -63,6 +64,17 @@ public class RegisterFragmentUser extends Fragment {
 
 
 
+    // Campos para contraseña
+    private EditText etContrasena, etConfirmarContrasena;
+    private ImageButton ibTogglePassword, ibToggleConfirmPassword;
+    private ImageView passwordStrengthBar;
+    private ImageView ivReq1Icon, ivReq2Icon, ivReq3Icon;
+    private TextView tvReq1, tvReq2, tvReq3;
+    private boolean isPasswordVisible = false;
+    private boolean isConfirmPasswordVisible = false;
+
+
+
     public static RegisterFragmentUser newInstance(String userType) {
         RegisterFragmentUser fragment = new RegisterFragmentUser();
         Bundle args = new Bundle();
@@ -86,12 +98,26 @@ public class RegisterFragmentUser extends Fragment {
         etEmail = view.findViewById(R.id.etEmail);
         etFechaNacimiento = view.findViewById(R.id.etFechaNacimiento);
         etTelefono = view.findViewById(R.id.etTelefono);
+
         // Inicializar las vistas relacionadas con el selector de país
         ivCountryFlag = view.findViewById(R.id.ivCountryFlag);
         tvCountryCode = view.findViewById(R.id.tvCountryCode);
         countryCodeContainer = view.findViewById(R.id.countryCodeContainer);
         etNumeroDocumento = view.findViewById(R.id.etNumeroDocumento);
         etDireccion = view.findViewById(R.id.etDireccion);
+
+        // Inicializar campos de contraseña
+        etContrasena = view.findViewById(R.id.etContrasena);
+        etConfirmarContrasena = view.findViewById(R.id.etConfirmarContrasena);
+        ibTogglePassword = view.findViewById(R.id.ibTogglePassword);
+        ibToggleConfirmPassword = view.findViewById(R.id.ibToggleConfirmPassword);
+        passwordStrengthBar = view.findViewById(R.id.passwordStrengthBar);
+        ivReq1Icon = view.findViewById(R.id.ivReq1Icon);
+        ivReq2Icon = view.findViewById(R.id.ivReq2Icon);
+        ivReq3Icon = view.findViewById(R.id.ivReq3Icon);
+        tvReq1 = view.findViewById(R.id.tvReq1);
+        tvReq2 = view.findViewById(R.id.tvReq2);
+        tvReq3 = view.findViewById(R.id.tvReq3);
 
         // Después de inicializar etNumeroDocumento, configurar el límite para DNI
         etNumeroDocumento.setFilters(new android.text.InputFilter[] {
@@ -122,6 +148,16 @@ public class RegisterFragmentUser extends Fragment {
             showDocTypeDialog();
         });
 
+        // Configurar listeners para mostrar/ocultar contraseña
+        ibTogglePassword.setOnClickListener(v -> {
+            isPasswordVisible = !isPasswordVisible;
+            togglePasswordVisibility(etContrasena, ibTogglePassword, isPasswordVisible);
+        });
+        ibToggleConfirmPassword.setOnClickListener(v -> {
+            isConfirmPasswordVisible = !isConfirmPasswordVisible;
+            togglePasswordVisibility(etConfirmarContrasena, ibToggleConfirmPassword, isConfirmPasswordVisible);
+        });
+
         // Añadir listener a etNumeroDocumento para validar según tipo de documento
         etNumeroDocumento.addTextChangedListener(new TextWatcher() {
             @Override
@@ -133,6 +169,40 @@ public class RegisterFragmentUser extends Fragment {
             @Override
             public void afterTextChanged(Editable s) {
                 validateDocumentNumber(s.toString());
+                // Verificar todos los campos para el botón continuar
+                registerFieldsWatcher.afterTextChanged(s);
+            }
+        });
+
+        // Añadir TextWatcher para validar contraseña
+        etContrasena.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {}
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                validatePassword(s.toString());
+                // Verificar si las contraseñas coinciden
+                validatePasswordMatch();
+                // Verificar todos los campos para el botón continuar
+                registerFieldsWatcher.afterTextChanged(s);
+            }
+        });
+
+        // Añadir TextWatcher para confirmar contraseña
+        etConfirmarContrasena.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {}
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                validatePasswordMatch();
                 // Verificar todos los campos para el botón continuar
                 registerFieldsWatcher.afterTextChanged(s);
             }
@@ -319,13 +389,24 @@ public class RegisterFragmentUser extends Fragment {
                 !etTelefono.getText().toString().trim().isEmpty() &&
                 phoneDigits.length() == 9;
 
+        // Verificar requisitos de contraseña
+        boolean passwordValid = passwordRequirementsMet() &&
+                !etContrasena.getText().toString().trim().isEmpty();
+
+        // Verificar si las contraseñas coinciden
+        boolean passwordsMatch = etContrasena.getText().toString().equals(
+                etConfirmarContrasena.getText().toString()) &&
+                !etConfirmarContrasena.getText().toString().trim().isEmpty();
+
         return !etNombres.getText().toString().trim().isEmpty() &&
                 !etApellidos.getText().toString().trim().isEmpty() &&
                 !etEmail.getText().toString().trim().isEmpty() &&
                 !etFechaNacimiento.getText().toString().trim().isEmpty() &&
                 phoneValid &&
                 documentValid &&
-                !etDireccion.getText().toString().trim().isEmpty();
+                !etDireccion.getText().toString().trim().isEmpty() &&
+                passwordValid &&
+                passwordsMatch;
     }
 
     @Override
@@ -402,5 +483,116 @@ public class RegisterFragmentUser extends Fragment {
             }
         });
     }
+
+    // Método para mostrar/ocultar contraseña
+    private void togglePasswordVisibility(EditText editText, ImageButton button, boolean isVisible) {
+        if (isVisible) {
+            // Mostrar contraseña
+            editText.setTransformationMethod(null);
+            button.setImageResource(R.drawable.ic_visibility_off_custom);
+        } else {
+            // Ocultar contraseña
+            editText.setTransformationMethod(android.text.method.PasswordTransformationMethod.getInstance());
+            button.setImageResource(R.drawable.ic_visibility_custom);
+        }
+
+        // Mover cursor al final del texto
+        editText.setSelection(editText.getText().length());
+    }
+
+    // Método para validar los requisitos de la contraseña
+    private void validatePassword(String password) {
+        int progress = 0;
+
+        // Requisito 1: entre 8 y 32 caracteres
+        boolean req1Met = password.length() >= 8 && password.length() <= 32;
+        if (req1Met) {
+            ivReq1Icon.setImageResource(R.drawable.ic_check);
+            tvReq1.setTextColor(getResources().getColor(android.R.color.holo_green_dark));
+            tvReq1.setTypeface(ResourcesCompat.getFont(getContext(), R.font.roboto_regular));
+            progress++;
+        } else {
+            ivReq1Icon.setImageResource(R.drawable.ic_sin_check);
+            tvReq1.setTextColor(getResources().getColor(R.color.colorTextTertiary));
+            tvReq1.setTypeface(ResourcesCompat.getFont(getContext(), R.font.roboto_bold));
+        }
+
+        // Requisito 2: un número y un símbolo
+        boolean hasNumber = password.matches(".*\\d.*");
+        boolean hasSymbol = password.matches(".*[!@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.<>/?].*");
+        boolean req2Met = hasNumber && hasSymbol;
+        if (req2Met) {
+            ivReq2Icon.setImageResource(R.drawable.ic_check);
+            tvReq2.setTextColor(getResources().getColor(android.R.color.holo_green_dark));
+            tvReq2.setTypeface(ResourcesCompat.getFont(getContext(), R.font.roboto_regular));
+            progress++;
+        } else {
+            ivReq2Icon.setImageResource(R.drawable.ic_sin_check);
+            tvReq2.setTextColor(getResources().getColor(R.color.colorTextTertiary));
+            tvReq2.setTypeface(ResourcesCompat.getFont(getContext(), R.font.roboto_bold));
+        }
+
+        // Requisito 3: una mayúscula
+        boolean req3Met = password.matches(".*[A-Z].*");
+        if (req3Met) {
+            ivReq3Icon.setImageResource(R.drawable.ic_check);
+            tvReq3.setTextColor(getResources().getColor(android.R.color.holo_green_dark));
+            tvReq3.setTypeface(ResourcesCompat.getFont(getContext(), R.font.roboto_regular));
+            progress++;
+        } else {
+            ivReq3Icon.setImageResource(R.drawable.ic_sin_check);
+            tvReq3.setTextColor(getResources().getColor(R.color.colorTextTertiary));
+            tvReq3.setTypeface(ResourcesCompat.getFont(getContext(), R.font.roboto_bold));
+        }
+
+        // Actualizar la barra de progreso según los requisitos cumplidos
+        switch (progress) {
+            case 0:
+                passwordStrengthBar.setImageResource(R.drawable.progress_bar_0);
+                break;
+            case 1:
+                passwordStrengthBar.setImageResource(R.drawable.progress_bar_1);
+                break;
+            case 2:
+                passwordStrengthBar.setImageResource(R.drawable.progress_bar_2);
+                break;
+            case 3:
+                passwordStrengthBar.setImageResource(R.drawable.progress_bar_3);
+                break;
+        }
+    }
+
+    // Método para validar si las contraseñas coinciden
+    private void validatePasswordMatch() {
+        String password = etContrasena.getText().toString();
+        String confirmPassword = etConfirmarContrasena.getText().toString();
+
+        if (!confirmPassword.isEmpty()) {
+            if (!password.equals(confirmPassword)) {
+                etConfirmarContrasena.setError("Las contraseñas no coinciden");
+            } else {
+                etConfirmarContrasena.setError(null);
+            }
+        }
+    }
+
+    // Método para verificar si todos los requisitos de la contraseña se cumplen
+    private boolean passwordRequirementsMet() {
+        String password = etContrasena.getText().toString();
+
+        // Requisito 1: entre 8 y 32 caracteres
+        boolean req1Met = password.length() >= 8 && password.length() <= 32;
+
+        // Requisito 2: un número y un símbolo
+        boolean hasNumber = password.matches(".*\\d.*");
+        boolean hasSymbol = password.matches(".*[!@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.<>/?].*");
+        boolean req2Met = hasNumber && hasSymbol;
+
+        // Requisito 3: una mayúscula
+        boolean req3Met = password.matches(".*[A-Z].*");
+
+        return req1Met && req2Met && req3Met;
+    }
+
 
 }
