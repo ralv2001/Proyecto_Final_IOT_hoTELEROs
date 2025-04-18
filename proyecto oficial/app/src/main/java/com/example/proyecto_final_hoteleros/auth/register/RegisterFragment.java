@@ -17,6 +17,7 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -47,6 +48,22 @@ public class RegisterFragment extends Fragment {
     // Formato para la fecha
     private final SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
 
+
+
+
+    // Variables para la selección de país
+    private ImageView ivCountryFlag;
+    private TextView tvCountryCode;
+    private LinearLayout countryCodeContainer;
+
+    // Constantes para los códigos de país
+    private static final String COUNTRY_CODE_PE = "(+51) ";
+    private static final String COUNTRY_CODE_CO = "(+57) ";
+    private static final String COUNTRY_CODE_VE = "(+58) ";
+    private String currentCountryCode = COUNTRY_CODE_PE; // Por defecto Perú
+
+
+
     public static RegisterFragment newInstance(String userType) {
         RegisterFragment fragment = new RegisterFragment();
         Bundle args = new Bundle();
@@ -70,12 +87,21 @@ public class RegisterFragment extends Fragment {
         etEmail = view.findViewById(R.id.etEmail);
         etFechaNacimiento = view.findViewById(R.id.etFechaNacimiento);
         etTelefono = view.findViewById(R.id.etTelefono);
+        // Inicializar las vistas relacionadas con el selector de país
+        ivCountryFlag = view.findViewById(R.id.ivCountryFlag);
+        tvCountryCode = view.findViewById(R.id.tvCountryCode);
+        countryCodeContainer = view.findViewById(R.id.countryCodeContainer);
         etNumeroDocumento = view.findViewById(R.id.etNumeroDocumento);
         etDireccion = view.findViewById(R.id.etDireccion);
 
         // Después de inicializar etNumeroDocumento, configurar el límite para DNI
         etNumeroDocumento.setFilters(new android.text.InputFilter[] {
                 new android.text.InputFilter.LengthFilter(8)
+        });
+
+        // Configurar listener para el selector de país
+        countryCodeContainer.setOnClickListener(v -> {
+            showCountryDialog();
         });
 
         // Llamada a setupPhoneField con la vista
@@ -209,6 +235,31 @@ public class RegisterFragment extends Fragment {
         builder.create().show();
     }
 
+    private void showCountryDialog() {
+        final String[] countries = {"Perú", "Colombia", "Venezuela"};
+        final String[] countryCodes = {COUNTRY_CODE_PE, COUNTRY_CODE_CO, COUNTRY_CODE_VE};
+        final int[] countryFlags = {
+                R.drawable.circle_flag_pe,
+                R.drawable.circle_flag_co,
+                R.drawable.circle_flag_ve
+        };
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+        builder.setTitle("Seleccione país")
+                .setItems(countries, (dialog, which) -> {
+                    // Actualizar el código de país seleccionado
+                    currentCountryCode = countryCodes[which];
+                    tvCountryCode.setText(currentCountryCode);
+                    ivCountryFlag.setImageResource(countryFlags[which]);
+
+                    // Si el usuario cambia de país, podemos limpiar el campo de teléfono
+                    // O dejarlo como está si los formatos son similares
+                    // etTelefono.setText("");
+                });
+
+        builder.create().show();
+    }
+
     private void validateDocumentNumber(String docNumber) {
         if (docNumber.isEmpty()) {
             etNumeroDocumento.setError(null);
@@ -285,10 +336,18 @@ public class RegisterFragment extends Fragment {
     }
 
     private void setupPhoneField(View rootView) {
-        TextView tvCountryCode = rootView.findViewById(R.id.tvCountryCode);
+        // Inicializar las vistas relacionadas con el selector de país
+        tvCountryCode = rootView.findViewById(R.id.tvCountryCode);
+        ivCountryFlag = rootView.findViewById(R.id.ivCountryFlag);
+        countryCodeContainer = rootView.findViewById(R.id.countryCodeContainer);
 
-        // Configuramos el código de país
-        tvCountryCode.setText("(+51) ");
+        // Configuramos el código de país inicial
+        tvCountryCode.setText(currentCountryCode);
+
+        // Configurar listener para el selector de país
+        countryCodeContainer.setOnClickListener(v -> {
+            showCountryDialog();
+        });
 
         // Establecer el máximo de caracteres a 11 (9 dígitos + 2 guiones)
         etTelefono.setFilters(new InputFilter[] {
