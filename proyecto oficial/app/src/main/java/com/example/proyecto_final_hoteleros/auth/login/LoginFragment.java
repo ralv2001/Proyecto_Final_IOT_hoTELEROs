@@ -8,6 +8,8 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.text.method.PasswordTransformationMethod;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -56,8 +58,36 @@ public class LoginFragment extends Fragment {
         btnGoogleLogin = view.findViewById(R.id.btnGoogleLogin);
         tvRegisterPrompt = view.findViewById(R.id.tvRegisterPrompt);
 
+        // Configurar TextWatcher para validación de campos
+        TextWatcher loginFieldsWatcher = new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+                // No se necesita implementación
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                // No se necesita implementación
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                // Habilitar o deshabilitar el botón según si ambos campos tienen texto
+                boolean emailNotEmpty = !etEmail.getText().toString().trim().isEmpty();
+                boolean passwordNotEmpty = !etPassword.getText().toString().trim().isEmpty();
+                boolean enableButton = emailNotEmpty && passwordNotEmpty;
+
+                btnContinue.setEnabled(enableButton);
+                btnContinue.setAlpha(enableButton ? 1.0f : 0.4f);
+            }
+        };
+
+        // Aplicar el TextWatcher a ambos campos
+        etEmail.addTextChangedListener(loginFieldsWatcher);
+        etPassword.addTextChangedListener(loginFieldsWatcher);
+
         // Ocultar mensaje de error inicialmente
-        tvErrorMessage.setVisibility(View.INVISIBLE);
+        tvErrorMessage.setVisibility(View.GONE);
 
         // Configurar listeners
         ibTogglePassword.setOnClickListener(new View.OnClickListener() {
@@ -135,14 +165,17 @@ public class LoginFragment extends Fragment {
         String email = etEmail.getText().toString().trim();
         String password = etPassword.getText().toString().trim();
 
-        // Validación básica
-        if (email.isEmpty()) {
-            Toast.makeText(getContext(), "Ingrese su correo electrónico", Toast.LENGTH_SHORT).show();
-            return;
+        // Las validaciones básicas ya se hacen con el TextWatcher,
+        // pero podemos agregar validaciones más específicas aquí
+        boolean isValid = true;
+
+        // Verificar formato de email (opcional)
+        if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+            etEmail.setError("Ingrese un correo electrónico válido");
+            isValid = false;
         }
 
-        if (password.isEmpty()) {
-            Toast.makeText(getContext(), "Ingrese su contraseña", Toast.LENGTH_SHORT).show();
+        if (!isValid) {
             return;
         }
 
