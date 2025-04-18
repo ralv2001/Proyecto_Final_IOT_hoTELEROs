@@ -46,12 +46,15 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:background="@drawable/se1e1e1sw2cr12"
-                android:hint="César Stuardo"
+                android:hint="Ingrese sus nombres"
+                android:textColorHint="#61989898"
+                android:textColor="#545454"
                 android:inputType="textPersonName"
                 android:paddingVertical="18dp"
                 android:paddingHorizontal="21dp"
                 android:layout_marginBottom="16dp"
-                android:theme="@style/AppTheme" />
+                android:fontFamily="@font/poppins_medium"
+                android:textSize="16sp" />
 
             <!-- Apellidos -->
             <TextView
@@ -67,12 +70,15 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:background="@drawable/se1e1e1sw2cr12"
-                android:hint="Lucho Romero"
+                android:hint="Ingrese sus apellidos"
+                android:textColorHint="#61989898"
+                android:textColor="#545454"
                 android:inputType="textPersonName"
                 android:paddingVertical="18dp"
                 android:paddingHorizontal="21dp"
                 android:layout_marginBottom="16dp"
-                android:theme="@style/AppTheme" />
+                android:fontFamily="@font/poppins_medium"
+                android:textSize="16sp" />
 
             <!-- Correo electrónico -->
             <TextView
@@ -88,12 +94,15 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:background="@drawable/se1e1e1sw2cr12"
-                android:hint="luchito@stuardiño.com"
+                android:hint="Ingrese su correo electrónico"
+                android:textColorHint="#61989898"
+                android:textColor="#545454"
                 android:inputType="textEmailAddress"
                 android:paddingVertical="18dp"
                 android:paddingHorizontal="21dp"
                 android:layout_marginBottom="16dp"
-                android:theme="@style/AppTheme" />
+                android:fontFamily="@font/poppins_medium"
+                android:textSize="16sp" />
 
             <!-- Fecha de nacimiento -->
             <TextView
@@ -120,10 +129,13 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:background="@null"
-                    android:hint="05/09/2001"
+                    android:hint="DD/MM/AAAA"
+                    android:textColorHint="#61989898"
+                    android:textColor="#545454"
                     android:inputType="date"
                     android:focusable="false"
-                    android:theme="@style/AppTheme" />
+                    android:fontFamily="@font/poppins_medium"
+                    android:textSize="16sp" />
 
                 <ImageButton
                     android:id="@+id/btnCalendar"
@@ -182,16 +194,36 @@
                     android:background="#E1E1E1"
                     android:layout_toEndOf="@id/countryCodeContainer" />
 
-                <EditText
-                    android:id="@+id/etTelefono"
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:layout_toEndOf="@id/dividerPhone"
-                    android:background="@null"
-                    android:hint="(+51) 950-038-830"
-                    android:inputType="phone"
-                    android:paddingHorizontal="21dp"
-                    android:theme="@style/AppTheme" />
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:paddingHorizontal="21dp">
+
+                    <TextView
+                        android:id="@+id/tvCountryCode"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="(+51) "
+                        android:textColor="#545454"
+                        android:textSize="16sp"
+                        android:fontFamily="@font/poppins_medium" />
+
+                    <EditText
+                        android:id="@+id/etTelefono"
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
+                        android:layout_height="match_parent"
+                        android:background="@null"
+                        android:hint="XXX-XXX-XXX"
+                        android:textColorHint="#61989898"
+                        android:textColor="#545454"
+                        android:inputType="phone"
+                        android:fontFamily="@font/poppins_medium"
+                        android:textSize="16sp" />
+                </LinearLayout>
             </RelativeLayout>
 
             <!-- DNI/Carnet de Extranjería -->
@@ -250,10 +282,13 @@
                     android:layout_height="match_parent"
                     android:layout_toEndOf="@id/dividerDoc"
                     android:background="@null"
-                    android:hint="09417890"
+                    android:hint="Ingrese su número de documento"
+                    android:textColorHint="#61989898"
+                    android:textColor="#545454"
                     android:inputType="number"
                     android:paddingHorizontal="21dp"
-                    android:theme="@style/AppTheme" />
+                    android:fontFamily="@font/poppins_medium"
+                    android:textSize="16sp" />
             </RelativeLayout>
 
             <!-- Dirección de domicilio -->
@@ -270,12 +305,15 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:background="@drawable/se1e1e1sw2cr12"
-                android:hint="Av. Universitaria 1801, San Miguel 15088"
+                android:hint="Ingrese su dirección completa"
+                android:textColorHint="#61989898"
+                android:textColor="#545454"
                 android:inputType="textPostalAddress"
                 android:paddingVertical="18dp"
                 android:paddingHorizontal="21dp"
                 android:layout_marginBottom="16dp"
-                android:theme="@style/AppTheme" />
+                android:fontFamily="@font/poppins_medium"
+                android:textSize="16sp" />
 
         </LinearLayout>
     </ScrollView>
@@ -303,7 +341,9 @@
             android:paddingVertical="18dp"
             style="@style/ButtonTextStyle"
             android:layout_marginHorizontal="25dp"
-            android:layout_marginVertical="16dp" />
+            android:layout_marginVertical="16dp"
+            android:enabled="false"
+            android:alpha="0.4" />
     </LinearLayout>
 
 </FrameLayout>
