@@ -57,6 +57,8 @@
         <item name="android:fontFamily">@font/poppins_medium</item>
         <item name="android:textSize">16sp</item>
         <item name="android:letterSpacing">-0.025</item>
+        <item name="android:statusBarColor">@android:color/white</item>
+        <item name="android:windowLightStatusBar">true</item>
     </style>
 
     <style name="AppsitoTheme" parent="Theme.AppCompat.Light.NoActionBar">
@@ -90,5 +92,14 @@
         <item name="android:letterSpacing">-0.025</item>
         <item name="android:textColor">#0C0D0E</item>
     </style>
+
+    <style name="CustomBottomSheetDialog" parent="Theme.Design.Light.BottomSheetDialog">
+        <item name="bottomSheetStyle">@style/CustomBottomSheet</item>
+    </style>
+
+    <style name="CustomBottomSheet" parent="Widget.Design.BottomSheet.Modal">
+        <item name="android:background">@android:color/transparent</item>
+    </style>
+
 
 </resources>

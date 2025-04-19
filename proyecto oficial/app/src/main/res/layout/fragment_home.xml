@@ -8,8 +8,11 @@
     android:layout_height="match_parent"
     android:paddingHorizontal="16dp"
     android:paddingTop="16dp"
+    android:paddingStart="16dp"
+    android:paddingBottom="0dp"
     android:background="@android:color/white"
     tools:context=".client.fragment.HomeFragment">
+
 
     <!-- Avatar (imagen circular) -->
     <de.hdodenhof.circleimageview.CircleImageView
@@ -21,6 +24,7 @@
         app:civ_border_color="@android:color/transparent"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
+
 
     <!-- Contenedor circular para el ícono de notificación -->
     <FrameLayout
@@ -34,6 +38,7 @@
         app:layout_constraintBottom_toBottomOf="@+id/iv_avatar"
         app:layout_constraintEnd_toEndOf="parent">
 
+
         <!-- Ícono de notificaciones -->
         <ImageView
             android:id="@+id/iv_notification"
@@ -42,6 +47,7 @@
             android:contentDescription="@string/notification_desc"
             android:src="@drawable/ic_notification" />
     </FrameLayout>
+
 
     <!-- Texto de saludo: "Hola, Adrián" -->
     <TextView
@@ -60,6 +66,11 @@
         android:layout_marginStart="8dp"
         android:gravity="center" />
 
+
+
+
+
+
     <!-- Título principal: "Explora nuestro maravilloso Perú!" -->
     <TextView
         android:id="@+id/tv_title"
@@ -70,9 +81,23 @@
         android:text="@string/explora_text"
         android:textColor="@android:color/black"
         android:textSize="38sp"
+        android:visibility="invisible"
         app:layout_constraintTop_toBottomOf="@+id/iv_avatar"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
+
+
+    <!-- Incluimos el panel de búsqueda justo debajo del título -->
+    <include
+        android:id="@+id/include_search_panel"
+        layout="@layout/view_search_panel"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toBottomOf="@id/tv_title"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintWidth_percent="0.82"/>
+
 
     <!-- RecyclerView horizontal con ítems de hotel -->
     <androidx.recyclerview.widget.RecyclerView
@@ -80,12 +105,26 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:clipToPadding="false"
-        app:layout_constraintTop_toBottomOf="@id/tv_title"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
         android:paddingStart="8dp"
         android:paddingEnd="8dp"
-        tools:listitem="@layout/item_hotel_card" />
+        app:layout_constraintTop_toBottomOf="@id/include_search_panel"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        tools:listitem="@layout/item_hotel_card"/>
+
+
+
+
+    <!-- Incluimos la barra de navegación inferior -->
+    <include
+        android:id="@+id/bottom_nav"
+        layout="@layout/bottom_navigation"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
 
 
 

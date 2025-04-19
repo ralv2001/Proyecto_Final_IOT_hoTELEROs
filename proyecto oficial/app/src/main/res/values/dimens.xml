@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+
+    <dimen name="padding_panel">16dp</dimen>
+    <dimen name="corner_radius">12dp</dimen>
+    <dimen name="divider_height">2dp</dimen>
+    <dimen name="row_height">48dp</dimen>
+
+</resources>

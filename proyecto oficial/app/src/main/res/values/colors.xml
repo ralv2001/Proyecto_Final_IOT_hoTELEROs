@@ -10,4 +10,9 @@
     <color name="colorTextSecondary">#545454</color>
     <color name="colorTextTertiary">#989898</color>
     <color name="orange_button">#F35D38</color>
+
+    <color name="orange_primary">#FA5D31</color>
+    <color name="divider_gold">#DBA151</color>
+    <color name="text_hint">#CCCCCC</color>
+    <color name="orange">#FA5D31</color>
 </resources>

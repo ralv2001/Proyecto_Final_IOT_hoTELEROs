@@ -5,4 +5,5 @@
     <!-- Descripción del ícono de notificación, útil para accesibilidad -->
     <string name="notification_desc">Icono de notificaciones</string>
     <string name="star_icon_desc" />
+    <string name="google_maps_api_key" />
 </resources>
