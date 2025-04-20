@@ -12,6 +12,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.core.content.ContextCompat;
+import androidx.core.view.ViewCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -37,7 +38,19 @@ public class HomeFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_home, container, false);
+// Añadir el listener para el avatar
+        de.hdodenhof.circleimageview.CircleImageView avatarView = rootView.findViewById(R.id.iv_avatar);
 
+        // Establece el nombre de transición
+        ViewCompat.setTransitionName(avatarView, "avatar_transition");
+
+        avatarView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // Navegar al fragmento de perfil con transición compartida
+                navigateToProfileWithAnimation(v);
+            }
+        });
         // 1) Encuentra la fila de Ubicación (en tu view_search_panel.xml)
         View rowLocation = rootView.findViewById(R.id.rowLocation);
 
@@ -119,7 +132,33 @@ public class HomeFragment extends Fragment {
 
         return rootView;
     }
+    // Método para navegar a ProfileFragment con animación personalizada
+    // Método para navegar a ProfileFragment con animación personalizada
+    private void navigateToProfileWithAnimation(View sharedElement) {
+        // Crear instancia del fragment de perfil
+        ProfileFragment profileFragment = new ProfileFragment();
 
+        // Configurar los elementos compartidos para la transición
+        FragmentTransaction transaction = requireActivity().getSupportFragmentManager()
+                .beginTransaction()
+                .setReorderingAllowed(true) // Optimiza la transición
+                .addSharedElement(sharedElement, "avatar_transition");
+
+        // Aplicar animaciones personalizadas para las vistas no compartidas
+        transaction.setCustomAnimations(
+                R.anim.fade_in2,
+                R.anim.fade_out,
+                R.anim.fade_in2,
+                R.anim.fade_out);
+
+        // Reemplazar el fragmento actual y añadir a la pila
+        transaction.replace(R.id.fragment_container, profileFragment)
+                .addToBackStack(null)
+                .commit();
+
+        // Actualizar la barra de navegación
+        setSelectedNavItem(navProfile, ivProfile);
+    }
     // Método para configurar el navegador inferior
     private void setupBottomNavigation(View rootView) {
         // Referencias a los elementos del navegador

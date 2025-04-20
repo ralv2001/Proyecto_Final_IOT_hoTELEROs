@@ -2,6 +2,7 @@
 package com.example.proyecto_final_hoteleros.client.fragment;
 
 import android.os.Bundle;
+import android.transition.TransitionInflater;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -9,6 +10,7 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 
 import androidx.core.content.ContextCompat;
+import androidx.core.view.ViewCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
 
@@ -18,11 +20,36 @@ public class ProfileFragment extends Fragment {
     // Variables para el navegador inferior
     private LinearLayout navHome, navExplore, navChat, navProfile;
     private ImageView ivHome, ivExplore, ivChat, ivProfile;
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+        // Configurar la transición de entrada compartida
+        setSharedElementEnterTransition(
+                TransitionInflater.from(requireContext())
+                        .inflateTransition(android.R.transition.move)
+                        .setDuration(300)
+        );
+
+        // Configurar transición de retroceso (cuando se presiona back)
+        setSharedElementReturnTransition(
+                TransitionInflater.from(requireContext())
+                        .inflateTransition(android.R.transition.move)
+                        .setDuration(300)
+        );
+    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_profile, container, false);
+
+        // Configurar el nombre de transición para el avatar en el perfil
+        de.hdodenhof.circleimageview.CircleImageView profileAvatar =
+                rootView.findViewById(R.id.ivProfileAvatar);
+
+        // Establecer el nombre de transición que coincide con el usado en HomeFragment
+        ViewCompat.setTransitionName(profileAvatar, "avatar_transition");
 
         // Configuración del navegador inferior
         setupBottomNavigation(rootView);
