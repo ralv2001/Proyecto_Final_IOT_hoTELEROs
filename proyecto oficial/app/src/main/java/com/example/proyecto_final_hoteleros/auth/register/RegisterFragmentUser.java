@@ -218,9 +218,27 @@ public class RegisterFragmentUser extends Fragment {
         // Configurar listener para botón continuar
         btnContinuar.setOnClickListener(v -> {
             if (areAllFieldsFilled()) {
-                // Procesar el formulario si todos los campos están llenos
-                Toast.makeText(getContext(), "Formulario completo", Toast.LENGTH_SHORT).show();
-                // Aquí iría la lógica para continuar con el registro
+                // Guardar los datos del formulario en el ViewModel
+                saveFormDataToViewModel();
+
+                // Navegar al fragmento de subida de foto
+                if (getActivity() != null) {
+                    // Obtener el tipo de usuario que viene como argumento
+                    String userType = "client"; // valor por defecto
+                    if (getArguments() != null) {
+                        userType = getArguments().getString("userType", "client");
+                    }
+
+                    // Crear y mostrar el fragmento de subida de foto
+                    AddProfilePhotoFragment photoFragment = AddProfilePhotoFragment.newInstance(userType);
+                    getActivity().getSupportFragmentManager()
+                            .beginTransaction()
+                            .replace(R.id.fragmentContainer, photoFragment)
+                            .addToBackStack(null)
+                            .commit();
+                }
+            } else {
+                Toast.makeText(getContext(), "Por favor complete todos los campos correctamente", Toast.LENGTH_SHORT).show();
             }
         });
 
@@ -592,6 +610,27 @@ public class RegisterFragmentUser extends Fragment {
         boolean req3Met = password.matches(".*[A-Z].*");
 
         return req1Met && req2Met && req3Met;
+    }
+
+
+    private void saveFormDataToViewModel() {
+        if (mViewModel != null) {
+            mViewModel.setNombres(etNombres.getText().toString().trim());
+            mViewModel.setApellidos(etApellidos.getText().toString().trim());
+            mViewModel.setEmail(etEmail.getText().toString().trim());
+            mViewModel.setFechaNacimiento(etFechaNacimiento.getText().toString().trim());
+            mViewModel.setTelefono(etTelefono.getText().toString().trim());
+            mViewModel.setTipoDocumento(currentDocType);
+            mViewModel.setNumeroDocumento(etNumeroDocumento.getText().toString().trim());
+            mViewModel.setDireccion(etDireccion.getText().toString().trim());
+            mViewModel.setPassword(etContrasena.getText().toString());
+
+            // Guardar el tipo de usuario que viene como argumento
+            if (getArguments() != null) {
+                String userType = getArguments().getString("userType", "client");
+                mViewModel.setUserType(userType);
+            }
+        }
     }
 
 
