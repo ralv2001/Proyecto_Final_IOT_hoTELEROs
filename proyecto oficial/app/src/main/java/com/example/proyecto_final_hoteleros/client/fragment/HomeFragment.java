@@ -19,6 +19,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.proyecto_final_hoteleros.R;
+import com.example.proyecto_final_hoteleros.adapters.PopularHotelsAdapter;
 import com.example.proyecto_final_hoteleros.client.model.Hotel;
 
 import java.text.SimpleDateFormat;
@@ -120,12 +121,39 @@ public class HomeFragment extends Fragment {
                 "drawable/arequipa",
                 "S/320", "4.9"));
 
+        // Creamos una lista de hoteles populares (podrías usar datos diferentes si lo deseas)
+        List<Hotel> listaHotelesPopulares = new ArrayList<>();
+        listaHotelesPopulares.add(new Hotel("Gocta Lodge",
+                "Chachapoyas, Gocta, Amazonas",
+                "drawable/gocta",
+                "S/300", "4.9"));
+        listaHotelesPopulares.add(new Hotel("Arennas Máncora",
+                "Máncora, Piura",
+                "drawable/cuzco",
+                "S/300", "4.9"));
+        listaHotelesPopulares.add(new Hotel("Inkaterra Concepción",
+                "Tambopata, Madre de Dios",
+                "drawable/inkaterra",
+                "S/300", "4.9"));
+        listaHotelesPopulares.add(new Hotel("Skylodge",
+                "Valle Sagrado, Cusco",
+                "drawable/gocta",
+                "S/300", "4.9"));
+
+
         // Configuración del RecyclerView
         RecyclerView rvHotels = rootView.findViewById(R.id.rvHotels);
         rvHotels.setLayoutManager(
                 new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false)
         );
         rvHotels.setAdapter(new HotelsAdapter(listaDeHoteles));
+
+        // Configuración del RecyclerView de hoteles populares (vertical)
+        RecyclerView rvPopularHotels = rootView.findViewById(R.id.rvPopularHotels);
+        rvPopularHotels.setLayoutManager(
+                new LinearLayoutManager(getContext(), LinearLayoutManager.VERTICAL, false)
+        );
+        rvPopularHotels.setAdapter(new PopularHotelsAdapter(listaDeHoteles));
 
         // Configuración del navegador inferior
         setupBottomNavigation(rootView);
