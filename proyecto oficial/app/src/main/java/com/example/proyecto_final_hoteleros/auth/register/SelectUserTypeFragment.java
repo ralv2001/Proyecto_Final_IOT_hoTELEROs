@@ -15,7 +15,6 @@ import android.widget.Button;
 
 import com.example.proyecto_final_hoteleros.AuthActivity;
 import com.example.proyecto_final_hoteleros.R;
-import com.example.proyecto_final_hoteleros.auth.interfaces.MessagerRegister;
 
 public class SelectUserTypeFragment extends Fragment {
 
@@ -28,7 +27,7 @@ public class SelectUserTypeFragment extends Fragment {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_select_type_user, container, false);
+        View view = inflater.inflate(R.layout.sistema_fragment_select_type_user, container, false);
 
         Button registerAsClientButton = view.findViewById(R.id.btnRegistrarCliente);
         registerAsClientButton.setOnClickListener(new View.OnClickListener() {
