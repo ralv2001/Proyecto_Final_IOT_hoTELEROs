@@ -36,7 +36,7 @@
                 android:id="@+id/tvHotelName"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:text="Lista de Solicitudes"
+                android:text="Reporte de Reservas"
                 android:textColor="@android:color/white"
                 android:textSize="18sp"
                 android:textStyle="bold"
@@ -74,40 +74,6 @@
             android:paddingHorizontal="26dp"
             android:paddingBottom="16dp">
 
-            <com.google.android.material.chip.ChipGroup
-                android:id="@+id/chipGroup"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:layout_marginBottom="8dp"
-                android:chipSpacing="8dp"
-                app:selectionRequired="true"
-                app:singleSelection="true">
-
-                <com.google.android.material.chip.Chip
-                    android:id="@+id/habilitado"
-                    style="@style/Widget.MyApp.Chip.Choice"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:checked="true"
-                    android:text="Habilitado" />
-
-                <com.google.android.material.chip.Chip
-                    android:id="@+id/espera"
-                    style="@style/Widget.MyApp.Chip.Choice"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="En Espera" />
-
-                <com.google.android.material.chip.Chip
-                    android:id="@+id/rechazados"
-                    style="@style/Widget.MyApp.Chip.Choice"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Rechazados" />
-
-
-            </com.google.android.material.chip.ChipGroup>
 
 
 
@@ -128,7 +94,38 @@
                     android:padding="12dp"
                 android:focusable="false" />
 
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/se1e1e1sw2cr12"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:paddingVertical="18dp"
+                    android:paddingHorizontal="21dp"
+                    android:layout_marginBottom="16dp">
 
+                    <EditText
+                        android:id="@+id/etFechaNacimiento"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:background="@null"
+                        android:text="DD/MM/AAAA"
+                        android:textColorHint="#61989898"
+                        android:textColor="#545454"
+                        android:inputType="date"
+                        android:focusable="false"
+                        android:fontFamily="@font/poppins_medium"
+                        android:textSize="16sp" />
+
+                    <ImageButton
+                        android:id="@+id/btnCalendar"
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:src="@drawable/ic_calendargozu"
+                        android:background="@null"
+                        android:contentDescription="Seleccionar fecha" />
+                </LinearLayout>
             </com.google.android.material.textfield.TextInputLayout>
 
 
@@ -188,6 +185,24 @@
                                     android:textSize="16sp"
                                     android:textColor="@android:color/black"/>
 
+                                <TextView
+                                    android:id="@+id/hab1"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="Habitación: 101"
+                                    android:textStyle="bold"
+                                    android:textSize="16sp"
+                                    android:textColor="@android:color/black"/>
+
+                                <TextView
+                                    android:id="@+id/hora1"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="Hora: 08:00"
+                                    android:textStyle="bold"
+                                    android:textSize="16sp"
+                                    android:textColor="@android:color/black"/>
+
 
 
 
@@ -198,7 +213,7 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_marginEnd="6dp"
-                                android:text="Ver Solicitud"
+                                android:text="Ver Detalles"
                                 android:textColor="@android:color/white"
                                 app:backgroundTint="#F35D38"
                             app:cornerRadius="50dp"
@@ -280,6 +295,23 @@
                                 android:textSize="16sp"
                                 android:textColor="@android:color/black"/>
 
+                            <TextView
+                                android:id="@+id/hab2"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Habitación: 101"
+                                android:textStyle="bold"
+                                android:textSize="16sp"
+                                android:textColor="@android:color/black"/>
+
+                            <TextView
+                                android:id="@+id/hora2"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Hora: 08:00"
+                                android:textStyle="bold"
+                                android:textSize="16sp"
+                                android:textColor="@android:color/black"/>
 
 
 
@@ -290,7 +322,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginEnd="8dp"
-                            android:text="Ver Solicitud"
+                            android:text="Ver Detalles"
                             android:textColor="@android:color/white"
                             app:backgroundTint="#F35D38"
                             app:cornerRadius="50dp"
@@ -368,10 +400,28 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="Jorge Lopez"
+
                                 android:textStyle="bold"
                                 android:textSize="16sp"
                                 android:textColor="@android:color/black"/>
 
+                            <TextView
+                                android:id="@+id/hab3"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Habitación: 101"
+                                android:textStyle="bold"
+                                android:textSize="16sp"
+                                android:textColor="@android:color/black"/>
+
+                            <TextView
+                                android:id="@+id/hora3"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Hora: 08:00"
+                                android:textStyle="bold"
+                                android:textSize="16sp"
+                                android:textColor="@android:color/black"/>
 
 
 
@@ -382,7 +432,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginEnd="8dp"
-                            android:text="Ver Solicitud"
+                            android:text="Ver Detalles"
                             android:textColor="@android:color/white"
                             app:backgroundTint="#F35D38"
                             app:cornerRadius="50dp"
