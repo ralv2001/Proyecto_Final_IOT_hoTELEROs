@@ -1,4 +1,4 @@
-package com.example.proyecto_final_hoteleros.client.fragment;
+package com.example.proyecto_final_hoteleros.adapters;
 
 import android.view.LayoutInflater;
 import android.view.View;

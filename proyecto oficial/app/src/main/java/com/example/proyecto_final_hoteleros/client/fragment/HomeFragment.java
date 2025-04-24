@@ -10,6 +10,7 @@ import android.view.animation.AnimationUtils;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.core.content.ContextCompat;
 import androidx.core.view.ViewCompat;
@@ -19,7 +20,10 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.proyecto_final_hoteleros.R;
+import com.example.proyecto_final_hoteleros.adapters.CitiesAdapter;
+import com.example.proyecto_final_hoteleros.adapters.HotelsAdapter;
 import com.example.proyecto_final_hoteleros.adapters.PopularHotelsAdapter;
+import com.example.proyecto_final_hoteleros.client.model.City;
 import com.example.proyecto_final_hoteleros.client.model.Hotel;
 
 import java.text.SimpleDateFormat;
@@ -154,7 +158,27 @@ public class HomeFragment extends Fragment {
                 new LinearLayoutManager(getContext(), LinearLayoutManager.VERTICAL, false)
         );
         rvPopularHotels.setAdapter(new PopularHotelsAdapter(listaDeHoteles));
+// Crear lista de ciudades
+        List<City> listaCiudades = new ArrayList<>();
+        listaCiudades.add(new City("Lima", R.drawable.lima));
+        listaCiudades.add(new City("Cusco", R.drawable.cuzco));
+        listaCiudades.add(new City("Arequipa", R.drawable.arequipa));
+        listaCiudades.add(new City("Piura", R.drawable.inkaterra)); // Usar una imagen apropiada para Piura
+        listaCiudades.add(new City("Trujillo", R.drawable.belmond)); // Usar una imagen apropiada para Trujillo
 
+// Configuración del RecyclerView de ciudades
+        RecyclerView rvCities = rootView.findViewById(R.id.rvCities);
+        rvCities.setLayoutManager(
+                new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false)
+        );
+        rvCities.setAdapter(new CitiesAdapter(listaCiudades));
+
+// Ver todo - ciudades
+        TextView tvSeeAllCities = rootView.findViewById(R.id.tv_see_all_cities);
+        tvSeeAllCities.setOnClickListener(v -> {
+            Toast.makeText(getContext(), "Ver todas las ciudades", Toast.LENGTH_SHORT).show();
+            // Implementar navegación a una actividad o fragmento que muestre todas las ciudades
+        });
         // Configuración del navegador inferior
         setupBottomNavigation(rootView);
 
