@@ -67,4 +67,6 @@ public class MainActivity extends AppCompatActivity {
         intent.putExtra("mode", mode); // Para indicar qué pestaña mostrar (login o register)
         startActivity(intent);
     }
+
+
 }
