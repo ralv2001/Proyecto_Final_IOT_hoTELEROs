@@ -213,12 +213,19 @@ public class VerifyCodeFragment extends Fragment {
     }
 
     private void verifyCode(String code) {
-        // TODO: Aquí se implementaría la verificación real del código con el backend
-        // Por ahora, simulamos que 12345 o 83600 son códigos válidos
-        if (code.equals("12345") || code.equals("83600")) {
+        // Modificado para aceptar cualquier código de 5 dígitos para testing
+        if (code.length() == 5) {
             Toast.makeText(getContext(), "Código verificado correctamente", Toast.LENGTH_SHORT).show();
-            // Navegación a la siguiente pantalla (cambio de contraseña)
-            // TODO: Implementar navegación a la pantalla de nueva contraseña
+
+            // Navegar a la pantalla de confirmación de código
+            if (getActivity() != null) {
+                ResetPasswordFragment resetPasswordFragment = ResetPasswordFragment.newInstance(email);
+                getActivity().getSupportFragmentManager()
+                        .beginTransaction()
+                        .replace(R.id.fragmentContainer, resetPasswordFragment)
+                        .addToBackStack(null)
+                        .commit();
+            }
         } else {
             Toast.makeText(getContext(), "Código incorrecto. Por favor, inténtelo de nuevo.", Toast.LENGTH_SHORT).show();
         }
