@@ -14,6 +14,8 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
 
 import com.example.proyecto_final_hoteleros.R;
 import com.google.android.material.button.MaterialButton;
@@ -25,6 +27,14 @@ public class ForgotPasswordFragment extends Fragment {
 
     public static ForgotPasswordFragment newInstance() {
         return new ForgotPasswordFragment();
+    }
+
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+
+        // Asegurarnos de ocultar las pestañas cuando el fragmento es visible
+        hideTabLayout();
     }
 
     @Override
@@ -48,12 +58,11 @@ public class ForgotPasswordFragment extends Fragment {
         btnResetPassword.setOnClickListener(v -> {
             String email = etEmail.getText().toString().trim();
             if (!email.isEmpty()) {
-                // Aquí se implementaría la lógica para enviar el correo de recuperación
-                Toast.makeText(getContext(), "Correo de recuperación enviado a: " + email, Toast.LENGTH_SHORT).show();
-                // Volver a la pantalla de inicio de sesión
-                if (getActivity() != null) {
-                    getActivity().getSupportFragmentManager().popBackStack();
-                }
+                // Simulamos envío del código por correo
+                Toast.makeText(getContext(), "Código de verificación enviado a: " + email, Toast.LENGTH_SHORT).show();
+
+                // Navegar a la pantalla de verificación de código
+                navigateToVerifyCode(email);
             }
         });
 
@@ -82,10 +91,13 @@ public class ForgotPasswordFragment extends Fragment {
     }
 
     @Override
-    public void onDestroyView() {
-        super.onDestroyView();
+    public void onResume() {
+        super.onResume();
+        // Asegurarnos de que las pestañas estén ocultas cuando el fragmento retoma el foco
+        hideTabLayout();
+    }
 
-        // Restaurar las pestañas cuando se cierre este fragmento
+    private void hideTabLayout() {
         if (getActivity() != null) {
             View tabLayout = getActivity().findViewById(R.id.tabLayout);
             View viewTabIndicatorLogin = getActivity().findViewById(R.id.viewTabIndicatorLogin);
@@ -95,16 +107,40 @@ public class ForgotPasswordFragment extends Fragment {
                 indicatorLayout = (ViewGroup) viewTabIndicatorLogin.getParent();
             }
 
-            // Restaurar la visibilidad
-            if (tabLayout != null) tabLayout.setVisibility(View.VISIBLE);
-            if (indicatorLayout != null) indicatorLayout.setVisibility(View.VISIBLE);
+            // Ocultar elementos
+            if (tabLayout != null) {
+                tabLayout.setVisibility(View.GONE);
+            }
 
-            // Restaurar el scroll
-            ScrollView scrollView = getActivity().findViewById(R.id.scrollViewLogin);
-            if (scrollView != null) {
-                scrollView.scrollTo(0, 0);
-                scrollView.requestLayout();
+            if (indicatorLayout != null) {
+                indicatorLayout.setVisibility(View.GONE);
             }
         }
+    }
+
+    private void navigateToVerifyCode(String email) {
+        if (getActivity() != null) {
+            // Crear instancia del fragmento de verificación con el email como argumento
+            VerifyCodeFragment verifyCodeFragment = VerifyCodeFragment.newInstance(email);
+
+            // Iniciar la transacción
+            FragmentManager fragmentManager = getActivity().getSupportFragmentManager();
+            FragmentTransaction transaction = fragmentManager.beginTransaction();
+
+            // Reemplazar el fragmento actual con el de verificación
+            transaction.replace(R.id.fragmentContainer, verifyCodeFragment);
+            transaction.addToBackStack(null);
+
+            // Ejecutar la transacción
+            transaction.commit();
+        }
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+
+        // NO restauramos las pestañas aquí, ya que podríamos estar navegando a otro fragmento sin pestañas
+        // La responsabilidad de mostrar las pestañas la dejamos en los fragmentos que sí las necesitan
     }
 }

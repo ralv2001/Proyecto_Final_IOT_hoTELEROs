@@ -52,6 +52,9 @@ public class AuthActivity extends AppCompatActivity implements MessagerRegister 
     }
 
     public void goToLogin() {
+        // Asegurar que las pestañas estén visibles
+        showTabLayout();
+
         // Cambiar a pestaña de inicio de sesión
         FragmentManager fm = getSupportFragmentManager();
         tvLoginTab.setTextColor(getResources().getColor(R.color.colorAccent));
@@ -65,6 +68,9 @@ public class AuthActivity extends AppCompatActivity implements MessagerRegister 
     }
 
     public void goToRegister() {
+        // Asegurar que las pestañas estén visibles
+        showTabLayout();
+
         // Cambiar a pestaña de registro
         FragmentManager fm = getSupportFragmentManager();
         tvLoginTab.setTextColor(getResources().getColor(android.R.color.darker_gray));
@@ -83,15 +89,7 @@ public class AuthActivity extends AppCompatActivity implements MessagerRegister 
         final int scrollY = (scrollView != null) ? scrollView.getScrollY() : 0;
 
         // Ocultar las pestañas para este fragmento específico
-        View tabLayout = findViewById(R.id.tabLayout);
-        View viewTabIndicatorLogin = findViewById(R.id.viewTabIndicatorLogin);
-        ViewGroup indicatorLayout = null;
-        if (viewTabIndicatorLogin != null) {
-            indicatorLayout = (ViewGroup) viewTabIndicatorLogin.getParent();
-        }
-
-        if (tabLayout != null) tabLayout.setVisibility(View.GONE);
-        if (indicatorLayout != null) indicatorLayout.setVisibility(View.GONE);
+        hideTabLayout();
 
         // Cambiar al fragmento de recuperación de contraseña
         FragmentManager fm = getSupportFragmentManager();
@@ -116,6 +114,34 @@ public class AuthActivity extends AppCompatActivity implements MessagerRegister 
         ft.replace(R.id.fragmentContainer, ForgotPasswordFragment.newInstance());
         ft.addToBackStack(null);
         ft.commit();
+    }
+
+    // Método para mostrar el layout de pestañas
+    private void showTabLayout() {
+        View tabLayout = findViewById(R.id.tabLayout);
+        View viewTabIndicatorLogin = findViewById(R.id.viewTabIndicatorLogin);
+        ViewGroup indicatorsLayout = null;
+
+        if (viewTabIndicatorLogin != null) {
+            indicatorsLayout = (ViewGroup) viewTabIndicatorLogin.getParent();
+        }
+
+        if (tabLayout != null) tabLayout.setVisibility(View.VISIBLE);
+        if (indicatorsLayout != null) indicatorsLayout.setVisibility(View.VISIBLE);
+    }
+
+    // Método para ocultar el layout de pestañas
+    private void hideTabLayout() {
+        View tabLayout = findViewById(R.id.tabLayout);
+        View viewTabIndicatorLogin = findViewById(R.id.viewTabIndicatorLogin);
+        ViewGroup indicatorsLayout = null;
+
+        if (viewTabIndicatorLogin != null) {
+            indicatorsLayout = (ViewGroup) viewTabIndicatorLogin.getParent();
+        }
+
+        if (tabLayout != null) tabLayout.setVisibility(View.GONE);
+        if (indicatorsLayout != null) indicatorsLayout.setVisibility(View.GONE);
     }
 
     // Implementación de MessagerRegister
