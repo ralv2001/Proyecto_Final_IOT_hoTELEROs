@@ -8,4 +8,8 @@
     <string name="google_maps_api_key" />
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="back" />
+    <string name="sales_report" />
+    <string name="users" />
+    <string name="search_user" />
 </resources>

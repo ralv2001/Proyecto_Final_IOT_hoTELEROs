@@ -9,4 +9,23 @@
     <item name="iv_home" type="id" />
     <item name="nav_profile" type="id" />
     <item name="iv_profile" type="id" />
+    <item name="header_card" type="id" />
+    <item name="btn_menu" type="id" />
+    <item name="btn_notification" type="id" />
+    <item name="search_card" type="id" />
+    <item name="et_search" type="id" />
+    <item name="map_fragment" type="id" />
+    <item name="coordinates_layout" type="id" />
+    <item name="iv_photo" type="id" />
+    <item name="et_nombre_instalacion" type="id" />
+    <item name="form_container" type="id" />
+    <item name="dropdownContainer" type="id" />
+    <item name="salesDropdown" type="id" />
+    <item name="graphContainer" type="id" />
+    <item name="graphTitle" type="id" />
+    <item name="chartLayout" type="id" />
+    <item name="barChartView" type="id" />
+    <item name="searchTitle" type="id" />
+    <item name="platformsList" type="id" />
+    <item name="bottomNavigation" type="id" />
 </resources>
