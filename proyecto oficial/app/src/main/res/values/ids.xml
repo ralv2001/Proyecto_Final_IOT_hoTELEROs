@@ -28,4 +28,28 @@
     <item name="searchTitle" type="id" />
     <item name="platformsList" type="id" />
     <item name="bottomNavigation" type="id" />
+    <item name="tv_hotel_address" type="id" />
+    <item name="tv_check_in_out" type="id" />
+    <item name="tv_number_of_guests" type="id" />
+    <item name="tv_room_type" type="id" />
+    <item name="tv_room_number" type="id" />
+    <item name="tv_free_transport" type="id" />
+    <item name="tv_reservation_price" type="id" />
+    <item name="tv_additional_services" type="id" />
+    <item name="tv_total_price" type="id" />
+    <item name="btn_confirm_and_pay" type="id" />
+    <item name="img_hotel" type="id" />
+    <item name="tv_rating" type="id" />
+    <item name="tv_stay_info_title" type="id" />
+    <item name="card_hotel_info" type="id" />
+    <item name="label_check" type="id" />
+    <item name="label_guests" type="id" />
+    <item name="label_room_type" type="id" />
+    <item name="label_room_number" type="id" />
+    <item name="label_transport" type="id" />
+    <item name="tv_price_details_title" type="id" />
+    <item name="label_reservation_price" type="id" />
+    <item name="label_additional_services" type="id" />
+    <item name="label_total_price" type="id" />
+    <item name="btn_confirm_container" type="id" />
 </resources>

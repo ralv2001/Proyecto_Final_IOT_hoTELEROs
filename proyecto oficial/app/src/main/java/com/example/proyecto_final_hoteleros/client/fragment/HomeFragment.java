@@ -151,9 +151,20 @@ public class HomeFragment extends Fragment {
                 new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false)
         );
         rvHotels.setAdapter(new HotelsAdapter(listaDeHoteles));
-
+        HotelsAdapter hotelsAdapter = new HotelsAdapter(listaDeHoteles);
+        hotelsAdapter.setOnHotelClickListener((hotel, position) -> {
+            // Navegar al fragmento de detalle cuando se hace clic en un hotel
+            navigateToHotelDetail(hotel);
+        });
+        rvHotels.setAdapter(hotelsAdapter);
         // Configuración del RecyclerView de hoteles populares (vertical)
         RecyclerView rvPopularHotels = rootView.findViewById(R.id.rvPopularHotels);
+        PopularHotelsAdapter popularHotelsAdapter = new PopularHotelsAdapter(listaDeHoteles);
+        popularHotelsAdapter.setOnHotelClickListener((hotel, position) -> {
+            // Navegar al fragmento de detalle cuando se hace clic en un hotel popular
+            navigateToHotelDetail(hotel);
+        });
+        rvPopularHotels.setAdapter(popularHotelsAdapter);
         rvPopularHotels.setLayoutManager(
                 new LinearLayoutManager(getContext(), LinearLayoutManager.VERTICAL, false)
         );
@@ -183,6 +194,34 @@ public class HomeFragment extends Fragment {
         setupBottomNavigation(rootView);
 
         return rootView;
+    }
+
+    // Método para navegar al fragmento de detalle del hotel
+    private void navigateToHotelDetail(Hotel hotel) {
+        // Crear instancia del fragmento de detalle
+        HotelDetailFragment detailFragment = new HotelDetailFragment();
+
+        // Pasar datos del hotel seleccionado si es necesario
+        Bundle args = new Bundle();
+        args.putString("hotel_name", hotel.getName());
+        args.putString("hotel_location", hotel.getLocation());
+        args.putString("hotel_price", hotel.getPrice());
+        args.putString("hotel_rating", hotel.getRating());
+        args.putString("hotel_image", hotel.getImageUrl());
+        detailFragment.setArguments(args);
+
+        // Realizar la transacción del fragmento
+        requireActivity().getSupportFragmentManager()
+                .beginTransaction()
+                .setCustomAnimations(
+                        R.anim.slide_in_right,
+                        R.anim.slide_out_left,
+                        R.anim.slide_in_left,
+                        R.anim.slide_out_right
+                )
+                .replace(R.id.fragment_container, detailFragment)
+                .addToBackStack(null)
+                .commit();
     }
     // Método para navegar a ProfileFragment con animación personalizada
     // Método para navegar a ProfileFragment con animación personalizada

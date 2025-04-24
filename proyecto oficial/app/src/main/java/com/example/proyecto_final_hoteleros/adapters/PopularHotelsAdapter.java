@@ -17,9 +17,16 @@ import java.util.List;
 public class PopularHotelsAdapter extends RecyclerView.Adapter<PopularHotelsAdapter.PopularHotelViewHolder> {
 
     private List<Hotel> hotelList;
-
+    private OnHotelClickListener listener;
+    public void setOnHotelClickListener(OnHotelClickListener listener) {
+        this.listener = listener;
+    }
     public PopularHotelsAdapter(List<Hotel> hotelList) {
         this.hotelList = hotelList;
+    }
+    // Agregar interfaz de listener y setter
+    public interface OnHotelClickListener {
+        void onHotelClick(Hotel hotel, int position);
     }
 
     @NonNull
@@ -57,6 +64,12 @@ public class PopularHotelsAdapter extends RecyclerView.Adapter<PopularHotelsAdap
         } else {
             holder.ivHotelImage.setImageResource(R.drawable.belmond);
         }
+        // Agregar listener de clic
+        holder.itemView.setOnClickListener(v -> {
+            if (listener != null) {
+                listener.onHotelClick(hotel, position);
+            }
+        });
     }
 
     @Override

@@ -17,9 +17,17 @@ import java.util.List;
 public class HotelsAdapter extends RecyclerView.Adapter<HotelsAdapter.HotelViewHolder> {
 
     private List<Hotel> hotelList;
-
+    private OnHotelClickListener listener;
     public HotelsAdapter(List<Hotel> hotelList) {
         this.hotelList = hotelList;
+    }
+    // Agregar setter para el listener
+    public void setOnHotelClickListener(OnHotelClickListener listener) {
+        this.listener = listener;
+    }
+    // Interfaz para manejar clics
+    public interface OnHotelClickListener {
+        void onHotelClick(Hotel hotel, int position);
     }
 
     @NonNull
@@ -58,6 +66,13 @@ public class HotelsAdapter extends RecyclerView.Adapter<HotelsAdapter.HotelViewH
         } else {
             holder.ivHotelImage.setImageResource(R.drawable.belmond);
         }
+
+        // Agregar listener de clic a toda la vista
+        holder.itemView.setOnClickListener(v -> {
+            if (listener != null) {
+                listener.onHotelClick(hotel, position);
+            }
+        });
     }
 
 
