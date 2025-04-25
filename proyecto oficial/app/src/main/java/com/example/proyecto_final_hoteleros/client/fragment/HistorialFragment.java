@@ -7,6 +7,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.TextView;
+import android.widget.ViewFlipper;
 
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
@@ -19,6 +21,10 @@ public class HistorialFragment extends Fragment {
     private LinearLayout navHome, navExplore, navChat, navProfile;
     private ImageView ivHome, ivExplore, ivChat, ivProfile;
 
+    // Variables para los tabs
+    private TextView tabActivos, tabPasados, tabCheckout;
+    private ViewFlipper viewFlipper;
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -27,7 +33,59 @@ public class HistorialFragment extends Fragment {
         // Configuración del navegador inferior
         setupBottomNavigation(rootView);
 
+        // Configuración de los tabs
+        setupTabs(rootView);
+
         return rootView;
+    }
+
+    // Método para configurar los tabs de estados
+    private void setupTabs(View rootView) {
+        // Referencias a los elementos de los tabs
+        tabActivos = rootView.findViewById(R.id.tabActivos);
+        tabPasados = rootView.findViewById(R.id.tabPasados);
+        tabCheckout = rootView.findViewById(R.id.tabCheckout);
+        viewFlipper = rootView.findViewById(R.id.viewFlipper);
+
+        // Establecer listeners para cada tab
+        tabActivos.setOnClickListener(v -> updateSelectedTab(0));
+        tabPasados.setOnClickListener(v -> updateSelectedTab(1));
+        tabCheckout.setOnClickListener(v -> updateSelectedTab(2));
+
+        // Establecer el tab "Activos" como seleccionado por defecto
+        updateSelectedTab(0);
+    }
+
+    // Método para actualizar el tab seleccionado y su contenido
+    private void updateSelectedTab(int selectedIndex) {
+        // Resetear el estilo de todos los tabs
+        tabActivos.setBackground(null);
+        tabActivos.setTextColor(ContextCompat.getColor(requireContext(), android.R.color.darker_gray));
+
+        tabPasados.setBackground(null);
+        tabPasados.setTextColor(ContextCompat.getColor(requireContext(), android.R.color.darker_gray));
+
+        tabCheckout.setBackground(null);
+        tabCheckout.setTextColor(ContextCompat.getColor(requireContext(), android.R.color.darker_gray));
+
+        // Establecer el estilo del tab seleccionado
+        switch (selectedIndex) {
+            case 0:
+                tabActivos.setBackground(ContextCompat.getDrawable(requireContext(), R.drawable.tab_selected_background));
+                tabActivos.setTextColor(ContextCompat.getColor(requireContext(), android.R.color.white));
+                break;
+            case 1:
+                tabPasados.setBackground(ContextCompat.getDrawable(requireContext(), R.drawable.tab_selected_background));
+                tabPasados.setTextColor(ContextCompat.getColor(requireContext(), android.R.color.white));
+                break;
+            case 2:
+                tabCheckout.setBackground(ContextCompat.getDrawable(requireContext(), R.drawable.tab_selected_background));
+                tabCheckout.setTextColor(ContextCompat.getColor(requireContext(), android.R.color.white));
+                break;
+        }
+
+        // Cambiar la vista en el ViewFlipper
+        viewFlipper.setDisplayedChild(selectedIndex);
     }
 
     // Método para configurar el navegador inferior
