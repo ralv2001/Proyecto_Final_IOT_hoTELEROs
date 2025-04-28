@@ -5,81 +5,102 @@
     android:id="@+id/cardReservation"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginVertical="8dp"
-    android:layout_marginHorizontal="8dp"
-    app:cardCornerRadius="16dp"
-    app:cardElevation="2dp"
+    android:layout_marginVertical="12dp"
+    android:layout_marginHorizontal="16dp"
+    app:cardCornerRadius="20dp"
+    app:cardElevation="6dp"
     android:foreground="?android:attr/selectableItemBackground">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:padding="8dp">
 
-        <!-- Imagen del hotel (a la izquierda) -->
+        <!-- Imagen del hotel con esquinas redondeadas -->
+        <!-- Imagen del hotel con esquinas redondeadas -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/imageContainer"
+            android:layout_width="100dp"
+        android:layout_height="140dp"
+        app:cardCornerRadius="16dp"
+        app:cardElevation="0dp"
+        android:layout_margin="8dp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
+
         <com.google.android.material.imageview.ShapeableImageView
             android:id="@+id/ivHotelImage"
-            android:layout_width="90dp"
-            android:layout_height="90dp"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
             android:adjustViewBounds="true"
             android:scaleType="centerCrop"
-            android:src="@drawable/belmond"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            android:layout_margin="12dp"
-            app:shapeAppearanceOverlay="@style/roundedImageViewLeft"
-            app:layout_constraintDimensionRatio="1:1" />
+            android:src="@drawable/belmond"/>
 
-        <!-- Estado de la reserva (encima de la imagen) -->
+        <!-- Gradiente que respeta las esquinas redondeadas -->
+        <View
+            android:id="@+id/gradientOverlay"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@drawable/hotel_image_gradient"/>
+    </com.google.android.material.card.MaterialCardView>
+
+        <!-- Estado de la reserva (con estilo mejorado) -->
         <TextView
             android:id="@+id/tvStatus"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Activo"
-            android:textSize="12sp"
-            android:textColor="@android:color/white"
-            android:background="@drawable/bg_status_active"
-            android:paddingHorizontal="10dp"
-            android:paddingVertical="4dp"
-            android:layout_margin="8dp"
-            app:layout_constraintTop_toTopOf="@id/ivHotelImage"
-            app:layout_constraintStart_toStartOf="@id/ivHotelImage"/>
+            android:text="Próxima"
+            android:textSize="11sp"
+        android:textColor="@android:color/white"
+        android:background="@drawable/bg_status_pill"
+        android:paddingHorizontal="12dp"
+        android:paddingVertical="6dp"
+        android:elevation="4dp"
+        android:layout_margin="8dp"
+        android:fontFamily="sans-serif-medium"
+        app:layout_constraintTop_toTopOf="@id/imageContainer"
+        app:layout_constraintStart_toStartOf="@id/imageContainer"/>
 
         <!-- Contenedor principal de información (a la derecha de la imagen) -->
         <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/layoutHotelInfo"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginStart="12dp"
-            android:layout_marginEnd="8dp"
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="16dp"
+            android:paddingVertical="16dp"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintStart_toEndOf="@id/ivHotelImage"
+            app:layout_constraintStart_toEndOf="@id/imageContainer"
             app:layout_constraintEnd_toEndOf="parent">
 
-            <!-- Nombre del hotel -->
+            <!-- Fila superior: Nombre del hotel y calificación -->
             <TextView
                 android:id="@+id/tvHotelName"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:text="Gocta Lodge"
                 android:textStyle="bold"
-                android:textColor="@android:color/black"
-                android:textSize="16sp"
+                android:textColor="#1A1A1A"
+                android:textSize="18sp"
                 android:maxLines="1"
                 android:ellipsize="end"
+                android:fontFamily="sans-serif-medium"
                 app:layout_constraintTop_toTopOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintEnd_toStartOf="@id/layoutRating" />
 
-            <!-- Calificación (en la esquina superior derecha) -->
+            <!-- Calificación con diseño mejorado -->
             <LinearLayout
                 android:id="@+id/layoutRating"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
                 android:gravity="center_vertical"
-                android:background="@drawable/bg_rounded_white"
+                android:background="@drawable/bg_rating_pill"
+                android:paddingHorizontal="10dp"
+                android:paddingVertical="5dp"
                 app:layout_constraintTop_toTopOf="@id/tvHotelName"
                 app:layout_constraintBottom_toBottomOf="@id/tvHotelName"
                 app:layout_constraintEnd_toEndOf="parent">
@@ -98,84 +119,206 @@
                     android:layout_height="wrap_content"
                     android:layout_marginStart="4dp"
                     android:text="4.9"
-                    android:textColor="@android:color/black"
+                    android:textColor="#1A1A1A"
                     android:textSize="14sp"
-                    android:textStyle="bold" />
+                    android:textStyle="bold"
+                    android:fontFamily="sans-serif-medium" />
             </LinearLayout>
 
-            <!-- Fecha de la reserva -->
+            <!-- Separador decorativo -->
+            <View
+                android:id="@+id/divider"
+                android:layout_width="0dp"
+                android:layout_height="1dp"
+                android:background="#E0E0E0"
+                android:layout_marginTop="12dp"
+                app:layout_constraintTop_toBottomOf="@id/tvHotelName"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent" />
+
+            <!-- Fecha de la reserva con iconografía mejorada -->
             <LinearLayout
                 android:id="@+id/layoutDate"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
-                android:layout_marginTop="4dp"
-                app:layout_constraintTop_toBottomOf="@id/tvHotelName"
+                android:layout_marginTop="12dp"
+                android:gravity="center_vertical"
+                app:layout_constraintTop_toBottomOf="@id/divider"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintEnd_toEndOf="parent">
 
-                <ImageView
-                    android:id="@+id/ivCalendarIcon"
-                    android:layout_width="16dp"
-                    android:layout_height="16dp"
-                    android:src="@drawable/ic_calendar" />
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    app:cardCornerRadius="8dp"
+                    app:cardBackgroundColor="#F5F5F5"
+                    app:cardElevation="0dp">
+
+                    <ImageView
+                        android:id="@+id/ivCalendarIcon"
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:layout_gravity="center"
+                        android:src="@drawable/ic_calendar"
+                        app:tint="#666666" />
+                </com.google.android.material.card.MaterialCardView>
 
                 <TextView
                     android:id="@+id/tvDate"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="4dp"
+                    android:layout_marginStart="8dp"
                     android:text="15 Mar - 18 Mar, 2025"
-                    android:textColor="@android:color/black"
+                    android:textColor="#666666"
                     android:textSize="14sp"
                     android:maxLines="1"
-                    android:ellipsize="end" />
+                    android:ellipsize="end"
+                    android:fontFamily="sans-serif" />
             </LinearLayout>
 
-            <!-- Precio total -->
-            <TextView
-                android:id="@+id/tvPrice"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="S/900"
-                android:textColor="#FF5722"
-                android:textSize="16sp"
-                android:textStyle="bold"
-                android:layout_marginTop="4dp"
-                app:layout_constraintTop_toBottomOf="@id/layoutDate"
-                app:layout_constraintStart_toStartOf="parent" />
-
-            <!-- Ubicación -->
+            <!-- Ubicación con diseño mejorado -->
             <LinearLayout
                 android:id="@+id/layoutLocation"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
-                android:layout_marginTop="4dp"
-                app:layout_constraintTop_toBottomOf="@id/tvPrice"
+                android:layout_marginTop="12dp"
+                android:gravity="center_vertical"
+                app:layout_constraintTop_toBottomOf="@id/layoutDate"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintEnd_toEndOf="parent">
 
-                <ImageView
-                    android:id="@+id/ivLocationIcon"
-                    android:layout_width="16dp"
-                    android:layout_height="16dp"
-                    android:src="@drawable/ic_location" />
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    app:cardCornerRadius="8dp"
+                    app:cardBackgroundColor="#F5F5F5"
+                    app:cardElevation="0dp">
+
+                    <ImageView
+                        android:id="@+id/ivLocationIcon"
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:layout_gravity="center"
+                        android:src="@drawable/ic_location"
+                        app:tint="#666666" />
+                </com.google.android.material.card.MaterialCardView>
 
                 <TextView
                     android:id="@+id/tvLocation"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="4dp"
+                    android:layout_marginStart="8dp"
                     android:text="Chachapoyas, Gocta, Amazonas"
-                    android:textColor="@android:color/darker_gray"
-                    android:textSize="12sp"
+                    android:textColor="#666666"
+                    android:textSize="13sp"
                     android:maxLines="1"
-                    android:ellipsize="end" />
+                    android:ellipsize="end"
+                    android:fontFamily="sans-serif" />
             </LinearLayout>
 
+            <!-- Contenedor de información de precio y acciones -->
+            <!-- Contenedor de información de precio y acciones -->
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/priceContainer"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:paddingVertical="12dp"
+                android:paddingHorizontal="16dp"
+            android:background="@drawable/bg_price_container"
+            app:layout_constraintTop_toBottomOf="@id/layoutLocation"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent">
+
+            <!-- Contenedor para el precio -->
+            <LinearLayout
+                android:id="@+id/priceLayout"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent">
+
+                <TextView
+                    android:id="@+id/tvPriceLabel"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Precio total"
+                    android:textColor="#757575"
+                    android:textSize="12sp" />
+
+                <TextView
+                    android:id="@+id/tvPrice"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="S/900"
+                    android:textColor="#FF5722"
+                    android:textSize="20sp"
+                    android:textStyle="bold"
+                    android:fontFamily="sans-serif-medium" />
+            </LinearLayout>
+
+            <!-- Botón de acceso principal (adaptable según el estado) -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnAction"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Detalles"
+                android:textColor="#FFFFFF"
+                android:textSize="12sp"
+                android:paddingHorizontal="16dp"
+                android:paddingVertical="8dp"
+                app:cornerRadius="20dp"
+                app:backgroundTint="#FF5722"
+                android:minHeight="0dp"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent" />
         </androidx.constraintlayout.widget.ConstraintLayout>
 
-    </androidx.constraintlayout.widget.ConstraintLayout>
+            <!-- Información adicional condicionalmente visible según el estado -->
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/additionalInfoContainer"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:visibility="gone"
+                app:layout_constraintTop_toBottomOf="@id/priceContainer"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent">
 
+                <!-- Este contenedor puede mostrar información específica según el estado:
+                     - Para próximas: Tiempo restante para check-in
+                     - Para actuales: Servicios adicionales solicitados
+                     - Para checkout: Total estimado y desglose
+                     - Para completadas: Resumen y factura final -->
+
+                <TextView
+                    android:id="@+id/tvAdditionalInfoTitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Información adicional"
+                    android:textColor="#666666"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintStart_toStartOf="parent" />
+
+                <TextView
+                    android:id="@+id/tvAdditionalInfo"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text="Contenido específico según estado"
+                    android:textColor="#666666"
+                    android:textSize="13sp"
+                    app:layout_constraintTop_toBottomOf="@id/tvAdditionalInfoTitle"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent" />
+            </androidx.constraintlayout.widget.ConstraintLayout>
+        </androidx.constraintlayout.widget.ConstraintLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
 </androidx.cardview.widget.CardView>

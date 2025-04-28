@@ -4,7 +4,7 @@
 
     <!-- Descripción del ícono de notificación, útil para accesibilidad -->
     <string name="notification_desc">Icono de notificaciones</string>
-    <string name="star_icon_desc" />
+
     <string name="google_maps_api_key" />
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
@@ -12,4 +12,27 @@
     <string name="sales_report" />
     <string name="users" />
     <string name="search_user" />
+
+    <!-- Textos relacionados con reservas -->
+    <string name="status_active">Activo</string>
+    <string name="status_in_progress">En curso</string>
+    <string name="status_checkout">En checkout</string>
+    <string name="status_completed">Completado</string>
+    <string name="status_cancelled">Cancelado</string>
+
+    <string name="payment_registered">Tarjeta registrada</string>
+    <string name="payment_processing">Procesando pago</string>
+    <string name="payment_completed">Pago completado</string>
+
+    <string name="total_price">Precio total</string>
+    <string name="view_details">Detalles</string>
+
+    <!-- Descripciones de accesibilidad -->
+    <string name="hotel_image_description">Imagen del hotel</string>
+    <string name="star_icon_desc">Ícono de estrella para calificación</string>
+    <string name="calendar_icon_desc">Ícono de calendario</string>
+    <string name="location_icon_desc">Ícono de ubicación</string>
+    <string name="info_icon_desc">Ícono de información de estancia</string>
+    <string name="new_reservation" />
+
 </resources>

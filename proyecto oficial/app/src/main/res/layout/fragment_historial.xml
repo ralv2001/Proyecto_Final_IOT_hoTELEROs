@@ -36,7 +36,7 @@
             android:id="@+id/tvHistorialSubtitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Revisa tus reservas activas, pasadas y en checkout"
+            android:text="Gestiona tus reservas próximas, actuales y pasadas"
             android:textSize="16sp"
             android:textColor="@android:color/darker_gray"
             android:fontFamily="@font/inter_regular"
@@ -44,7 +44,7 @@
             app:layout_constraintStart_toStartOf="parent"
             android:layout_marginTop="8dp"/>
 
-        <!-- Tabs de estados -->
+        <!-- Tabs de estados mejorados -->
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/tabsContainer"
             android:layout_width="match_parent"
@@ -65,11 +65,11 @@
                 android:padding="4dp">
 
                 <TextView
-                    android:id="@+id/tabActivos"
+                    android:id="@+id/tabProximas"
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
                     android:layout_weight="1"
-                    android:text="Activos"
+                    android:text="Próximas"
                     android:gravity="center"
                     android:textSize="14sp"
                     android:textStyle="bold"
@@ -78,11 +78,11 @@
                     android:elevation="2dp"/>
 
                 <TextView
-                    android:id="@+id/tabPasados"
+                    android:id="@+id/tabActuales"
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
                     android:layout_weight="1"
-                    android:text="Pasados"
+                    android:text="Actuales"
                     android:gravity="center"
                     android:textSize="14sp"
                     android:textColor="@android:color/darker_gray"
@@ -93,7 +93,18 @@
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
                     android:layout_weight="1"
-                    android:text="Checkout"
+                    android:text="En Checkout"
+                    android:gravity="center"
+                    android:textSize="14sp"
+                    android:textColor="@android:color/darker_gray"
+                    android:background="@android:color/transparent"/>
+
+                <TextView
+                    android:id="@+id/tabCompletadas"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:text="Completadas"
                     android:gravity="center"
                     android:textSize="14sp"
                     android:textColor="@android:color/darker_gray"
@@ -112,47 +123,45 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent">
 
-            <!-- Vista para Activos -->
-            <androidx.core.widget.NestedScrollView
+            <!-- Vista para Próximas -->
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/recyclerProximas"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent">
+                android:layout_height="match_parent"
+                tools:listitem="@layout/item_reservation_card"/>
 
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical">
-
-                    <!-- Primera reserva activa -->
-                    <include layout="@layout/item_reservation_card" />
-
-                    <!-- Segunda reserva activa -->
-                    <include layout="@layout/item_reservation_card" />
-                </LinearLayout>
-            </androidx.core.widget.NestedScrollView>
-
-            <!-- Vista para Pasados -->
-            <androidx.core.widget.NestedScrollView
+            <!-- Vista para Actuales -->
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/recyclerActuales"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent">
+                android:layout_height="match_parent"
+                tools:listitem="@layout/item_reservation_card"/>
 
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical">
+            <!-- Vista para En Checkout -->
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/recyclerCheckout"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                tools:listitem="@layout/item_reservation_card"/>
 
-                    <!-- Reserva pasada -->
-                    <include layout="@layout/item_reservation_card" />
-                </LinearLayout>
-            </androidx.core.widget.NestedScrollView>
+            <!-- Vista para Completadas -->
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/recyclerCompletadas"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                tools:listitem="@layout/item_reservation_card"/>
 
-            <!-- Vista para Checkout (sin reservas) -->
+            <!-- Vista de estado vacío (se mostrará mediante lógica cuando una lista esté vacía) -->
             <LinearLayout
+                android:id="@+id/emptyStateView"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:gravity="center"
-                android:orientation="vertical">
+                android:orientation="vertical"
+                android:visibility="gone">
 
                 <ImageView
+                    android:id="@+id/ivEmptyState"
                     android:layout_width="120dp"
                     android:layout_height="120dp"
                     android:src="@drawable/ic_booking"
@@ -160,17 +169,19 @@
                     android:layout_marginBottom="24dp"/>
 
                 <TextView
+                    android:id="@+id/tvEmptyStateTitle"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="No tienes reservas en checkout"
+                    android:text="No tienes reservas en esta categoría"
                     android:textSize="18sp"
                     android:textStyle="bold"
                     android:textColor="@android:color/black"/>
 
                 <TextView
+                    android:id="@+id/tvEmptyStateMessage"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Las reservas en proceso de checkout aparecerán aquí"
+                    android:text="Las reservas aparecerán aquí cuando las tengas"
                     android:textSize="16sp"
                     android:textColor="@android:color/darker_gray"
                     android:layout_marginTop="8dp"
@@ -178,7 +189,6 @@
                     android:paddingHorizontal="32dp"/>
             </LinearLayout>
         </ViewFlipper>
-
     </androidx.constraintlayout.widget.ConstraintLayout>
 
     <!-- Incluimos la barra de navegación inferior -->
@@ -190,5 +200,4 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
-
 </androidx.constraintlayout.widget.ConstraintLayout>
