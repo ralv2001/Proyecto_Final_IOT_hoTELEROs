@@ -12,6 +12,7 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import com.example.proyecto_final_hoteleros.superadmin.SuperadminActivity;
 import com.google.android.material.button.MaterialButton;
 
 public class MainActivity extends AppCompatActivity {
@@ -56,6 +57,19 @@ public class MainActivity extends AppCompatActivity {
 
                 // Iniciar la HomeActivity que contiene el contenedor de fragmentos
                 Intent intent = new Intent(MainActivity.this, HomeActivity.class);
+                startActivity(intent);
+            }
+        });
+
+        // Configuración de "Continuar como superadmin"
+        LinearLayout layoutContinueAsSuperadmin = findViewById(R.id.layoutContinueAsSuperadmin);
+        layoutContinueAsSuperadmin.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Toast.makeText(MainActivity.this, "Continuando como superadmin...", Toast.LENGTH_SHORT).show();
+
+                // Iniciar la HomeActivity que contiene el contenedor de fragmentos
+                Intent intent = new Intent(MainActivity.this, SuperadminActivity.class);
                 startActivity(intent);
             }
         });
