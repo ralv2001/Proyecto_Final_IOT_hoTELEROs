@@ -1,12 +1,6 @@
 package com.example.proyecto_final_hoteleros.client.model;
 
 public class Message {
-
-    public enum MessageType {
-        USER,
-        HOTEL
-    }
-
     private String id;
     private String senderId;
     private String receiverId;
@@ -14,11 +8,12 @@ public class Message {
     private long timestamp;
     private MessageType type;
 
-    // Constructor vacío para Firebase
-    public Message() {
+    // Enum for message type
+    public enum MessageType {
+        USER, HOTEL
     }
 
-    // Constructor para uso local
+    // Constructor
     public Message(String id, String senderId, String receiverId, String text, long timestamp, MessageType type) {
         this.id = id;
         this.senderId = senderId;
@@ -28,7 +23,7 @@ public class Message {
         this.type = type;
     }
 
-    // Getters y setters
+    // Getters and setters
     public String getId() {
         return id;
     }
@@ -54,7 +49,7 @@ public class Message {
     }
 
     public String getText() {
-        return text;
+        return text != null ? text : "";
     }
 
     public void setText(String text) {

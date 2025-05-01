@@ -1,44 +1,35 @@
 package com.example.proyecto_final_hoteleros.client.model;
 
 public class ChatSummary {
-    public enum ChatStatus {
-        AVAILABLE,    // Chat disponible para iniciar
-        ACTIVE,       // Chat activo
-        FINISHED      // Chat finalizado
-    }
-
     private String id;
     private String hotelId;
     private String hotelName;
-    private String hotelImageUrl;
     private String reservationId;
     private String reservationDates;
     private String lastMessage;
-    private long lastMessageTimestamp;
-    private int unreadCount;
+    private String hotelImageUrl;
     private ChatStatus status;
 
-    // Constructor vacío para Firebase
-    public ChatSummary() {
+    // Enum for chat status
+    public enum ChatStatus {
+        AVAILABLE, ACTIVE, FINISHED
     }
 
-    // Constructor para uso local
-    public ChatSummary(String id, String hotelId, String hotelName, String reservationId,
-                       String reservationDates, ChatStatus status) {
+    // Constructor
+    public ChatSummary(String id, String hotelId, String hotelName,
+                       String reservationId, String reservationDates,
+                       ChatStatus status) {
         this.id = id;
         this.hotelId = hotelId;
         this.hotelName = hotelName;
         this.reservationId = reservationId;
         this.reservationDates = reservationDates;
         this.status = status;
-        this.lastMessage = "";
-        this.lastMessageTimestamp = System.currentTimeMillis();
-        this.unreadCount = 0;
     }
 
-    // Getters y setters
+    // Getters and setters
     public String getId() {
-        return id;
+        return id != null ? id : "";
     }
 
     public void setId(String id) {
@@ -46,7 +37,7 @@ public class ChatSummary {
     }
 
     public String getHotelId() {
-        return hotelId;
+        return hotelId != null ? hotelId : "";
     }
 
     public void setHotelId(String hotelId) {
@@ -54,23 +45,15 @@ public class ChatSummary {
     }
 
     public String getHotelName() {
-        return hotelName;
+        return hotelName != null ? hotelName : "Hotel";
     }
 
     public void setHotelName(String hotelName) {
         this.hotelName = hotelName;
     }
 
-    public String getHotelImageUrl() {
-        return hotelImageUrl;
-    }
-
-    public void setHotelImageUrl(String hotelImageUrl) {
-        this.hotelImageUrl = hotelImageUrl;
-    }
-
     public String getReservationId() {
-        return reservationId;
+        return reservationId != null ? reservationId : "";
     }
 
     public void setReservationId(String reservationId) {
@@ -78,7 +61,7 @@ public class ChatSummary {
     }
 
     public String getReservationDates() {
-        return reservationDates;
+        return reservationDates != null ? reservationDates : "";
     }
 
     public void setReservationDates(String reservationDates) {
@@ -93,24 +76,16 @@ public class ChatSummary {
         this.lastMessage = lastMessage;
     }
 
-    public long getLastMessageTimestamp() {
-        return lastMessageTimestamp;
+    public String getHotelImageUrl() {
+        return hotelImageUrl;
     }
 
-    public void setLastMessageTimestamp(long lastMessageTimestamp) {
-        this.lastMessageTimestamp = lastMessageTimestamp;
-    }
-
-    public int getUnreadCount() {
-        return unreadCount;
-    }
-
-    public void setUnreadCount(int unreadCount) {
-        this.unreadCount = unreadCount;
+    public void setHotelImageUrl(String hotelImageUrl) {
+        this.hotelImageUrl = hotelImageUrl;
     }
 
     public ChatStatus getStatus() {
-        return status;
+        return status != null ? status : ChatStatus.AVAILABLE;
     }
 
     public void setStatus(ChatStatus status) {

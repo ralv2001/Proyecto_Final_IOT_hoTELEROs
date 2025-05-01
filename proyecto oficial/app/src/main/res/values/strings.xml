@@ -34,5 +34,6 @@
     <string name="location_icon_desc">Ícono de ubicación</string>
     <string name="info_icon_desc">Ícono de información de estancia</string>
     <string name="new_reservation" />
+    <string name="iniciar_chat">Iniciar chat</string>
 
 </resources>

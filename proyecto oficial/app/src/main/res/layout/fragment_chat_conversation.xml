@@ -5,14 +5,15 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@android:color/white">
+    android:background="@drawable/bg_chat_conversation">
 
-    <!-- Toolbar -->
+    <!-- Toolbar mejorado -->
     <androidx.appcompat.widget.Toolbar
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
         android:background="@color/orange"
+        android:elevation="4dp"
         app:layout_constraintTop_toTopOf="parent">
 
         <androidx.constraintlayout.widget.ConstraintLayout
@@ -29,26 +30,60 @@
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:tint="@android:color/white"/>
 
-            <TextView
-                android:id="@+id/tvHotelName"
+            <de.hdodenhof.circleimageview.CircleImageView
+                android:id="@+id/ivHotelImage"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:src="@drawable/ic_hotel_avatar"
+                android:layout_marginStart="16dp"
+                app:layout_constraintStart_toEndOf="@id/ivBack"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent" />
+
+            <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:text="Hotel Name"
-                android:textColor="@android:color/white"
-                android:textSize="18sp"
-                android:textStyle="bold"
-                android:fontFamily="@font/poppins_medium"
-                android:layout_marginStart="16dp"
+                android:orientation="vertical"
+                android:layout_marginStart="12dp"
                 android:layout_marginEnd="16dp"
-                android:ellipsize="end"
-                android:maxLines="1"
-                app:layout_constraintStart_toEndOf="@id/ivBack"
+                app:layout_constraintStart_toEndOf="@id/ivHotelImage"
+                app:layout_constraintEnd_toStartOf="@id/ivHotelInfo"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent">
+
+                <TextView
+                    android:id="@+id/tvHotelName"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Hotel Name"
+                    android:textColor="@android:color/white"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:fontFamily="@font/poppins_medium"
+                    android:ellipsize="end"
+                    android:maxLines="1" />
+
+                <TextView
+                    android:id="@+id/tvHotelStatus"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="En línea"
+                    android:textColor="#E0E0E0"
+                    android:textSize="12sp"
+                    android:fontFamily="@font/inter_regular" />
+            </LinearLayout>
+
+            <ImageView
+                android:id="@+id/ivHotelInfo"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@drawable/ic_info"
+                android:layout_marginEnd="16dp"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintBottom_toBottomOf="parent"/>
-
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:tint="@android:color/white"/>
         </androidx.constraintlayout.widget.ConstraintLayout>
-
     </androidx.appcompat.widget.Toolbar>
 
     <!-- Empty state view -->
@@ -72,9 +107,10 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="No hay mensajes aún"
-            android:textSize="16sp"
+            android:textSize="18sp"
             android:textColor="#9E9E9E"
-            android:layout_marginTop="16dp"/>
+            android:fontFamily="@font/poppins_medium"
+            android:layout_marginTop="24dp"/>
 
         <TextView
             android:layout_width="wrap_content"
@@ -82,9 +118,39 @@
             android:text="Envía un mensaje para iniciar la conversación"
             android:textSize="14sp"
             android:textColor="#BDBDBD"
-            android:layout_marginTop="8dp"/>
+            android:fontFamily="@font/inter_regular"
+            android:layout_marginTop="8dp"
+            android:layout_marginStart="32dp"
+            android:layout_marginEnd="32dp"
+            android:textAlignment="center"/>
 
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/btnStartChat"
+            android:layout_width="200dp"
+            android:layout_height="wrap_content"
+            android:text="Iniciar conversación"
+            android:background="@drawable/bg_button_primary"
+            android:textColor="@android:color/white"
+            android:layout_marginTop="24dp"
+            android:paddingStart="24dp"
+            android:paddingEnd="24dp"/>
     </LinearLayout>
+
+    <!-- Typing indicator -->
+    <TextView
+        android:id="@+id/tvTypingIndicator"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="El hotel está escribiendo..."
+        android:textSize="12sp"
+        android:textColor="#9E9E9E"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:paddingTop="8dp"
+        android:paddingBottom="8dp"
+        android:visibility="gone"
+        app:layout_constraintBottom_toTopOf="@id/chatInputLayout"
+        app:layout_constraintStart_toStartOf="parent" />
 
     <!-- Messages list -->
     <androidx.recyclerview.widget.RecyclerView
@@ -94,34 +160,51 @@
         android:padding="16dp"
         android:clipToPadding="false"
         app:layout_constraintTop_toBottomOf="@id/toolbar"
-        app:layout_constraintBottom_toTopOf="@id/chatInputLayout"
-        tools:listitem="@layout/item_message"/>
+        app:layout_constraintBottom_toTopOf="@id/tvTypingIndicator"
+        tools:listitem="@layout/item_message_user"/>
 
-    <!-- Input layout -->
+    <!-- Input layout mejorado -->
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/chatInputLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="@drawable/bg_chat_input"
-        android:paddingStart="16dp"
+        android:paddingStart="8dp"
         android:paddingEnd="8dp"
-        android:paddingTop="8dp"
-        android:paddingBottom="8dp"
+        android:paddingTop="12dp"
+        android:paddingBottom="12dp"
         android:elevation="8dp"
         app:layout_constraintBottom_toBottomOf="parent">
+
+        <ImageButton
+            android:id="@+id/btnAttach"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:src="@drawable/ic_attach"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:tint="#9E9E9E" />
 
         <EditText
             android:id="@+id/etMessage"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:background="@android:color/transparent"
+            android:background="@drawable/bg_message_input"
             android:hint="Escribe un mensaje..."
             android:textSize="14sp"
-            android:minHeight="36dp"
+            android:minHeight="40dp"
             android:maxLines="4"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            android:paddingTop="8dp"
+            android:paddingBottom="8dp"
+            android:layout_marginStart="8dp"
+            android:layout_marginEnd="8dp"
             android:inputType="textMultiLine"
             android:fontFamily="@font/inter_regular"
-            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintStart_toEndOf="@id/btnAttach"
             app:layout_constraintEnd_toStartOf="@id/btnSend"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintBottom_toBottomOf="parent"/>
@@ -130,14 +213,11 @@
             android:id="@+id/btnSend"
             android:layout_width="40dp"
             android:layout_height="40dp"
-            android:layout_marginStart="8dp"
             android:background="@drawable/bg_circle_button"
             android:src="@drawable/ic_send"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintBottom_toBottomOf="parent"
             app:tint="@android:color/white" />
-
     </androidx.constraintlayout.widget.ConstraintLayout>
-
 </androidx.constraintlayout.widget.ConstraintLayout>

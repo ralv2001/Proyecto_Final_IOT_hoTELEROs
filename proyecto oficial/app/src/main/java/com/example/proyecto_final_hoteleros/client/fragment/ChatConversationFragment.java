@@ -1,6 +1,7 @@
 package com.example.proyecto_final_hoteleros.client.fragment;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -43,46 +44,116 @@ public class ChatConversationFragment extends Fragment {
     private MessageAdapter messageAdapter;
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-        View rootView = inflater.inflate(R.layout.fragment_chat_conversation, container, false);
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        View rootView = null;
+        try {
+            // Inflate the layout first
+            rootView = inflater.inflate(R.layout.fragment_chat_conversation, container, false);
 
-        // Extract arguments
-        if (getArguments() != null) {
-            chatId = getArguments().getString("chat_id");
-            hotelId = getArguments().getString("hotel_id");
-            hotelName = getArguments().getString("hotel_name");
+            // Extract arguments safely
+            if (getArguments() != null) {
+                chatId = getArguments().getString("chat_id", "");
+                hotelId = getArguments().getString("hotel_id", "");
+                hotelName = getArguments().getString("hotel_name", "Hotel");
+
+                // Log received arguments
+                Log.d("ChatConversationFragment", "Received arguments - chatId: " + chatId
+                        + ", hotelId: " + hotelId + ", hotelName: " + hotelName);
+            } else {
+                Log.e("ChatConversationFragment", "No arguments received");
+                // Set default values
+                chatId = "";
+                hotelId = "";
+                hotelName = "Hotel";
+            }
+
+            // Initialize views
+            initViews(rootView);
+
+            // Setup toolbar with valid hotel name
+            setupToolbar(hotelName != null ? hotelName : "Hotel");
+
+            // Setup message list
+            setupMessageList();
+
+            // Load messages based on valid chatId
+            if (chatId != null && !chatId.isEmpty()) {
+                loadMessages();
+            } else {
+                Log.e("ChatConversationFragment", "Invalid chatId, showing empty state");
+                // Show empty state
+                if (emptyStateView != null && rvMessages != null) {
+                    rvMessages.setVisibility(View.GONE);
+                    emptyStateView.setVisibility(View.VISIBLE);
+                }
+            }
+        } catch (Exception e) {
+            Log.e("ChatConversationFragment", "Error in onCreateView: " + e.getMessage());
+            e.printStackTrace();
+
+            // Still need to return a view even if there's an error
+            if (rootView == null && inflater != null && container != null) {
+                rootView = inflater.inflate(R.layout.fragment_chat_conversation, container, false);
+            }
         }
-
-        // Initialize views
-        initViews(rootView);
-
-        // Setup toolbar
-        setupToolbar(hotelName);
-
-        // Setup message list
-        setupMessageList();
-
-        // Load messages
-        loadMessages();
 
         return rootView;
     }
 
+
     private void initViews(View rootView) {
-        toolbar = rootView.findViewById(R.id.toolbar);
-        tvHotelName = rootView.findViewById(R.id.tvHotelName);
-        ivBack = rootView.findViewById(R.id.ivBack);
-        rvMessages = rootView.findViewById(R.id.rvMessages);
-        etMessage = rootView.findViewById(R.id.etMessage);
-        btnSend = rootView.findViewById(R.id.btnSend);
-        emptyStateView = rootView.findViewById(R.id.emptyStateView);
+        try {
+            toolbar = rootView.findViewById(R.id.toolbar);
+            tvHotelName = rootView.findViewById(R.id.tvHotelName);
+            ivBack = rootView.findViewById(R.id.ivBack);
+            rvMessages = rootView.findViewById(R.id.rvMessages);
+            etMessage = rootView.findViewById(R.id.etMessage);
+            btnSend = rootView.findViewById(R.id.btnSend);
+            emptyStateView = rootView.findViewById(R.id.emptyStateView);
 
-        // Set up back button
-        ivBack.setOnClickListener(v -> requireActivity().getSupportFragmentManager().popBackStack());
+            // Check for null views
+            if (ivBack == null) {
+                Log.e("ChatConversationFragment", "ivBack is null");
+            } else {
+                // Set up back button with error handling
+                ivBack.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        try {
+                            if (getActivity() != null && getActivity().getSupportFragmentManager() != null) {
+                                getActivity().getSupportFragmentManager().popBackStack();
+                            } else {
+                                Log.e("ChatConversationFragment", "Cannot pop back stack - activity or fragmentManager is null");
+                            }
+                        } catch (Exception e) {
+                            Log.e("ChatConversationFragment", "Error in back button: " + e.getMessage());
+                        }
+                    }
+                });
+            }
 
-        // Set up send button
-        btnSend.setOnClickListener(v -> sendMessage());
+            // Set up send button with error handling
+            if (btnSend != null) {
+                btnSend.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        try {
+                            sendMessage();
+                        } catch (Exception e) {
+                            Log.e("ChatConversationFragment", "Error sending message: " + e.getMessage());
+                            if (getContext() != null) {
+                                Toast.makeText(getContext(), "Error al enviar mensaje", Toast.LENGTH_SHORT).show();
+                            }
+                        }
+                    }
+                });
+            } else {
+                Log.e("ChatConversationFragment", "btnSend is null");
+            }
+        } catch (Exception e) {
+            Log.e("ChatConversationFragment", "Error in initViews: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 
     private void setupToolbar(String hotelName) {

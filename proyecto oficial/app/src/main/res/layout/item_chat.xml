@@ -7,7 +7,10 @@
     android:layout_height="wrap_content"
     app:cardCornerRadius="8dp"
     app:cardElevation="2dp"
-    android:layout_marginBottom="8dp">
+    android:layout_marginBottom="8dp"
+    android:clickable="true"
+    android:focusable="true"
+    android:foreground="?android:attr/selectableItemBackground">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
@@ -75,14 +78,17 @@
         <Button
             android:id="@+id/btnChatAction"
             android:layout_width="wrap_content"
-            android:layout_height="36dp"
-            android:background="@drawable/bg_button_chat"
-            android:text="Iniciar chat"
+            android:layout_height="48dp"
+            android:background="@drawable/bg_button_primary"
+            android:text="@string/iniciar_chat"
             android:textAllCaps="false"
             android:textSize="12sp"
             android:textColor="@android:color/white"
             android:paddingStart="12dp"
             android:paddingEnd="12dp"
+            android:clickable="true"
+            android:focusable="true"
+            android:elevation="2dp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintBottom_toBottomOf="parent"/>

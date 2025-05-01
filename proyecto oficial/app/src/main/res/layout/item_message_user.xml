@@ -62,6 +62,26 @@
             app:layout_constraintEnd_toEndOf="parent"
             tools:text="12:30"/>
 
-    </androidx.constraintlayout.widget.ConstraintLayout>
+        <!-- Message status indicators for user messages -->
+        <LinearLayout
+            android:id="@+id/messageStatusContainer"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            app:layout_constraintTop_toBottomOf="@id/tvMessageText"
+            app:layout_constraintBottom_toBottomOf="@id/tvTime"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/tvTime"
+            android:layout_marginEnd="8dp">
 
+            <ImageView
+                android:id="@+id/ivMessageStatus"
+                android:layout_width="14dp"
+                android:layout_height="14dp"
+                android:src="@drawable/ic_message_sent"
+                app:tint="#FFFFFF" />
+
+        </LinearLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>

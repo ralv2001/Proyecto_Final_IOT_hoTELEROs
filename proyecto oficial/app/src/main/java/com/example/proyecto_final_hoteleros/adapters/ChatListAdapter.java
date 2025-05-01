@@ -6,24 +6,25 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
+import android.util.Log;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
-import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.proyecto_final_hoteleros.R;
 import com.example.proyecto_final_hoteleros.client.model.ChatSummary;
+import com.bumptech.glide.Glide;
+import de.hdodenhof.circleimageview.CircleImageView;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import de.hdodenhof.circleimageview.CircleImageView;
-
 public class ChatListAdapter extends RecyclerView.Adapter<ChatListAdapter.ChatViewHolder> {
-
-    private final Context context;
-    private final List<ChatSummary> chatList;
-    private final OnChatClickListener listener;
+    private static final String TAG = "ChatListAdapter";
+    private Context context;
+    private List<ChatSummary> chatList;
+    private OnChatClickListener listener;
 
     public interface OnChatClickListener {
         void onChatClick(ChatSummary chat);
@@ -33,28 +34,28 @@ public class ChatListAdapter extends RecyclerView.Adapter<ChatListAdapter.ChatVi
         this.context = context;
         this.chatList = new ArrayList<>();
         this.listener = listener;
+        Log.d(TAG, "ChatListAdapter initialized with listener: " + (listener != null));
     }
 
-    public void setChatList(List<ChatSummary> chats) {
-        chatList.clear();
-        if (chats != null) {
-            chatList.addAll(chats);
-        }
+    public void setChatList(List<ChatSummary> chatList) {
+        this.chatList = chatList;
         notifyDataSetChanged();
+        Log.d(TAG, "ChatList updated with " + chatList.size() + " items");
     }
 
     @NonNull
     @Override
     public ChatViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(parent.getContext())
-                .inflate(R.layout.item_chat, parent, false);
+        View view = LayoutInflater.from(context).inflate(R.layout.item_chat, parent, false);
+        Log.d(TAG, "Creating new ChatViewHolder");
         return new ChatViewHolder(view);
     }
 
     @Override
     public void onBindViewHolder(@NonNull ChatViewHolder holder, int position) {
         ChatSummary chat = chatList.get(position);
-        holder.bind(chat);
+        holder.bind(chat, position);
+        Log.d(TAG, "Binding chat at position " + position + ": " + chat.getHotelName());
     }
 
     @Override
@@ -63,65 +64,139 @@ public class ChatListAdapter extends RecyclerView.Adapter<ChatListAdapter.ChatVi
     }
 
     class ChatViewHolder extends RecyclerView.ViewHolder {
-        CircleImageView ivHotelLogo;
-        TextView tvHotelName, tvReservationInfo, tvLastMessage;
-        Button btnChatAction;
+        private CircleImageView ivHotelLogo;
+        private TextView tvHotelName;
+        private TextView tvReservationInfo;
+        private TextView tvLastMessage;
+        private Button btnChatAction;
 
-        ChatViewHolder(View itemView) {
+        public ChatViewHolder(@NonNull View itemView) {
             super(itemView);
             ivHotelLogo = itemView.findViewById(R.id.ivHotelLogo);
             tvHotelName = itemView.findViewById(R.id.tvHotelName);
             tvReservationInfo = itemView.findViewById(R.id.tvReservationInfo);
             tvLastMessage = itemView.findViewById(R.id.tvLastMessage);
             btnChatAction = itemView.findViewById(R.id.btnChatAction);
+
+            // Improved debugging for button setup
+            if (btnChatAction == null) {
+                Log.e(TAG, "btnChatAction is null!");
+            } else {
+                Log.d(TAG, "btnChatAction found successfully");
+            }
+
+            // Set click listener for the whole item
+            itemView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    handleItemClick();
+                }
+            });
         }
 
-        void bind(ChatSummary chat) {
-            tvHotelName.setText(chat.getHotelName());
-            tvReservationInfo.setText("Reserva #" + chat.getReservationId() + " • " + chat.getReservationDates());
-
-            // Configurar el último mensaje si existe
-            if (chat.getLastMessage() != null && !chat.getLastMessage().isEmpty()) {
-                tvLastMessage.setText(chat.getLastMessage());
-                tvLastMessage.setVisibility(View.VISIBLE);
+        private void handleItemClick() {
+            int position = getAdapterPosition();
+            if (position != RecyclerView.NO_POSITION && listener != null) {
+                Log.d(TAG, "Item clicked at position: " + position);
+                listener.onChatClick(chatList.get(position));
             } else {
-                tvLastMessage.setVisibility(View.GONE);
+                Log.e(TAG, "Click ignored - position: " + position + ", listener: " + (listener != null));
+            }
+        }
+
+        public void bind(ChatSummary chat, int position) {
+            // Set hotel name
+            tvHotelName.setText(chat.getHotelName());
+
+            // Set reservation info
+            String reservationInfo = "Reserva #" + chat.getReservationId() + " • " + chat.getReservationDates();
+            tvReservationInfo.setText(reservationInfo);
+
+            // Set hotel image
+            if (chat.getHotelImageUrl() != null && !chat.getHotelImageUrl().isEmpty()) {
+                Glide.with(context)
+                        .load(chat.getHotelImageUrl())
+                        .placeholder(R.drawable.ic_hotel_avatar)
+                        .error(R.drawable.ic_hotel_avatar)
+                        .into(ivHotelLogo);
+            } else {
+                ivHotelLogo.setImageResource(R.drawable.ic_hotel_avatar);
             }
 
-            // Cargar imagen del hotel
-            // Si usas Glide:
-            // Glide.with(context).load(chat.getHotelImageUrl()).placeholder(R.drawable.default_profile).into(ivHotelLogo);
-
-            // Configurar botón según el estado del chat
+            // Set last message and button based on chat status
             switch (chat.getStatus()) {
                 case AVAILABLE:
+                    tvLastMessage.setText("No hay mensajes");
+                    tvLastMessage.setVisibility(View.VISIBLE);
                     btnChatAction.setText("Iniciar chat");
-                    btnChatAction.setBackgroundResource(R.drawable.bg_button_chat);
-                    btnChatAction.setTextColor(ContextCompat.getColor(context, android.R.color.white));
+                    btnChatAction.setEnabled(true);
                     break;
                 case ACTIVE:
+                    if (chat.getLastMessage() != null && !chat.getLastMessage().isEmpty()) {
+                        tvLastMessage.setText(chat.getLastMessage());
+                        tvLastMessage.setVisibility(View.VISIBLE);
+                    } else {
+                        tvLastMessage.setText("No hay mensajes");
+                        tvLastMessage.setVisibility(View.VISIBLE);
+                    }
                     btnChatAction.setText("Continuar");
-                    btnChatAction.setBackgroundResource(R.drawable.bg_button_chat);
-                    btnChatAction.setTextColor(ContextCompat.getColor(context, android.R.color.white));
+                    btnChatAction.setEnabled(true);
                     break;
                 case FINISHED:
-                    btnChatAction.setText("Chat finalizado");
-                    btnChatAction.setBackgroundResource(R.drawable.bg_button_chat_disabled);
-                    btnChatAction.setTextColor(ContextCompat.getColor(context, android.R.color.darker_gray));
+                    if (chat.getLastMessage() != null && !chat.getLastMessage().isEmpty()) {
+                        tvLastMessage.setText(chat.getLastMessage());
+                        tvLastMessage.setVisibility(View.VISIBLE);
+                    } else {
+                        tvLastMessage.setText("Chat finalizado");
+                        tvLastMessage.setVisibility(View.VISIBLE);
+                    }
+                    btnChatAction.setText("Ver");
+                    btnChatAction.setEnabled(true);
                     break;
             }
 
-            // Configurar click listener
-            btnChatAction.setOnClickListener(v -> {
-                if (chat.getStatus() != ChatSummary.ChatStatus.FINISHED) {
-                    listener.onChatClick(chat);
+            // IMPORTANT: Make sure the button is visible, clickable, and has proper OnClickListener
+            btnChatAction.setVisibility(View.VISIBLE);
+            btnChatAction.setClickable(true);
+            btnChatAction.setFocusable(true);
+
+            // FIXED: Use a final copy of the position for the listener
+            final int currentPos = position;
+
+            // Clear any existing click listeners (to avoid duplicates)
+            btnChatAction.setOnClickListener(null);
+
+            // Add a new click listener for the button with improved error handling
+            btnChatAction.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    try {
+                        Log.d(TAG, "Button clicked for chat: " + chat.getHotelName() + " at position: " + currentPos);
+                        if (listener != null) {
+                            // Remove toast to prevent UI delays
+                            listener.onChatClick(chat);
+                        } else {
+                            Log.e(TAG, "Listener is null when button clicked");
+                        }
+                    } catch (Exception e) {
+                        Log.e(TAG, "Error in button click: " + e.getMessage());
+                        e.printStackTrace();
+                    }
                 }
             });
 
-            // Click en toda la tarjeta para chats activos
-            itemView.setOnClickListener(v -> {
-                if (chat.getStatus() != ChatSummary.ChatStatus.FINISHED) {
-                    listener.onChatClick(chat);
+            // Also set click listener on the entire view for redundancy
+            itemView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    try {
+                        if (listener != null) {
+                            listener.onChatClick(chat);
+                        }
+                    } catch (Exception e) {
+                        Log.e(TAG, "Error in item click: " + e.getMessage());
+                        e.printStackTrace();
+                    }
                 }
             });
         }
