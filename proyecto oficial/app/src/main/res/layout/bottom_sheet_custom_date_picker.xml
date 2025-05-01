@@ -142,10 +142,10 @@
     <GridView
         android:id="@+id/calendarGridView"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="240dp"
         android:numColumns="7"
-        android:verticalSpacing="8dp"
-        android:horizontalSpacing="8dp"
+        android:verticalSpacing="0dp"
+        android:horizontalSpacing="0dp"
         android:layout_marginBottom="16dp"/>
 
     <!-- Resumen de selección -->

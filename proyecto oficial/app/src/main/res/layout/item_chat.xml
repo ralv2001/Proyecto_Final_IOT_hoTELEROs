@@ -21,7 +21,7 @@
             android:id="@+id/ivHotelLogo"
             android:layout_width="50dp"
             android:layout_height="50dp"
-            android:src="@drawable/default_profile"
+            android:src="@drawable/perfil"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintBottom_toBottomOf="parent"/>
@@ -75,7 +75,7 @@
                 android:visibility="visible"/>
         </LinearLayout>
 
-        <Button
+        <androidx.appcompat.widget.AppCompatButton
             android:id="@+id/btnChatAction"
             android:layout_width="wrap_content"
             android:layout_height="48dp"
@@ -89,6 +89,7 @@
             android:clickable="true"
             android:focusable="true"
             android:elevation="2dp"
+
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintBottom_toBottomOf="parent"/>

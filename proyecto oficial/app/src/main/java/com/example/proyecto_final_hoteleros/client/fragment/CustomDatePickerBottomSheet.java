@@ -17,6 +17,7 @@ import androidx.core.content.ContextCompat;
 import androidx.core.util.Pair;
 
 import com.example.proyecto_final_hoteleros.R;
+import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
 
@@ -37,11 +38,9 @@ public class CustomDatePickerBottomSheet extends BottomSheetDialogFragment {
     private DateRangeListener listener;
     private SimpleDateFormat displayFormat = new SimpleDateFormat("dd MMM", new Locale("es", "ES"));
     private SimpleDateFormat monthYearFormat = new SimpleDateFormat("MMMM yyyy", new Locale("es", "ES"));
-
     private Calendar currentMonth = Calendar.getInstance();
     private Calendar selectedStartDate = null;
     private Calendar selectedEndDate = null;
-
     private CalendarAdapter adapter;
     private TextView tvCurrentMonthYear;
     private TextView tvStartDate;
@@ -51,10 +50,34 @@ public class CustomDatePickerBottomSheet extends BottomSheetDialogFragment {
         this.listener = listener;
     }
 
+    // Modificación a realizar en onCreateDialog
     @NonNull
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
-        return new BottomSheetDialog(requireContext(), R.style.CustomBottomSheetDialog);
+        BottomSheetDialog dialog = new BottomSheetDialog(requireContext(), R.style.CustomBottomSheetDialog);
+
+        // Configurar el comportamiento del BottomSheet
+        dialog.setOnShowListener(dialogInterface -> {
+            BottomSheetDialog bottomSheetDialog = (BottomSheetDialog) dialogInterface;
+            View bottomSheet = bottomSheetDialog.findViewById(com.google.android.material.R.id.design_bottom_sheet);
+            if (bottomSheet != null) {
+                BottomSheetBehavior<View> behavior = BottomSheetBehavior.from(bottomSheet);
+
+                // En lugar de expandir completamente, configurar para que se ajuste al contenido
+                behavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
+                // Esto hace que se muestre inicialmente a la altura especificada en peekHeight
+
+                behavior.setSkipCollapsed(false); // Para que respete el estado collapsed
+
+                // Opcional: definir la altura máxima como un porcentaje de la pantalla
+                ViewGroup.LayoutParams layoutParams = bottomSheet.getLayoutParams();
+                int displayHeight = getActivity().getResources().getDisplayMetrics().heightPixels;
+                int maxHeight = (int) (displayHeight * 0.80); // 80% de la altura de la pantalla
+                layoutParams.height = maxHeight;
+                bottomSheet.setLayoutParams(layoutParams);
+            }
+        });
+        return dialog;
     }
 
     @Override
@@ -89,7 +112,7 @@ public class CustomDatePickerBottomSheet extends BottomSheetDialogFragment {
             CalendarDay day = adapter.getItem(position);
             if (day.isEnabled) {
                 handleDateSelection(day.date);
-                adapter.notifyDataSetChanged();
+                updateMonthDisplay(); // Actualizar el calendario para reflejar los cambios
                 updateSelectedDatesDisplay();
             }
         });
@@ -103,9 +126,15 @@ public class CustomDatePickerBottomSheet extends BottomSheetDialogFragment {
 
         // Configurar fechas iniciales
         Calendar today = Calendar.getInstance();
+        today.set(Calendar.HOUR_OF_DAY, 0);
+        today.set(Calendar.MINUTE, 0);
+        today.set(Calendar.SECOND, 0);
+        today.set(Calendar.MILLISECOND, 0);
+
         selectedStartDate = (Calendar) today.clone();
         selectedEndDate = (Calendar) today.clone();
         selectedEndDate.add(Calendar.DAY_OF_MONTH, 1);
+
         updateSelectedDatesDisplay();
 
         return view;
@@ -128,6 +157,12 @@ public class CustomDatePickerBottomSheet extends BottomSheetDialogFragment {
     private void handleDateSelection(Calendar date) {
         // Clonar la fecha para evitar modificaciones no deseadas
         Calendar selectedDate = (Calendar) date.clone();
+
+        // Establecer la hora a 0 para comparaciones correctas
+        selectedDate.set(Calendar.HOUR_OF_DAY, 0);
+        selectedDate.set(Calendar.MINUTE, 0);
+        selectedDate.set(Calendar.SECOND, 0);
+        selectedDate.set(Calendar.MILLISECOND, 0);
 
         // Si no hay fecha de inicio o si ya hay un rango completo seleccionado
         // O si se selecciona una fecha anterior a la fecha de inicio actual
@@ -155,6 +190,8 @@ public class CustomDatePickerBottomSheet extends BottomSheetDialogFragment {
         boolean isToday;
         boolean isSelected;
         boolean isInRange;
+        boolean isStartDate;
+        boolean isEndDate;
 
         public CalendarDay(Calendar date, boolean isEnabled, boolean isToday) {
             this.date = (Calendar) date.clone();
@@ -162,6 +199,8 @@ public class CustomDatePickerBottomSheet extends BottomSheetDialogFragment {
             this.isToday = isToday;
             this.isSelected = false;
             this.isInRange = false;
+            this.isStartDate = false;
+            this.isEndDate = false;
         }
     }
 
@@ -187,6 +226,7 @@ public class CustomDatePickerBottomSheet extends BottomSheetDialogFragment {
             calendar.set(Calendar.DAY_OF_MONTH, 1);
 
             int monthStartDay = calendar.get(Calendar.DAY_OF_WEEK);
+            // Ajustar para que la semana comience en domingo (DAY_OF_WEEK = 1)
             calendar.add(Calendar.DAY_OF_MONTH, -(monthStartDay - 1));
 
             // Añadir días anteriores al mes actual
@@ -204,13 +244,20 @@ public class CustomDatePickerBottomSheet extends BottomSheetDialogFragment {
 
                 CalendarDay day = new CalendarDay(calendar, true, isToday);
 
-                // Comprobar si el día está seleccionado (inicio o fin)
+                // Comprobar si el día es fecha de inicio
                 if (selectedStartDate != null && isSameDay(calendar, selectedStartDate)) {
+                    day.isStartDate = true;
                     day.isSelected = true;
-                } else if (selectedEndDate != null && isSameDay(calendar, selectedEndDate)) {
+                }
+
+                // Comprobar si el día es fecha de fin
+                if (selectedEndDate != null && isSameDay(calendar, selectedEndDate)) {
+                    day.isEndDate = true;
                     day.isSelected = true;
-                } else if (selectedStartDate != null && selectedEndDate != null) {
-                    // Comprobar si el día está en el rango (entre inicio y fin)
+                }
+
+                // Comprobar si el día está en el rango (entre inicio y fin)
+                if (selectedStartDate != null && selectedEndDate != null) {
                     if (calendar.after(selectedStartDate) && calendar.before(selectedEndDate)) {
                         day.isInRange = true;
                     }
@@ -237,12 +284,6 @@ public class CustomDatePickerBottomSheet extends BottomSheetDialogFragment {
                     cal1.get(Calendar.DAY_OF_MONTH) == cal2.get(Calendar.DAY_OF_MONTH);
         }
 
-        private boolean areSameDay(Calendar cal1, Calendar cal2) {
-            return cal1.get(Calendar.YEAR) == cal2.get(Calendar.YEAR) &&
-                    cal1.get(Calendar.MONTH) == cal2.get(Calendar.MONTH) &&
-                    cal1.get(Calendar.DAY_OF_MONTH) == cal2.get(Calendar.DAY_OF_MONTH);
-        }
-
         @Override
         public int getCount() {
             return days.size();
@@ -261,7 +302,6 @@ public class CustomDatePickerBottomSheet extends BottomSheetDialogFragment {
         @Override
         public View getView(int position, View convertView, ViewGroup parent) {
             ViewHolder holder;
-
             if (convertView == null) {
                 convertView = inflater.inflate(R.layout.item_calendar_day, parent, false);
                 holder = new ViewHolder();
@@ -274,43 +314,59 @@ public class CustomDatePickerBottomSheet extends BottomSheetDialogFragment {
             CalendarDay day = getItem(position);
             holder.tvDayText.setText(String.valueOf(day.date.get(Calendar.DAY_OF_MONTH)));
 
-            // Asegurarse de que el fondo del día se resetee antes de aplicar el nuevo estilo
+            // Resetear el estilo
             holder.tvDayText.setBackgroundResource(R.drawable.bg_day_normal);
 
-            // Establecer el estado visual según la condición del día
             if (!day.isEnabled) {
                 // Días de meses anterior/siguiente
                 holder.tvDayText.setTextColor(
-                        ContextCompat.getColor(holder.tvDayText.getContext(),
-                                android.R.color.darker_gray)
+                        ContextCompat.getColor(holder.tvDayText.getContext(), android.R.color.darker_gray)
                 );
-            } else if (day.isSelected) {
-                // Días seleccionados (inicio y fin)
+            } else if (day.isStartDate && day.isEndDate) {
+                // Cuando es el mismo día para inicio y fin (un solo día seleccionado)
                 holder.tvDayText.setTextColor(
-                        ContextCompat.getColor(holder.tvDayText.getContext(),
-                                android.R.color.white)
+                        ContextCompat.getColor(holder.tvDayText.getContext(), android.R.color.white)
                 );
-                holder.tvDayText.setBackgroundResource(R.drawable.bg_day_selected);
+                holder.tvDayText.setBackgroundResource(R.drawable.bg_day_single);
+            } else if (day.isStartDate) {
+                // Primer día del rango
+                holder.tvDayText.setTextColor(
+                        ContextCompat.getColor(holder.tvDayText.getContext(), android.R.color.white)
+                );
+                holder.tvDayText.setBackgroundResource(R.drawable.bg_day_start);
+            } else if (day.isEndDate) {
+                // Último día del rango
+                holder.tvDayText.setTextColor(
+                        ContextCompat.getColor(holder.tvDayText.getContext(), android.R.color.white)
+                );
+                holder.tvDayText.setBackgroundResource(R.drawable.bg_day_end);
             } else if (day.isInRange) {
                 // Días en el rango seleccionado
                 holder.tvDayText.setTextColor(
-                        ContextCompat.getColor(holder.tvDayText.getContext(),
-                                R.color.black)
+                        ContextCompat.getColor(holder.tvDayText.getContext(), R.color.black)
                 );
                 holder.tvDayText.setBackgroundResource(R.drawable.bg_day_range);
+                // Para un efecto continuo, usamos un layout con ancho completo
+                holder.tvDayText.getLayoutParams().width = ViewGroup.LayoutParams.MATCH_PARENT;
             } else if (day.isToday) {
                 // Día actual
                 holder.tvDayText.setTextColor(
-                        ContextCompat.getColor(holder.tvDayText.getContext(),
-                                R.color.colorPrimary)
+                        ContextCompat.getColor(holder.tvDayText.getContext(), R.color.colorPrimary)
                 );
+                // Restaurar ancho normal
+                holder.tvDayText.getLayoutParams().width = getResources().getDimensionPixelSize(R.dimen.day_cell_width);
             } else {
                 // Días normales
                 holder.tvDayText.setTextColor(
-                        ContextCompat.getColor(holder.tvDayText.getContext(),
-                                R.color.black)
+                        ContextCompat.getColor(holder.tvDayText.getContext(), R.color.black)
                 );
+                // Restaurar ancho normal
+                holder.tvDayText.getLayoutParams().width = getResources().getDimensionPixelSize(R.dimen.day_cell_width);
             }
+
+            // Asegurarnos de que los cambios de layout se apliquen
+            holder.tvDayText.requestLayout();
+
             return convertView;
         }
 

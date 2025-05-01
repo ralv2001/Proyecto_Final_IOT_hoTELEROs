@@ -6,5 +6,5 @@
     <dimen name="corner_radius">12dp</dimen>
     <dimen name="divider_height">2dp</dimen>
     <dimen name="row_height">48dp</dimen>
-
+    <dimen name="day_cell_width">36dp</dimen>
 </resources>
