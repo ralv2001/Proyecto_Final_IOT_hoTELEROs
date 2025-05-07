@@ -134,6 +134,8 @@
             </LinearLayout>
 
             <!-- Opción "Continuar como superadmin" -->
+
+            <!-- Comentar esta parte más adelante -->
             <LinearLayout
                 android:id="@+id/layoutContinueAsSuperadmin"
                 android:layout_width="wrap_content"
@@ -143,6 +145,7 @@
                 android:focusable="true"
                 android:gravity="center_vertical"
                 android:orientation="horizontal">
+
 
                 <TextView
                     android:layout_width="wrap_content"
@@ -154,13 +157,14 @@
                     android:textColor="#0C0D0E"
                     android:textSize="16sp" />
 
-
-
                 <ImageView
                     android:layout_width="24dp"
                     android:layout_height="24dp"
                     android:src="@drawable/flecha_inicial" />
+
             </LinearLayout>
+            <!-- Comentar esta parte más adelante -->
+
         </LinearLayout>
     </ScrollView>
 </androidx.constraintlayout.widget.ConstraintLayout>

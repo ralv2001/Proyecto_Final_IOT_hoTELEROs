@@ -27,7 +27,7 @@ public class AuthActivity extends AppCompatActivity implements MessagerRegister 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.sitema_activity_auth);
+        setContentView(R.layout.sistema_activity_auth);
 
         tvLoginTab = findViewById(R.id.tvLoginTab);
         viewTabIndicatorLogin = findViewById(R.id.viewTabIndicatorLogin);

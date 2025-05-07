@@ -1,8 +1,10 @@
 package com.example.proyecto_final_hoteleros.auth.password;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -62,6 +64,7 @@ public class CreateNewPasswordFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+        Log.d("PasswordSuccess", "onViewCreated called");
         // Asegurarnos de ocultar las pestañas cuando el fragmento es visible
         hideTabLayout();
     }
@@ -154,6 +157,7 @@ public class CreateNewPasswordFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
+        Log.d("PasswordSuccess", "onResume called");
         // Asegurarnos de que las pestañas estén ocultas cuando el fragmento retoma el foco
         hideTabLayout();
     }
@@ -314,15 +318,15 @@ public class CreateNewPasswordFragment extends Fragment {
     private void resetPassword() {
         // Aquí implementaríamos la lógica real para cambiar la contraseña en el backend
         // Por ahora, simularemos que fue exitoso
+        Toast.makeText(getContext(), "Contraseña actualizada con éxito", Toast.LENGTH_SHORT).show();
 
-        // Navegar a la pantalla de éxito
+        // Iniciar la actividad de éxito
         if (getActivity() != null) {
-            PasswordSuccessFragment successFragment = PasswordSuccessFragment.newInstance();
-            getActivity().getSupportFragmentManager()
-                    .beginTransaction()
-                    .replace(R.id.fragmentContainer, successFragment)
-                    .addToBackStack(null)
-                    .commit();
+            Intent intent = new Intent(getActivity(), SuccessActivity.class);
+            startActivity(intent);
+
+            // Opcionalmente, se puede cerrar la actividad actual para evitar que el usuario vuelva atrás (lo haremos XD)
+            getActivity().finish();
         }
     }
 }
