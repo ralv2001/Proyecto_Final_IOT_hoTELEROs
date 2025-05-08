@@ -99,6 +99,11 @@
             android:exported="true">
 
         </activity>
+        <activity
+            android:name=".CardDialogActivity"
+            android:exported="true">
+
+        </activity>
 
         <activity
             android:name=".HotelServicesPreviewActivity"
