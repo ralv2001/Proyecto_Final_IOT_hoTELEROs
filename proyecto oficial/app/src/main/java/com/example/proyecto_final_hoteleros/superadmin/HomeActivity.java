@@ -10,7 +10,7 @@ import com.example.proyecto_final_hoteleros.R;
 import com.google.android.material.button.MaterialButton;
 public class HomeActivity extends AppCompatActivity{
     private MaterialButton btnListaUsuarios;
-    private MaterialButton btnSolicitudesTaxistas;
+    private MaterialButton btn_lista_solicitudes_taxistas;
     private MaterialButton btnRegistroAdministrador;
     private MaterialButton btnReporteReservas;
     private MaterialButton btnLogEventos;
@@ -23,7 +23,7 @@ public class HomeActivity extends AppCompatActivity{
 
         // Referencias a los botones
         btnListaUsuarios = findViewById(R.id.btn_lista_usuarios);
-        btnSolicitudesTaxistas = findViewById(R.id.btn_solicitudes_taxistas);
+        btn_lista_solicitudes_taxistas = findViewById(R.id.btn_lista_solicitudes_taxistas);
         btnRegistroAdministrador = findViewById(R.id.btn_registro_administrador);
         btnReporteReservas = findViewById(R.id.btn_reporte_reservas);
         btnLogEventos = findViewById(R.id.btn_log_eventos);
@@ -38,7 +38,7 @@ public class HomeActivity extends AppCompatActivity{
             }
         });
 
-        btnSolicitudesTaxistas.setOnClickListener(new View.OnClickListener() {
+        btn_lista_solicitudes_taxistas.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Toast.makeText(HomeActivity.this, "Ir a Solicitudes de Taxistas", Toast.LENGTH_SHORT).show();

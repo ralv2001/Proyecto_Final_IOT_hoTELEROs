@@ -57,6 +57,9 @@
             android:name=".superadmin.ListaUsuariosActivity"
             android:exported="true" />
         <activity
+            android:name=".superadmin.ListaSolicitudesActivity"
+            android:exported="true" />
+        <activity
             android:name=".superadmin.SolicitudesTaxistasActivity"
             android:exported="true" />
         <activity

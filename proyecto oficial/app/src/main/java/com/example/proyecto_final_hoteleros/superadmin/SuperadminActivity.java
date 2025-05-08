@@ -24,7 +24,7 @@ public class SuperadminActivity extends AppCompatActivity{
 
         // Referencias a los botones
         btnListaUsuarios = findViewById(R.id.btn_lista_usuarios);
-        btnSolicitudesTaxistas = findViewById(R.id.btn_solicitudes_taxistas);
+        btnSolicitudesTaxistas = findViewById(R.id.btn_lista_solicitudes_taxistas);
         btnRegistroAdministrador = findViewById(R.id.btn_registro_administrador);
         btnReporteReservas = findViewById(R.id.btn_reporte_reservas);
         btnLogEventos = findViewById(R.id.btn_log_eventos);
@@ -43,7 +43,7 @@ public class SuperadminActivity extends AppCompatActivity{
             @Override
             public void onClick(View v) {
                 Toast.makeText(SuperadminActivity.this, "Ir a Solicitudes de Taxistas", Toast.LENGTH_SHORT).show();
-                 startActivity(new Intent(SuperadminActivity.this, SolicitudesTaxistasActivity.class));
+                 startActivity(new Intent(SuperadminActivity.this, ListaSolicitudesActivity.class));
             }
         });
 

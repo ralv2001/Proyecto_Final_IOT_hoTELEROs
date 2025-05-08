@@ -75,7 +75,7 @@
 
             <!-- Botón de solicitud de taxi -->
             <com.google.android.material.button.MaterialButton
-                android:id="@+id/btn_solicitudes_taxistas"
+                android:id="@+id/btn_lista_solicitudes_taxistas"
                 style="@style/ButtonTextStyle"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
