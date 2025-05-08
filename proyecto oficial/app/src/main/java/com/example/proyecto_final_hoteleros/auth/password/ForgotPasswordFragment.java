@@ -8,7 +8,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.ImageButton;
-import android.widget.ScrollView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -19,6 +18,9 @@ import androidx.fragment.app.FragmentTransaction;
 
 import com.example.proyecto_final_hoteleros.R;
 import com.google.android.material.button.MaterialButton;
+
+import java.util.Arrays;
+import java.util.List;
 
 public class ForgotPasswordFragment extends Fragment {
 
@@ -57,12 +59,18 @@ public class ForgotPasswordFragment extends Fragment {
         // Configurar el botón de restablecimiento de contraseña
         btnResetPassword.setOnClickListener(v -> {
             String email = etEmail.getText().toString().trim();
-            if (!email.isEmpty()) {
+            if (!email.isEmpty() && etEmail.getError() == null) {
                 // Simulamos envío del código por correo
                 Toast.makeText(getContext(), "Código de verificación enviado a: " + email, Toast.LENGTH_SHORT).show();
 
                 // Navegar a la pantalla de verificación de código
                 navigateToVerifyCode(email);
+            } else {
+                if (etEmail.getError() != null) {
+                    Toast.makeText(getContext(), "Por favor, ingrese un correo electrónico válido", Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(getContext(), "Por favor, ingrese su correo electrónico", Toast.LENGTH_SHORT).show();
+                }
             }
         });
 
@@ -80,10 +88,14 @@ public class ForgotPasswordFragment extends Fragment {
 
             @Override
             public void afterTextChanged(Editable s) {
-                // Habilitar o deshabilitar el botón según si hay texto
+                // Validar el formato del correo electrónico
+                validateEmail(s.toString());
+
+                // Habilitar o deshabilitar el botón según si hay texto y si es válido
                 boolean isNotEmpty = !s.toString().trim().isEmpty();
-                btnResetPassword.setEnabled(isNotEmpty);
-                btnResetPassword.setAlpha(isNotEmpty ? 1.0f : 0.4f);
+                boolean isValid = etEmail.getError() == null;
+                btnResetPassword.setEnabled(isNotEmpty && isValid);
+                btnResetPassword.setAlpha((isNotEmpty && isValid) ? 1.0f : 0.4f);
             }
         });
 
@@ -160,5 +172,35 @@ public class ForgotPasswordFragment extends Fragment {
                 indicatorLayout.setVisibility(View.VISIBLE);
             }
         }
+    }
+
+    private void validateEmail(String email) {
+        if (email.isEmpty()) {
+            etEmail.setError(null);
+            return;
+        }
+
+        // Validar formato básico con Patterns de Android
+        if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+            etEmail.setError("Formato de correo electrónico inválido");
+            return;
+        }
+
+        // Lista de dominios válidos
+        List<String> validDomains = Arrays.asList(
+                "gmail.com", "hotmail.com", "yahoo.es", "pucp.edu.pe", "outlook.com",
+                "icloud.com", "yahoo.com", "live.com", "msn.com", "protonmail.com",
+                "yahoo.com.mx", "hotmail.es", "me.com", "aol.com", "mail.com"
+        );
+
+        // Obtener el dominio del correo y validar si está en nuestra lista
+        String domain = email.substring(email.lastIndexOf("@") + 1).toLowerCase();
+        if (!validDomains.contains(domain)) {
+            etEmail.setError("Dominio de correo no reconocido");
+            return;
+        }
+
+        // Si pasa todas las validaciones, eliminar error
+        etEmail.setError(null);
     }
 }

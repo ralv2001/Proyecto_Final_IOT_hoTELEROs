@@ -23,6 +23,9 @@ import android.widget.Toast;
 import com.example.proyecto_final_hoteleros.AuthActivity;
 import com.example.proyecto_final_hoteleros.R;
 
+import java.util.Arrays;
+import java.util.List;
+
 public class LoginFragment extends Fragment {
 
     private LoginViewModel mViewModel;
@@ -57,6 +60,23 @@ public class LoginFragment extends Fragment {
         btnFacebookLogin = view.findViewById(R.id.btnFacebookLogin);
         btnGoogleLogin = view.findViewById(R.id.btnGoogleLogin);
         tvRegisterPrompt = view.findViewById(R.id.tvRegisterPrompt);
+
+        etEmail.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+                // No se necesita implementación
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                // No se necesita implementación
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                validateEmail(s.toString());
+            }
+        });
 
         // Configurar TextWatcher para validación de campos
         TextWatcher loginFieldsWatcher = new TextWatcher() {
@@ -169,9 +189,8 @@ public class LoginFragment extends Fragment {
         // pero podemos agregar validaciones más específicas aquí
         boolean isValid = true;
 
-        // Verificar formato de email (opcional)
-        if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-            etEmail.setError("Ingrese un correo electrónico válido");
+        // Verificar si hay errores en el campo de email
+        if (etEmail.getError() != null) {
             isValid = false;
         }
 
@@ -179,6 +198,7 @@ public class LoginFragment extends Fragment {
             return;
         }
 
+        // El resto del método se mantiene igual
         // Simulación de login (para demostración)
         if (email.equals("luchito@stuardiño.com") && password.equals("password")) {
             Toast.makeText(getContext(), "Inicio de sesión exitoso", Toast.LENGTH_SHORT).show();
@@ -187,6 +207,37 @@ public class LoginFragment extends Fragment {
         } else {
             tvErrorMessage.setVisibility(View.VISIBLE);
         }
+    }
+
+    // Añadir justo antes del último corchete de cierre de la clase
+    private void validateEmail(String email) {
+        if (email.isEmpty()) {
+            etEmail.setError(null);
+            return;
+        }
+
+        // Validar formato básico con Patterns de Android
+        if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+            etEmail.setError("Formato de correo electrónico inválido");
+            return;
+        }
+
+        // Lista de dominios válidos
+        List<String> validDomains = Arrays.asList(
+                "gmail.com", "hotmail.com", "yahoo.es", "pucp.edu.pe", "outlook.com",
+                "icloud.com", "yahoo.com", "live.com", "msn.com", "protonmail.com",
+                "yahoo.com.mx", "hotmail.es", "me.com", "aol.com", "mail.com"
+        );
+
+        // Obtener el dominio del correo y validar si está en nuestra lista
+        String domain = email.substring(email.lastIndexOf("@") + 1).toLowerCase();
+        if (!validDomains.contains(domain)) {
+            etEmail.setError("Dominio de correo no reconocido");
+            return;
+        }
+
+        // Si pasa todas las validaciones, eliminar error
+        etEmail.setError(null);
     }
 
 }
