@@ -14,6 +14,7 @@ lifecycleViewmodelAndroid = "2.8.7"
 firebaseInappmessaging = "21.0.2"
 playServicesMaps = "19.2.0"
 playServicesLocation = "21.3.0"
+navigationRuntime = "2.8.9"
 
 [libraries]
 junit = { group = "junit", name = "junit", version.ref = "junit" }
@@ -30,6 +31,7 @@ lifecycle-viewmodel-android = { group = "androidx.lifecycle", name = "lifecycle-
 firebase-inappmessaging = { group = "com.google.firebase", name = "firebase-inappmessaging", version.ref = "firebaseInappmessaging" }
 play-services-maps = { group = "com.google.android.gms", name = "play-services-maps", version.ref = "playServicesMaps" }
 play-services-location = { group = "com.google.android.gms", name = "play-services-location", version.ref = "playServicesLocation" }
+navigation-runtime = { group = "androidx.navigation", name = "navigation-runtime", version.ref = "navigationRuntime" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
