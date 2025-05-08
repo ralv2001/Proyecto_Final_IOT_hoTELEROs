@@ -378,6 +378,33 @@
                 android:fontFamily="@font/poppins_medium"
                 android:textSize="16sp" />
 
+            <!-- Placa de vehículo (Solo para taxistas) -->
+            <TextView
+                android:id="@+id/tvPlacaVehiculoLabel"
+                style="@style/FormLabelStyle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:text="Placa del vehículo"
+                android:visibility="gone" />
+
+            <EditText
+                android:id="@+id/etPlacaVehiculo"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/se1e1e1sw2cr12"
+                android:hint="Ingrese su placa vehicular (ABC123)"
+                android:textColorHint="#61989898"
+                android:textColor="#545454"
+                android:inputType="textCapCharacters"
+                android:maxLength="6"
+                android:paddingVertical="18dp"
+                android:paddingHorizontal="21dp"
+                android:layout_marginBottom="16dp"
+                android:fontFamily="@font/poppins_medium"
+                android:textSize="16sp"
+                android:visibility="gone" />
+
             <!-- Contraseña -->
             <TextView
                 android:id="@+id/tvContrasenaLabel"

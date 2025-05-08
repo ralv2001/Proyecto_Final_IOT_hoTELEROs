@@ -44,9 +44,10 @@ public class RegisterUserActivity extends AppCompatActivity {
     private View viewTabIndicatorRegister;
 
     // Campos de texto
-    private EditText etNombres, etApellidos, etEmail, etFechaNacimiento, etTelefono, etNumeroDocumento, etDireccion;
+    private EditText etNombres, etApellidos, etEmail, etFechaNacimiento, etTelefono, etNumeroDocumento, etDireccion, etPlacaVehiculo;
     private Button btnContinuar;
     private TextView tvDocType;
+    private TextView tvPlacaVehiculoLabel;
 
     // Constantes para tipos de documento
     private static final String DOC_TYPE_DNI = "DNI";
@@ -133,6 +134,59 @@ public class RegisterUserActivity extends AppCompatActivity {
         etEmail = findViewById(R.id.etEmail);
         etFechaNacimiento = findViewById(R.id.etFechaNacimiento);
         etTelefono = findViewById(R.id.etTelefono);
+        etPlacaVehiculo = findViewById(R.id.etPlacaVehiculo);
+        tvPlacaVehiculoLabel = findViewById(R.id.tvPlacaVehiculoLabel);
+
+        // Mostrar u ocultar campos según el tipo de usuario
+        if ("driver".equals(userType)) {
+            tvPlacaVehiculoLabel.setVisibility(View.VISIBLE);
+            etPlacaVehiculo.setVisibility(View.VISIBLE);
+
+            // Validación de formato de placa
+            etPlacaVehiculo.addTextChangedListener(new TextWatcher() {
+                boolean isFormatting;
+
+                @Override
+                public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+                @Override
+                public void onTextChanged(CharSequence s, int start, int before, int count) {}
+
+                @Override
+                public void afterTextChanged(Editable s) {
+                    if (isFormatting) return;
+                    isFormatting = true;
+
+                    // Convertir a mayúsculas
+                    String text = s.toString().toUpperCase();
+
+                    // Filtrar solo letras y números
+                    StringBuilder filtered = new StringBuilder();
+                    for (char c : text.toCharArray()) {
+                        if ((c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9')) {
+                            filtered.append(c);
+                        }
+                    }
+
+                    // Limitar a 6 caracteres (3 letras + 3 números)
+                    if (filtered.length() > 6) {
+                        filtered.delete(6, filtered.length());
+                    }
+
+                    // Colocar el texto formateado
+                    String formattedText = filtered.toString();
+                    if (!formattedText.equals(s.toString())) {
+                        s.replace(0, s.length(), formattedText);
+                    }
+
+                    // Validar el formato después de aplicar el formateo
+                    validatePlaca(formattedText);
+                    registerFieldsWatcher.afterTextChanged(s);
+
+                    isFormatting = false;
+                }
+            });
+        }
 
         // Inicializar las vistas relacionadas con el selector de país
         ivCountryFlag = findViewById(R.id.ivCountryFlag);
@@ -480,6 +534,13 @@ public class RegisterUserActivity extends AppCompatActivity {
                 etConfirmarContrasena.getText().toString()) &&
                 !etConfirmarContrasena.getText().toString().trim().isEmpty();
 
+        // Al final del método, antes del return
+        boolean placaValid = true;
+        if ("driver".equals(userType)) {
+            placaValid = etPlacaVehiculo.getError() == null &&
+                    !etPlacaVehiculo.getText().toString().trim().isEmpty();
+        }
+
         return !etNombres.getText().toString().trim().isEmpty() &&
                 !etApellidos.getText().toString().trim().isEmpty() &&
                 emailValid &&
@@ -488,7 +549,8 @@ public class RegisterUserActivity extends AppCompatActivity {
                 documentValid &&
                 !etDireccion.getText().toString().trim().isEmpty() &&
                 passwordValid &&
-                passwordsMatch;
+                passwordsMatch &&
+                placaValid;
     }
 
     private void setupPhoneField() {
@@ -685,6 +747,11 @@ public class RegisterUserActivity extends AppCompatActivity {
             mViewModel.setPassword(etContrasena.getText().toString());
             mViewModel.setUserType(userType);
         }
+
+        // Guardar placa de vehículo si es taxista
+        if ("driver".equals(userType) && mViewModel != null) {
+            mViewModel.setPlacaVehiculo(etPlacaVehiculo.getText().toString().trim());
+        }
     }
 
     // Añadir este método:
@@ -700,5 +767,21 @@ public class RegisterUserActivity extends AppCompatActivity {
                 .apply();
 
         super.onBackPressed();
+    }
+
+    // Métodito para validar el formato de la placa
+    private void validatePlaca(String placa) {
+        if (placa.isEmpty()) {
+            etPlacaVehiculo.setError(null);
+            return;
+        }
+
+        // Formato peruano simplificado: 3 letras seguidas de 3 números (ABC123)
+        String regex = "^[A-Z]{3}\\d{3}$";
+        if (!placa.matches(regex)) {
+            etPlacaVehiculo.setError("Formato inválido. Use el formato: ABC123");
+        } else {
+            etPlacaVehiculo.setError(null);
+        }
     }
 }

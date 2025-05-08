@@ -20,6 +20,7 @@ public class RegisterViewModel extends ViewModel {
     private String direccion;
     private String password;
     private String userType;
+    private String placaVehiculo;
     private Uri profilePhotoUri;
     private boolean hasProfilePhoto = false;
 
@@ -29,6 +30,12 @@ public class RegisterViewModel extends ViewModel {
     }
     public String getNombres() {
         return nombres;
+    }
+    public String getPlacaVehiculo() {
+        return placaVehiculo;
+    }
+    public void setPlacaVehiculo(String placaVehiculo) {
+        this.placaVehiculo = placaVehiculo;
     }
 
     public void setNombres(String nombres) {
