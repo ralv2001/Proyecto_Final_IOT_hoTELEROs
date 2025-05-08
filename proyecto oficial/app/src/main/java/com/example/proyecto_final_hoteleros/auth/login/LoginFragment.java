@@ -180,7 +180,7 @@ public class LoginFragment extends Fragment {
         // Limpiar cualquier estado persistente si es necesario
     }
 
-    // Añade también este método para asegurar que el callback se limpia apropiadamente
+    // Añade también este métodito para asegurar que el callback se limpia apropiadamente
     @Override
     public void onDetach() {
         super.onDetach();
@@ -220,7 +220,7 @@ public class LoginFragment extends Fragment {
             return;
         }
 
-        // El resto del método se mantiene igual
+        // El resto del métodito se mantiene igual
         // Simulación de login (para demostración)
         if (email.equals("luchito@stuardiño.com") && password.equals("password")) {
             Toast.makeText(getContext(), "Inicio de sesión exitoso", Toast.LENGTH_SHORT).show();
