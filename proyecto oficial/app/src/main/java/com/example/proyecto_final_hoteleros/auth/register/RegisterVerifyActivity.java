@@ -20,23 +20,27 @@ public class RegisterVerifyActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.sistema_activity_register_verify);
 
-        // Obtener el email del intent directamente
+        // Obtener el email y userType del intent
         String email = "";
-        if (getIntent() != null && getIntent().hasExtra("email")) {
-            email = getIntent().getStringExtra("email");
-            Log.d("RegisterVerify", "Email recibido en intent: " + email);
-        } else {
-            // Obtener el email del ViewModel como fallback
-            RegisterViewModel viewModel = new ViewModelProvider(this).get(RegisterViewModel.class);
-            email = viewModel.getEmail();
-            Log.d("RegisterVerify", "Email obtenido del ViewModel: " + email);
+        String userType = "client"; // Valor por defecto
 
-            // Si todavía es null, intenta recuperarlo de SharedPreferences
-            if (email == null || email.isEmpty()) {
-                email = getSharedPreferences("UserData", MODE_PRIVATE)
-                        .getString("email", "");
-                Log.d("RegisterVerify", "Email recuperado de SharedPreferences: " + email);
+        if (getIntent() != null) {
+            if (getIntent().hasExtra("email")) {
+                email = getIntent().getStringExtra("email");
+                Log.d("RegisterVerify", "Email recibido en intent: " + email);
             }
+
+            if (getIntent().hasExtra("userType")) {
+                userType = getIntent().getStringExtra("userType");
+                Log.d("RegisterVerify", "UserType recibido en intent: " + userType);
+            }
+        }
+
+        // Si email aún es null, intenta recuperarlo de SharedPreferences
+        if (email == null || email.isEmpty()) {
+            email = getSharedPreferences("UserData", MODE_PRIVATE)
+                    .getString("email", "");
+            Log.d("RegisterVerify", "Email recuperado de SharedPreferences: " + email);
         }
 
         // En caso de que aún sea null, usar un valor por defecto SOLO para desarrollo
@@ -45,10 +49,21 @@ public class RegisterVerifyActivity extends AppCompatActivity {
             Log.e("RegisterVerify", "Usando email por defecto: " + email);
         }
 
-        // Cargar el fragmento de verificación de código con el email
+        // Guardar el userType en SharedPreferences para asegurar persistencia
+        getSharedPreferences("UserData", MODE_PRIVATE)
+                .edit()
+                .putString("userType", userType)
+                .apply();
+
+        // Cargar el fragmento de verificación de código con el email y userType
         if (savedInstanceState == null) {
-            Log.d("RegisterVerify", "Creando fragmento con email: " + email);
+            Bundle args = new Bundle();
+            args.putString("email", email);
+            args.putString("userType", userType);
+
             RegisterVerifyCodeFragment fragment = RegisterVerifyCodeFragment.newInstance(email);
+            fragment.setArguments(args);
+
             getSupportFragmentManager().beginTransaction()
                     .replace(R.id.fragmentContainer, fragment)
                     .commit();

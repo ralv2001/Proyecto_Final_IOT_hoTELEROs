@@ -2,6 +2,7 @@ package com.example.proyecto_final_hoteleros.auth.register;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
 
@@ -27,12 +28,28 @@ public class RegisterSuccessActivity extends AppCompatActivity {
                 .remove("photoSkipped")
                 .apply();
 
+        // Obtener el tipo de usuario del intent
+        String userType = getIntent().getStringExtra("userType");
+        Log.d("RegisterSuccess", "UserType recibido: " + userType);
+
+        boolean isDriver = "driver".equals(userType);
+        Log.d("RegisterSuccess", "Is driver: " + isDriver);
+
         // Actualizar textos para el registro exitoso
         TextView tvTitle = findViewById(R.id.tvTitle);
         tvTitle.setText("¡Éxito!");
 
         TextView tvDescription = findViewById(R.id.tvDescription);
-        tvDescription.setText("¡Felicidades!, su cuenta ha sido creada exitosamente.\nHaga clic en Continuar para ir al menú principal.");
+
+        if (isDriver) {
+            // Mensaje para taxistas
+            Log.d("RegisterSuccess", "Mostrando mensaje para taxistas");
+            tvDescription.setText("¡Felicidades!, su cuenta ha sido creada y será evaluada por un administrador para ser habilitada. Se le notificará por correo electrónico la decisión del administrador.\n\nHaga clic en Continuar para ir al menú principal.");
+        } else {
+            // Mensaje para clientes
+            Log.d("RegisterSuccess", "Mostrando mensaje para clientes");
+            tvDescription.setText("¡Felicidades!, su cuenta ha sido creada exitosamente.\nHaga clic en Continuar para ir al menú principal.");
+        }
 
         // Configurar el botón Continuar
         MaterialButton btnContinuar = findViewById(R.id.btnContinuar);

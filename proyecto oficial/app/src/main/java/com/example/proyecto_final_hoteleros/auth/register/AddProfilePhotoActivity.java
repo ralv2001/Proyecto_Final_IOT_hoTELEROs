@@ -11,6 +11,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -71,11 +72,19 @@ public class AddProfilePhotoActivity extends AppCompatActivity {
         btnContinuar = findViewById(R.id.btnContinuar);
         btnOmitir = findViewById(R.id.btnOmitir);
         ImageButton btnBack = findViewById(R.id.btnBack);
+        TextView tvDescription = findViewById(R.id.tvDescription);
 
-        // Si el usuario es taxista, deshabilitar el botón de omitir
+
+        // Cambiar el texto de descripción según el tipo de usuario
         if ("driver".equals(userType)) {
-            btnOmitir.setEnabled(false);
-            btnOmitir.setAlpha(0.4f);
+            // Texto específico para taxistas enfatizando que es obligatorio
+            tvDescription.setText("Para continuar con su registro, será necesario que añadas una foto de perfil");
+
+            // Ocultar el botón de omitir para taxistas (en lugar de solo deshabilitarlo)
+            btnOmitir.setVisibility(View.GONE);
+        } else {
+            // Mantener el texto original para clientes
+            tvDescription.setText("¡Haz tu perfil más atractivo con una foto!");
         }
 
         // Verificar si se omitió la foto previamente
@@ -360,6 +369,7 @@ public class AddProfilePhotoActivity extends AppCompatActivity {
 
         // Log para depuración
         Log.d("AddProfilePhoto", "Email en completeRegistration: " + email);
+        Log.d("AddProfilePhoto", "UserType en completeRegistration: " + userType);
 
         // Si todavía es null o vacío, usa uno de prueba (solo para desarrollo)
         if (email == null || email.isEmpty()) {
@@ -367,15 +377,23 @@ public class AddProfilePhotoActivity extends AppCompatActivity {
             Log.e("AddProfilePhoto", "Usando email por defecto: " + email);
         }
 
+        // Guardar userType en SharedPreferences para asegurar persistencia
+        getSharedPreferences("UserData", MODE_PRIVATE)
+                .edit()
+                .putString("userType", userType)
+                .apply();
+
         // Mostrar Toast con el mensaje de envío de código
         Toast.makeText(this, "Código de verificación enviado a " + email, Toast.LENGTH_SHORT).show();
 
         // Crear un intent específico para esta actividad
         Intent intent = new Intent(this, RegisterVerifyActivity.class);
         intent.putExtra("email", email);
+        intent.putExtra("userType", userType);
 
         // Hacer log del email que enviamos
         Log.d("AddProfilePhoto", "Enviando email: " + email);
+        Log.d("AddProfilePhoto", "Enviando userType: " + userType);
 
         startActivity(intent);
     }
@@ -400,11 +418,11 @@ public class AddProfilePhotoActivity extends AppCompatActivity {
         btnContinuar.setEnabled(isPhotoSelected);
         btnContinuar.setAlpha(isPhotoSelected ? 1.0f : 0.4f);
 
-        // El botón Omitir siempre está habilitado para clientes y deshabilitado para taxistas
+        // El botón Omitir está visible para clientes y oculto para taxistas
         if ("driver".equals(userType)) {
-            btnOmitir.setEnabled(false);
-            btnOmitir.setAlpha(0.4f);
+            btnOmitir.setVisibility(View.GONE);
         } else {
+            btnOmitir.setVisibility(View.VISIBLE);
             btnOmitir.setEnabled(true);
             btnOmitir.setAlpha(1.0f);
         }

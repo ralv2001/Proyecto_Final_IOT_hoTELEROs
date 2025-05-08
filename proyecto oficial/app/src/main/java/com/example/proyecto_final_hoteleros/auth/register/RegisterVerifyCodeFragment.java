@@ -16,6 +16,7 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProvider;
 
 import com.example.proyecto_final_hoteleros.R;
 import com.google.android.material.button.MaterialButton;
@@ -219,10 +220,45 @@ public class RegisterVerifyCodeFragment extends Fragment {
 
     private void navigateToRegisterSuccess() {
         if (getActivity() != null) {
+            // Intentar obtener userType de varias fuentes para mayor seguridad
+            String userType = "client"; // Valor por defecto
+
+            // 1. Intentar primero desde los argumentos del fragmento
+            if (getArguments() != null && getArguments().containsKey("userType")) {
+                userType = getArguments().getString("userType", "client");
+                Log.d("VerifyCodeFragment", "UserType from arguments: " + userType);
+            }
+            // 2. Si no, intentar del ViewModel
+            else {
+                try {
+                    RegisterViewModel viewModel = new ViewModelProvider(getActivity()).get(RegisterViewModel.class);
+                    String vmUserType = viewModel.getUserType();
+                    if (vmUserType != null && !vmUserType.isEmpty()) {
+                        userType = vmUserType;
+                        Log.d("VerifyCodeFragment", "UserType from ViewModel: " + userType);
+                    }
+                } catch (Exception e) {
+                    Log.e("VerifyCodeFragment", "Error getting userType from ViewModel", e);
+                }
+            }
+
+            // 3. Si aún no tenemos el userType, intentar desde SharedPreferences
+            if ("client".equals(userType)) {
+                String spUserType = getActivity().getSharedPreferences("UserData", getActivity().MODE_PRIVATE)
+                        .getString("userType", "client");
+                if (!"client".equals(spUserType)) {
+                    userType = spUserType;
+                    Log.d("VerifyCodeFragment", "UserType from SharedPreferences: " + userType);
+                }
+            }
+
+            Log.d("VerifyCodeFragment", "Final userType being sent to RegisterSuccessActivity: " + userType);
+
             Intent intent = new Intent(getActivity(), RegisterSuccessActivity.class);
+            intent.putExtra("userType", userType);
             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
             startActivity(intent);
-            getActivity().finish(); // Cerramos la actividad actual para que no puedan volver atrás
+            getActivity().finish();
         }
     }
 
