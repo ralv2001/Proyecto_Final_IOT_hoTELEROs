@@ -4,7 +4,7 @@ package com.example.proyecto_final_hoteleros.client.model;
 
 
 
-public class User {
+public class Usuario {
     private String nombres;
     private String apellidos;
     private String email;
@@ -18,9 +18,9 @@ public class User {
     private String docType;
     private String countryCode;
 
-    public User() {}
+    public Usuario() {}
 
-    public User(String nombres, String apellidos, String email, String fechaNacimiento, String telefono, String numeroDocumento, String direccion, String contrasena,  String userType, String docType, String countryCode) {
+    public Usuario(String nombres, String apellidos, String email, String fechaNacimiento, String telefono, String numeroDocumento, String direccion, String contrasena,  String userType, String docType, String countryCode) {
         this.nombres = nombres;
         this.apellidos = apellidos;
         this.email = email;
