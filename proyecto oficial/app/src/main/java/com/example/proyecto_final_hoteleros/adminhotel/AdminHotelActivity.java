@@ -44,7 +44,7 @@ public class AdminHotelActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 Toast.makeText(AdminHotelActivity.this, "Ir a Pefil de Hotel", Toast.LENGTH_SHORT).show();
-                startActivity(new Intent(AdminHotelActivity.this, ListaUsuariosActivity.class));
+                startActivity(new Intent(AdminHotelActivity.this, PerfilHotelActivity.class));
             }
         });
 
@@ -52,7 +52,7 @@ public class AdminHotelActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 Toast.makeText(AdminHotelActivity.this, "Ir a Habitaciones", Toast.LENGTH_SHORT).show();
-                startActivity(new Intent(AdminHotelActivity.this, SolicitudesTaxistasActivity.class));
+                startActivity(new Intent(AdminHotelActivity.this, HabitacionesActivity.class));
             }
         });
 
@@ -60,7 +60,7 @@ public class AdminHotelActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 Toast.makeText(AdminHotelActivity.this, "Ir a Servicios de Hotel", Toast.LENGTH_SHORT).show();
-                startActivity(new Intent(AdminHotelActivity.this, RegistroAdministradorActivity.class));
+                startActivity(new Intent(AdminHotelActivity.this, ServiciosHotelActivity.class));
             }
         });
 
@@ -68,7 +68,7 @@ public class AdminHotelActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 Toast.makeText(AdminHotelActivity.this, "Ir a Asingación de Taxistas", Toast.LENGTH_SHORT).show();
-                startActivity(new Intent(AdminHotelActivity.this, ReporteReservasActivity.class));
+                startActivity(new Intent(AdminHotelActivity.this, TaxistasHotelActivity.class));
             }
         });
 
@@ -76,7 +76,7 @@ public class AdminHotelActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 Toast.makeText(AdminHotelActivity.this, "Reporte de Ventas", Toast.LENGTH_SHORT).show();
-                startActivity(new Intent(AdminHotelActivity.this, LogEventosActivity.class));
+                startActivity(new Intent(AdminHotelActivity.this, ReporteVentasActivity.class));
             }
         });
 
@@ -84,7 +84,7 @@ public class AdminHotelActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 Toast.makeText(AdminHotelActivity.this, "Checkout", Toast.LENGTH_SHORT).show();
-                startActivity(new Intent(AdminHotelActivity.this, LogEventosActivity.class));
+                startActivity(new Intent(AdminHotelActivity.this, CheckoutActivity.class));
             }
         });
 

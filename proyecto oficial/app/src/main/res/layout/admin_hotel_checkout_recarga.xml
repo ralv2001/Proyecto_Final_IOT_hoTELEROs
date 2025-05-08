@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@android:color/white"
+    android:padding="16dp"
+    tools:context=".CheckoutActivity">
+
+    <!-- Encabezado -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:background="#FA6B3E"
+        android:padding="12dp">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Hola, Renato"
+            android:textSize="18sp"
+            android:textColor="@android:color/white" />
+
+        <ImageView
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:src="@drawable/ic_center"
+            android:contentDescription="Centro" />
+    </LinearLayout>
+
+    <!-- Información del taxista -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginTop="24dp">
+
+        <ImageView
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:src="@drawable/ic_user"
+            android:layout_marginEnd="12dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="José López"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+    </LinearLayout>
+
+    <!-- Campo para monto si amerita recargo -->
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Monto a recargar (si aplica)"
+        android:textSize="16sp"
+        android:layout_marginTop="32dp" />
+
+    <EditText
+        android:id="@+id/editTextMonto"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="S/ 0.00"
+        android:inputType="numberDecimal"
+        android:background="@android:drawable/editbox_background_normal"
+        android:padding="12dp"
+        android:layout_marginTop="8dp"/>
+
+    <!-- Campo para motivo -->
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Motivo"
+        android:textSize="16sp"
+        android:layout_marginTop="24dp" />
+
+    <EditText
+        android:id="@+id/editTextMotivo"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Ej. Retorno innecesario"
+        android:background="@android:drawable/editbox_background_normal"
+        android:padding="12dp"
+        android:layout_marginTop="8dp"/>
+
+    <!-- Botones -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:layout_marginTop="32dp">
+
+        <Button
+            android:id="@+id/buttonRecargar"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Recargar"
+            android:backgroundTint="#FA6B3E"
+            android:textColor="@android:color/white"
+            android:layout_marginEnd="8dp"/>
+
+        <Button
+            android:id="@+id/buttonFinalizar"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Finalizar sin Recargo"
+            android:backgroundTint="#CCCCCC"
+            android:textColor="#000000"
+            android:layout_marginStart="8dp"/>
+    </LinearLayout>
+
+</LinearLayout>
