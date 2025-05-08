@@ -71,6 +71,20 @@
             android:name=".adminhotel.AdminHotelActivity"
             android:exported="true" />
 
+        <activity
+            android:name=".AllHotelServicesActivity"
+            android:exported="true">
+
+        </activity>
+
+        <activity
+            android:name=".HotelServicesPreviewActivity"
+            android:exported="true">
+
+        </activity>
+
+
+
         <meta-data
             android:name="com.google.android.geo.API_KEY"
             android:value="@string/google_maps_api_key" />

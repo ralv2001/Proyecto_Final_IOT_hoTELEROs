@@ -52,13 +52,4 @@
     <item name="label_additional_services" type="id" />
     <item name="label_total_price" type="id" />
     <item name="btn_confirm_container" type="id" />
-    <item name="cb_luminosa" type="id" />
-    <item name="cb_balcon" type="id" />
-    <item name="cb_jacuzzi" type="id" />
-    <item name="cb_minibar" type="id" />
-    <item name="cb_desayuno" type="id" />
-    <item name="btn_editar_3" type="id" />
-    <item name="btn_borrar_3" type="id" />
-    <item name="habitacion_card_3" type="id" />
-    <item name="habitacion_card_2" type="id" />
 </resources>

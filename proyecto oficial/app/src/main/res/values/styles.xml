@@ -149,7 +149,57 @@
         <item name="cornerSizeTopLeft">16dp</item>
     </style>
 
+    <!-- Base application theme with proper system UI handling -->
+    <style name="Theme.HotelerApp" parent="Theme.MaterialComponents.Light.NoActionBar">
+        <!-- Primary brand color -->
+        <item name="colorPrimary">#FF5722</item>
+        <item name="colorPrimaryVariant">#E64A19</item>
+        <item name="colorOnPrimary">@android:color/white</item>
 
+        <!-- Secondary brand color -->
+        <item name="colorSecondary">#4CAF50</item>
+        <item name="colorSecondaryVariant">#388E3C</item>
+        <item name="colorOnSecondary">@android:color/white</item>
 
+        <!-- Status bar color -->
+        <item name="android:statusBarColor">@android:color/white</item>
+        <item name="android:windowLightStatusBar">true</item>
+
+        <!-- Text appearance -->
+        <item name="textAppearanceHeadline6">@style/TextAppearance.HotelerApp.Headline6</item>
+        <item name="textAppearanceSubtitle1">@style/TextAppearance.HotelerApp.Subtitle1</item>
+        <item name="textAppearanceBody1">@style/TextAppearance.HotelerApp.Body1</item>
+        <item name="textAppearanceBody2">@style/TextAppearance.HotelerApp.Body2</item>
+    </style>
+
+    <!-- Text styles -->
+    <style name="TextAppearance.HotelerApp.Headline6" parent="TextAppearance.MaterialComponents.Headline6">
+        <item name="fontFamily">@font/poppins_semibold</item>
+    </style>
+
+    <style name="TextAppearance.HotelerApp.Subtitle1" parent="TextAppearance.MaterialComponents.Subtitle1">
+        <item name="fontFamily">@font/poppins_medium</item>
+    </style>
+
+    <style name="TextAppearance.HotelerApp.Body1" parent="TextAppearance.MaterialComponents.Body1">
+        <item name="fontFamily">@font/poppins_regular</item>
+    </style>
+
+    <style name="TextAppearance.HotelerApp.Body2" parent="TextAppearance.MaterialComponents.Body2">
+        <item name="fontFamily">@font/poppins_regular</item>
+    </style>
+    <!-- Configuration for enabling proper status bar -->
+    <style name="Theme.HotelerApp.StatusBar" parent="Theme.HotelerApp">
+        <item name="android:windowTranslucentStatus">false</item>
+        <item name="android:windowDrawsSystemBarBackgrounds">true</item>
+        <item name="android:statusBarColor">@android:color/white</item>
+        <item name="android:windowLightStatusBar">true</item>
+    </style>
+    <style name="TabTextAppearance" parent="TextAppearance.Design.Tab">
+        <item name="android:textSize">14sp</item>
+        <item name="android:textColor">@android:color/darker_gray</item>
+        <item name="textAllCaps">false</item>
+        <item name="android:fontFamily">@font/poppins_medium</item>
+    </style>
 
 </resources>
