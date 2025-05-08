@@ -78,6 +78,10 @@ public class AddProfilePhotoActivity extends AppCompatActivity {
             btnOmitir.setAlpha(0.4f);
         }
 
+        // Verificar si se omitió la foto previamente
+        boolean photoSkipped = getSharedPreferences("UserData", MODE_PRIVATE)
+                .getBoolean("photoSkipped", false);
+
         // Restaurar el estado si existe
         if (savedInstanceState != null) {
             isPhotoSelected = savedInstanceState.getBoolean(KEY_IS_PHOTO_SELECTED, false);
@@ -125,20 +129,30 @@ public class AddProfilePhotoActivity extends AppCompatActivity {
             }
         }
 
+        // Si se había omitido la foto, resetear su estado
+        if (photoSkipped) {
+            resetPhotoState();
+        }
+
         // Configurar listeners
         btnAddPhoto.setOnClickListener(v -> showImagePickOptions());
 
         btnContinuar.setOnClickListener(v -> {
-            if (isPhotoSelected || "client".equals(userType)) {
-                // Si una foto fue seleccionada o es un cliente (opcional)
-                completeRegistration();
-            } else {
-                Toast.makeText(this, "Por favor selecciona una foto de perfil", Toast.LENGTH_SHORT).show();
-            }
+            // Como el botón solo está habilitado cuando hay foto seleccionada, podemos simplificar
+            completeRegistration();
         });
 
         btnOmitir.setOnClickListener(v -> {
             if ("client".equals(userType)) {
+                // Marcar que se omitió la foto
+                getSharedPreferences("UserData", MODE_PRIVATE)
+                        .edit()
+                        .putBoolean("photoSkipped", true)
+                        .apply();
+
+                // Limpiar la foto si existe
+                resetPhotoState();
+
                 // Solo los clientes pueden omitir la foto
                 completeRegistration();
             }
@@ -147,6 +161,9 @@ public class AddProfilePhotoActivity extends AppCompatActivity {
         btnBack.setOnClickListener(v -> {
             onBackPressed();
         });
+
+        // Al final del método onCreate(), después de configurar todos los listeners
+        updateContinueButtonState();
     }
 
     private void loadImageFromUri(Uri uri) {
@@ -157,6 +174,29 @@ public class AddProfilePhotoActivity extends AppCompatActivity {
             e.printStackTrace();
             Toast.makeText(this, "Error al cargar la imagen", Toast.LENGTH_SHORT).show();
         }
+    }
+
+    // Método para resetear el estado de la foto
+    private void resetPhotoState() {
+        profilePhotoUri = null;
+        savedImageBitmap = null;
+        isPhotoSelected = false;
+
+        // Resetear la UI
+        ivProfilePhoto.setVisibility(View.GONE);
+        ivCameraIcon.setVisibility(View.VISIBLE);
+        ivCircleOutline.setVisibility(View.VISIBLE);
+        btnAddPhoto.setText("Añadir");
+
+        // Limpiar SharedPreferences para evitar errores futuros
+        getSharedPreferences("UserData", MODE_PRIVATE)
+                .edit()
+                .remove("photoPath")
+                .remove("photoUri")
+                .apply();
+
+        // Actualizar el estado del botón continuar
+        updateContinueButtonState();
     }
 
     private void showImagePickOptions() {
@@ -231,23 +271,35 @@ public class AddProfilePhotoActivity extends AppCompatActivity {
             } else if (requestCode == REQUEST_IMAGE_PICK && data != null) {
                 // Foto elegida de la galería
                 Uri selectedImageUri = data.getData();
-                profilePhotoUri = selectedImageUri;
-
-                // Guardar la URI en SharedPreferences como String
                 if (selectedImageUri != null) {
-                    getSharedPreferences("UserData", MODE_PRIVATE)
-                            .edit()
-                            .putString("photoUri", selectedImageUri.toString())
-                            .apply();
-                }
+                    try {
+                        // Convertir la imagen de galería a un archivo temporal (como con la cámara)
+                        Bitmap bitmap = MediaStore.Images.Media.getBitmap(getContentResolver(), selectedImageUri);
+                        savedImageBitmap = bitmap; // Guardamos la referencia
 
-                try {
-                    Bitmap bitmap = MediaStore.Images.Media.getBitmap(getContentResolver(), selectedImageUri);
-                    savedImageBitmap = bitmap; // Guardamos la referencia
-                    displaySelectedImage(null, bitmap);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                    Toast.makeText(this, "Error al cargar la imagen", Toast.LENGTH_SHORT).show();
+                        // Guardar la imagen en un archivo temporal
+                        File tempDir = getCacheDir();
+                        File tempFile = File.createTempFile("profile_photo_gallery", ".jpg", tempDir);
+                        FileOutputStream fos = new FileOutputStream(tempFile);
+                        bitmap.compress(Bitmap.CompressFormat.JPEG, 90, fos);
+                        fos.close();
+
+                        // Usar el archivo temporal en lugar del URI de la galería
+                        tempPhotoPath = tempFile.getAbsolutePath();
+                        profilePhotoUri = Uri.fromFile(tempFile);
+
+                        // Guardar la ruta en SharedPreferences
+                        getSharedPreferences("UserData", MODE_PRIVATE)
+                                .edit()
+                                .putString("photoPath", tempPhotoPath)
+                                .apply();
+
+                        // Mostrar la imagen
+                        displaySelectedImage(null, bitmap);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        Toast.makeText(this, "Error al procesar la imagen de la galería", Toast.LENGTH_SHORT).show();
+                    }
                 }
             }
         }
@@ -276,6 +328,15 @@ public class AddProfilePhotoActivity extends AppCompatActivity {
 
         isPhotoSelected = true;
         btnAddPhoto.setText("Cambiar");
+
+        // Si se había omitido la foto antes, ahora ya no
+        getSharedPreferences("UserData", MODE_PRIVATE)
+                .edit()
+                .putBoolean("photoSkipped", false)
+                .apply();
+
+        // Actualizar el estado del botón continuar
+        updateContinueButtonState();
     }
 
     private void completeRegistration() {
@@ -306,6 +367,9 @@ public class AddProfilePhotoActivity extends AppCompatActivity {
             Log.e("AddProfilePhoto", "Usando email por defecto: " + email);
         }
 
+        // Mostrar Toast con el mensaje de envío de código
+        Toast.makeText(this, "Código de verificación enviado a " + email, Toast.LENGTH_SHORT).show();
+
         // Crear un intent específico para esta actividad
         Intent intent = new Intent(this, RegisterVerifyActivity.class);
         intent.putExtra("email", email);
@@ -327,6 +391,22 @@ public class AddProfilePhotoActivity extends AppCompatActivity {
 
         if (tempPhotoPath != null) {
             outState.putString(KEY_TEMP_PHOTO_PATH, tempPhotoPath);
+        }
+    }
+
+    // Método para actualizar el estado del botón continuar
+    private void updateContinueButtonState() {
+        // Para todos los usuarios, el botón continuar se habilita solo cuando hay foto
+        btnContinuar.setEnabled(isPhotoSelected);
+        btnContinuar.setAlpha(isPhotoSelected ? 1.0f : 0.4f);
+
+        // El botón Omitir siempre está habilitado para clientes y deshabilitado para taxistas
+        if ("driver".equals(userType)) {
+            btnOmitir.setEnabled(false);
+            btnOmitir.setAlpha(0.4f);
+        } else {
+            btnOmitir.setEnabled(true);
+            btnOmitir.setAlpha(1.0f);
         }
     }
 }

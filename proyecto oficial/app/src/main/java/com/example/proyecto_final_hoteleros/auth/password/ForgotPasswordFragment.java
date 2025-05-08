@@ -51,6 +51,10 @@ public class ForgotPasswordFragment extends Fragment {
 
         // Configurar el botón de retroceso
         btnBack.setOnClickListener(v -> {
+            // Limpiar cualquier error antes de regresar
+            etEmail.setError(null);
+
+            // Usar popBackStack directamente sin validaciones adicionales
             if (getActivity() != null) {
                 getActivity().getSupportFragmentManager().popBackStack();
             }
@@ -132,6 +136,9 @@ public class ForgotPasswordFragment extends Fragment {
 
     private void navigateToVerifyCode(String email) {
         if (getActivity() != null) {
+            // Limpiar errores antes de navegar
+            etEmail.setError(null);
+
             // Crear instancia del fragmento de verificación con el email como argumento
             VerifyCodeFragment verifyCodeFragment = VerifyCodeFragment.newInstance(email);
 
@@ -153,8 +160,8 @@ public class ForgotPasswordFragment extends Fragment {
         super.onDestroyView();
 
         // Restaurar las pestañas cuando el usuario retrocede
-        if (getActivity() != null && !getActivity().isFinishing() && getActivity().getSupportFragmentManager().getBackStackEntryCount() == 1) {
-            // Si estamos volviendo al fragmento anterior (login o registro)
+        if (getActivity() != null && !getActivity().isFinishing()) {
+            // Mostrar elementos sin verificar el backStackEntryCount
             View tabLayout = getActivity().findViewById(R.id.tabLayout);
             View viewTabIndicatorLogin = getActivity().findViewById(R.id.viewTabIndicatorLogin);
             ViewGroup indicatorLayout = null;

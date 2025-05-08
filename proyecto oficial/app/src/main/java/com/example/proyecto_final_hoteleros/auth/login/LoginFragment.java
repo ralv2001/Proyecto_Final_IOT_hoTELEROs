@@ -19,6 +19,8 @@ import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
+import androidx.activity.OnBackPressedCallback;
+import androidx.annotation.NonNull;
 
 import com.example.proyecto_final_hoteleros.AuthActivity;
 import com.example.proyecto_final_hoteleros.R;
@@ -163,6 +165,26 @@ public class LoginFragment extends Fragment {
         super.onActivityCreated(savedInstanceState);
         mViewModel = new ViewModelProvider(this).get(LoginViewModel.class);
         // TODO: Use the ViewModel
+    }
+
+    // Si necesitas manejar el botón de retroceso, hazlo de manera muy simple:
+    @Override
+    public void onResume() {
+        super.onResume();
+        // Cualquier lógica adicional que necesites
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        // Limpiar cualquier estado persistente si es necesario
+    }
+
+    // Añade también este método para asegurar que el callback se limpia apropiadamente
+    @Override
+    public void onDetach() {
+        super.onDetach();
+        // El callback se eliminará automáticamente ya que está asociado al ciclo de vida del fragmento
     }
 
     private void togglePasswordVisibility() {

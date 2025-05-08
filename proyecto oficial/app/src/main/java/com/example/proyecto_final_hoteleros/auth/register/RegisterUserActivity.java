@@ -107,6 +107,15 @@ public class RegisterUserActivity extends AppCompatActivity {
 
         // Configurar clic en pestaña "Iniciar Sesión"
         tvLoginTab.setOnClickListener(v -> {
+            // Limpiar datos al cambiar a login
+            getSharedPreferences("UserData", MODE_PRIVATE)
+                    .edit()
+                    .remove("photoPath")
+                    .remove("photoUri")
+                    .remove("email")
+                    .remove("photoSkipped")
+                    .apply();
+
             // Ir a AuthActivity mostrando la pestaña de login
             Intent intent = new Intent(RegisterUserActivity.this, AuthActivity.class);
             intent.putExtra("mode", "login");
@@ -676,5 +685,20 @@ public class RegisterUserActivity extends AppCompatActivity {
             mViewModel.setPassword(etContrasena.getText().toString());
             mViewModel.setUserType(userType);
         }
+    }
+
+    // Añadir este método:
+    @Override
+    public void onBackPressed() {
+        // Limpiar los datos solo si se está saliendo del flujo de registro
+        getSharedPreferences("UserData", MODE_PRIVATE)
+                .edit()
+                .remove("photoPath")
+                .remove("photoUri")
+                .remove("email")
+                .remove("photoSkipped")
+                .apply();
+
+        super.onBackPressed();
     }
 }

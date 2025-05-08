@@ -17,6 +17,15 @@ public class SuccessActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.sistema_activity_password_success);
 
+        // Limpiar datos temporales del formulario de registro
+        getSharedPreferences("UserData", MODE_PRIVATE)
+                .edit()
+                .remove("photoPath")
+                .remove("photoUri")
+                .remove("email")
+                .remove("photoSkipped")
+                .apply();
+
         // Configurar el botón Continuar
         MaterialButton btnContinuar = findViewById(R.id.btnContinuar);
         btnContinuar.setOnClickListener(new View.OnClickListener() {

@@ -206,9 +206,13 @@ public class RegisterVerifyCodeFragment extends Fragment {
         // TODO: Implementar la validación real del código
         // Por ahora, cualquier código de 5 dígitos se considera válido para testing
         if (code.length() == 5) {
+            // Mostrar mensaje de éxito
+            Toast.makeText(getContext(), "Código verificado correctamente", Toast.LENGTH_SHORT).show();
+
             // Navegar a la pantalla de registro exitoso
             navigateToRegisterSuccess();
         } else {
+            // TODO: Implementar lógica cuando el código está incorrecto
             Toast.makeText(getContext(), "Código incorrecto. Por favor, inténtelo de nuevo.", Toast.LENGTH_SHORT).show();
         }
     }
