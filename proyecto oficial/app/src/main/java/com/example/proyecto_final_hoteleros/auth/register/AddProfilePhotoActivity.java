@@ -47,7 +47,7 @@ public class AddProfilePhotoActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.sistema_fragment_add_profile_photo);
+        setContentView(R.layout.sistema_add_profile_photo);
 
         // Obtener el userType del intent
         if (getIntent() != null && getIntent().hasExtra("userType")) {
