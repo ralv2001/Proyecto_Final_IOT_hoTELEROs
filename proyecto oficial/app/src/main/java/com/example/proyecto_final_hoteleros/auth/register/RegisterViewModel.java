@@ -1,11 +1,15 @@
 package com.example.proyecto_final_hoteleros.auth.register;
 
+import android.graphics.Bitmap;
 import android.net.Uri;
+import android.util.Log;
 
 import androidx.lifecycle.ViewModel;
 
 public class RegisterViewModel extends ViewModel {
     // Datos de usuario para el registro
+
+    private Bitmap profilePhotoBitmap;
     private String nombres;
     private String apellidos;
     private String email;
@@ -20,6 +24,9 @@ public class RegisterViewModel extends ViewModel {
     private boolean hasProfilePhoto = false;
 
     // Getters y setters
+    public Bitmap getProfilePhotoBitmap() {
+        return profilePhotoBitmap;
+    }
     public String getNombres() {
         return nombres;
     }
@@ -37,11 +44,13 @@ public class RegisterViewModel extends ViewModel {
     }
 
     public String getEmail() {
+        Log.d("RegisterViewModel", "Email solicitado: " + (email != null ? email : "null"));
         return email;
     }
 
     public void setEmail(String email) {
         this.email = email;
+        Log.d("RegisterViewModel", "Email guardado: " + email);
     }
 
     public String getFechaNacimiento() {
@@ -115,5 +124,9 @@ public class RegisterViewModel extends ViewModel {
 
     public void setHasProfilePhoto(boolean hasProfilePhoto) {
         this.hasProfilePhoto = hasProfilePhoto;
+    }
+
+    public void setProfilePhotoBitmap(Bitmap bitmap) {
+        this.profilePhotoBitmap = bitmap;
     }
 }

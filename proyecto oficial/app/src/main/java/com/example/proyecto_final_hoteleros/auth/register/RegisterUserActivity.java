@@ -11,6 +11,7 @@ import android.os.Bundle;
 import android.text.Editable;
 import android.text.InputFilter;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.util.Patterns;
 import android.view.View;
 import android.widget.Button;
@@ -652,9 +653,21 @@ public class RegisterUserActivity extends AppCompatActivity {
 
     private void saveFormDataToViewModel() {
         if (mViewModel != null) {
+            // Guarda en el ViewModel
             mViewModel.setNombres(etNombres.getText().toString().trim());
             mViewModel.setApellidos(etApellidos.getText().toString().trim());
-            mViewModel.setEmail(etEmail.getText().toString().trim());
+            String email = etEmail.getText().toString().trim();
+            mViewModel.setEmail(email);
+
+            // También guarda el email en SharedPreferences
+            getSharedPreferences("UserData", MODE_PRIVATE)
+                    .edit()
+                    .putString("email", email)
+                    .apply();
+
+            // Log para verificación
+            Log.d("RegisterUser", "Guardando email en ViewModel y SharedPreferences: " + email);
+
             mViewModel.setFechaNacimiento(etFechaNacimiento.getText().toString().trim());
             mViewModel.setTelefono(etTelefono.getText().toString().trim());
             mViewModel.setTipoDocumento(currentDocType);

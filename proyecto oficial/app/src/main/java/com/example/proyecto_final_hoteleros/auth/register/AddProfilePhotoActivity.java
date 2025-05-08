@@ -6,6 +6,7 @@ import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageButton;
@@ -20,6 +21,8 @@ import androidx.lifecycle.ViewModelProvider;
 import com.example.proyecto_final_hoteleros.R;
 import com.google.android.material.button.MaterialButton;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 
 public class AddProfilePhotoActivity extends AppCompatActivity {
@@ -30,8 +33,9 @@ public class AddProfilePhotoActivity extends AppCompatActivity {
     // Constantes para guardar el estado
     private static final String KEY_IS_PHOTO_SELECTED = "is_photo_selected";
     private static final String KEY_PHOTO_URI = "photo_uri";
-    private static final String KEY_PHOTO_BITMAP = "photo_bitmap";
+    private static final String KEY_TEMP_PHOTO_PATH = "temp_photo_path";
 
+    private Bitmap savedImageBitmap; // Para guardar la bitmap de la imagen
     private RegisterViewModel mViewModel;
     private ImageView ivProfilePhoto;
     private ImageView ivCameraIcon;
@@ -42,7 +46,7 @@ public class AddProfilePhotoActivity extends AppCompatActivity {
     private Uri profilePhotoUri;
     private boolean isPhotoSelected = false;
     private String userType;
-    private Bitmap savedImageBitmap;
+    private String tempPhotoPath; // Para guardar la ruta del archivo temporal
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -77,18 +81,46 @@ public class AddProfilePhotoActivity extends AppCompatActivity {
         // Restaurar el estado si existe
         if (savedInstanceState != null) {
             isPhotoSelected = savedInstanceState.getBoolean(KEY_IS_PHOTO_SELECTED, false);
+            String uriString = savedInstanceState.getString(KEY_PHOTO_URI);
+            tempPhotoPath = savedInstanceState.getString(KEY_TEMP_PHOTO_PATH);
 
             if (isPhotoSelected) {
-                String uriString = savedInstanceState.getString(KEY_PHOTO_URI);
                 if (uriString != null && !uriString.isEmpty()) {
                     profilePhotoUri = Uri.parse(uriString);
-                    displaySelectedImage(profilePhotoUri, null);
-                } else if (savedInstanceState.containsKey(KEY_PHOTO_BITMAP)) {
-                    // Restaurar la imagen capturada por la cámara
-                    savedImageBitmap = savedInstanceState.getParcelable(KEY_PHOTO_BITMAP);
-                    if (savedImageBitmap != null) {
-                        displaySelectedImage(null, savedImageBitmap);
+                    loadImageFromUri(profilePhotoUri);
+                } else if (tempPhotoPath != null && !tempPhotoPath.isEmpty()) {
+                    File tempFile = new File(tempPhotoPath);
+                    if (tempFile.exists()) {
+                        profilePhotoUri = Uri.fromFile(tempFile);
+                        loadImageFromUri(profilePhotoUri);
                     }
+                }
+            }
+        } else {
+            // Verificar si hay datos en el ViewModel
+            if (mViewModel.hasProfilePhoto() && mViewModel.getProfilePhotoUri() != null) {
+                profilePhotoUri = mViewModel.getProfilePhotoUri();
+                isPhotoSelected = true;
+                loadImageFromUri(profilePhotoUri);
+            } else {
+                // Intentar recuperar de SharedPreferences
+                String savedPhotoPath = getSharedPreferences("UserData", MODE_PRIVATE)
+                        .getString("photoPath", "");
+                String savedPhotoUri = getSharedPreferences("UserData", MODE_PRIVATE)
+                        .getString("photoUri", "");
+
+                if (!savedPhotoPath.isEmpty()) {
+                    File tempFile = new File(savedPhotoPath);
+                    if (tempFile.exists()) {
+                        tempPhotoPath = savedPhotoPath;
+                        profilePhotoUri = Uri.fromFile(tempFile);
+                        isPhotoSelected = true;
+                        loadImageFromUri(profilePhotoUri);
+                    }
+                } else if (!savedPhotoUri.isEmpty()) {
+                    profilePhotoUri = Uri.parse(savedPhotoUri);
+                    isPhotoSelected = true;
+                    loadImageFromUri(profilePhotoUri);
                 }
             }
         }
@@ -115,6 +147,16 @@ public class AddProfilePhotoActivity extends AppCompatActivity {
         btnBack.setOnClickListener(v -> {
             onBackPressed();
         });
+    }
+
+    private void loadImageFromUri(Uri uri) {
+        try {
+            Bitmap bitmap = MediaStore.Images.Media.getBitmap(getContentResolver(), uri);
+            displaySelectedImage(null, bitmap);
+        } catch (IOException e) {
+            e.printStackTrace();
+            Toast.makeText(this, "Error al cargar la imagen", Toast.LENGTH_SHORT).show();
+        }
     }
 
     private void showImagePickOptions() {
@@ -159,13 +201,54 @@ public class AddProfilePhotoActivity extends AppCompatActivity {
                 Bundle extras = data.getExtras();
                 if (extras != null) {
                     Bitmap imageBitmap = (Bitmap) extras.get("data");
-                    displaySelectedImage(null, imageBitmap);
+                    savedImageBitmap = imageBitmap; // Guardamos la referencia
+
+                    // Guardar la imagen en un archivo temporal
+                    try {
+                        File tempDir = getCacheDir();
+                        File tempFile = File.createTempFile("profile_photo", ".jpg", tempDir);
+                        FileOutputStream fos = new FileOutputStream(tempFile);
+                        imageBitmap.compress(Bitmap.CompressFormat.JPEG, 100, fos);
+                        fos.close();
+
+                        // Guardar la ruta para restaurarla después
+                        tempPhotoPath = tempFile.getAbsolutePath();
+                        profilePhotoUri = Uri.fromFile(tempFile);
+
+                        // Guardar la ruta en SharedPreferences
+                        getSharedPreferences("UserData", MODE_PRIVATE)
+                                .edit()
+                                .putString("photoPath", tempPhotoPath)
+                                .apply();
+
+                        // Mostrar la imagen
+                        displaySelectedImage(null, imageBitmap);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                        Toast.makeText(this, "Error al guardar la imagen", Toast.LENGTH_SHORT).show();
+                    }
                 }
             } else if (requestCode == REQUEST_IMAGE_PICK && data != null) {
                 // Foto elegida de la galería
                 Uri selectedImageUri = data.getData();
                 profilePhotoUri = selectedImageUri;
-                displaySelectedImage(selectedImageUri, null);
+
+                // Guardar la URI en SharedPreferences como String
+                if (selectedImageUri != null) {
+                    getSharedPreferences("UserData", MODE_PRIVATE)
+                            .edit()
+                            .putString("photoUri", selectedImageUri.toString())
+                            .apply();
+                }
+
+                try {
+                    Bitmap bitmap = MediaStore.Images.Media.getBitmap(getContentResolver(), selectedImageUri);
+                    savedImageBitmap = bitmap; // Guardamos la referencia
+                    displaySelectedImage(null, bitmap);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    Toast.makeText(this, "Error al cargar la imagen", Toast.LENGTH_SHORT).show();
+                }
             }
         }
     }
@@ -176,19 +259,19 @@ public class AddProfilePhotoActivity extends AppCompatActivity {
         ivCameraIcon.setVisibility(View.GONE);
         ivCircleOutline.setVisibility(View.GONE);
 
-        if (imageUri != null) {
+        if (imageBitmap != null) {
+            ivProfilePhoto.setImageBitmap(imageBitmap);
+            savedImageBitmap = imageBitmap; // Guardar la bitmap
+        } else if (imageUri != null) {
             try {
                 Bitmap bitmap = MediaStore.Images.Media.getBitmap(getContentResolver(), imageUri);
                 ivProfilePhoto.setImageBitmap(bitmap);
-                this.savedImageBitmap = bitmap; // Guardar la bitmap
+                savedImageBitmap = bitmap; // Guardar la bitmap
             } catch (IOException e) {
                 e.printStackTrace();
                 Toast.makeText(this, "Error al cargar la imagen", Toast.LENGTH_SHORT).show();
                 return;
             }
-        } else if (imageBitmap != null) {
-            ivProfilePhoto.setImageBitmap(imageBitmap);
-            this.savedImageBitmap = imageBitmap; // Guardar la bitmap
         }
 
         isPhotoSelected = true;
@@ -204,13 +287,33 @@ public class AddProfilePhotoActivity extends AppCompatActivity {
             mViewModel.setHasProfilePhoto(true);
         }
 
-        // Navegar a la pantalla principal o mostrar mensaje de éxito
-        Toast.makeText(this, "Registro exitoso", Toast.LENGTH_SHORT).show();
+        // Intenta obtener el email del ViewModel primero
+        String email = mViewModel.getEmail();
 
-        // Aquí deberías navegar a la pantalla principal o home
-        // Intent intent = new Intent(this, HomeActivity.class);
-        // startActivity(intent);
-        // finish();
+        // Si el email es null o vacío, intenta obtenerlo de SharedPreferences
+        if (email == null || email.isEmpty()) {
+            email = getSharedPreferences("UserData", MODE_PRIVATE)
+                    .getString("email", "");
+            Log.d("AddProfilePhoto", "Email recuperado de SharedPreferences: " + email);
+        }
+
+        // Log para depuración
+        Log.d("AddProfilePhoto", "Email en completeRegistration: " + email);
+
+        // Si todavía es null o vacío, usa uno de prueba (solo para desarrollo)
+        if (email == null || email.isEmpty()) {
+            email = "test@example.com";
+            Log.e("AddProfilePhoto", "Usando email por defecto: " + email);
+        }
+
+        // Crear un intent específico para esta actividad
+        Intent intent = new Intent(this, RegisterVerifyActivity.class);
+        intent.putExtra("email", email);
+
+        // Hacer log del email que enviamos
+        Log.d("AddProfilePhoto", "Enviando email: " + email);
+
+        startActivity(intent);
     }
 
     @Override
@@ -222,8 +325,8 @@ public class AddProfilePhotoActivity extends AppCompatActivity {
             outState.putString(KEY_PHOTO_URI, profilePhotoUri.toString());
         }
 
-        if (savedImageBitmap != null) {
-            outState.putParcelable(KEY_PHOTO_BITMAP, savedImageBitmap);
+        if (tempPhotoPath != null) {
+            outState.putString(KEY_TEMP_PHOTO_PATH, tempPhotoPath);
         }
     }
 }

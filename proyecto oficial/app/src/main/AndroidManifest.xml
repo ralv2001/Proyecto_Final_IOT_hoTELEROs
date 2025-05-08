@@ -17,6 +17,12 @@
         android:theme="@style/Theme.Proyecto_Final_hoTELEROs"
         tools:targetApi="31">
         <activity
+            android:name=".auth.register.RegisterVerifyActivity"
+            android:exported="false" />
+        <activity
+            android:name=".auth.register.RegisterSuccessActivity"
+            android:exported="false" />
+        <activity
             android:name=".auth.register.AddProfilePhotoActivity"
             android:exported="false" />
         <activity
