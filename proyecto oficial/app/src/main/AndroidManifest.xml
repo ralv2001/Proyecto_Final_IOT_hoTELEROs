@@ -70,6 +70,25 @@
         <activity
             android:name=".adminhotel.AdminHotelActivity"
             android:exported="true" />
+        
+        <activity
+            android:name=".adminhotel.CheckoutActivity"
+            android:exported="true" />
+        <activity
+            android:name=".adminhotel.HabitacionesActivity"
+            android:exported="true" />
+        <activity
+            android:name=".adminhotel.PerfilHotelActivity"
+            android:exported="true" />
+        <activity
+            android:name=".adminhotel.ReporteVentasActivity"
+            android:exported="true" />
+        <activity
+            android:name=".adminhotel.ServiciosHotelActivity"
+            android:exported="true" />
+        <activity
+            android:name=".adminhotel.TaxistasHotelActivity"
+            android:exported="true" />
 
         <activity
             android:name=".AllHotelServicesActivity"
