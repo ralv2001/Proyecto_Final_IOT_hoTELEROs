@@ -13,14 +13,14 @@ public class User {
     private String numeroDocumento;
     private String direccion;
     private String contrasena;
-    private String confirmarContrasena;
+
     private String userType;
     private String docType;
     private String countryCode;
 
     public User() {}
 
-    public User(String nombres, String apellidos, String email, String fechaNacimiento, String telefono, String numeroDocumento, String direccion, String contrasena, String confirmarContrasena, String userType, String docType, String countryCode) {
+    public User(String nombres, String apellidos, String email, String fechaNacimiento, String telefono, String numeroDocumento, String direccion, String contrasena,  String userType, String docType, String countryCode) {
         this.nombres = nombres;
         this.apellidos = apellidos;
         this.email = email;
@@ -29,7 +29,7 @@ public class User {
         this.numeroDocumento = numeroDocumento;
         this.direccion = direccion;
         this.contrasena = contrasena;
-        this.confirmarContrasena = confirmarContrasena;
+
         this.userType = userType;
         this.docType = docType;
         this.countryCode = countryCode;
@@ -99,13 +99,6 @@ public class User {
         this.contrasena = contrasena;
     }
 
-    public String getConfirmarContrasena() {
-        return confirmarContrasena;
-    }
-
-    public void setConfirmarContrasena(String confirmarContrasena) {
-        this.confirmarContrasena = confirmarContrasena;
-    }
 
     public String getUserType() {
         return userType;
