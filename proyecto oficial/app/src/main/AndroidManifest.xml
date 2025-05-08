@@ -90,7 +90,7 @@
         <activity
             android:name=".adminhotel.TaxistasHotelActivity"
             android:exported="true" />
-
+        <activity android:name=".adminhotel.NuevoServicioActivity"/>
         <activity
             android:name=".AllHotelServicesActivity"
             android:exported="true">

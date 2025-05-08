@@ -1,6 +1,8 @@
 package com.example.proyecto_final_hoteleros.adminhotel;
 
+import android.content.Intent;
 import android.os.Bundle;
+import android.widget.Button;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -32,5 +34,11 @@ public class ServiciosHotelActivity extends AppCompatActivity {
 
         adapter = new ServicioAdapter(listaServicios, this);
         recyclerServicios.setAdapter(adapter);
+
+        Button btnAgregar = findViewById(R.id.btnAgregar);
+        btnAgregar.setOnClickListener(v -> {
+            Intent intent = new Intent(ServiciosHotelActivity.this, NuevoServicioActivity.class);
+            startActivity(intent);
+        });
     }
 }
