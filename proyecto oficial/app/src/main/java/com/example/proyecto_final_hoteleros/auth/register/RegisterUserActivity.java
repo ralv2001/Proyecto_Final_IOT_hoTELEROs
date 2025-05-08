@@ -1,18 +1,18 @@
 package com.example.proyecto_final_hoteleros.auth.register;
 
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.res.ResourcesCompat;
 import androidx.lifecycle.ViewModelProvider;
+
 import android.app.AlertDialog;
 import android.app.DatePickerDialog;
+import android.content.Intent;
 import android.os.Bundle;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.fragment.app.Fragment;
 import android.text.Editable;
 import android.text.InputFilter;
 import android.text.TextWatcher;
-import android.view.LayoutInflater;
+import android.util.Patterns;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
@@ -20,18 +20,27 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
-import androidx.core.content.res.ResourcesCompat;
 
+import com.example.proyecto_final_hoteleros.AuthActivity;
 import com.example.proyecto_final_hoteleros.R;
 
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Calendar;
+import java.util.List;
 import java.util.Locale;
 import java.util.regex.Pattern;
 
-public class RegisterFragmentUser extends Fragment {
+public class RegisterUserActivity extends AppCompatActivity {
 
     private RegisterViewModel mViewModel;
+    private String userType = "client"; // Valor por defecto
+
+    // Pestañas
+    private TextView tvLoginTab;
+    private TextView tvRegisterTab;
+    private View viewTabIndicatorLogin;
+    private View viewTabIndicatorRegister;
 
     // Campos de texto
     private EditText etNombres, etApellidos, etEmail, etFechaNacimiento, etTelefono, etNumeroDocumento, etDireccion;
@@ -45,11 +54,16 @@ public class RegisterFragmentUser extends Fragment {
 
     // Calendario para guardar la fecha seleccionada
     private final Calendar calendar = Calendar.getInstance();
+
     // Formato para la fecha
     private final SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
 
-
-
+    // Lista de dominios válidos para correo electrónico
+    private final List<String> VALID_EMAIL_DOMAINS = Arrays.asList(
+            "gmail.com", "hotmail.com", "yahoo.es", "pucp.edu.pe", "outlook.com",
+            "icloud.com", "yahoo.com", "live.com", "msn.com", "protonmail.com",
+            "yahoo.com.mx", "hotmail.es", "me.com", "aol.com", "mail.com"
+    );
 
     // Variables para la selección de país
     private ImageView ivCountryFlag;
@@ -62,8 +76,6 @@ public class RegisterFragmentUser extends Fragment {
     private static final String COUNTRY_CODE_VE = "(+58) ";
     private String currentCountryCode = COUNTRY_CODE_PE; // Por defecto Perú
 
-
-
     // Campos para contraseña
     private EditText etContrasena, etConfirmarContrasena;
     private ImageButton ibTogglePassword, ibToggleConfirmPassword;
@@ -73,55 +85,68 @@ public class RegisterFragmentUser extends Fragment {
     private boolean isPasswordVisible = false;
     private boolean isConfirmPasswordVisible = false;
 
-
-
-    public static RegisterFragmentUser newInstance(String userType) {
-        RegisterFragmentUser fragment = new RegisterFragmentUser();
-        Bundle args = new Bundle();
-        args.putString("userType", userType);
-        fragment.setArguments(args);
-        return fragment;
-    }
-
     @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
-                             @Nullable Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.sistema_fragment_register_user, container, false);
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.sistema_activity_register_user);
+
+        // Obtener el tipo de usuario del intent
+        if (getIntent() != null && getIntent().hasExtra("userType")) {
+            userType = getIntent().getStringExtra("userType");
+        }
+
+        // Inicializar el ViewModel
+        mViewModel = new ViewModelProvider(this).get(RegisterViewModel.class);
+
+        // Inicializar las pestañas
+        tvLoginTab = findViewById(R.id.tvLoginTab);
+        tvRegisterTab = findViewById(R.id.tvRegisterTab);
+        viewTabIndicatorLogin = findViewById(R.id.viewTabIndicatorLogin);
+        viewTabIndicatorRegister = findViewById(R.id.viewTabIndicatorRegister);
+
+        // Configurar clic en pestaña "Iniciar Sesión"
+        tvLoginTab.setOnClickListener(v -> {
+            // Ir a AuthActivity mostrando la pestaña de login
+            Intent intent = new Intent(RegisterUserActivity.this, AuthActivity.class);
+            intent.putExtra("mode", "login");
+            startActivity(intent);
+            finish();
+        });
 
         // Inicializar vistas
-        ImageButton btnBack = view.findViewById(R.id.btnBack);
-        btnContinuar = view.findViewById(R.id.btnContinuar);
+        ImageButton btnBack = findViewById(R.id.btnBack);
+        btnContinuar = findViewById(R.id.btnContinuar);
 
         // Inicializar campos de texto
-        etNombres = view.findViewById(R.id.etNombres);
-        etApellidos = view.findViewById(R.id.etApellidos);
-        etEmail = view.findViewById(R.id.etEmail);
-        etFechaNacimiento = view.findViewById(R.id.etFechaNacimiento);
-        etTelefono = view.findViewById(R.id.etTelefono);
+        etNombres = findViewById(R.id.etNombres);
+        etApellidos = findViewById(R.id.etApellidos);
+        etEmail = findViewById(R.id.etEmail);
+        etFechaNacimiento = findViewById(R.id.etFechaNacimiento);
+        etTelefono = findViewById(R.id.etTelefono);
 
         // Inicializar las vistas relacionadas con el selector de país
-        ivCountryFlag = view.findViewById(R.id.ivCountryFlag);
-        tvCountryCode = view.findViewById(R.id.tvCountryCode);
-        countryCodeContainer = view.findViewById(R.id.countryCodeContainer);
-        etNumeroDocumento = view.findViewById(R.id.etNumeroDocumento);
-        etDireccion = view.findViewById(R.id.etDireccion);
+        ivCountryFlag = findViewById(R.id.ivCountryFlag);
+        tvCountryCode = findViewById(R.id.tvCountryCode);
+        countryCodeContainer = findViewById(R.id.countryCodeContainer);
+        etNumeroDocumento = findViewById(R.id.etNumeroDocumento);
+        etDireccion = findViewById(R.id.etDireccion);
 
         // Inicializar campos de contraseña
-        etContrasena = view.findViewById(R.id.etContrasena);
-        etConfirmarContrasena = view.findViewById(R.id.etConfirmarContrasena);
-        ibTogglePassword = view.findViewById(R.id.ibTogglePassword);
-        ibToggleConfirmPassword = view.findViewById(R.id.ibToggleConfirmPassword);
-        passwordStrengthBar = view.findViewById(R.id.passwordStrengthBar);
-        ivReq1Icon = view.findViewById(R.id.ivReq1Icon);
-        ivReq2Icon = view.findViewById(R.id.ivReq2Icon);
-        ivReq3Icon = view.findViewById(R.id.ivReq3Icon);
-        tvReq1 = view.findViewById(R.id.tvReq1);
-        tvReq2 = view.findViewById(R.id.tvReq2);
-        tvReq3 = view.findViewById(R.id.tvReq3);
+        etContrasena = findViewById(R.id.etContrasena);
+        etConfirmarContrasena = findViewById(R.id.etConfirmarContrasena);
+        ibTogglePassword = findViewById(R.id.ibTogglePassword);
+        ibToggleConfirmPassword = findViewById(R.id.ibToggleConfirmPassword);
+        passwordStrengthBar = findViewById(R.id.passwordStrengthBar);
+        ivReq1Icon = findViewById(R.id.ivReq1Icon);
+        ivReq2Icon = findViewById(R.id.ivReq2Icon);
+        ivReq3Icon = findViewById(R.id.ivReq3Icon);
+        tvReq1 = findViewById(R.id.tvReq1);
+        tvReq2 = findViewById(R.id.tvReq2);
+        tvReq3 = findViewById(R.id.tvReq3);
 
         // Después de inicializar etNumeroDocumento, configurar el límite para DNI
-        etNumeroDocumento.setFilters(new android.text.InputFilter[] {
-                new android.text.InputFilter.LengthFilter(8)
+        etNumeroDocumento.setFilters(new InputFilter[] {
+                new InputFilter.LengthFilter(8)
         });
 
         // Configurar listener para el selector de país
@@ -129,11 +154,11 @@ public class RegisterFragmentUser extends Fragment {
             showCountryDialog();
         });
 
-        // Llamada a setupPhoneField con la vista
-        setupPhoneField(view);
+        // Llamada a setupPhoneField
+        setupPhoneField();
 
         // Configurar el campo de fecha de nacimiento
-        ImageButton btnCalendar = view.findViewById(R.id.btnCalendar);
+        ImageButton btnCalendar = findViewById(R.id.btnCalendar);
 
         // Configurar listener para el campo de fecha
         View.OnClickListener dateClickListener = v -> showDatePickerDialog();
@@ -141,8 +166,8 @@ public class RegisterFragmentUser extends Fragment {
         btnCalendar.setOnClickListener(dateClickListener);
 
         // Configurar el selector de tipo de documento
-        tvDocType = view.findViewById(R.id.tvDocType);
-        LinearLayout docTypeContainer = view.findViewById(R.id.docTypeContainer);
+        tvDocType = findViewById(R.id.tvDocType);
+        LinearLayout docTypeContainer = findViewById(R.id.docTypeContainer);
 
         docTypeContainer.setOnClickListener(v -> {
             showDocTypeDialog();
@@ -153,9 +178,26 @@ public class RegisterFragmentUser extends Fragment {
             isPasswordVisible = !isPasswordVisible;
             togglePasswordVisibility(etContrasena, ibTogglePassword, isPasswordVisible);
         });
+
         ibToggleConfirmPassword.setOnClickListener(v -> {
             isConfirmPasswordVisible = !isConfirmPasswordVisible;
             togglePasswordVisibility(etConfirmarContrasena, ibToggleConfirmPassword, isConfirmPasswordVisible);
+        });
+
+        // Añadir TextWatcher para validar el correo electrónico
+        etEmail.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {}
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                validateEmail(s.toString());
+                // Verificar todos los campos para el botón continuar
+                registerFieldsWatcher.afterTextChanged(s);
+            }
         });
 
         // Añadir listener a etNumeroDocumento para validar según tipo de documento
@@ -210,9 +252,7 @@ public class RegisterFragmentUser extends Fragment {
 
         // Configurar listener para botón volver
         btnBack.setOnClickListener(v -> {
-            if (getActivity() != null) {
-                getActivity().getSupportFragmentManager().popBackStack();
-            }
+            onBackPressed();
         });
 
         // Configurar listener para botón continuar
@@ -221,24 +261,12 @@ public class RegisterFragmentUser extends Fragment {
                 // Guardar los datos del formulario en el ViewModel
                 saveFormDataToViewModel();
 
-                // Navegar al fragmento de subida de foto
-                if (getActivity() != null) {
-                    // Obtener el tipo de usuario que viene como argumento
-                    String userType = "client"; // valor por defecto
-                    if (getArguments() != null) {
-                        userType = getArguments().getString("userType", "client");
-                    }
-
-                    // Crear y mostrar el fragmento de subida de foto
-                    AddProfilePhotoFragment photoFragment = AddProfilePhotoFragment.newInstance(userType);
-                    getActivity().getSupportFragmentManager()
-                            .beginTransaction()
-                            .replace(R.id.fragmentContainer, photoFragment)
-                            .addToBackStack(null)
-                            .commit();
-                }
+                // Navegar a la actividad de subida de foto (usando Intent)
+                Intent intent = new Intent(RegisterUserActivity.this, AddProfilePhotoActivity.class);
+                intent.putExtra("userType", userType);
+                startActivity(intent);
             } else {
-                Toast.makeText(getContext(), "Por favor complete todos los campos correctamente", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Por favor complete todos los campos correctamente", Toast.LENGTH_SHORT).show();
             }
         });
 
@@ -253,8 +281,30 @@ public class RegisterFragmentUser extends Fragment {
 
         // Establecer hint inicial para el número de documento según el tipo por defecto
         etNumeroDocumento.setHint("Ingrese su DNI (8 dígitos)");
+    }
 
-        return view;
+    // Método para validar el formato de correo electrónico
+    private void validateEmail(String email) {
+        if (email.isEmpty()) {
+            etEmail.setError(null);
+            return;
+        }
+
+        // Validar formato básico con Patterns de Android
+        if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+            etEmail.setError("Formato de correo electrónico inválido");
+            return;
+        }
+
+        // Obtener el dominio del correo y validar si está en nuestra lista
+        String domain = email.substring(email.lastIndexOf("@") + 1).toLowerCase();
+        if (!VALID_EMAIL_DOMAINS.contains(domain)) {
+            etEmail.setError("Dominio de correo no reconocido");
+            return;
+        }
+
+        // Si pasa todas las validaciones, eliminar error
+        etEmail.setError(null);
     }
 
     private void showDatePickerDialog() {
@@ -265,7 +315,7 @@ public class RegisterFragmentUser extends Fragment {
 
         // Crear DatePickerDialog
         DatePickerDialog datePickerDialog = new DatePickerDialog(
-                getContext(),
+                this,
                 (view, selectedYear, selectedMonth, selectedDay) -> {
                     // Actualizar el calendario con la fecha seleccionada
                     calendar.set(Calendar.YEAR, selectedYear);
@@ -291,7 +341,7 @@ public class RegisterFragmentUser extends Fragment {
     private void showDocTypeDialog() {
         final String[] options = {DOC_TYPE_DNI, DOC_TYPE_CE};
 
-        AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("Seleccione tipo de documento")
                 .setItems(options, (dialog, which) -> {
                     String selectedType = options[which];
@@ -304,16 +354,16 @@ public class RegisterFragmentUser extends Fragment {
                     if (DOC_TYPE_DNI.equals(selectedType)) {
                         // Para DNI: Solo números, máximo 8 caracteres
                         etNumeroDocumento.setInputType(android.text.InputType.TYPE_CLASS_NUMBER);
-                        etNumeroDocumento.setFilters(new android.text.InputFilter[] {
-                                new android.text.InputFilter.LengthFilter(8)
+                        etNumeroDocumento.setFilters(new InputFilter[] {
+                                new InputFilter.LengthFilter(8)
                         });
                         etNumeroDocumento.setHint("Ingrese su DNI (8 dígitos)");
                     } else {
                         // Para CE: Alfanumérico, máximo 12 caracteres
                         etNumeroDocumento.setInputType(android.text.InputType.TYPE_CLASS_TEXT |
                                 android.text.InputType.TYPE_TEXT_FLAG_CAP_CHARACTERS);
-                        etNumeroDocumento.setFilters(new android.text.InputFilter[] {
-                                new android.text.InputFilter.LengthFilter(12)
+                        etNumeroDocumento.setFilters(new InputFilter[] {
+                                new InputFilter.LengthFilter(12)
                         });
                         etNumeroDocumento.setHint("Ingrese su CE (máx. 12 caracteres)");
                     }
@@ -331,7 +381,7 @@ public class RegisterFragmentUser extends Fragment {
                 R.drawable.circle_flag_ve
         };
 
-        AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("Seleccione país")
                 .setItems(countries, (dialog, which) -> {
                     // Actualizar el código de país seleccionado
@@ -397,6 +447,10 @@ public class RegisterFragmentUser extends Fragment {
 
     // Método para verificar si todos los campos están completos y válidos
     private boolean areAllFieldsFilled() {
+        // Verificar si el email tiene error
+        boolean emailValid = etEmail.getError() == null &&
+                !etEmail.getText().toString().trim().isEmpty();
+
         // Verificar si el documento tiene error
         boolean documentValid = etNumeroDocumento.getError() == null &&
                 !etNumeroDocumento.getText().toString().trim().isEmpty();
@@ -418,7 +472,7 @@ public class RegisterFragmentUser extends Fragment {
 
         return !etNombres.getText().toString().trim().isEmpty() &&
                 !etApellidos.getText().toString().trim().isEmpty() &&
-                !etEmail.getText().toString().trim().isEmpty() &&
+                emailValid &&
                 !etFechaNacimiento.getText().toString().trim().isEmpty() &&
                 phoneValid &&
                 documentValid &&
@@ -427,25 +481,9 @@ public class RegisterFragmentUser extends Fragment {
                 passwordsMatch;
     }
 
-    @Override
-    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
-        super.onActivityCreated(savedInstanceState);
-        mViewModel = new ViewModelProvider(this).get(RegisterViewModel.class);
-    }
-
-    private void setupPhoneField(View rootView) {
-        // Inicializar las vistas relacionadas con el selector de país
-        tvCountryCode = rootView.findViewById(R.id.tvCountryCode);
-        ivCountryFlag = rootView.findViewById(R.id.ivCountryFlag);
-        countryCodeContainer = rootView.findViewById(R.id.countryCodeContainer);
-
+    private void setupPhoneField() {
         // Configuramos el código de país inicial
         tvCountryCode.setText(currentCountryCode);
-
-        // Configurar listener para el selector de país
-        countryCodeContainer.setOnClickListener(v -> {
-            showCountryDialog();
-        });
 
         // Establecer el máximo de caracteres a 11 (9 dígitos + 2 guiones)
         etTelefono.setFilters(new InputFilter[] {
@@ -527,12 +565,12 @@ public class RegisterFragmentUser extends Fragment {
         if (req1Met) {
             ivReq1Icon.setImageResource(R.drawable.ic_check);
             tvReq1.setTextColor(getResources().getColor(android.R.color.holo_green_dark));
-            tvReq1.setTypeface(ResourcesCompat.getFont(getContext(), R.font.roboto_regular));
+            tvReq1.setTypeface(ResourcesCompat.getFont(this, R.font.roboto_regular));
             progress++;
         } else {
             ivReq1Icon.setImageResource(R.drawable.ic_sin_check);
             tvReq1.setTextColor(getResources().getColor(R.color.colorTextTertiary));
-            tvReq1.setTypeface(ResourcesCompat.getFont(getContext(), R.font.roboto_bold));
+            tvReq1.setTypeface(ResourcesCompat.getFont(this, R.font.roboto_bold));
         }
 
         // Requisito 2: un número y un símbolo
@@ -542,12 +580,12 @@ public class RegisterFragmentUser extends Fragment {
         if (req2Met) {
             ivReq2Icon.setImageResource(R.drawable.ic_check);
             tvReq2.setTextColor(getResources().getColor(android.R.color.holo_green_dark));
-            tvReq2.setTypeface(ResourcesCompat.getFont(getContext(), R.font.roboto_regular));
+            tvReq2.setTypeface(ResourcesCompat.getFont(this, R.font.roboto_regular));
             progress++;
         } else {
             ivReq2Icon.setImageResource(R.drawable.ic_sin_check);
             tvReq2.setTextColor(getResources().getColor(R.color.colorTextTertiary));
-            tvReq2.setTypeface(ResourcesCompat.getFont(getContext(), R.font.roboto_bold));
+            tvReq2.setTypeface(ResourcesCompat.getFont(this, R.font.roboto_bold));
         }
 
         // Requisito 3: una mayúscula
@@ -555,12 +593,12 @@ public class RegisterFragmentUser extends Fragment {
         if (req3Met) {
             ivReq3Icon.setImageResource(R.drawable.ic_check);
             tvReq3.setTextColor(getResources().getColor(android.R.color.holo_green_dark));
-            tvReq3.setTypeface(ResourcesCompat.getFont(getContext(), R.font.roboto_regular));
+            tvReq3.setTypeface(ResourcesCompat.getFont(this, R.font.roboto_regular));
             progress++;
         } else {
             ivReq3Icon.setImageResource(R.drawable.ic_sin_check);
             tvReq3.setTextColor(getResources().getColor(R.color.colorTextTertiary));
-            tvReq3.setTypeface(ResourcesCompat.getFont(getContext(), R.font.roboto_bold));
+            tvReq3.setTypeface(ResourcesCompat.getFont(this, R.font.roboto_bold));
         }
 
         // Actualizar la barra de progreso según los requisitos cumplidos
@@ -612,7 +650,6 @@ public class RegisterFragmentUser extends Fragment {
         return req1Met && req2Met && req3Met;
     }
 
-
     private void saveFormDataToViewModel() {
         if (mViewModel != null) {
             mViewModel.setNombres(etNombres.getText().toString().trim());
@@ -624,14 +661,7 @@ public class RegisterFragmentUser extends Fragment {
             mViewModel.setNumeroDocumento(etNumeroDocumento.getText().toString().trim());
             mViewModel.setDireccion(etDireccion.getText().toString().trim());
             mViewModel.setPassword(etContrasena.getText().toString());
-
-            // Guardar el tipo de usuario que viene como argumento
-            if (getArguments() != null) {
-                String userType = getArguments().getString("userType", "client");
-                mViewModel.setUserType(userType);
-            }
+            mViewModel.setUserType(userType);
         }
     }
-
-
 }

@@ -6,9 +6,7 @@ import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
-import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
@@ -16,7 +14,7 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.fragment.app.Fragment;
+import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.example.proyecto_final_hoteleros.R;
@@ -24,14 +22,18 @@ import com.google.android.material.button.MaterialButton;
 
 import java.io.IOException;
 
-public class AddProfilePhotoFragment extends Fragment {
+public class AddProfilePhotoActivity extends AppCompatActivity {
 
     private static final int REQUEST_IMAGE_CAPTURE = 1;
     private static final int REQUEST_IMAGE_PICK = 2;
 
+    // Constantes para guardar el estado
+    private static final String KEY_IS_PHOTO_SELECTED = "is_photo_selected";
+    private static final String KEY_PHOTO_URI = "photo_uri";
+    private static final String KEY_PHOTO_BITMAP = "photo_bitmap";
+
     private RegisterViewModel mViewModel;
     private ImageView ivProfilePhoto;
-    private ImageView ivPhotoPlaceholder;
     private ImageView ivCameraIcon;
     private ImageView ivCircleOutline;
     private Button btnAddPhoto;
@@ -40,38 +42,55 @@ public class AddProfilePhotoFragment extends Fragment {
     private Uri profilePhotoUri;
     private boolean isPhotoSelected = false;
     private String userType;
-
-    public static AddProfilePhotoFragment newInstance(String userType) {
-        AddProfilePhotoFragment fragment = new AddProfilePhotoFragment();
-        Bundle args = new Bundle();
-        args.putString("userType", userType);
-        fragment.setArguments(args);
-        return fragment;
-    }
+    private Bitmap savedImageBitmap;
 
     @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
-                             @Nullable Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.sistema_fragment_add_profile_photo, container, false);
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.sistema_fragment_add_profile_photo);
 
-        // Obtener el tipo de usuario
-        if (getArguments() != null) {
-            userType = getArguments().getString("userType", "client");
+        // Obtener el userType del intent
+        if (getIntent() != null && getIntent().hasExtra("userType")) {
+            userType = getIntent().getStringExtra("userType");
+        } else {
+            userType = "client"; // valor por defecto
         }
 
+        // Inicializar el ViewModel
+        mViewModel = new ViewModelProvider(this).get(RegisterViewModel.class);
+
         // Inicializar vistas
-        ivProfilePhoto = view.findViewById(R.id.ivProfilePhoto);
-        ivCameraIcon = view.findViewById(R.id.ivCameraIcon);
-        ivCircleOutline = view.findViewById(R.id.ivCircleOutline);
-        btnAddPhoto = view.findViewById(R.id.btnAddPhoto);
-        btnContinuar = view.findViewById(R.id.btnContinuar);
-        btnOmitir = view.findViewById(R.id.btnOmitir);
-        ImageButton btnBack = view.findViewById(R.id.btnBack);
+        ivProfilePhoto = findViewById(R.id.ivProfilePhoto);
+        ivCameraIcon = findViewById(R.id.ivCameraIcon);
+        ivCircleOutline = findViewById(R.id.ivCircleOutline);
+        btnAddPhoto = findViewById(R.id.btnAddPhoto);
+        btnContinuar = findViewById(R.id.btnContinuar);
+        btnOmitir = findViewById(R.id.btnOmitir);
+        ImageButton btnBack = findViewById(R.id.btnBack);
 
         // Si el usuario es taxista, deshabilitar el botón de omitir
         if ("driver".equals(userType)) {
             btnOmitir.setEnabled(false);
             btnOmitir.setAlpha(0.4f);
+        }
+
+        // Restaurar el estado si existe
+        if (savedInstanceState != null) {
+            isPhotoSelected = savedInstanceState.getBoolean(KEY_IS_PHOTO_SELECTED, false);
+
+            if (isPhotoSelected) {
+                String uriString = savedInstanceState.getString(KEY_PHOTO_URI);
+                if (uriString != null && !uriString.isEmpty()) {
+                    profilePhotoUri = Uri.parse(uriString);
+                    displaySelectedImage(profilePhotoUri, null);
+                } else if (savedInstanceState.containsKey(KEY_PHOTO_BITMAP)) {
+                    // Restaurar la imagen capturada por la cámara
+                    savedImageBitmap = savedInstanceState.getParcelable(KEY_PHOTO_BITMAP);
+                    if (savedImageBitmap != null) {
+                        displaySelectedImage(null, savedImageBitmap);
+                    }
+                }
+            }
         }
 
         // Configurar listeners
@@ -82,7 +101,7 @@ public class AddProfilePhotoFragment extends Fragment {
                 // Si una foto fue seleccionada o es un cliente (opcional)
                 completeRegistration();
             } else {
-                Toast.makeText(getContext(), "Por favor selecciona una foto de perfil", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Por favor selecciona una foto de perfil", Toast.LENGTH_SHORT).show();
             }
         });
 
@@ -94,24 +113,14 @@ public class AddProfilePhotoFragment extends Fragment {
         });
 
         btnBack.setOnClickListener(v -> {
-            if (getActivity() != null) {
-                getActivity().getSupportFragmentManager().popBackStack();
-            }
+            onBackPressed();
         });
-
-        return view;
-    }
-
-    @Override
-    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
-        super.onActivityCreated(savedInstanceState);
-        mViewModel = new ViewModelProvider(requireActivity()).get(RegisterViewModel.class);
     }
 
     private void showImagePickOptions() {
         String[] options = {"Tomar una foto", "Elegir de la galería", "Cancelar"};
 
-        new android.app.AlertDialog.Builder(getContext())
+        new android.app.AlertDialog.Builder(this)
                 .setTitle("Seleccionar foto de perfil")
                 .setItems(options, (dialog, which) -> {
                     if (which == 0) {
@@ -128,10 +137,10 @@ public class AddProfilePhotoFragment extends Fragment {
 
     private void dispatchTakePictureIntent() {
         Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-        if (takePictureIntent.resolveActivity(getActivity().getPackageManager()) != null) {
+        if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
             startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
         } else {
-            Toast.makeText(getContext(), "No hay aplicación de cámara disponible", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "No hay aplicación de cámara disponible", Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -141,7 +150,7 @@ public class AddProfilePhotoFragment extends Fragment {
     }
 
     @Override
-    public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
         if (resultCode == Activity.RESULT_OK) {
@@ -169,15 +178,17 @@ public class AddProfilePhotoFragment extends Fragment {
 
         if (imageUri != null) {
             try {
-                Bitmap bitmap = MediaStore.Images.Media.getBitmap(getActivity().getContentResolver(), imageUri);
+                Bitmap bitmap = MediaStore.Images.Media.getBitmap(getContentResolver(), imageUri);
                 ivProfilePhoto.setImageBitmap(bitmap);
+                this.savedImageBitmap = bitmap; // Guardar la bitmap
             } catch (IOException e) {
                 e.printStackTrace();
-                Toast.makeText(getContext(), "Error al cargar la imagen", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Error al cargar la imagen", Toast.LENGTH_SHORT).show();
                 return;
             }
         } else if (imageBitmap != null) {
             ivProfilePhoto.setImageBitmap(imageBitmap);
+            this.savedImageBitmap = imageBitmap; // Guardar la bitmap
         }
 
         isPhotoSelected = true;
@@ -185,12 +196,34 @@ public class AddProfilePhotoFragment extends Fragment {
     }
 
     private void completeRegistration() {
-        // Aquí enviarías la imagen a Firebase Storage y completarías el registro
-        // Por ahora, simplemente mostramos un mensaje de éxito
+        // Guardar la URI de la foto en el ViewModel si se seleccionó una
+        if (isPhotoSelected) {
+            if (profilePhotoUri != null) {
+                mViewModel.setProfilePhotoUri(profilePhotoUri);
+            }
+            mViewModel.setHasProfilePhoto(true);
+        }
 
-        Toast.makeText(getContext(), "Registro exitoso", Toast.LENGTH_SHORT).show();
+        // Navegar a la pantalla principal o mostrar mensaje de éxito
+        Toast.makeText(this, "Registro exitoso", Toast.LENGTH_SHORT).show();
 
-        // Navegar a la siguiente pantalla (por ejemplo, la pantalla principal)
-        // TODO: Implementar navegación a la pantalla principal
+        // Aquí deberías navegar a la pantalla principal o home
+        // Intent intent = new Intent(this, HomeActivity.class);
+        // startActivity(intent);
+        // finish();
+    }
+
+    @Override
+    protected void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putBoolean(KEY_IS_PHOTO_SELECTED, isPhotoSelected);
+
+        if (profilePhotoUri != null) {
+            outState.putString(KEY_PHOTO_URI, profilePhotoUri.toString());
+        }
+
+        if (savedImageBitmap != null) {
+            outState.putParcelable(KEY_PHOTO_BITMAP, savedImageBitmap);
+        }
     }
 }

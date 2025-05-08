@@ -17,6 +17,12 @@
         android:theme="@style/Theme.Proyecto_Final_hoTELEROs"
         tools:targetApi="31">
         <activity
+            android:name=".auth.register.AddProfilePhotoActivity"
+            android:exported="false" />
+        <activity
+            android:name=".auth.register.RegisterUserActivity"
+            android:exported="false" />
+        <activity
             android:name=".auth.password.SuccessActivity"
             android:exported="false" />
         <activity
@@ -30,7 +36,7 @@
         </activity>
         <activity
             android:name=".AuthActivity"
-            android:exported="true"></activity>
+            android:exported="true" />
         <activity
             android:name=".HomeActivity"
             android:exported="false" />
@@ -39,22 +45,22 @@
             android:exported="true" />
         <activity
             android:name=".superadmin.SuperadminActivity"
-            android:exported="true"></activity>
+            android:exported="true" />
         <activity
             android:name=".superadmin.ListaUsuariosActivity"
-            android:exported="true"></activity>
+            android:exported="true" />
         <activity
             android:name=".superadmin.SolicitudesTaxistasActivity"
-            android:exported="true"></activity>
+            android:exported="true" />
         <activity
             android:name=".superadmin.RegistroAdministradorActivity"
-            android:exported="true"></activity>
+            android:exported="true" />
         <activity
             android:name=".superadmin.ReporteReservasActivity"
-            android:exported="true"></activity>
+            android:exported="true" />
         <activity
             android:name=".superadmin.LogEventosActivity"
-            android:exported="true"></activity>
+            android:exported="true" />
 
         <meta-data
             android:name="com.google.android.geo.API_KEY"

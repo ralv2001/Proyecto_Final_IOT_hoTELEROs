@@ -4,17 +4,17 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ScrollView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.example.proyecto_final_hoteleros.auth.interfaces.MessagerRegister;
 import com.example.proyecto_final_hoteleros.auth.login.LoginFragment;
 import com.example.proyecto_final_hoteleros.auth.password.ForgotPasswordFragment;
-import com.example.proyecto_final_hoteleros.auth.register.RegisterFragmentUser;
+import com.example.proyecto_final_hoteleros.auth.register.RegisterUserActivity;
 import com.example.proyecto_final_hoteleros.auth.register.SelectUserTypeFragment;
 
 public class AuthActivity extends AppCompatActivity implements MessagerRegister {
@@ -147,17 +147,10 @@ public class AuthActivity extends AppCompatActivity implements MessagerRegister 
     // Implementación de MessagerRegister
     @Override
     public void gotoMainRegister(String userType) {
-        Toast.makeText(this, "userType: " + userType, Toast.LENGTH_SHORT).show();
-        // Cambiar a pestaña de registro Principal
-        try {
-            FragmentManager fm = getSupportFragmentManager();
-            FragmentTransaction ft = fm.beginTransaction();
-            ft.replace(R.id.fragmentContainer, RegisterFragmentUser.newInstance(userType));
-            ft.addToBackStack(null);
-            ft.commit();
-        } catch (Exception e) {
-            Toast.makeText(this, "Error navegando: " + e.getMessage(), Toast.LENGTH_LONG).show();
-        }
+        // En lugar de cargar un fragmento, iniciamos la nueva actividad
+        Intent intent = new Intent(this, RegisterUserActivity.class);
+        intent.putExtra("userType", userType);
+        startActivity(intent);
     }
 
     @Override
