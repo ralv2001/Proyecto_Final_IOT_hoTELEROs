@@ -140,7 +140,25 @@ public class ForgotPasswordFragment extends Fragment {
     public void onDestroyView() {
         super.onDestroyView();
 
-        // NO restauramos las pestañas aquí, ya que podríamos estar navegando a otro fragmento sin pestañas
-        // La responsabilidad de mostrar las pestañas la dejamos en los fragmentos que sí las necesitan
+        // Restaurar las pestañas cuando el usuario retrocede
+        if (getActivity() != null && !getActivity().isFinishing() && getActivity().getSupportFragmentManager().getBackStackEntryCount() == 1) {
+            // Si estamos volviendo al fragmento anterior (login o registro)
+            View tabLayout = getActivity().findViewById(R.id.tabLayout);
+            View viewTabIndicatorLogin = getActivity().findViewById(R.id.viewTabIndicatorLogin);
+            ViewGroup indicatorLayout = null;
+
+            if (viewTabIndicatorLogin != null) {
+                indicatorLayout = (ViewGroup) viewTabIndicatorLogin.getParent();
+            }
+
+            // Mostrar elementos
+            if (tabLayout != null) {
+                tabLayout.setVisibility(View.VISIBLE);
+            }
+
+            if (indicatorLayout != null) {
+                indicatorLayout.setVisibility(View.VISIBLE);
+            }
+        }
     }
 }
