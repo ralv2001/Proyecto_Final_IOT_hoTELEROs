@@ -21,7 +21,7 @@
     <string name="status_cancelled">Cancelado</string>
 
     <string name="payment_registered">Tarjeta registrada</string>
-    <string name="payment_processing">Procesando pago</string>
+    <string name="payment_processing">Procesando pago...</string>
     <string name="payment_completed">Pago completado</string>
 
     <string name="total_price">Precio total</string>
@@ -35,5 +35,33 @@
     <string name="info_icon_desc">Ícono de información de estancia</string>
     <string name="new_reservation" />
     <string name="iniciar_chat">Iniciar chat</string>
+
+    <string name="booking_summary">Resumen de la Reserva</string>
+
+    <string name="hotel_image">Imagen del hotel</string>
+    <string name="stay_information">Información de estancia</string>
+    <string name="check_in">Check-in</string>
+    <string name="check_out">Check-out</string>
+    <string name="to">a</string>
+    <string name="room_type">Tipo de cuarto</string>
+    <string name="room_number">Número</string>
+    <string name="guests">Cantidad de personas</string>
+    <string name="free_transport">Servicio de taxi gratuito</string>
+    <string name="price_details">Detalles de los precios</string>
+    <string name="reservation_price">Precio Reserva</string>
+    <string name="additional_services">Servicios Adicionales</string>
+
+    <string name="payment_methods">Métodos de Pago</string>
+    <string name="credit_card">Tarjeta de crédito/débito</string>
+    <string name="paypal">PayPal</string>
+    <string name="bank_transfer">Transferencia bancaria</string>
+    <string name="accept_terms">Acepto los</string>
+    <string name="view_terms">términos y condiciones</string>
+    <string name="total_to_pay">Total a pagar</string>
+    <string name="confirm_and_pay">Confirmar y Pagar</string>
+
+    <string name="payment_success">¡Reserva confirmada!</string>
+    <string name="ok">Aceptar</string>
+    <string name="error_accept_terms">Debes aceptar los términos y condiciones</string>
 
 </resources>
