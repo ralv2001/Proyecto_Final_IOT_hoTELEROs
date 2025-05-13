@@ -1,7 +1,9 @@
 package com.example.proyecto_final_hoteleros.client.model;
 
+
 import android.os.Parcel;
 import android.os.Parcelable;
+
 
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
@@ -10,6 +12,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
+
 public class Reservation implements Parcelable {
     // Constantes para los estados de la reserva
     public static final int STATUS_PROXIMA = 1;
@@ -17,8 +20,10 @@ public class Reservation implements Parcelable {
     public static final int STATUS_CHECKOUT = 3;
     public static final int STATUS_COMPLETADA = 4;
 
+
     // Constante para el monto mínimo para taxi gratuito
     public static final double MONTO_MINIMO_TAXI_GRATIS = 1000.0;
+
 
     private String hotelName;
     private String location;
@@ -36,10 +41,18 @@ public class Reservation implements Parcelable {
     private boolean readyForCheckout;
     private String reservationId;
 
+    // Campos necesarios para NotificationService
+    private Date checkInDateObj;
+    private Date checkOutDateObj;
+    private String checkInTime;
+    private String checkOutTime;
+
+
     public static class ServiceItem {
         private String name;
         private double price;
         private int quantity;
+
 
         public ServiceItem(String name, double price, int quantity) {
             this.name = name;
@@ -47,22 +60,27 @@ public class Reservation implements Parcelable {
             this.quantity = quantity;
         }
 
+
         public String getName() {
             return name;
         }
+
 
         public double getPrice() {
             return price;
         }
 
+
         public int getQuantity() {
             return quantity;
         }
+
 
         public double getTotal() {
             return price * quantity;
         }
     }
+
 
     public Reservation(String hotelName, String location, String date, double price, float rating, int imageResource, int status) {
         this.hotelName = hotelName;
@@ -78,20 +96,48 @@ public class Reservation implements Parcelable {
         this.services = new ArrayList<>();
         this.readyForCheckout = status == STATUS_CHECKOUT;
         this.reservationId = generateReservationId();
+
+        // Inicializar los campos para NotificationService
+        this.checkInDateObj = new Date(); // Fecha actual como predeterminada
+        this.checkOutDateObj = new Date(); // Fecha actual como predeterminada
+        this.checkInTime = "14:00"; // Hora de check-in predeterminada
+        this.checkOutTime = "12:00"; // Hora de check-out predeterminada
+
+        // Convertir fechas a formato String para los campos originales
+        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
+        this.checkInDate = sdf.format(this.checkInDateObj);
+        this.checkOutDate = sdf.format(this.checkOutDateObj);
     }
+
+
+    // Constructor sin parámetros necesario para NotificationService
+    public Reservation() {
+        this.services = new ArrayList<>();
+        this.reservationId = generateReservationId();
+        this.checkInDateObj = new Date();
+        this.checkOutDateObj = new Date();
+        this.checkInTime = "14:00";
+        this.checkOutTime = "12:00";
+    }
+
 
     private String generateReservationId() {
         // Crear un ID único para la reserva basado en el nombre del hotel y fecha actual
         String timestamp = new SimpleDateFormat("yyyyMMddHHmmss", Locale.getDefault()).format(new Date());
         String hotelInitials = "";
-        String[] words = hotelName.split(" ");
-        for (String word : words) {
-            if (!word.isEmpty()) {
-                hotelInitials += word.charAt(0);
+        if (hotelName != null) {
+            String[] words = hotelName.split(" ");
+            for (String word : words) {
+                if (!word.isEmpty()) {
+                    hotelInitials += word.charAt(0);
+                }
             }
+        } else {
+            hotelInitials = "RES";
         }
         return "RES-" + hotelInitials + "-" + timestamp;
     }
+
 
     // Método para agregar un servicio
     public void addService(String name, double price, int quantity) {
@@ -99,6 +145,7 @@ public class Reservation implements Parcelable {
         services.add(service);
         recalculateServicesTotal();
     }
+
 
     // Método para recalcular el total de servicios
     private void recalculateServicesTotal() {
@@ -108,11 +155,13 @@ public class Reservation implements Parcelable {
         }
     }
 
+
     // Método para generar un resumen de servicios
     public String getServicesBreakdown() {
         if (services.isEmpty()) {
             return "No hay servicios adicionales";
         }
+
 
         StringBuilder breakdown = new StringBuilder();
         for (ServiceItem service : services) {
@@ -122,61 +171,76 @@ public class Reservation implements Parcelable {
                     .append("\n");
         }
 
+
         return breakdown.toString();
     }
+
 
     // Getters y setters originales
     public String getHotelName() {
         return hotelName;
     }
 
+
     public void setHotelName(String hotelName) {
         this.hotelName = hotelName;
     }
+
 
     public String getLocation() {
         return location;
     }
 
+
     public void setLocation(String location) {
         this.location = location;
     }
+
 
     public String getDate() {
         return date;
     }
 
+
     public void setDate(String date) {
         this.date = date;
     }
+
 
     public double getPrice() {
         return price;
     }
 
+
     public void setPrice(double price) {
         this.price = price;
     }
+
 
     public float getRating() {
         return rating;
     }
 
+
     public void setRating(float rating) {
         this.rating = rating;
     }
+
 
     public int getImageResource() {
         return imageResource;
     }
 
+
     public void setImageResource(int imageResource) {
         this.imageResource = imageResource;
     }
 
+
     public int getStatus() {
         return status;
     }
+
 
     public void setStatus(int status) {
         this.status = status;
@@ -184,54 +248,77 @@ public class Reservation implements Parcelable {
         this.readyForCheckout = status == STATUS_CHECKOUT;
     }
 
+
     public String getRoomType() {
         return roomType;
     }
+
 
     public void setRoomType(String roomType) {
         this.roomType = roomType;
     }
 
+
     public boolean hasTaxiService() {
         return hasTaxiService;
     }
+
 
     public void setHasTaxiService(boolean hasTaxiService) {
         this.hasTaxiService = hasTaxiService;
     }
 
+
     public double getServicesTotal() {
         return servicesTotal;
     }
+
 
     public void setServicesTotal(double servicesTotal) {
         this.servicesTotal = servicesTotal;
     }
 
+
     public boolean isReadyForCheckout() {
         return readyForCheckout;
     }
+
 
     public void setReadyForCheckout(boolean readyForCheckout) {
         this.readyForCheckout = readyForCheckout;
     }
 
+
     public String getReservationId() {
         return reservationId;
     }
+
+    // Método necesario para NotificationService
+    public String getId() {
+        return reservationId;
+    }
+
+    // Método necesario para NotificationService
+    public void setId(String id) {
+        this.reservationId = id;
+    }
+
 
     public List<ServiceItem> getServices() {
         return services;
     }
 
+
     public double getTotalPrice() {
         return price + servicesTotal;
     }
+
 
     public boolean isEligibleForFreeTaxi() {
         // Verificar si el gasto total supera un umbral para obtener taxi gratis
         return getTotalPrice() >= MONTO_MINIMO_TAXI_GRATIS;
     }
+
 
     // Método para obtener el texto de estado según el código
     public String getStatusText() {
@@ -249,6 +336,7 @@ public class Reservation implements Parcelable {
         }
     }
 
+
     // Método para obtener el color de fondo según el estado
     public int getStatusBackgroundColor() {
         switch (status) {
@@ -264,6 +352,7 @@ public class Reservation implements Parcelable {
                 return android.graphics.Color.parseColor("#757575"); // Gris oscuro
         }
     }
+
 
     // Método para obtener información adicional según el estado
     public String getAdditionalInfo() {
@@ -281,13 +370,16 @@ public class Reservation implements Parcelable {
                 checkoutInfo.append("Total estimado: S/").append(new DecimalFormat("0.00").format(getTotalPrice())).append("\n");
                 checkoutInfo.append("• Habitación: S/").append(new DecimalFormat("0.00").format(price)).append("\n");
 
+
                 if (servicesTotal > 0) {
                     checkoutInfo.append("• Servicios: S/").append(new DecimalFormat("0.00").format(servicesTotal)).append("\n");
                 }
 
+
                 checkoutInfo.append(isEligibleForFreeTaxi() ?
                         "✅ Califica para servicio de taxi gratuito." :
                         "❌ No califica para servicio de taxi gratuito.");
+
 
                 return checkoutInfo.toString();
             case STATUS_COMPLETADA:
@@ -298,6 +390,7 @@ public class Reservation implements Parcelable {
                 return "";
         }
     }
+
 
     // Método para obtener el texto del botón de acción principal según el estado
     public String getActionButtonText() {
@@ -315,6 +408,83 @@ public class Reservation implements Parcelable {
         }
     }
 
+    // Métodos necesarios para NotificationService
+
+    /**
+     * Obtiene la fecha de check-in como objeto Date
+     * @return Fecha de check-in
+     */
+    public Date getCheckInDate() {
+        return checkInDateObj;
+    }
+
+    /**
+     * Establece la fecha de check-in
+     * @param checkInDate Fecha de check-in
+     */
+    public void setCheckInDate(Date checkInDate) {
+        this.checkInDateObj = checkInDate;
+        // Actualizar también el String
+        if (checkInDate != null) {
+            SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
+            this.checkInDate = sdf.format(checkInDate);
+        }
+    }
+
+    /**
+     * Obtiene la hora de check-in
+     * @return Hora de check-in (formato HH:mm)
+     */
+    public String getCheckInTime() {
+        return checkInTime;
+    }
+
+    /**
+     * Establece la hora de check-in
+     * @param checkInTime Hora de check-in (formato HH:mm)
+     */
+    public void setCheckInTime(String checkInTime) {
+        this.checkInTime = checkInTime;
+    }
+
+    /**
+     * Obtiene la fecha de check-out como objeto Date
+     * @return Fecha de check-out
+     */
+    public Date getCheckOutDate() {
+        return checkOutDateObj;
+    }
+
+    /**
+     * Establece la fecha de check-out
+     * @param checkOutDate Fecha de check-out
+     */
+    public void setCheckOutDate(Date checkOutDate) {
+        this.checkOutDateObj = checkOutDate;
+        // Actualizar también el String
+        if (checkOutDate != null) {
+            SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
+            this.checkOutDate = sdf.format(checkOutDate);
+        }
+    }
+
+    /**
+     * Obtiene la hora de check-out
+     * @return Hora de check-out (formato HH:mm)
+     */
+    public String getCheckOutTime() {
+        return checkOutTime;
+    }
+
+    /**
+     * Establece la hora de check-out
+     * @param checkOutTime Hora de check-out (formato HH:mm)
+     */
+    public void setCheckOutTime(String checkOutTime) {
+        this.checkOutTime = checkOutTime;
+    }
+
+
     // Implementación de Parcelable para pasar fácilmente reservas entre activities/fragments
     protected Reservation(Parcel in) {
         hotelName = in.readString();
@@ -329,7 +499,22 @@ public class Reservation implements Parcelable {
         servicesTotal = in.readDouble();
         readyForCheckout = in.readByte() != 0;
         reservationId = in.readString();
+        checkInDate = in.readString();
+        checkOutDate = in.readString();
+
+        // Leer los nuevos campos para NotificationService
+        long tmpCheckInDateObj = in.readLong();
+        checkInDateObj = tmpCheckInDateObj != 0 ? new Date(tmpCheckInDateObj) : null;
+        long tmpCheckOutDateObj = in.readLong();
+        checkOutDateObj = tmpCheckOutDateObj != 0 ? new Date(tmpCheckOutDateObj) : null;
+        checkInTime = in.readString();
+        checkOutTime = in.readString();
+
+        // Reconstruir la lista de servicios
+        services = new ArrayList<>();
+        in.readList(services, ServiceItem.class.getClassLoader());
     }
+
 
     @Override
     public void writeToParcel(Parcel dest, int flags) {
@@ -345,18 +530,32 @@ public class Reservation implements Parcelable {
         dest.writeDouble(servicesTotal);
         dest.writeByte((byte) (readyForCheckout ? 1 : 0));
         dest.writeString(reservationId);
+        dest.writeString(checkInDate);
+        dest.writeString(checkOutDate);
+
+        // Escribir los nuevos campos para NotificationService
+        dest.writeLong(checkInDateObj != null ? checkInDateObj.getTime() : 0);
+        dest.writeLong(checkOutDateObj != null ? checkOutDateObj.getTime() : 0);
+        dest.writeString(checkInTime);
+        dest.writeString(checkOutTime);
+
+        // Escribir la lista de servicios
+        dest.writeList(services);
     }
+
 
     @Override
     public int describeContents() {
         return 0;
     }
 
+
     public static final Creator<Reservation> CREATOR = new Creator<Reservation>() {
         @Override
         public Reservation createFromParcel(Parcel in) {
             return new Reservation(in);
         }
+
 
         @Override
         public Reservation[] newArray(int size) {

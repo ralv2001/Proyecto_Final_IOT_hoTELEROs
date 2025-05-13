@@ -6,6 +6,8 @@
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.INTERNET" />
 
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
     <application
         android:name=".HotelerosApplication"
         android:allowBackup="true"
@@ -46,6 +48,10 @@
             android:exported="true" />
         <activity
             android:name=".HomeActivity"
+            android:exported="false" />
+        <!-- Make sure your <application> tag has the following activity -->
+        <activity
+            android:name=".NotificationTestActivity"
             android:exported="false" />
         <activity
             android:name=".client.fragment.LocationSelectorActivity"
@@ -110,12 +116,18 @@
             android:exported="true">
 
         </activity>
-
-
+        <!-- Agregar el servicio de notificaciones aquí -->
+        <service
+            android:name=".services.FirebaseNotificationService"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT" />
+            </intent-filter>
+        </service>
 
         <meta-data
             android:name="com.google.android.geo.API_KEY"
-            android:value="@string/google_maps_api_key" />
+            android:value="AIzaSyBdghOu6DZktjZcg0_PJzffH72NC-nR0ok" />
     </application>
 
 </manifest>

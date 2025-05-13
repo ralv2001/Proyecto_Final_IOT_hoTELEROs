@@ -7,6 +7,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.AnimationUtils;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -15,6 +16,7 @@ import android.widget.Toast;
 import androidx.core.content.ContextCompat;
 import androidx.core.view.ViewCompat;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -48,6 +50,8 @@ public class HomeFragment extends Fragment {
 
         // Establece el nombre de transición
         ViewCompat.setTransitionName(avatarView, "avatar_transition");
+        // Manejar clic en el icono de notificaciones
+        setupNotificationClick(rootView);
 
         avatarView.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -197,6 +201,38 @@ public class HomeFragment extends Fragment {
     }
 
     // Método para navegar al fragmento de detalle del hotel
+    private void setupNotificationClick(View view) {
+        FrameLayout notificationContainer = view.findViewById(R.id.fl_notification_container);
+        notificationContainer.setOnClickListener(v -> {
+            // Navegar al fragmento de notificaciones
+            navigateToNotificationsFragment();
+        });
+    }
+
+    /**
+     * Navega al fragmento de notificaciones
+     */
+    private void navigateToNotificationsFragment() {
+        FragmentManager fragmentManager = getParentFragmentManager();
+        FragmentTransaction transaction = fragmentManager.beginTransaction();
+
+        // Transición con animación
+        transaction.setCustomAnimations(
+                R.anim.slide_in_right,  // Entrada
+                R.anim.slide_out_left,   // Salida
+                R.anim.slide_in_left,    // Entrada al volver atrás
+                R.anim.slide_out_right   // Salida al volver atrás
+        );
+
+        // Reemplazar el fragmento actual con el de notificaciones
+        transaction.replace(R.id.fragment_container, new NotificationFragment());
+
+        // Añadir a la pila de retroceso para poder volver con el botón atrás
+        transaction.addToBackStack(null);
+
+        // Commit la transacción
+        transaction.commit();
+    }
     private void navigateToHotelDetail(Hotel hotel) {
         // Crear instancia del fragmento de detalle
         HotelDetailFragment detailFragment = new HotelDetailFragment();

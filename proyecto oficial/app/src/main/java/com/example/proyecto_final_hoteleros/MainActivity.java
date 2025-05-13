@@ -15,12 +15,15 @@ import androidx.core.view.WindowInsetsCompat;
 import com.example.proyecto_final_hoteleros.adminhotel.AdminHotelActivity;
 import com.example.proyecto_final_hoteleros.superadmin.SuperadminActivity;
 import com.google.android.material.button.MaterialButton;
+import com.google.firebase.FirebaseApp;
 
 public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        // Inicializar Firebase (añade esta línea)
+        FirebaseApp.initializeApp(this);
         EdgeToEdge.enable(this);
         setContentView(R.layout.sistema_activity_main);
 

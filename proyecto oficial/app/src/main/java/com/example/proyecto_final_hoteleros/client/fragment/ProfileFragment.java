@@ -8,6 +8,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.core.content.ContextCompat;
 import androidx.core.view.ViewCompat;
@@ -20,6 +22,11 @@ public class ProfileFragment extends Fragment {
     // Variables para el navegador inferior
     private LinearLayout navHome, navExplore, navChat, navProfile;
     private ImageView ivHome, ivExplore, ivChat, ivProfile;
+
+    // Variables para las opciones del perfil
+    private LinearLayout layoutProfileOption, layoutPaymentOption, layoutNotificationOption;
+    private TextView btnLogout;
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -51,10 +58,65 @@ public class ProfileFragment extends Fragment {
         // Establecer el nombre de transición que coincide con el usado en HomeFragment
         ViewCompat.setTransitionName(profileAvatar, "avatar_transition");
 
+        // Inicializar las opciones del perfil
+        initializeProfileOptions(rootView);
+
         // Configuración del navegador inferior
         setupBottomNavigation(rootView);
 
         return rootView;
+    }
+
+    // Método para inicializar las opciones del perfil
+    private void initializeProfileOptions(View rootView) {
+        // Referencias a los elementos de las opciones
+        layoutProfileOption = rootView.findViewById(R.id.layoutProfileOption);
+        layoutPaymentOption = rootView.findViewById(R.id.layoutPaymentOption);
+        layoutNotificationOption = rootView.findViewById(R.id.layoutNotificationOption);
+        btnLogout = rootView.findViewById(R.id.btnLogout);
+
+        // Configurar listeners para las opciones
+        layoutProfileOption.setOnClickListener(v -> {
+            // Implementar la navegación a la pantalla de editar perfil
+            // Por ahora solo mostramos un mensaje
+            Toast.makeText(requireContext(), "Editar perfil", Toast.LENGTH_SHORT).show();
+        });
+
+        layoutPaymentOption.setOnClickListener(v -> {
+            // Implementar la navegación a la pantalla de métodos de pago
+            // Por ahora solo mostramos un mensaje
+            Toast.makeText(requireContext(), "Métodos de pago", Toast.LENGTH_SHORT).show();
+        });
+
+        layoutNotificationOption.setOnClickListener(v -> {
+            // Navegar a la pantalla de configuración de notificaciones
+            navigateToNotifications();
+        });
+
+        btnLogout.setOnClickListener(v -> {
+            // Implementar el cierre de sesión
+            // Por ahora solo mostramos un mensaje
+            Toast.makeText(requireContext(), "Cerrando sesión...", Toast.LENGTH_SHORT).show();
+        });
+    }
+
+    // Método para navegar a la pantalla de notificaciones
+    private void navigateToNotifications() {
+        // Crear una instancia del fragmento de notificaciones
+        NotificationSettingsFragment notificationFragment = new NotificationSettingsFragment();
+
+        // Realizar la transacción del fragmento
+        requireActivity().getSupportFragmentManager()
+                .beginTransaction()
+                .setCustomAnimations(
+                        R.anim.slide_in_right,
+                        R.anim.slide_out_left,
+                        R.anim.slide_in_left,
+                        R.anim.slide_out_right
+                )
+                .replace(R.id.fragment_container, notificationFragment)
+                .addToBackStack(null)
+                .commit();
     }
 
     // Método para configurar el navegador inferior
