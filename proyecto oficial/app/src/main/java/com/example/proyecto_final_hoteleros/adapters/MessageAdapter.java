@@ -21,6 +21,7 @@ public class MessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
 
     private static final int VIEW_TYPE_USER = 1;
     private static final int VIEW_TYPE_HOTEL = 2;
+    private static final int VIEW_TYPE_SYSTEM = 3;
 
     private Context context;
     private List<Message> messages;
@@ -40,9 +41,13 @@ public class MessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
         if (viewType == VIEW_TYPE_USER) {
             View view = LayoutInflater.from(context).inflate(R.layout.item_message_user, parent, false);
             return new UserMessageViewHolder(view);
-        } else {
+        } else if (viewType == VIEW_TYPE_HOTEL) {
             View view = LayoutInflater.from(context).inflate(R.layout.item_message_hotel, parent, false);
             return new HotelMessageViewHolder(view);
+        } else {
+            // System message
+            View view = LayoutInflater.from(context).inflate(R.layout.item_message_system, parent, false);
+            return new SystemMessageViewHolder(view);
         }
     }
 
@@ -55,8 +60,10 @@ public class MessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
 
         if (getItemViewType(position) == VIEW_TYPE_USER) {
             ((UserMessageViewHolder) holder).bind(message, showDateHeader);
-        } else {
+        } else if (getItemViewType(position) == VIEW_TYPE_HOTEL) {
             ((HotelMessageViewHolder) holder).bind(message, showDateHeader);
+        } else {
+            ((SystemMessageViewHolder) holder).bind(message, showDateHeader);
         }
     }
 
@@ -67,7 +74,14 @@ public class MessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
 
     @Override
     public int getItemViewType(int position) {
-        return messages.get(position).getType() == Message.MessageType.USER ? VIEW_TYPE_USER : VIEW_TYPE_HOTEL;
+        Message.MessageType type = messages.get(position).getType();
+        if (type == Message.MessageType.USER) {
+            return VIEW_TYPE_USER;
+        } else if (type == Message.MessageType.HOTEL) {
+            return VIEW_TYPE_HOTEL;
+        } else {
+            return VIEW_TYPE_SYSTEM;
+        }
     }
 
     // Helper method to determine if we should show date header
@@ -117,14 +131,14 @@ public class MessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
                 tvDateHeader.setVisibility(View.GONE);
             }
 
-            // Set message status icon (sent, delivered, seen)
-            ivMessageStatus.setImageResource(R.drawable.ic_message_sent);
-
-            // Check if the message is recent (less than 1 minute ago)
+            // Set message status icon based on timestamp
             long currentTime = System.currentTimeMillis();
             if (currentTime - message.getTimestamp() < 60000) {
                 // Just sent - show sent icon
                 ivMessageStatus.setImageResource(R.drawable.ic_message_sent);
+            } else if (currentTime - message.getTimestamp() < 300000) {
+                // Less than 5 minutes - show delivered icon
+                ivMessageStatus.setImageResource(R.drawable.ic_message_delivered);
             } else {
                 // Message is older - show seen icon
                 ivMessageStatus.setImageResource(R.drawable.ic_message_seen);
@@ -163,6 +177,7 @@ public class MessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
             }
 
             // We're showing the hotel name for the first message or after a date change
+            // or if previous message was not from hotel
             if (showDateHeader) {
                 tvHotelNameInMessage.setVisibility(View.VISIBLE);
             } else {
@@ -175,6 +190,36 @@ public class MessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
                 } else {
                     tvHotelNameInMessage.setVisibility(View.VISIBLE);
                 }
+            }
+        }
+    }
+
+    // ViewHolder for system messages
+    class SystemMessageViewHolder extends RecyclerView.ViewHolder {
+        private TextView tvDateHeader;
+        private TextView tvSystemMessage;
+        private TextView tvTime;
+
+        public SystemMessageViewHolder(@NonNull View itemView) {
+            super(itemView);
+            tvDateHeader = itemView.findViewById(R.id.tvDateHeader);
+            tvSystemMessage = itemView.findViewById(R.id.tvSystemMessage);
+            tvTime = itemView.findViewById(R.id.tvTime);
+        }
+
+        public void bind(Message message, boolean showDateHeader) {
+            tvSystemMessage.setText(message.getText());
+
+            // Format and set time
+            Date messageDate = new Date(message.getTimestamp());
+            tvTime.setText(timeFormat.format(messageDate));
+
+            // Show/hide date header
+            if (showDateHeader) {
+                tvDateHeader.setVisibility(View.VISIBLE);
+                tvDateHeader.setText(dateFormat.format(messageDate));
+            } else {
+                tvDateHeader.setVisibility(View.GONE);
             }
         }
     }

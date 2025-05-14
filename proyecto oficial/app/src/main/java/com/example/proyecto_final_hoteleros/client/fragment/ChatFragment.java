@@ -99,6 +99,7 @@ public class ChatFragment extends Fragment implements ChatListAdapter.OnChatClic
                     "19-24 Abril 2025",
                     ChatSummary.ChatStatus.AVAILABLE
             );
+            chat1.setHotelImageUrl("https://example.com/hotel1.jpg"); // Podría ser null o vacío
             demoChats.add(chat1);
 
             // Chat 2: Activo
@@ -111,6 +112,7 @@ public class ChatFragment extends Fragment implements ChatListAdapter.OnChatClic
                     ChatSummary.ChatStatus.ACTIVE
             );
             chat2.setLastMessage("¿Podría solicitar servicio de habitaciones?");
+            chat2.setHotelImageUrl("https://example.com/hotel2.jpg"); // Podría ser null o vacío
             demoChats.add(chat2);
 
             // Chat 3: Finalizado
@@ -123,6 +125,7 @@ public class ChatFragment extends Fragment implements ChatListAdapter.OnChatClic
                     ChatSummary.ChatStatus.FINISHED
             );
             chat3.setLastMessage("Gracias por su estancia, esperamos verle pronto.");
+            chat3.setHotelImageUrl("https://example.com/hotel3.jpg"); // Podría ser null o vacío
             demoChats.add(chat3);
 
             // Verificar que el adaptador exista antes de actualizarlo
@@ -220,9 +223,11 @@ public class ChatFragment extends Fragment implements ChatListAdapter.OnChatClic
             args.putString("chat_id", chat.getId());
             args.putString("hotel_name", chat.getHotelName());
             args.putString("hotel_id", chat.getHotelId());
+            args.putString("chat_status", chat.getStatus().name());
             chatConversationFragment.setArguments(args);
 
-            Log.d(TAG, "Prepared ChatConversationFragment with args: chat_id=" + chat.getId());
+            Log.d(TAG, "Prepared ChatConversationFragment with args: chat_id=" + chat.getId()
+                    + ", status=" + chat.getStatus().name());
 
             // Get fragment manager with safety check
             if (getActivity().getSupportFragmentManager() == null) {
@@ -269,6 +274,7 @@ public class ChatFragment extends Fragment implements ChatListAdapter.OnChatClic
             }
         }
     }
+
 
     // Método para configurar el navegador inferior
     private void setupBottomNavigation(View rootView) {

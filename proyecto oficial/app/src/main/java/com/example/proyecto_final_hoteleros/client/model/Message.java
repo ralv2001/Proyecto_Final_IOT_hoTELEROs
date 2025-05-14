@@ -8,9 +8,9 @@ public class Message {
     private long timestamp;
     private MessageType type;
 
-    // Enum for message type
+    // Enum for message type with SYSTEM added for system notifications
     public enum MessageType {
-        USER, HOTEL
+        USER, HOTEL, SYSTEM
     }
 
     // Constructor
@@ -23,7 +23,7 @@ public class Message {
         this.type = type;
     }
 
-    // Getters and setters
+    // Getters and setters remain the same
     public String getId() {
         return id;
     }
