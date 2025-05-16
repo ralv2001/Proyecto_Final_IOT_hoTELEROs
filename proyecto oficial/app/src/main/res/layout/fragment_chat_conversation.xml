@@ -206,12 +206,14 @@
     </LinearLayout>
 
     <!-- Messages list -->
+    <!-- Messages list -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rvMessages"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:padding="16dp"
         android:clipToPadding="false"
+        android:layout_weight="1"
         app:layout_constraintTop_toBottomOf="@+id/chatFinishedBanner"
         app:layout_constraintBottom_toTopOf="@id/typingIndicatorContainer"
         tools:listitem="@layout/item_message_user"/>

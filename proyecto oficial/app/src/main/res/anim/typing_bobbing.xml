@@ -3,13 +3,24 @@
     android:repeatMode="restart"
     android:repeatCount="infinite">
 
-    <translate
-        android:fromYDelta="0%"
-        android:toYDelta="-10%"
+    <alpha
+        android:fromAlpha="1.0"
+        android:toAlpha="0.5"
+        android:duration="500" />
+
+    <alpha
+        android:fromAlpha="0.5"
+        android:toAlpha="1.0"
+        android:startOffset="500"
         android:duration="500" />
 
     <translate
-        android:fromYDelta="-10%"
+        android:fromYDelta="0%"
+        android:toYDelta="-5%"
+        android:duration="500" />
+
+    <translate
+        android:fromYDelta="-5%"
         android:toYDelta="0%"
         android:startOffset="500"
         android:duration="500" />

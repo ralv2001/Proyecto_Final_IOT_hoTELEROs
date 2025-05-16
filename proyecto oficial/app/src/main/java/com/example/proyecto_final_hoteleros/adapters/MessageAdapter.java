@@ -6,10 +6,13 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
+
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
+
 import com.example.proyecto_final_hoteleros.R;
 import com.example.proyecto_final_hoteleros.client.model.Message;
+
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
@@ -101,7 +104,51 @@ public class MessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
                 cal1.get(Calendar.DAY_OF_YEAR) != cal2.get(Calendar.DAY_OF_YEAR);
     }
 
-    // ViewHolder for user messages
+    // NUEVO: Método para formatear la hora y fecha de manera más amigable
+    private String getFormattedTime(long timestamp) {
+        long now = System.currentTimeMillis();
+        long diff = now - timestamp;
+
+        // Si es menos de 1 minuto
+        if (diff < 60000) {
+            return "Ahora";
+        }
+
+        // Si es menos de 1 hora
+        if (diff < 3600000) {
+            int minutes = (int) (diff / 60000);
+            return "Hace " + minutes + (minutes == 1 ? " minuto" : " minutos");
+        }
+
+        // Si es de hoy
+        Calendar msgCalendar = Calendar.getInstance();
+        msgCalendar.setTimeInMillis(timestamp);
+
+        Calendar today = Calendar.getInstance();
+
+        if (msgCalendar.get(Calendar.YEAR) == today.get(Calendar.YEAR) &&
+                msgCalendar.get(Calendar.DAY_OF_YEAR) == today.get(Calendar.DAY_OF_YEAR)) {
+            return timeFormat.format(new Date(timestamp));
+        }
+
+        // Si es de ayer
+        if (msgCalendar.get(Calendar.YEAR) == today.get(Calendar.YEAR) &&
+                msgCalendar.get(Calendar.DAY_OF_YEAR) == today.get(Calendar.DAY_OF_YEAR) - 1) {
+            return "Ayer " + timeFormat.format(new Date(timestamp));
+        }
+
+        // Si es de esta semana
+        if (diff < 604800000) { // 7 días
+            SimpleDateFormat dayFormat = new SimpleDateFormat("EEEE", new Locale("es", "ES"));
+            return dayFormat.format(new Date(timestamp)) + " " + timeFormat.format(new Date(timestamp));
+        }
+
+        // En otro caso, mostrar la fecha completa
+        SimpleDateFormat fullFormat = new SimpleDateFormat("dd/MM/yyyy HH:mm", new Locale("es", "ES"));
+        return fullFormat.format(new Date(timestamp));
+    }
+
+    // MODIFICADO: ViewHolder para mensajes de usuario con formato de hora mejorado
     class UserMessageViewHolder extends RecyclerView.ViewHolder {
         private TextView tvDateHeader;
         private TextView tvMessageText;
@@ -119,14 +166,28 @@ public class MessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
         public void bind(Message message, boolean showDateHeader) {
             tvMessageText.setText(message.getText());
 
-            // Format and set time
-            Date messageDate = new Date(message.getTimestamp());
-            tvTime.setText(timeFormat.format(messageDate));
+            // MODIFICADO: Usar formato mejorado para la hora
+            tvTime.setText(getFormattedTime(message.getTimestamp()));
 
-            // Show/hide date header
+            // Formato para la fecha del encabezado
             if (showDateHeader) {
+                // Verificar si el mensaje es de hoy
+                Calendar msgCalendar = Calendar.getInstance();
+                msgCalendar.setTimeInMillis(message.getTimestamp());
+
+                Calendar today = Calendar.getInstance();
+
+                if (msgCalendar.get(Calendar.YEAR) == today.get(Calendar.YEAR) &&
+                        msgCalendar.get(Calendar.DAY_OF_YEAR) == today.get(Calendar.DAY_OF_YEAR)) {
+                    tvDateHeader.setText("Hoy");
+                } else if (msgCalendar.get(Calendar.YEAR) == today.get(Calendar.YEAR) &&
+                        msgCalendar.get(Calendar.DAY_OF_YEAR) == today.get(Calendar.DAY_OF_YEAR) - 1) {
+                    tvDateHeader.setText("Ayer");
+                } else {
+                    tvDateHeader.setText(dateFormat.format(new Date(message.getTimestamp())));
+                }
+
                 tvDateHeader.setVisibility(View.VISIBLE);
-                tvDateHeader.setText(dateFormat.format(messageDate));
             } else {
                 tvDateHeader.setVisibility(View.GONE);
             }
@@ -146,7 +207,7 @@ public class MessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
         }
     }
 
-    // ViewHolder for hotel messages
+    // MODIFICADO: ViewHolder para mensajes de hotel con formato de hora mejorado
     class HotelMessageViewHolder extends RecyclerView.ViewHolder {
         private TextView tvDateHeader;
         private TextView tvHotelNameInMessage;
@@ -164,14 +225,28 @@ public class MessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
         public void bind(Message message, boolean showDateHeader) {
             tvMessageText.setText(message.getText());
 
-            // Format and set time
-            Date messageDate = new Date(message.getTimestamp());
-            tvTime.setText(timeFormat.format(messageDate));
+            // MODIFICADO: Usar formato mejorado para la hora
+            tvTime.setText(getFormattedTime(message.getTimestamp()));
 
-            // Show/hide date header
+            // Formato para la fecha del encabezado
             if (showDateHeader) {
+                // Verificar si el mensaje es de hoy
+                Calendar msgCalendar = Calendar.getInstance();
+                msgCalendar.setTimeInMillis(message.getTimestamp());
+
+                Calendar today = Calendar.getInstance();
+
+                if (msgCalendar.get(Calendar.YEAR) == today.get(Calendar.YEAR) &&
+                        msgCalendar.get(Calendar.DAY_OF_YEAR) == today.get(Calendar.DAY_OF_YEAR)) {
+                    tvDateHeader.setText("Hoy");
+                } else if (msgCalendar.get(Calendar.YEAR) == today.get(Calendar.YEAR) &&
+                        msgCalendar.get(Calendar.DAY_OF_YEAR) == today.get(Calendar.DAY_OF_YEAR) - 1) {
+                    tvDateHeader.setText("Ayer");
+                } else {
+                    tvDateHeader.setText(dateFormat.format(new Date(message.getTimestamp())));
+                }
+
                 tvDateHeader.setVisibility(View.VISIBLE);
-                tvDateHeader.setText(dateFormat.format(messageDate));
             } else {
                 tvDateHeader.setVisibility(View.GONE);
             }
@@ -194,7 +269,7 @@ public class MessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
         }
     }
 
-    // ViewHolder for system messages
+    // MODIFICADO: ViewHolder para mensajes del sistema con formato de hora mejorado
     class SystemMessageViewHolder extends RecyclerView.ViewHolder {
         private TextView tvDateHeader;
         private TextView tvSystemMessage;
@@ -210,14 +285,28 @@ public class MessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
         public void bind(Message message, boolean showDateHeader) {
             tvSystemMessage.setText(message.getText());
 
-            // Format and set time
-            Date messageDate = new Date(message.getTimestamp());
-            tvTime.setText(timeFormat.format(messageDate));
+            // MODIFICADO: Usar formato mejorado para la hora
+            tvTime.setText(getFormattedTime(message.getTimestamp()));
 
-            // Show/hide date header
+            // Formato para la fecha del encabezado
             if (showDateHeader) {
+                // Verificar si el mensaje es de hoy
+                Calendar msgCalendar = Calendar.getInstance();
+                msgCalendar.setTimeInMillis(message.getTimestamp());
+
+                Calendar today = Calendar.getInstance();
+
+                if (msgCalendar.get(Calendar.YEAR) == today.get(Calendar.YEAR) &&
+                        msgCalendar.get(Calendar.DAY_OF_YEAR) == today.get(Calendar.DAY_OF_YEAR)) {
+                    tvDateHeader.setText("Hoy");
+                } else if (msgCalendar.get(Calendar.YEAR) == today.get(Calendar.YEAR) &&
+                        msgCalendar.get(Calendar.DAY_OF_YEAR) == today.get(Calendar.DAY_OF_YEAR) - 1) {
+                    tvDateHeader.setText("Ayer");
+                } else {
+                    tvDateHeader.setText(dateFormat.format(new Date(message.getTimestamp())));
+                }
+
                 tvDateHeader.setVisibility(View.VISIBLE);
-                tvDateHeader.setText(dateFormat.format(messageDate));
             } else {
                 tvDateHeader.setVisibility(View.GONE);
             }

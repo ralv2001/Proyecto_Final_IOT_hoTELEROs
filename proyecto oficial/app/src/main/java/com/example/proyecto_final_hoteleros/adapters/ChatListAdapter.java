@@ -5,6 +5,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.util.Log;
 import android.widget.Toast;
@@ -148,6 +149,21 @@ public class ChatListAdapter extends RecyclerView.Adapter<ChatListAdapter.ChatVi
                         break;
                 }
             }
+
+            // MODIFICADO: Solución para el problema de mensajes cortados
+            // Configurar el texto del último mensaje con una anchura adecuada
+            // y asegurar que no se corte el texto
+            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
+                    0,
+                    LinearLayout.LayoutParams.WRAP_CONTENT,
+                    1.0f
+            );
+            params.setMargins(0, 2, 12, 0);  // margen derecho para separar del botón
+            tvLastMessage.setLayoutParams(params);
+
+            // Asegurar que se muestra elipsis si el texto es demasiado largo
+            tvLastMessage.setMaxLines(2);
+            tvLastMessage.setEllipsize(android.text.TextUtils.TruncateAt.END);
 
             // Set last message and button based on chat status
             switch (chat.getStatus()) {

@@ -42,6 +42,11 @@ android {
 
 
 dependencies {
+    // Firebase
+    implementation 'com.google.firebase:firebase-auth:21.0.1'
+    implementation 'com.google.firebase:firebase-messaging:23.0.0'
+
+
     // Firebase Realtime Database - AÑADIR ESTO
     implementation 'com.google.firebase:firebase-database:20.3.0'
 
@@ -60,6 +65,7 @@ dependencies {
     implementation libs.firebase.firestore
     implementation libs.firebase.auth
     implementation libs.firebase.messaging
+    implementation libs.firebase.database
     annotationProcessor 'com.github.bumptech.glide:compiler:4.15.1'
     implementation 'de.hdodenhof:circleimageview:3.1.0'
     implementation libs.appcompat

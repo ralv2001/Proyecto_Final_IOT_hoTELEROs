@@ -38,6 +38,7 @@
             app:layout_constraintBottom_toBottomOf="parent"/>
 
         <LinearLayout
+            android:id="@+id/infoContainer"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:orientation="vertical"
@@ -72,9 +73,10 @@
                 android:maxLines="1"
                 android:ellipsize="end"/>
 
+            <!-- MODIFICADO: Ajustado para evitar corte de texto -->
             <TextView
                 android:id="@+id/tvLastMessage"
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="No hay mensajes"
                 android:textSize="12sp"
@@ -82,8 +84,7 @@
                 android:fontFamily="@font/inter_regular"
                 android:layout_marginTop="2dp"
                 android:maxLines="2"
-                android:ellipsize="end"
-                android:visibility="visible"/>
+                android:ellipsize="end"/>
         </LinearLayout>
 
         <androidx.appcompat.widget.AppCompatButton

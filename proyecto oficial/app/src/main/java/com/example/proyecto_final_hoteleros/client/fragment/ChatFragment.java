@@ -14,10 +14,12 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.example.proyecto_final_hoteleros.R;
 import com.example.proyecto_final_hoteleros.adapters.ChatListAdapter;
 import com.example.proyecto_final_hoteleros.client.model.ChatSummary;
+import com.example.proyecto_final_hoteleros.services.FirebaseChatService;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -33,6 +35,10 @@ public class ChatFragment extends Fragment implements ChatListAdapter.OnChatClic
     private RecyclerView rvChatList;
     private View emptyStateContainer;
     private ChatListAdapter chatListAdapter;
+    private SwipeRefreshLayout swipeRefreshLayout;
+
+    // Servicio Firebase
+    private FirebaseChatService chatService;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -40,14 +46,21 @@ public class ChatFragment extends Fragment implements ChatListAdapter.OnChatClic
 
         try {
             Log.d(TAG, "Creating ChatFragment view");
+
+            // Inicializar servicio Firebase
+            chatService = FirebaseChatService.getInstance();
+
             // Configuración del navegador inferior
             setupBottomNavigation(rootView);
 
             // Configuración de la lista de chats
             setupChatList(rootView);
 
-            // Cargar chats de ejemplo
-            loadDemoChats();
+            // Configurar swipe to refresh
+            setupSwipeRefresh(rootView);
+
+            // Cargar chats desde Firebase
+            loadChatsFromFirebase();
 
         } catch (Exception e) {
             Log.e(TAG, "Error en onCreateView: " + e.getMessage());
@@ -74,7 +87,6 @@ public class ChatFragment extends Fragment implements ChatListAdapter.OnChatClic
             rvChatList.setLayoutManager(layoutManager);
 
             // Inicializar adaptador con la implementación de la interfaz de clic
-            // THIS is important - pass 'this' as listener
             chatListAdapter = new ChatListAdapter(getContext(), this);
             rvChatList.setAdapter(chatListAdapter);
 
@@ -84,6 +96,68 @@ public class ChatFragment extends Fragment implements ChatListAdapter.OnChatClic
             Log.e(TAG, "Error en setupChatList: " + e.getMessage());
             e.printStackTrace();
         }
+    }
+
+    private void setupSwipeRefresh(View rootView) {
+        swipeRefreshLayout = rootView.findViewById(R.id.swipeRefreshLayout);
+        if (swipeRefreshLayout != null) {
+            swipeRefreshLayout.setColorSchemeColors(
+                    ContextCompat.getColor(getContext(), R.color.orange),
+                    ContextCompat.getColor(getContext(), R.color.blue),
+                    ContextCompat.getColor(getContext(), R.color.green)
+            );
+
+            swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+                @Override
+                public void onRefresh() {
+                    // Recargar chats desde Firebase
+                    loadChatsFromFirebase();
+                }
+            });
+        }
+    }
+
+    private void loadChatsFromFirebase() {
+        if (swipeRefreshLayout != null) {
+            swipeRefreshLayout.setRefreshing(true);
+        }
+
+        chatService.loadChatSummaries(new FirebaseChatService.OnChatSummariesLoadedListener() {
+            @Override
+            public void onChatSummariesLoaded(List<ChatSummary> chatSummaries) {
+                if (isAdded() && getContext() != null) {
+                    // Actualizar adaptador con los chats cargados
+                    chatListAdapter.setChatList(chatSummaries);
+
+                    // Mostrar estado vacío si no hay chats
+                    updateEmptyState(chatSummaries.isEmpty());
+
+                    // Detener indicador de refresco
+                    if (swipeRefreshLayout != null) {
+                        swipeRefreshLayout.setRefreshing(false);
+                    }
+
+                    Log.d(TAG, "Chats cargados desde Firebase: " + chatSummaries.size());
+                }
+            }
+
+            @Override
+            public void onChatSummariesError(String error) {
+                if (isAdded() && getContext() != null) {
+                    Toast.makeText(getContext(), "Error al cargar chats: " + error, Toast.LENGTH_SHORT).show();
+
+                    // Usar datos de ejemplo si hay un error en la carga
+                    loadDemoChats();
+
+                    // Detener indicador de refresco
+                    if (swipeRefreshLayout != null) {
+                        swipeRefreshLayout.setRefreshing(false);
+                    }
+
+                    Log.e(TAG, "Error al cargar chats: " + error);
+                }
+            }
+        });
     }
 
     private void loadDemoChats() {
@@ -99,7 +173,7 @@ public class ChatFragment extends Fragment implements ChatListAdapter.OnChatClic
                     "19-24 Abril 2025",
                     ChatSummary.ChatStatus.AVAILABLE
             );
-            chat1.setHotelImageUrl("https://example.com/hotel1.jpg"); // Podría ser null o vacío
+            chat1.setHotelImageUrl("https://example.com/hotel1.jpg");
             demoChats.add(chat1);
 
             // Chat 2: Activo
@@ -112,7 +186,7 @@ public class ChatFragment extends Fragment implements ChatListAdapter.OnChatClic
                     ChatSummary.ChatStatus.ACTIVE
             );
             chat2.setLastMessage("¿Podría solicitar servicio de habitaciones?");
-            chat2.setHotelImageUrl("https://example.com/hotel2.jpg"); // Podría ser null o vacío
+            chat2.setHotelImageUrl("https://example.com/hotel2.jpg");
             demoChats.add(chat2);
 
             // Chat 3: Finalizado
@@ -125,22 +199,13 @@ public class ChatFragment extends Fragment implements ChatListAdapter.OnChatClic
                     ChatSummary.ChatStatus.FINISHED
             );
             chat3.setLastMessage("Gracias por su estancia, esperamos verle pronto.");
-            chat3.setHotelImageUrl("https://example.com/hotel3.jpg"); // Podría ser null o vacío
+            chat3.setHotelImageUrl("https://example.com/hotel3.jpg");
             demoChats.add(chat3);
 
-            // Verificar que el adaptador exista antes de actualizarlo
+            // Actualizar adaptador
             if (chatListAdapter != null) {
-                Log.d(TAG, "Setting " + demoChats.size() + " chats to adapter");
+                Log.d(TAG, "Setting " + demoChats.size() + " demo chats to adapter");
                 chatListAdapter.setChatList(demoChats);
-            } else {
-                Log.e(TAG, "chatListAdapter es null");
-                // Try to recreate adapter if it's null
-                if (getContext() != null && rvChatList != null) {
-                    chatListAdapter = new ChatListAdapter(getContext(), this);
-                    rvChatList.setAdapter(chatListAdapter);
-                    chatListAdapter.setChatList(demoChats);
-                    Log.d(TAG, "Recreated adapter with " + demoChats.size() + " chats");
-                }
             }
 
             // Mostrar estado vacío si no hay chats
@@ -229,34 +294,23 @@ public class ChatFragment extends Fragment implements ChatListAdapter.OnChatClic
             Log.d(TAG, "Prepared ChatConversationFragment with args: chat_id=" + chat.getId()
                     + ", status=" + chat.getStatus().name());
 
-            // Get fragment manager with safety check
-            if (getActivity().getSupportFragmentManager() == null) {
-                Log.e(TAG, "Fragment manager is null");
-                return;
-            }
-
             // Perform the fragment transaction with try-catch
             try {
                 // Start with a clean transaction
                 FragmentTransaction transaction = getActivity().getSupportFragmentManager().beginTransaction();
 
-                // Apply animations if available, safely
-                try {
-                    transaction.setCustomAnimations(
-                            R.anim.slide_in_right,
-                            R.anim.slide_out_left,
-                            R.anim.slide_in_left,
-                            R.anim.slide_out_right
-                    );
-                } catch (Exception e) {
-                    Log.e(TAG, "Error with animations, proceeding without: " + e.getMessage());
-                    // Continue without animations
-                }
+                // Apply animations
+                transaction.setCustomAnimations(
+                        R.anim.slide_in_right,
+                        R.anim.slide_out_left,
+                        R.anim.slide_in_left,
+                        R.anim.slide_out_right
+                );
 
                 // Replace fragment and commit
                 transaction.replace(R.id.fragment_container, chatConversationFragment)
                         .addToBackStack(null)
-                        .commitAllowingStateLoss(); // Using commitAllowingStateLoss for safer commits
+                        .commit();
 
                 Log.d(TAG, "Navigation transaction committed successfully");
             } catch (Exception e) {
@@ -274,6 +328,16 @@ public class ChatFragment extends Fragment implements ChatListAdapter.OnChatClic
             }
         }
     }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        // Limpiar listeners de Firebase
+        if (chatService != null) {
+            chatService.cleanup();
+        }
+    }
+
 
 
     // Método para configurar el navegador inferior

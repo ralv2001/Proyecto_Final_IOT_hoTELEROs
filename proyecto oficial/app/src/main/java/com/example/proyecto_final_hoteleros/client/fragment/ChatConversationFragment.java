@@ -3,10 +3,13 @@ package com.example.proyecto_final_hoteleros.client.fragment;
 import android.animation.ObjectAnimator;
 import android.os.Bundle;
 import android.os.Handler;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.EditText;
@@ -24,8 +27,9 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.proyecto_final_hoteleros.R;
 import com.example.proyecto_final_hoteleros.adapters.MessageAdapter;
-import com.example.proyecto_final_hoteleros.client.model.Message;
 import com.example.proyecto_final_hoteleros.client.model.ChatSummary;
+import com.example.proyecto_final_hoteleros.client.model.Message;
+import com.example.proyecto_final_hoteleros.services.FirebaseChatService;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -48,9 +52,6 @@ public class ChatConversationFragment extends Fragment {
     private TextView tvTypingIndicator;
     private ImageView ivHotelInfo;
     private LinearLayout chatFinishedBanner;
-    private ImageView ivEmptyChatIcon;
-    private TextView tvEmptyStateTitle;
-    private TextView tvEmptyStateMessage;
 
     // Data
     private String chatId;
@@ -63,12 +64,34 @@ public class ChatConversationFragment extends Fragment {
     private Runnable typingRunnable;
     private boolean isFirstLoad = true;
 
+    // Firebase service
+    private FirebaseChatService chatService;
+
+    // Typing variables
+    private boolean isTyping = false;
+    private static final long TYPING_TIMER_LENGTH = 600;
+    private Handler typingTimeoutHandler = new Handler();
+    private Runnable typingTimeoutCallback = new Runnable() {
+        @Override
+        public void run() {
+            isTyping = false;
+        }
+    };
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View rootView = null;
         try {
             // Inflate the layout first
             rootView = inflater.inflate(R.layout.fragment_chat_conversation, container, false);
+
+            // NUEVO: Configurar el comportamiento del teclado solo para esta vista
+            if (getActivity() != null) {
+                getActivity().getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
+            }
+
+            // Obtener servicio de Firebase
+            chatService = FirebaseChatService.getInstance();
 
             // Extract arguments safely
             if (getArguments() != null) {
@@ -105,7 +128,7 @@ public class ChatConversationFragment extends Fragment {
 
             // Load messages based on valid chatId
             if (chatId != null && !chatId.isEmpty()) {
-                loadMessages();
+                loadMessagesFromFirebase();
             } else {
                 Log.e(TAG, "Invalid chatId, showing empty state");
                 showEmptyState(true);
@@ -123,6 +146,16 @@ public class ChatConversationFragment extends Fragment {
         return rootView;
     }
 
+    // NUEVO: Restablecer el comportamiento del teclado cuando se destruye la vista
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        // Restablecer el comportamiento del teclado
+        if (getActivity() != null) {
+            getActivity().getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_NOTHING);
+        }
+    }
+
     private void initViews(View rootView) {
         try {
             toolbar = rootView.findViewById(R.id.toolbar);
@@ -138,9 +171,6 @@ public class ChatConversationFragment extends Fragment {
             tvTypingIndicator = rootView.findViewById(R.id.tvTypingIndicator);
             ivHotelInfo = rootView.findViewById(R.id.ivHotelInfo);
             chatFinishedBanner = rootView.findViewById(R.id.chatFinishedBanner);
-            ivEmptyChatIcon = rootView.findViewById(R.id.ivEmptyChatIcon);
-            tvEmptyStateTitle = rootView.findViewById(R.id.tvEmptyStateTitle);
-            tvEmptyStateMessage = rootView.findViewById(R.id.tvEmptyStateMessage);
 
             // Check for null views
             if (ivBack == null) {
@@ -181,6 +211,27 @@ public class ChatConversationFragment extends Fragment {
             } else {
                 Log.e(TAG, "btnSend is null");
             }
+
+            // Monitor typing
+            etMessage.addTextChangedListener(new TextWatcher() {
+                @Override
+                public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+                @Override
+                public void onTextChanged(CharSequence s, int start, int before, int count) {
+                    if (!isTyping) {
+                        isTyping = true;
+                        // Aquí podrías enviar una notificación de "está escribiendo" a Firebase
+                        // para que el hotel lo vea, si implementas esa funcionalidad
+                    }
+
+                    typingTimeoutHandler.removeCallbacks(typingTimeoutCallback);
+                    typingTimeoutHandler.postDelayed(typingTimeoutCallback, TYPING_TIMER_LENGTH);
+                }
+
+                @Override
+                public void afterTextChanged(Editable s) {}
+            });
 
             // Set up hotel info button
             if (ivHotelInfo != null) {
@@ -263,21 +314,86 @@ public class ChatConversationFragment extends Fragment {
             if (chatStatus == ChatSummary.ChatStatus.AVAILABLE) {
                 // For a new chat, show welcome message in input hint
                 etMessage.setHint("Escribe tu primer mensaje...");
-
-                // Customize empty state for new chat
-                if (tvEmptyStateTitle != null) {
-                    tvEmptyStateTitle.setText("Inicia tu conversación");
-                }
-                if (tvEmptyStateMessage != null) {
-                    tvEmptyStateMessage.setText("Comunícate con " + hotelName + " para resolver cualquier duda sobre tu reserva");
-                }
             }
         }
     }
 
-    private void loadMessages() {
-        // In a real app, you would load messages from a database or API
-        // Here we'll create some demo messages for illustration
+    private void loadMessagesFromFirebase() {
+        showLoadingIndicator(true);
+
+        chatService.loadMessages(chatId, new FirebaseChatService.OnMessagesLoadedListener() {
+            @Override
+            public void onMessagesLoaded(List<Message> messages) {
+                if (isAdded() && getContext() != null) {
+                    // Actualizar la lista de mensajes
+                    messageList.clear();
+                    messageList.addAll(messages);
+
+                    // Actualizar UI
+                    updateUI();
+
+                    // Ocultar indicador de carga
+                    showLoadingIndicator(false);
+
+                    Log.d(TAG, "Mensajes cargados desde Firebase: " + messages.size());
+                }
+            }
+
+            @Override
+            public void onMessageAdded(Message message) {
+                if (isAdded() && getContext() != null) {
+                    // Añadir solo el nuevo mensaje
+                    if (!messageExists(message.getId())) {
+                        messageList.add(message);
+                        messageAdapter.notifyItemInserted(messageList.size() - 1);
+                        rvMessages.scrollToPosition(messageList.size() - 1);
+                    }
+
+                    // Si es un mensaje del hotel, mostrar brevemente el indicador "escribiendo..."
+                    if (message.getType() == Message.MessageType.HOTEL) {
+                        showTypingIndicator(false);
+                    }
+                }
+            }
+
+            @Override
+            public void onMessagesError(String error) {
+                if (isAdded() && getContext() != null) {
+                    Toast.makeText(getContext(), "Error al cargar mensajes: " + error, Toast.LENGTH_SHORT).show();
+
+                    // Ocultar indicador de carga
+                    showLoadingIndicator(false);
+
+                    // Cargar mensajes de ejemplo en caso de error
+                    loadDemoMessages();
+
+                    Log.e(TAG, "Error al cargar mensajes: " + error);
+                }
+            }
+        });
+    }
+
+    private boolean messageExists(String messageId) {
+        for (Message message : messageList) {
+            if (message.getId().equals(messageId)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private void showLoadingIndicator(boolean show) {
+        // Aquí podrías mostrar un ProgressBar durante la carga de mensajes
+        // Por ahora, simplemente mostramos u ocultamos el indicador de escribiendo
+        if (show && messageList.isEmpty()) {
+            showTypingIndicator(true);
+        } else if (!show) {
+            showTypingIndicator(false);
+        }
+    }
+
+    private void loadDemoMessages() {
+        // Similar al método anterior, pero con datos locales de ejemplo
         messageList.clear();
 
         if (chatId.equals("chat_1")) {
@@ -306,17 +422,6 @@ public class ChatConversationFragment extends Fragment {
                     "¿Podría solicitar servicio de habitaciones?",
                     fifteenMinutesAgo, Message.MessageType.USER));
 
-            // Show typing indicator briefly if this is first load
-            if (isFirstLoad) {
-                isFirstLoad = false;
-                showTypingIndicator(true);
-                typingHandler.postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        showTypingIndicator(false);
-                    }
-                }, 3000);
-            }
         } else if (chatId.equals("chat_3")) {
             // For finished chat, show some demo messages
             showEmptyState(false);
@@ -362,12 +467,6 @@ public class ChatConversationFragment extends Fragment {
                 emptyStateView.setAlpha(0f);
                 emptyStateView.setVisibility(View.VISIBLE);
                 emptyStateView.animate().alpha(1f).setDuration(300).start();
-
-                // Also animate the icon
-                if (ivEmptyChatIcon != null) {
-                    Animation pulse = AnimationUtils.loadAnimation(getContext(), R.anim.pulse);
-                    ivEmptyChatIcon.startAnimation(pulse);
-                }
 
                 isFirstLoad = false;
             } else {
@@ -432,121 +531,88 @@ public class ChatConversationFragment extends Fragment {
     }
 
     private void sendMessage() {
-        String messageText = etMessage.getText().toString().trim();
+        final String messageText = etMessage.getText().toString().trim();
 
         if (messageText.isEmpty()) {
             return;
         }
 
-        // Create new message
-        Message newMessage = new Message(
+        // Obtener el ID actual del usuario desde Firebase Auth
+        String userId = chatService.getCurrentUserId();
+
+        // Crear nuevo mensaje
+        final Message newMessage = new Message(
                 String.valueOf(System.currentTimeMillis()),
-                "user_1",  // In a real app, this would be the actual user ID
+                userId,
                 hotelId,
                 messageText,
                 System.currentTimeMillis(),
                 Message.MessageType.USER
         );
 
-        // Add message to list
-        messageList.add(newMessage);
-        messageAdapter.notifyItemInserted(messageList.size() - 1);
-        rvMessages.scrollToPosition(messageList.size() - 1);
-
-        // Clear input field
+        // Limpiar campo de entrada
         etMessage.setText("");
 
-        // In a real app, you would send the message to a backend
-
-        // If this is the first message in an empty chat, update UI
-        if (messageList.size() == 1) {
-            hideEmptyStateWithAnimation();
+        // Si el chat es nuevo (sin mensajes previos), activarlo
+        if (chatStatus == ChatSummary.ChatStatus.AVAILABLE) {
+            chatStatus = ChatSummary.ChatStatus.ACTIVE;
+            chatService.updateChatStatus(chatId, ChatSummary.ChatStatus.ACTIVE);
         }
 
-        // Simulate response after a short delay for active chats
-        if (chatStatus != ChatSummary.ChatStatus.FINISHED) {
-            simulateResponse();
-        }
-    }
+        // Enviar mensaje a Firebase
+        chatService.sendMessage(chatId, newMessage, new FirebaseChatService.OnMessageSentListener() {
+            @Override
+            public void onMessageSent(Message message) {
+                // Mensaje enviado exitosamente
+                Log.d(TAG, "Mensaje enviado exitosamente: " + message.getId());
 
-    private void simulateResponse() {
-        // Show typing indicator
-        showTypingIndicator(true);
+                // Mostrar brevemente el indicador de escritura para simular respuesta
+                if (chatStatus == ChatSummary.ChatStatus.ACTIVE) {
+                    // Simular que el hotel está escribiendo en 1-3 segundos
+                    new Handler().postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            if (isAdded() && getContext() != null) {
+                                showTypingIndicator(true);
+                            }
+                        }
+                    }, 1000 + (int)(Math.random() * 2000));
+                }
+            }
 
-        // Simulate hotel response after a delay (only for demo purposes)
-        typingRunnable = new Runnable() {
+            @Override
+            public void onMessageError(String error) {
+                if (isAdded() && getContext() != null) {
+                    Toast.makeText(getContext(), "Error al enviar mensaje: " + error, Toast.LENGTH_SHORT).show();
+                    Log.e(TAG, "Error al enviar mensaje: " + error);
+
+                    // Devolver el mensaje al campo de entrada para que el usuario pueda intentar de nuevo
+                    etMessage.setText(messageText);
+                }
+            }
+        });
+
+        // Añadir mensaje a la lista localmente para actualización inmediata de la UI
+        // Esto se actualizará cuando Firebase devuelva el mensaje con su ID real
+        messageList.add(newMessage);
+        messageAdapter.notifyItemInserted(messageList.size() - 1);
+
+        // MODIFICADO: Asegurarse de que el scroll se mueve al último mensaje después de enviar
+        rvMessages.post(new Runnable() {
             @Override
             public void run() {
-                // Hide typing indicator
-                showTypingIndicator(false);
-
-                // Generate appropriate response based on the last message
-                String responseText = generateContextualResponse();
-
-                Message response = new Message(
-                        String.valueOf(System.currentTimeMillis()),
-                        hotelId,
-                        "user_1",
-                        responseText,
-                        System.currentTimeMillis(),
-                        Message.MessageType.HOTEL
-                );
-
-                messageList.add(response);
-                messageAdapter.notifyItemInserted(messageList.size() - 1);
                 rvMessages.scrollToPosition(messageList.size() - 1);
             }
-        };
+        });
 
-        // Randomize response time between 1-3 seconds for more natural feel
-        int responseDelay = 1000 + (int)(Math.random() * 2000);
-        typingHandler.postDelayed(typingRunnable, responseDelay);
-    }
-
-    private String generateContextualResponse() {
-        // Get the last user message
-        String lastUserMessage = "";
-        for (int i = messageList.size() - 1; i >= 0; i--) {
-            Message message = messageList.get(i);
-            if (message.getType() == Message.MessageType.USER) {
-                lastUserMessage = message.getText().toLowerCase();
-                break;
-            }
-        }
-
-        // Generate contextual response based on keywords
-        if (lastUserMessage.contains("hola") || lastUserMessage.contains("buenos") ||
-                messageList.size() <= 2) {
-            return "¡Hola! Bienvenido al servicio de chat de " + hotelName +
-                    ". ¿En qué podemos ayudarle con su estancia?";
-        } else if (lastUserMessage.contains("habitaci") || lastUserMessage.contains("room") ||
-                lastUserMessage.contains("servicio")) {
-            return "Por supuesto, nuestro servicio de habitaciones está disponible 24/7. " +
-                    "¿Qué necesita que le enviemos a su habitación?";
-        } else if (lastUserMessage.contains("piscina") || lastUserMessage.contains("spa") ||
-                lastUserMessage.contains("gimnasio") || lastUserMessage.contains("gym")) {
-            return "Nuestras instalaciones de ocio están en la planta baja. " +
-                    "La piscina está abierta de 7AM a 10PM, el spa de 9AM a 9PM, " +
-                    "y el gimnasio está disponible 24 horas para nuestros huéspedes.";
-        } else if (lastUserMessage.contains("restaurante") || lastUserMessage.contains("comer") ||
-                lastUserMessage.contains("comida") || lastUserMessage.contains("desayuno")) {
-            return "Nuestro restaurante principal sirve desayuno de 6AM a 10:30AM, " +
-                    "almuerzo de 12:30PM a 3PM, y cena de 7PM a 10:30PM. " +
-                    "¿Desea hacer una reserva?";
-        } else if (lastUserMessage.contains("checkout") || lastUserMessage.contains("salida")) {
-            return "El checkout estándar es a las 12 del mediodía. Si necesita un late checkout, " +
-                    "podemos arreglarlo dependiendo de la disponibilidad. ¿Necesita ayuda adicional con su salida?";
-        } else if (lastUserMessage.contains("gracias")) {
-            return "Ha sido un placer ayudarle. Si necesita cualquier otra cosa, no dude en contactarnos.";
-        } else {
-            return "Gracias por su mensaje. Un representante del hotel le atenderá en breve. " +
-                    "¿Hay algo más en lo que podamos ayudarle mientras tanto?";
+        // Si es el primer mensaje, ocultar el estado vacío
+        if (messageList.size() == 1) {
+            hideEmptyStateWithAnimation();
         }
     }
 
     private void showHotelInfoDialog() {
-        // En una aplicación real, esto mostraría un diálogo con información del hotel
-        // Para esta demostración, solo mostraremos un Toast
+        // En una aplicación real, mostrarías un diálogo con información del hotel
         if (getContext() != null) {
             String info = "Hotel: " + hotelName + "\n" +
                     "Servicios: Restaurante, Piscina, Spa, Gimnasio 24h\n" +
@@ -559,9 +625,13 @@ public class ChatConversationFragment extends Fragment {
     @Override
     public void onDestroy() {
         super.onDestroy();
-        // Limpiamos los callbacks del handler
+        // Limpiar handlers
         if (typingHandler != null && typingRunnable != null) {
             typingHandler.removeCallbacks(typingRunnable);
+        }
+
+        if (typingTimeoutHandler != null) {
+            typingTimeoutHandler.removeCallbacks(typingTimeoutCallback);
         }
     }
 }

@@ -36,14 +36,16 @@
         app:layout_constraintBottom_toBottomOf="@id/hotelMessageContainer"
         android:layout_marginEnd="8dp" />
 
-    <!-- Hotel message container -->
+    <!-- Hotel message container - MODIFICADO -->
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/hotelMessageContainer"
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:background="@drawable/bg_message_hotel"
         android:padding="12dp"
-        android:maxWidth="260dp"
+        app:layout_constraintWidth_max="wrap"
+        app:layout_constraintWidth_percent="0.75"
+        app:layout_constraintWidth_default="wrap"
         app:layout_constraintTop_toBottomOf="@id/tvDateHeader"
         app:layout_constraintStart_toEndOf="@id/ivHotelAvatar"
         app:layout_constraintBottom_toBottomOf="parent"
@@ -63,6 +65,7 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintBottom_toTopOf="@id/tvMessageText" />
 
+        <!-- MODIFICADO: TextView para el texto del mensaje -->
         <TextView
             android:id="@+id/tvMessageText"
             android:layout_width="wrap_content"
@@ -70,9 +73,12 @@
             android:textColor="@android:color/black"
             android:textSize="14sp"
             android:fontFamily="@font/inter_regular"
+            android:breakStrategy="high_quality"
+            android:hyphenationFrequency="normal"
             app:layout_constraintTop_toBottomOf="@id/tvHotelNameInMessage"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.0"
             tools:text="Este es un mensaje de ejemplo del hotel"/>
 
         <TextView
