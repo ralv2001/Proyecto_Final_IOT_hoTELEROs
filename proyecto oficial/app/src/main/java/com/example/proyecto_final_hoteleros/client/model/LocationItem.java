@@ -3,8 +3,15 @@ package com.example.proyecto_final_hoteleros.client.model;
 public class LocationItem {
     private String name;
     private String type;
-    private String placeId; // Añadido para Places API
+    private String placeId;
 
+    public LocationItem(String name, String type, String placeId) {
+        this.name = name;
+        this.type = type;
+        this.placeId = placeId;
+    }
+
+    // Constructor antiguo para compatibilidad con código existente
     public LocationItem(String name, String type) {
         this.name = name;
         this.type = type;

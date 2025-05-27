@@ -4,8 +4,9 @@
 
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
-    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
     <application
         android:name=".HotelerosApplication"
@@ -18,9 +19,6 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Proyecto_Final_hoTELEROs"
         tools:targetApi="31">
-        <activity
-            android:name=".DriverActivity"
-            android:exported="false" />
         <activity
             android:name=".auth.register.RegisterVerifyActivity"
             android:exported="false" />
@@ -51,6 +49,10 @@
         <activity
             android:name=".HomeActivity"
             android:exported="false" />
+        <!-- Make sure your <application> tag has the following activity -->
+        <activity
+            android:name=".NotificationTestActivity"
+            android:exported="false" />
         <activity
             android:name=".client.fragment.LocationSelectorActivity"
             android:exported="true" />
@@ -78,6 +80,7 @@
         <activity
             android:name=".adminhotel.AdminHotelActivity"
             android:exported="true" />
+        
         <activity
             android:name=".adminhotel.CheckoutActivity"
             android:exported="true" />
@@ -96,20 +99,35 @@
         <activity
             android:name=".adminhotel.TaxistasHotelActivity"
             android:exported="true" />
-        <activity android:name=".adminhotel.NuevoServicioActivity" />
+        <activity android:name=".adminhotel.NuevoServicioActivity"/>
         <activity
             android:name=".AllHotelServicesActivity"
-            android:exported="true"></activity>
+            android:exported="true">
+
+        </activity>
         <activity
             android:name=".CardDialogActivity"
-            android:exported="true"></activity>
+            android:exported="true">
+
+        </activity>
+
         <activity
             android:name=".HotelServicesPreviewActivity"
-            android:exported="true"></activity>
+            android:exported="true">
+
+        </activity>
+        <!-- Agregar el servicio de notificaciones aquí -->
+        <service
+            android:name=".services.FirebaseNotificationService"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT" />
+            </intent-filter>
+        </service>
 
         <meta-data
             android:name="com.google.android.geo.API_KEY"
-            android:value="AIzaSyCW_ttkTpA9qO9uR4lj8gkuoigqFWfQVDw" />
+            android:value="AIzaSyBdghOu6DZktjZcg0_PJzffH72NC-nR0ok" />
     </application>
 
 </manifest>

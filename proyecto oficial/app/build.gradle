@@ -1,20 +1,25 @@
 plugins {
     alias(libs.plugins.android.application)
+    id 'com.google.gms.google-services'
 }
+
 
 android {
     namespace 'com.example.proyecto_final_hoteleros'
     compileSdk 35
 
+
     defaultConfig {
         applicationId "com.example.proyecto_final_hoteleros"
-        minSdk 31
+        minSdk 29
         targetSdk 35
         versionCode 1
         versionName "1.0"
 
+
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
+
 
     buildTypes {
         release {
@@ -23,18 +28,44 @@ android {
         }
     }
 
+
     buildFeatures {
         viewBinding true
     }
+
+
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_11
         targetCompatibility JavaVersion.VERSION_11
     }
 }
 
+
 dependencies {
+    // Firebase
+    implementation 'com.google.firebase:firebase-auth:21.0.1'
+    implementation 'com.google.firebase:firebase-messaging:23.0.0'
+
+
+    // Firebase Realtime Database - AÑADIR ESTO
+    implementation 'com.google.firebase:firebase-database:20.3.0'
+
+    // Firebase Storage (por si necesitas enviar imágenes más adelante) - AÑADIR ESTO
+    implementation 'com.google.firebase:firebase-storage:20.3.0'
+
+    // SwipeRefreshLayout para la funcionalidad de Pull-to-Refresh - AÑADIR ESTO
+    implementation 'androidx.swiperefreshlayout:swiperefreshlayout:1.1.0'
+    implementation 'com.google.android.libraries.places:places:2.7.0'
+    implementation 'com.google.android.gms:play-services-maps:18.1.0'
+    implementation 'com.google.firebase:firebase-messaging:24.0.0'
+    implementation platform('com.google.firebase:firebase-bom:33.13.0')
+    implementation 'com.google.firebase:firebase-analytics'
     implementation 'com.github.bumptech.glide:glide:4.15.1'
     implementation libs.navigation.runtime
+    implementation libs.firebase.firestore
+    implementation libs.firebase.auth
+    implementation libs.firebase.messaging
+    implementation libs.firebase.database
     annotationProcessor 'com.github.bumptech.glide:compiler:4.15.1'
     implementation 'de.hdodenhof:circleimageview:3.1.0'
     implementation libs.appcompat

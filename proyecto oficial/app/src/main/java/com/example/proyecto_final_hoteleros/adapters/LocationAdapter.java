@@ -3,6 +3,7 @@ package com.example.proyecto_final_hoteleros.adapters;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -42,6 +43,22 @@ public class LocationAdapter extends RecyclerView.Adapter<LocationAdapter.Locati
         holder.tvLocationName.setText(location.getName());
         holder.tvLocationType.setText(location.getType());
 
+        // Configurar color del ícono según el tipo de ubicación
+        int iconColor;
+        if (location.getType().contains("Departamento")) {
+            iconColor = holder.itemView.getContext().getResources().getColor(R.color.departamento_color);
+        } else if (location.getType().contains("Provincia")) {
+            iconColor = holder.itemView.getContext().getResources().getColor(R.color.provincia_color);
+        } else if (location.getType().contains("Distrito")) {
+            iconColor = holder.itemView.getContext().getResources().getColor(R.color.distrito_color);
+        } else if (location.getType().contains("Popular") || location.getType().contains("turística")) {
+            iconColor = holder.itemView.getContext().getResources().getColor(R.color.popular_color);
+        } else {
+            iconColor = holder.itemView.getContext().getResources().getColor(R.color.location_default_color);
+        }
+
+        holder.ivLocationIcon.setColorFilter(iconColor);
+
         holder.itemView.setOnClickListener(v -> {
             if (listener != null) {
                 listener.onLocationClick(location);
@@ -62,11 +79,12 @@ public class LocationAdapter extends RecyclerView.Adapter<LocationAdapter.Locati
     static class LocationViewHolder extends RecyclerView.ViewHolder {
         TextView tvLocationName;
         TextView tvLocationType;
-
+        ImageView ivLocationIcon;
         LocationViewHolder(@NonNull View itemView) {
             super(itemView);
             tvLocationName = itemView.findViewById(R.id.tvLocationName);
             tvLocationType = itemView.findViewById(R.id.tvLocationType);
+            ivLocationIcon  = itemView.findViewById(R.id.ivLocationIcon);
         }
     }
 }
