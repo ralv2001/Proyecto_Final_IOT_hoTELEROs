@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:paddingHorizontal="24dp"
+    android:paddingTop="32dp"
+    android:paddingBottom="16dp">
+
+    <!-- Título de la sección -->
+    <TextView
+        android:id="@+id/tv_section_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Sección"
+        android:textColor="#1A1A1A"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:fontFamily="@font/roboto_bold" />
+
+    <!-- Línea decorativa -->
+    <View
+        android:layout_width="40dp"
+        android:layout_height="3dp"
+        android:layout_marginTop="8dp"
+        android:background="@drawable/section_divider_gradient" />
+
+</LinearLayout>

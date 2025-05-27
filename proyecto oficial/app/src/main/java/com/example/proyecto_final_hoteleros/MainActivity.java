@@ -87,6 +87,17 @@ public class MainActivity extends AppCompatActivity {
                 startActivity(intent);
             }
         });
+        LinearLayout layoutContinueAsTaxiDriver = findViewById(R.id.layoutContinueAsTaxiDriver);
+        layoutContinueAsTaxiDriver.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Toast.makeText(MainActivity.this, "Continuando como taxista...", Toast.LENGTH_SHORT).show();
+
+                // Iniciar la HomeActivity que contiene el contenedor de fragmentos
+                Intent intent = new Intent(MainActivity.this, DriverActivity.class);
+                startActivity(intent);
+            }
+        });
     }
 
     // Método para navegar a la pantalla de autenticación

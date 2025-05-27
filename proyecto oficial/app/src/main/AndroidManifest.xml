@@ -4,6 +4,7 @@
 
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
     <uses-permission android:name="android.permission.INTERNET" />
 
     <application
@@ -17,6 +18,9 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Proyecto_Final_hoTELEROs"
         tools:targetApi="31">
+        <activity
+            android:name=".DriverActivity"
+            android:exported="false" />
         <activity
             android:name=".auth.register.RegisterVerifyActivity"
             android:exported="false" />
@@ -74,7 +78,6 @@
         <activity
             android:name=".adminhotel.AdminHotelActivity"
             android:exported="true" />
-        
         <activity
             android:name=".adminhotel.CheckoutActivity"
             android:exported="true" />
@@ -93,29 +96,20 @@
         <activity
             android:name=".adminhotel.TaxistasHotelActivity"
             android:exported="true" />
-        <activity android:name=".adminhotel.NuevoServicioActivity"/>
+        <activity android:name=".adminhotel.NuevoServicioActivity" />
         <activity
             android:name=".AllHotelServicesActivity"
-            android:exported="true">
-
-        </activity>
+            android:exported="true"></activity>
         <activity
             android:name=".CardDialogActivity"
-            android:exported="true">
-
-        </activity>
-
+            android:exported="true"></activity>
         <activity
             android:name=".HotelServicesPreviewActivity"
-            android:exported="true">
-
-        </activity>
-
-
+            android:exported="true"></activity>
 
         <meta-data
             android:name="com.google.android.geo.API_KEY"
-            android:value="@string/google_maps_api_key" />
+            android:value="AIzaSyCW_ttkTpA9qO9uR4lj8gkuoigqFWfQVDw" />
     </application>
 
 </manifest>
