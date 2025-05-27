@@ -2,11 +2,24 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <!-- Permisos de ubicación -->
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
+
+    <!-- Permisos de red -->
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
+    <!-- Permisos de notificaciones -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
+    <!-- Permisos para galería e imágenes (para EditProfile) -->
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
+
+    <!-- Permiso opcional para cámara (si quieres agregar funcionalidad de cámara) -->
+    <uses-permission android:name="android.permission.CAMERA" />
 
     <application
         android:name=".HotelerosApplication"
@@ -19,104 +32,138 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Proyecto_Final_hoTELEROs"
         tools:targetApi="31">
-        <activity
-            android:name=".auth.register.RegisterVerifyActivity"
-            android:exported="false" />
-        <activity
-            android:name=".auth.register.RegisterSuccessActivity"
-            android:exported="false" />
-        <activity
-            android:name=".auth.register.AddProfilePhotoActivity"
-            android:exported="false" />
-        <activity
-            android:name=".auth.register.RegisterUserActivity"
-            android:exported="false" />
-        <activity
-            android:name=".auth.password.SuccessActivity"
-            android:exported="false" />
+
+        <!-- ========== ACTIVIDADES PRINCIPALES ========== -->
         <activity
             android:name=".MainActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
         <activity
             android:name=".AuthActivity"
             android:exported="true" />
+
         <activity
             android:name=".HomeActivity"
             android:exported="false" />
-        <!-- Make sure your <application> tag has the following activity -->
+
+        <!-- Actividad del Taxista (de tu manifest) -->
         <activity
-            android:name=".NotificationTestActivity"
+            android:name=".DriverActivity"
             android:exported="false" />
+
+        <!-- ========== ACTIVIDADES DE AUTENTICACIÓN ========== -->
+        <activity
+            android:name=".auth.register.RegisterVerifyActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".auth.register.RegisterSuccessActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".auth.register.AddProfilePhotoActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".auth.register.RegisterUserActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".auth.password.SuccessActivity"
+            android:exported="false" />
+
+        <!-- ========== ACTIVIDADES DE CLIENTE ========== -->
         <activity
             android:name=".client.fragment.LocationSelectorActivity"
             android:exported="true" />
+
+        <!-- ========== ACTIVIDADES DE SUPERADMIN ========== -->
         <activity
             android:name=".superadmin.SuperadminActivity"
             android:exported="true" />
+
         <activity
             android:name=".superadmin.ListaUsuariosActivity"
             android:exported="true" />
+
         <activity
             android:name=".superadmin.ListaSolicitudesActivity"
             android:exported="true" />
+
         <activity
             android:name=".superadmin.SolicitudesTaxistasActivity"
             android:exported="true" />
+
         <activity
             android:name=".superadmin.RegistroAdministradorActivity"
             android:exported="true" />
+
         <activity
             android:name=".superadmin.ReporteReservasActivity"
             android:exported="true" />
+
         <activity
             android:name=".superadmin.LogEventosActivity"
             android:exported="true" />
+
+        <!-- ========== ACTIVIDADES DE ADMIN HOTEL ========== -->
         <activity
             android:name=".adminhotel.AdminHotelActivity"
             android:exported="true" />
-        
+
         <activity
             android:name=".adminhotel.CheckoutActivity"
             android:exported="true" />
+
         <activity
             android:name=".adminhotel.HabitacionesActivity"
             android:exported="true" />
+
         <activity
             android:name=".adminhotel.PerfilHotelActivity"
             android:exported="true" />
+
         <activity
             android:name=".adminhotel.ReporteVentasActivity"
             android:exported="true" />
+
         <activity
             android:name=".adminhotel.ServiciosHotelActivity"
             android:exported="true" />
+
         <activity
             android:name=".adminhotel.TaxistasHotelActivity"
             android:exported="true" />
-        <activity android:name=".adminhotel.NuevoServicioActivity"/>
+
+        <activity
+            android:name=".adminhotel.NuevoServicioActivity"
+            android:exported="false" />
+
+        <!-- ========== ACTIVIDADES DE SERVICIOS ========== -->
         <activity
             android:name=".AllHotelServicesActivity"
-            android:exported="true">
+            android:exported="true" />
 
-        </activity>
         <activity
             android:name=".CardDialogActivity"
-            android:exported="true">
-
-        </activity>
+            android:exported="true" />
 
         <activity
             android:name=".HotelServicesPreviewActivity"
-            android:exported="true">
+            android:exported="true" />
 
-        </activity>
-        <!-- Agregar el servicio de notificaciones aquí -->
+        <!-- Actividad de prueba de notificaciones (de tu compañero) -->
+        <activity
+            android:name=".NotificationTestActivity"
+            android:exported="false" />
+
+        <!-- ========== SERVICIOS ========== -->
+        <!-- Servicio de notificaciones de Firebase (de tu compañero) -->
         <service
             android:name=".services.FirebaseNotificationService"
             android:exported="false">
@@ -125,9 +172,12 @@
             </intent-filter>
         </service>
 
+        <!-- ========== METADATOS ========== -->
+        <!-- API Key de Google Maps (usando la de tu compañero que parece más reciente) -->
         <meta-data
             android:name="com.google.android.geo.API_KEY"
             android:value="AIzaSyBdghOu6DZktjZcg0_PJzffH72NC-nR0ok" />
+
     </application>
 
 </manifest>
