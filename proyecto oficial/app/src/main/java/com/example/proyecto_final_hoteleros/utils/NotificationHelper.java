@@ -6,6 +6,7 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
+import android.util.Log;
 
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
@@ -55,6 +56,10 @@ public class NotificationHelper {
 
     // Notificación cuando se completa el registro exitosamente
     public void showRegistrationCompleteNotification(String userType, String userName) {
+        Log.d("NotificationHelper", "=== CREANDO NOTIFICACIÓN ===");
+        Log.d("NotificationHelper", "UserType: " + userType);
+        Log.d("NotificationHelper", "UserName: " + userName);
+
         String title = "¡Registro Completado!";
         String message;
 
@@ -65,6 +70,9 @@ public class NotificationHelper {
             message = "Hola " + userName + ", tu registro como cliente ha sido completado exitosamente. " +
                     "¡Ya puedes empezar a usar la aplicación!";
         }
+
+        Log.d("NotificationHelper", "Título: " + title);
+        Log.d("NotificationHelper", "Mensaje: " + message);
 
         Intent intent = new Intent(context, MainActivity.class);
         PendingIntent pendingIntent = PendingIntent.getActivity(
@@ -80,7 +88,9 @@ public class NotificationHelper {
                 .setContentIntent(pendingIntent)
                 .setAutoCancel(true);
 
+        Log.d("NotificationHelper", "Enviando notificación con ID: 1001");
         safeNotify(1001, builder.build());
+        Log.d("NotificationHelper", "✅ Notificación enviada");
     }
 
     // Notificación cuando un taxista es aprobado

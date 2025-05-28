@@ -769,6 +769,7 @@ public class RegisterUserActivity extends AppCompatActivity {
         // Si llegamos aquí, estamos yendo hacia SelectUserType (SALIENDO del flujo)
         Log.d("RegisterUser", "Usuario SALIÓ del flujo hacia SelectUserType - limpiando TODOS los datos");
 
+        // Limpiar SharedPreferences
         prefs.edit()
                 .remove("photoPath")
                 .remove("photoUri")
@@ -779,19 +780,28 @@ public class RegisterUserActivity extends AppCompatActivity {
                 .remove("navigatingWithinFlow")
                 .apply();
 
-        // Limpiar registro de la base de datos si existe y no está completado
+        // IMPORTANTE: Limpiar registro INCOMPLETO de la base de datos
         if (currentRegistrationId != -1) {
+            Log.d("RegisterUser", "Eliminando registro incompleto de la base de datos: " + currentRegistrationId);
+
+            // Primero eliminar archivos asociados
+            fileStorageRepository.clearFilesByRegistrationId(currentRegistrationId);
+
+            // Luego eliminar el registro
             userRegistrationRepository.deleteUserRegistration(currentRegistrationId, new UserRegistrationRepository.RegistrationCallback() {
                 @Override
                 public void onSuccess(UserRegistrationEntity registration) {
-                    Log.d("RegisterUser", "Registro limpiado de la base de datos: " + currentRegistrationId);
+                    Log.d("RegisterUser", "✅ Registro incompleto eliminado exitosamente: " + currentRegistrationId);
                 }
 
                 @Override
                 public void onError(String error) {
-                    Log.d("RegisterUser", "No se pudo limpiar el registro: " + error);
+                    Log.e("RegisterUser", "❌ Error eliminando registro incompleto: " + error);
                 }
             });
+
+            // Resetear el ID
+            currentRegistrationId = -1;
         }
 
         super.onBackPressed();
@@ -830,6 +840,15 @@ public class RegisterUserActivity extends AppCompatActivity {
 
     // Método para recuperar registro existente
     private void recoverExistingRegistration() {
+        // Solo recuperar si venimos DENTRO del flujo, no si es un nuevo registro
+        SharedPreferences prefs = getSharedPreferences("UserData", MODE_PRIVATE);
+        boolean navigatingWithinFlow = prefs.getBoolean("navigatingWithinFlow", false);
+
+        if (!navigatingWithinFlow) {
+            Log.d("RegisterUser", "Nuevo registro iniciado - NO recuperar datos anteriores");
+            return;
+        }
+
         userRegistrationRepository.getLatestUserRegistration(new UserRegistrationRepository.RegistrationCallback() {
             @Override
             public void onSuccess(UserRegistrationEntity registration) {
