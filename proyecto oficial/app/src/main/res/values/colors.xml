@@ -57,7 +57,7 @@
 
     <!-- Colores de texto -->
     <color name="text_white">#FFFFFF</color>
-
+    <color name="gray_text">#666666</color>
 
 
 </resources>
