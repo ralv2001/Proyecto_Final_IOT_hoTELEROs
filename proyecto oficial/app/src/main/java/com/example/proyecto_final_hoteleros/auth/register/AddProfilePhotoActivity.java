@@ -475,6 +475,12 @@ public class AddProfilePhotoActivity extends AppCompatActivity {
             Log.d("AddProfilePhoto", "Navegando hacia atrás sin foto seleccionada");
         }
 
+        // Marcar que estamos navegando DENTRO del flujo para que RegisterUserActivity no limpie
+        getSharedPreferences("UserData", MODE_PRIVATE)
+                .edit()
+                .putBoolean("navigatingWithinFlow", true)
+                .apply();
+
         // Finalizar esta actividad y regresar a la anterior
         super.onBackPressed();
     }

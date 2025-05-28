@@ -7,6 +7,7 @@ import androidx.lifecycle.ViewModelProvider;
 import android.app.AlertDialog;
 import android.app.DatePickerDialog;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.InputFilter;
@@ -23,6 +24,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.proyecto_final_hoteleros.AuthActivity;
+import com.example.proyecto_final_hoteleros.FileDataManager;
 import com.example.proyecto_final_hoteleros.R;
 
 import java.text.SimpleDateFormat;
@@ -753,6 +755,9 @@ public class RegisterUserActivity extends AppCompatActivity {
                 mViewModel.setPlacaVehiculo(placa);
             }
 
+            // NO limpiar el flag navigatingWithinFlow aquí - se necesita para que
+            // UploadDriverDocumentsActivity sepa que debe mantener los archivos
+
             // TAXISTAS: Navegar a la pantalla de subir documentos PRIMERO
             Log.d("RegisterUser", "Navigating to UploadDriverDocumentsActivity for driver");
             Intent intent = new Intent(RegisterUserActivity.this, UploadDriverDocumentsActivity.class);
@@ -760,6 +765,8 @@ public class RegisterUserActivity extends AppCompatActivity {
             intent.putExtra("placaVehiculo", placa);
             startActivity(intent);
         } else {
+            // Para clientes también NO limpiar el flag aquí
+
             // CLIENTES: Navegar directamente a la pantalla de subir foto
             Log.d("RegisterUser", "Navigating to AddProfilePhotoActivity for client");
             Intent intent = new Intent(RegisterUserActivity.this, AddProfilePhotoActivity.class);
@@ -770,19 +777,48 @@ public class RegisterUserActivity extends AppCompatActivity {
 
     @Override
     public void onBackPressed() {
-        // Cuando el usuario regresa desde RegisterUserActivity hacia SelectUserType,
-        // SÍ está saliendo del flujo de registro, por lo que limpiamos TODO
-        getSharedPreferences("UserData", MODE_PRIVATE)
-                .edit()
+        // Verificar de dónde venimos para decidir si limpiar o no
+        SharedPreferences prefs = getSharedPreferences("UserData", MODE_PRIVATE);
+        boolean navigatingWithinFlow = prefs.getBoolean("navigatingWithinFlow", false);
+
+        // Log para debugging
+        Log.d("RegisterUser", "onBackPressed - navigatingWithinFlow: " + navigatingWithinFlow);
+        Log.d("RegisterUser", "Estado actual de SharedPreferences:");
+        Log.d("RegisterUser", "  - photoPath: " + prefs.getString("photoPath", "NO_ENCONTRADO"));
+        Log.d("RegisterUser", "  - pdfPath: " + prefs.getString("pdfPath", "NO_ENCONTRADO"));
+        Log.d("RegisterUser", "  - email: " + prefs.getString("email", "NO_ENCONTRADO"));
+
+        if (navigatingWithinFlow) {
+            // Venimos de una vista posterior del formulario (PDF o Foto), NO limpiar NADA
+            Log.d("RegisterUser", "Navegando hacia atrás DENTRO del flujo - NO SE LIMPIA NADA");
+
+            // Solo limpiar el flag de navegación AHORA que regresamos
+            prefs.edit().remove("navigatingWithinFlow").apply();
+
+            super.onBackPressed();
+            return;
+        }
+
+        // Si llegamos aquí, estamos yendo hacia SelectUserType (SALIENDO del flujo)
+        Log.d("RegisterUser", "Usuario SALIÓ del flujo hacia SelectUserType - limpiando TODOS los datos");
+
+        prefs.edit()
                 .remove("photoPath")
                 .remove("photoUri")
                 .remove("pdfPath")
                 .remove("pdfUri")
                 .remove("email")
                 .remove("photoSkipped")
+                .remove("navigatingWithinFlow")
                 .apply();
 
-        Log.d("RegisterUser", "Usuario SALIÓ del flujo de registro hacia SelectUserType - datos eliminados");
+        // También limpiar el ViewModel si existe
+        if (mViewModel != null) {
+            mViewModel.clearAllData();
+        }
+
+        // Y limpiar el FileDataManager
+        FileDataManager.getInstance().clearAll();
 
         super.onBackPressed();
     }
@@ -801,5 +837,20 @@ public class RegisterUserActivity extends AppCompatActivity {
         } else {
             etPlacaVehiculo.setError(null);
         }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        // Log para debugging PERO NO LIMPIAR EL FLAG
+        SharedPreferences prefs = getSharedPreferences("UserData", MODE_PRIVATE);
+        Log.d("RegisterUser", "onResume - Estado de SharedPreferences:");
+        Log.d("RegisterUser", "  - photoPath: " + prefs.getString("photoPath", "NO_ENCONTRADO"));
+        Log.d("RegisterUser", "  - pdfPath: " + prefs.getString("pdfPath", "NO_ENCONTRADO"));
+        Log.d("RegisterUser", "  - navigatingWithinFlow: " + prefs.getBoolean("navigatingWithinFlow", false));
+
+        // NO limpiar el flag aquí - se mantendrá hasta que realmente salgamos del flujo
+        Log.d("RegisterUser", "onResume completado - flag mantenido");
     }
 }
