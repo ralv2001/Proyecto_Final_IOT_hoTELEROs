@@ -11,6 +11,7 @@ import android.util.Log;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
 
+import com.example.proyecto_final_hoteleros.AuthActivity;
 import com.example.proyecto_final_hoteleros.MainActivity;
 import com.example.proyecto_final_hoteleros.R;
 
@@ -74,7 +75,8 @@ public class NotificationHelper {
         Log.d("NotificationHelper", "Título: " + title);
         Log.d("NotificationHelper", "Mensaje: " + message);
 
-        Intent intent = new Intent(context, MainActivity.class);
+        Intent intent = new Intent(context, AuthActivity.class);
+        intent.putExtra("mode", "login");
         PendingIntent pendingIntent = PendingIntent.getActivity(
                 context, 0, intent, PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT
         );
@@ -99,8 +101,8 @@ public class NotificationHelper {
         String message = "Felicidades " + driverName + ", tu solicitud para ser taxista ha sido aprobada. " +
                 "Ya puedes empezar a recibir viajes.";
 
-        Intent intent = new Intent(context, MainActivity.class);
-        intent.putExtra("approved_driver", true);
+        Intent intent = new Intent(context, AuthActivity.class);  // ← CAMBIO
+        intent.putExtra("mode", "login");  // ← CAMBIO
         PendingIntent pendingIntent = PendingIntent.getActivity(
                 context, 0, intent, PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT
         );
@@ -130,8 +132,8 @@ public class NotificationHelper {
 
         message += " Puedes intentar registrarte nuevamente.";
 
-        Intent intent = new Intent(context, MainActivity.class);
-        intent.putExtra("rejected_driver", true);
+        Intent intent = new Intent(context, AuthActivity.class);  // ← CAMBIO
+        intent.putExtra("mode", "login");  // ← CAMBIO
         PendingIntent pendingIntent = PendingIntent.getActivity(
                 context, 0, intent, PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT
         );

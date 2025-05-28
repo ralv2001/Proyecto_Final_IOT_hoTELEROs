@@ -152,8 +152,10 @@ public class LoginFragment extends Fragment {
         tvRegisterPrompt.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Toast.makeText(getContext(), "Ir a pantalla de registro", Toast.LENGTH_SHORT).show();
-                // Implementar navegación a pantalla de registro
+                // Cambiar a la pestaña de registro
+                if (getActivity() instanceof AuthActivity) {
+                    ((AuthActivity) getActivity()).goToRegister();
+                }
             }
         });
 
