@@ -243,6 +243,7 @@ public class RegisterVerifyCodeFragment extends Fragment {
                                 Intent intent = new Intent(getActivity(), RegisterSuccessActivity.class);
                                 intent.putExtra("userType", registration.userType);
                                 intent.putExtra("registrationId", registration.id);
+                                intent.putExtra("userName", registration.nombres + " " + registration.apellidos);
                                 intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                                 startActivity(intent);
                                 getActivity().finish();
@@ -301,6 +302,7 @@ public class RegisterVerifyCodeFragment extends Fragment {
 
             Intent intent = new Intent(getActivity(), RegisterSuccessActivity.class);
             intent.putExtra("userType", userType);
+            intent.putExtra("userName", "Usuario"); // Valor por defecto para el fallback
             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
             startActivity(intent);
             getActivity().finish();

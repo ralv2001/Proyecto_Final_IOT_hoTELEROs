@@ -10,6 +10,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.proyecto_final_hoteleros.AuthActivity;
 import com.example.proyecto_final_hoteleros.R;
+import com.example.proyecto_final_hoteleros.utils.NotificationHelper;
 import com.google.android.material.button.MaterialButton;
 
 public class RegisterSuccessActivity extends AppCompatActivity {
@@ -51,6 +52,15 @@ public class RegisterSuccessActivity extends AppCompatActivity {
             // Mensaje para clientes
             Log.d("RegisterSuccess", "Mostrando mensaje para clientes");
             tvDescription.setText("¡Felicidades!, su cuenta ha sido creada exitosamente.\nHaga clic en Continuar para ir al menú principal.");
+            // AGREGAR NOTIFICACIÓN AQUÍ - después de configurar los textos
+            String userName = getIntent().getStringExtra("userName");
+            if (userName == null || userName.isEmpty()) {
+                userName = "Usuario"; // Valor por defecto
+            }
+
+            NotificationHelper notificationHelper = new NotificationHelper(this);
+            notificationHelper.showRegistrationCompleteNotification(userType, userName);
+            Log.d("RegisterSuccess", "Notificación enviada para " + userType + ": " + userName);
         }
 
         // Configurar el botón Continuar

@@ -738,35 +738,7 @@ public class RegisterUserActivity extends AppCompatActivity {
     }
 
     private void saveFormDataToViewModel() {
-        if (mViewModel != null) {
-            // Guarda en el ViewModel para compatibilidad
-            mViewModel.setNombres(etNombres.getText().toString().trim());
-            mViewModel.setApellidos(etApellidos.getText().toString().trim());
-            String email = etEmail.getText().toString().trim();
-            mViewModel.setEmail(email);
-
-            // También guarda el email en SharedPreferences para compatibilidad
-            getSharedPreferences("UserData", MODE_PRIVATE)
-                    .edit()
-                    .putString("email", email)
-                    .apply();
-
-            Log.d("RegisterUser", "Guardando email en ViewModel y SharedPreferences: " + email);
-
-            mViewModel.setFechaNacimiento(etFechaNacimiento.getText().toString().trim());
-            mViewModel.setTelefono(etTelefono.getText().toString().trim());
-            mViewModel.setTipoDocumento(currentDocType);
-            mViewModel.setNumeroDocumento(etNumeroDocumento.getText().toString().trim());
-            mViewModel.setDireccion(etDireccion.getText().toString().trim());
-            mViewModel.setPassword(etContrasena.getText().toString());
-            mViewModel.setUserType(userType);
-
-            if ("driver".equals(userType)) {
-                mViewModel.setPlacaVehiculo(etPlacaVehiculo.getText().toString().trim());
-            }
-        }
-
-        // IMPORTANTE: Usar la nueva función de base de datos
+        // Solo llamar a la función de base de datos, no duplicar la lógica
         saveFormDataToDatabase();
     }
 
@@ -920,7 +892,37 @@ public class RegisterUserActivity extends AppCompatActivity {
     }
 
     // Nuevo método para guardar datos usando Room
+    // Nuevo método para guardar datos usando Room
     private void saveFormDataToDatabase() {
+        // Primero guardar en ViewModel para compatibilidad (SOLO UNA VEZ)
+        if (mViewModel != null) {
+            mViewModel.setNombres(etNombres.getText().toString().trim());
+            mViewModel.setApellidos(etApellidos.getText().toString().trim());
+            String email = etEmail.getText().toString().trim();
+            mViewModel.setEmail(email);
+
+            // También guarda el email en SharedPreferences para compatibilidad
+            getSharedPreferences("UserData", MODE_PRIVATE)
+                    .edit()
+                    .putString("email", email)
+                    .apply();
+
+            Log.d("RegisterUser", "Guardando email en ViewModel y SharedPreferences: " + email);
+
+            mViewModel.setFechaNacimiento(etFechaNacimiento.getText().toString().trim());
+            mViewModel.setTelefono(etTelefono.getText().toString().trim());
+            mViewModel.setTipoDocumento(currentDocType);
+            mViewModel.setNumeroDocumento(etNumeroDocumento.getText().toString().trim());
+            mViewModel.setDireccion(etDireccion.getText().toString().trim());
+            mViewModel.setPassword(etContrasena.getText().toString());
+            mViewModel.setUserType(userType);
+
+            if ("driver".equals(userType)) {
+                mViewModel.setPlacaVehiculo(etPlacaVehiculo.getText().toString().trim());
+            }
+        }
+
+        // Crear entidad de registro
         UserRegistrationEntity registration = userRegistrationRepository.createFromViewModel(
                 userType,
                 etNombres.getText().toString().trim(),
@@ -943,13 +945,14 @@ public class RegisterUserActivity extends AppCompatActivity {
                 @Override
                 public void onSuccess(UserRegistrationEntity updatedRegistration) {
                     Log.d("RegisterUser", "Registro actualizado exitosamente: " + updatedRegistration.id);
-                    proceedToNextStep(updatedRegistration.id);
+                    // IMPORTANTE: NO llamar a proceedToNextStep desde aquí para evitar el bucle
+                    runOnUiThread(() -> proceedToNextStep(updatedRegistration.id));
                 }
 
                 @Override
                 public void onError(String error) {
                     Log.e("RegisterUser", "Error actualizando registro: " + error);
-                    Toast.makeText(RegisterUserActivity.this, "Error al guardar: " + error, Toast.LENGTH_SHORT).show();
+                    runOnUiThread(() -> Toast.makeText(RegisterUserActivity.this, "Error al guardar: " + error, Toast.LENGTH_SHORT).show());
                 }
             });
         } else {
@@ -959,13 +962,14 @@ public class RegisterUserActivity extends AppCompatActivity {
                 public void onSuccess(int registrationId) {
                     currentRegistrationId = registrationId;
                     Log.d("RegisterUser", "Nuevo registro creado: " + registrationId);
-                    proceedToNextStep(registrationId);
+                    // IMPORTANTE: NO llamar a proceedToNextStep desde aquí para evitar el bucle
+                    runOnUiThread(() -> proceedToNextStep(registrationId));
                 }
 
                 @Override
                 public void onError(String error) {
                     Log.e("RegisterUser", "Error creando registro: " + error);
-                    Toast.makeText(RegisterUserActivity.this, "Error al guardar: " + error, Toast.LENGTH_SHORT).show();
+                    runOnUiThread(() -> Toast.makeText(RegisterUserActivity.this, "Error al guardar: " + error, Toast.LENGTH_SHORT).show());
                 }
             });
         }
@@ -973,16 +977,18 @@ public class RegisterUserActivity extends AppCompatActivity {
 
     // Método para proceder al siguiente paso
     private void proceedToNextStep(int registrationId) {
-        // También actualizar ViewModel para compatibilidad
-        saveFormDataToViewModel();
+        // NO llamar a saveFormDataToViewModel aquí - ya se hizo antes
+        Log.d("RegisterUser", "Procediendo al siguiente paso con registro ID: " + registrationId);
 
         if ("driver".equals(userType)) {
+            // Para taxistas: primero documentos, luego foto
             Intent intent = new Intent(RegisterUserActivity.this, UploadDriverDocumentsActivity.class);
             intent.putExtra("userType", userType);
             intent.putExtra("registrationId", registrationId);
             intent.putExtra("placaVehiculo", etPlacaVehiculo.getText().toString().trim());
             startActivity(intent);
         } else {
+            // Para clientes: directamente a la foto de perfil
             Intent intent = new Intent(RegisterUserActivity.this, AddProfilePhotoActivity.class);
             intent.putExtra("userType", userType);
             intent.putExtra("registrationId", registrationId);

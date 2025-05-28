@@ -490,10 +490,6 @@ public class AddProfilePhotoActivity extends AppCompatActivity {
                     public void onSuccess(UserRegistrationEntity registration) {
                         Log.d("AddProfilePhoto", "Registro marcado como completado exitosamente");
 
-                        // Mostrar notificación de registro completado
-                        String userName = registration.nombres + " " + registration.apellidos;
-                        notificationHelper.showRegistrationCompleteNotification(registration.userType, userName);
-
                         // Limpiar datos temporales
                         clearTemporaryData();
 
@@ -508,6 +504,7 @@ public class AddProfilePhotoActivity extends AppCompatActivity {
                             intent.putExtra("email", email);
                             intent.putExtra("userType", registration.userType);
                             intent.putExtra("registrationId", currentRegistrationId);
+                            intent.putExtra("userName", registration.nombres + " " + registration.apellidos);
                             startActivity(intent);
                             finish();
                         });
