@@ -25,9 +25,13 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.example.proyecto_final_hoteleros.AuthActivity;
-import com.example.proyecto_final_hoteleros.FileDataManager;
 import com.example.proyecto_final_hoteleros.R;
 import com.google.android.material.button.MaterialButton;
+// Imports para Room Database y Repositorios
+import com.example.proyecto_final_hoteleros.database.entities.FileStorageEntity;
+import com.example.proyecto_final_hoteleros.repository.UserRegistrationRepository;
+import com.example.proyecto_final_hoteleros.repository.FileStorageRepository;
+import com.example.proyecto_final_hoteleros.utils.NotificationHelper;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -57,6 +61,12 @@ public class UploadDriverDocumentsActivity extends AppCompatActivity {
     private String userType;
     private String placaVehiculo;
 
+    // Agregar estas nuevas variables:
+    private UserRegistrationRepository userRegistrationRepository;
+    private FileStorageRepository fileStorageRepository;
+    private NotificationHelper notificationHelper;
+    private int currentRegistrationId = -1;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -64,6 +74,17 @@ public class UploadDriverDocumentsActivity extends AppCompatActivity {
 
         // Inicializar ViewModel
         mViewModel = new ViewModelProvider(this).get(RegisterViewModel.class);
+
+        // Inicializar repositorios
+        userRegistrationRepository = new UserRegistrationRepository(this);
+        fileStorageRepository = new FileStorageRepository(this);
+        notificationHelper = new NotificationHelper(this);
+
+        // Recuperar ID de registro del intent
+        if (getIntent() != null && getIntent().hasExtra("registrationId")) {
+            currentRegistrationId = getIntent().getIntExtra("registrationId", -1);
+            Log.d(TAG, "Registration ID recibido: " + currentRegistrationId);
+        }
 
         // Recuperar datos de usuario del intent
         if (getIntent() != null) {
@@ -231,34 +252,61 @@ public class UploadDriverDocumentsActivity extends AppCompatActivity {
 
     private void processSelectedFile(Uri uri) {
         try {
-            // Guardar el archivo seleccionado en un archivo temporal
-            tempPdfFile = saveUriToTempFile(uri);
+            Log.d(TAG, "=== PROCESANDO ARCHIVO CON ROOM ===");
+            Log.d(TAG, "URI: " + uri.toString());
+            Log.d(TAG, "Registration ID: " + currentRegistrationId);
 
-            if (tempPdfFile != null) {
-                pdfUri = Uri.fromFile(tempPdfFile);
-
-                // Guardar en FileDataManager INMEDIATAMENTE
-                FileDataManager.getInstance().setPdfData(pdfUri, tempPdfFile.getAbsolutePath());
-
-                // Guardar en SharedPreferences
-                SharedPreferences prefs = getSharedPreferences("UserData", MODE_PRIVATE);
-                prefs.edit()
-                        .putString("pdfPath", tempPdfFile.getAbsolutePath())
-                        .putString("pdfUri", pdfUri.toString())
-                        .apply();
-
-                // Guardar en ViewModel también
-                if (mViewModel != null) {
-                    mViewModel.setDriverDocumentsUri(pdfUri);
-                }
-
-                Log.d(TAG, "Archivo procesado y guardado:");
-                Log.d(TAG, "  - Ruta temporal: " + tempPdfFile.getAbsolutePath());
-                Log.d(TAG, "  - URI: " + pdfUri.toString());
-
-                displayFileInfo(uri);
-                updateButtonState();
+            if (currentRegistrationId == -1) {
+                Toast.makeText(this, "Error: No hay registro activo", Toast.LENGTH_SHORT).show();
+                return;
             }
+
+            String originalName = getFileName(uri);
+            String mimeType = getContentResolver().getType(uri);
+
+            Log.d(TAG, "Nombre original: " + originalName);
+            Log.d(TAG, "MIME type: " + mimeType);
+
+            // Guardar archivo usando el repository
+            fileStorageRepository.saveFile(
+                    currentRegistrationId,
+                    FileStorageEntity.FILE_TYPE_PDF,
+                    originalName,
+                    uri,
+                    mimeType,
+                    new FileStorageRepository.FileOperationCallback() {
+                        @Override
+                        public void onSuccess(FileStorageEntity fileEntity) {
+                            runOnUiThread(() -> {
+                                // Configurar variables locales
+                                tempPdfFile = new File(fileEntity.storedPath);
+                                pdfUri = Uri.fromFile(tempPdfFile);
+
+                                Log.d(TAG, "Archivo guardado exitosamente:");
+                                Log.d(TAG, "  - ID: " + fileEntity.id);
+                                Log.d(TAG, "  - Ruta: " + fileEntity.storedPath);
+                                Log.d(TAG, "  - Tamaño: " + fileEntity.fileSize + " bytes");
+
+                                // Mostrar información del archivo
+                                displayFileInfoFromFileEntity(fileEntity);
+                                updateButtonState();
+
+                                Toast.makeText(UploadDriverDocumentsActivity.this,
+                                        "Archivo guardado exitosamente", Toast.LENGTH_SHORT).show();
+                            });
+                        }
+
+                        @Override
+                        public void onError(String error) {
+                            runOnUiThread(() -> {
+                                Log.e(TAG, "Error guardando archivo: " + error);
+                                Toast.makeText(UploadDriverDocumentsActivity.this,
+                                        "Error al guardar archivo: " + error, Toast.LENGTH_SHORT).show();
+                            });
+                        }
+                    }
+            );
+
         } catch (Exception e) {
             Log.e(TAG, "Error al procesar el archivo seleccionado", e);
             Toast.makeText(this, "Error al procesar el archivo", Toast.LENGTH_SHORT).show();
@@ -343,27 +391,61 @@ public class UploadDriverDocumentsActivity extends AppCompatActivity {
     }
 
     private void deleteSelectedFile() {
-        // Eliminar archivo temporal si existe
-        if (tempPdfFile != null && tempPdfFile.exists()) {
-            tempPdfFile.delete();
+        if (currentRegistrationId == -1) {
+            Log.w(TAG, "No registration ID for deleting file");
+            return;
         }
 
-        // Limpiar variables
-        pdfUri = null;
-        tempPdfFile = null;
+        // Eliminar archivo de la base de datos
+        fileStorageRepository.getFileByRegistrationIdAndType(
+                currentRegistrationId,
+                FileStorageEntity.FILE_TYPE_PDF,
+                new FileStorageRepository.FileOperationCallback() {
+                    @Override
+                    public void onSuccess(FileStorageEntity fileEntity) {
+                        // Eliminar el archivo usando el repository
+                        fileStorageRepository.deleteFile(fileEntity, new FileStorageRepository.FileOperationCallback() {
+                            @Override
+                            public void onSuccess(FileStorageEntity deletedFileEntity) {
+                                runOnUiThread(() -> {
+                                    // Limpiar variables locales
+                                    pdfUri = null;
+                                    tempPdfFile = null;
 
-        // Eliminar de SharedPreferences
-        SharedPreferences prefs = getSharedPreferences("UserData", MODE_PRIVATE);
-        prefs.edit()
-                .remove("pdfPath")
-                .remove("pdfUri")
-                .apply();
+                                    // Ocultar vista de archivo
+                                    layoutSelectedFile.setVisibility(View.GONE);
 
-        // Ocultar vista de archivo
-        layoutSelectedFile.setVisibility(View.GONE);
+                                    // Actualizar estado del botón
+                                    updateButtonState();
 
-        // Actualizar estado del botón
-        updateButtonState();
+                                    Log.d(TAG, "Archivo eliminado exitosamente");
+                                    Toast.makeText(UploadDriverDocumentsActivity.this,
+                                            "Archivo eliminado", Toast.LENGTH_SHORT).show();
+                                });
+                            }
+
+                            @Override
+                            public void onError(String error) {
+                                runOnUiThread(() -> {
+                                    Log.e(TAG, "Error eliminando archivo: " + error);
+                                    Toast.makeText(UploadDriverDocumentsActivity.this,
+                                            "Error al eliminar archivo", Toast.LENGTH_SHORT).show();
+                                });
+                            }
+                        });
+                    }
+
+                    @Override
+                    public void onError(String error) {
+                        runOnUiThread(() -> {
+                            Log.d(TAG, "No hay archivo para eliminar: " + error);
+                            // Limpiar UI de todos modos
+                            layoutSelectedFile.setVisibility(View.GONE);
+                            updateButtonState();
+                        });
+                    }
+                }
+        );
     }
 
     private void updateButtonState() {
@@ -373,92 +455,50 @@ public class UploadDriverDocumentsActivity extends AppCompatActivity {
     }
 
     private void checkExistingPdfFile() {
-        // PRIMERO: Verificar en FileDataManager
-        FileDataManager fileManager = FileDataManager.getInstance();
+        Log.d(TAG, "=== CHECKING EXISTING PDF FILE CON ROOM ===");
+        Log.d(TAG, "Current Registration ID: " + currentRegistrationId);
 
-        Log.d(TAG, "=== DEBUGGING FileDataManager ===");
-        Log.d(TAG, "FileDataManager instance: " + fileManager);
-        Log.d(TAG, "FileDataManager.getPdfUri(): " + fileManager.getPdfUri());
-        Log.d(TAG, "FileDataManager.getPdfPath(): " + fileManager.getPdfPath());
-        Log.d(TAG, "FileDataManager.hasPdf(): " + fileManager.hasPdf());
-
-        if (fileManager.hasPdf()) {
-            String filePath = fileManager.getPdfPath();
-            pdfUri = fileManager.getPdfUri();
-
-            Log.d(TAG, "PDF encontrado en FileDataManager: " + filePath);
-
-            File file = new File(filePath);
-            Log.d(TAG, "Archivo existe físicamente: " + file.exists());
-
-            if (file.exists()) {
-                tempPdfFile = file;
-                displayFileInfoFromFile(file);
-                updateButtonState();
-
-                // Sincronizar con SharedPreferences
-                SharedPreferences prefs = getSharedPreferences("UserData", MODE_PRIVATE);
-                prefs.edit()
-                        .putString("pdfPath", filePath)
-                        .putString("pdfUri", pdfUri.toString())
-                        .apply();
-
-                Log.d(TAG, "Archivo PDF recuperado del FileDataManager exitosamente");
-                return;
-            } else {
-                Log.w(TAG, "El archivo del FileDataManager no existe físicamente, pero tenemos los datos");
-                // No limpiar los datos del FileDataManager, solo mostrar mensaje
-                Toast.makeText(this, "El archivo PDF anterior ya no está disponible. Por favor, seleccione un nuevo archivo.", Toast.LENGTH_LONG).show();
-            }
-        } else {
-            Log.d(TAG, "FileDataManager no tiene PDF guardado");
+        if (currentRegistrationId == -1) {
+            Log.d(TAG, "No registration ID, no PDF to recover");
+            return;
         }
 
-        // SEGUNDO: Si no está en FileDataManager O el archivo no existe, intentar de SharedPreferences
-        SharedPreferences prefs = getSharedPreferences("UserData", MODE_PRIVATE);
-        String pdfPath = prefs.getString("pdfPath", "");
-        String pdfUriString = prefs.getString("pdfUri", "");
+        // Buscar archivo PDF en la base de datos
+        fileStorageRepository.getFileByRegistrationIdAndType(
+                currentRegistrationId,
+                FileStorageEntity.FILE_TYPE_PDF,
+                new FileStorageRepository.FileOperationCallback() {
+                    @Override
+                    public void onSuccess(FileStorageEntity fileEntity) {
+                        runOnUiThread(() -> {
+                            Log.d(TAG, "PDF encontrado en base de datos: " + fileEntity.originalName);
 
-        Log.d(TAG, "Verificando archivo existente - pdfPath: " + pdfPath);
-        Log.d(TAG, "Verificando archivo existente - pdfUri: " + pdfUriString);
+                            // Verificar que el archivo físico existe
+                            File file = new File(fileEntity.storedPath);
+                            if (file.exists()) {
+                                // Configurar variables locales
+                                tempPdfFile = file;
+                                pdfUri = Uri.fromFile(file);
 
-        if (!pdfPath.isEmpty()) {
-            File file = new File(pdfPath);
-            Log.d(TAG, "Archivo existe en SharedPreferences: " + file.exists() + ", Ruta: " + file.getAbsolutePath());
+                                // Mostrar información del archivo
+                                displayFileInfoFromFile(file);
+                                updateButtonState();
 
-            if (file.exists()) {
-                tempPdfFile = file;
-                pdfUri = Uri.fromFile(file);
+                                Log.d(TAG, "PDF recuperado exitosamente desde Room Database");
+                            } else {
+                                Log.e(TAG, "Archivo PDF no existe físicamente: " + fileEntity.storedPath);
+                                // El archivo será eliminado automáticamente por el repository
+                            }
+                        });
+                    }
 
-                try {
-                    displayFileInfoFromFile(file);
-                    updateButtonState();
-
-                    // Sincronizar con FileDataManager
-                    fileManager.setPdfData(pdfUri, pdfPath);
-
-                    Log.d(TAG, "Archivo PDF recuperado de SharedPreferences exitosamente");
-                } catch (Exception e) {
-                    Log.e(TAG, "Error al cargar el archivo existente", e);
-                    deleteSelectedFile();
+                    @Override
+                    public void onError(String error) {
+                        Log.d(TAG, "No hay PDF guardado en la base de datos: " + error);
+                        // Es normal, no hay archivo previo
+                    }
                 }
-            } else {
-                Log.e(TAG, "El archivo PDF no existe en la ruta guardada de SharedPreferences");
-                // Limpiar referencias inválidas de SharedPreferences
-                prefs.edit()
-                        .remove("pdfPath")
-                        .remove("pdfUri")
-                        .apply();
-
-                // Si tenía datos en FileDataManager pero el archivo no existe, también limpiar FileDataManager
-                if (fileManager.hasPdf()) {
-                    fileManager.clearPdf();
-                    Toast.makeText(this, "El archivo PDF anterior ya no está disponible. Por favor, seleccione un nuevo archivo.", Toast.LENGTH_LONG).show();
-                }
-            }
-        } else {
-            Log.d(TAG, "No hay archivo PDF guardado previamente");
-        }
+        );
     }
 
     private void displayFileInfoFromFile(File file) {
@@ -476,31 +516,64 @@ public class UploadDriverDocumentsActivity extends AppCompatActivity {
         Log.d(TAG, "Mostrando info del archivo: " + fileName + " (" + fileSize + ")");
     }
 
+    private void displayFileInfoFromFileEntity(FileStorageEntity fileEntity) {
+        String fileName = fileEntity.originalName;
+        String fileSize = formatSize(fileEntity.fileSize);
+
+        tvFileName.setText(fileName);
+        tvFileSize.setText(fileSize);
+        tvUploadStatus.setText("Completado");
+        tvUploadStatus.setTextColor(getResources().getColor(android.R.color.holo_green_dark));
+        progressUpload.setProgress(100);
+
+        layoutSelectedFile.setVisibility(View.VISIBLE);
+
+        Log.d(TAG, "Mostrando info del archivo desde FileEntity: " + fileName + " (" + fileSize + ")");
+    }
+
     private void goToAddProfilePhoto() {
-        // Guardar documentos en ViewModel si es necesario
+        // Guardar documentos en ViewModel para compatibilidad
         if (pdfUri != null) {
             mViewModel.setDriverDocumentsUri(pdfUri);
-            Log.d(TAG, "PDF guardado en ViewModel: " + pdfUri.toString());
+            Log.d(TAG, "PDF guardado en ViewModel para compatibilidad: " + pdfUri.toString());
         }
 
-        // IMPORTANTE: Asegurar que el archivo se guarde en SharedPreferences antes de cambiar de actividad
-        if (tempPdfFile != null && tempPdfFile.exists()) {
-            SharedPreferences prefs = getSharedPreferences("UserData", MODE_PRIVATE);
-            prefs.edit()
-                    .putString("pdfPath", tempPdfFile.getAbsolutePath())
-                    .putString("pdfUri", pdfUri.toString())
-                    .apply();
-
-            Log.d(TAG, "PDF guardado en SharedPreferences antes de navegar:");
-            Log.d(TAG, "  - pdfPath: " + tempPdfFile.getAbsolutePath());
-            Log.d(TAG, "  - pdfUri: " + pdfUri.toString());
+        // Verificar que tenemos un PDF guardado en la base de datos
+        if (currentRegistrationId == -1) {
+            Toast.makeText(this, "Error: No hay registro activo", Toast.LENGTH_SHORT).show();
+            return;
         }
 
-        // Navegar a la actividad de añadir foto de perfil
-        Log.d("UploadDriverDocuments", "Navigating to AddProfilePhotoActivity");
-        Intent intent = new Intent(this, AddProfilePhotoActivity.class);
-        intent.putExtra("userType", userType);
-        startActivity(intent);
+        fileStorageRepository.getFileByRegistrationIdAndType(
+                currentRegistrationId,
+                FileStorageEntity.FILE_TYPE_PDF,
+                new FileStorageRepository.FileOperationCallback() {
+                    @Override
+                    public void onSuccess(FileStorageEntity fileEntity) {
+                        runOnUiThread(() -> {
+                            Log.d(TAG, "PDF confirmado en base de datos antes de navegar:");
+                            Log.d(TAG, "  - File ID: " + fileEntity.id);
+                            Log.d(TAG, "  - Registration ID: " + fileEntity.registrationId);
+                            Log.d(TAG, "  - File path: " + fileEntity.storedPath);
+
+                            // Navegar a la actividad de añadir foto de perfil
+                            Intent intent = new Intent(UploadDriverDocumentsActivity.this, AddProfilePhotoActivity.class);
+                            intent.putExtra("userType", userType);
+                            intent.putExtra("registrationId", currentRegistrationId);
+                            startActivity(intent);
+                        });
+                    }
+
+                    @Override
+                    public void onError(String error) {
+                        runOnUiThread(() -> {
+                            Log.e(TAG, "No se encontró PDF en la base de datos: " + error);
+                            Toast.makeText(UploadDriverDocumentsActivity.this,
+                                    "Error: Debe seleccionar un archivo PDF primero", Toast.LENGTH_SHORT).show();
+                        });
+                    }
+                }
+        );
     }
 
     @Override

@@ -55,4 +55,13 @@ dependencies {
     testImplementation libs.junit
     androidTestImplementation libs.ext.junit
     androidTestImplementation libs.espresso.core
+    // Room Database
+    implementation "androidx.room:room-runtime:2.5.0"
+    annotationProcessor "androidx.room:room-compiler:2.5.0"
+
+    // WorkManager para notificaciones
+    implementation "androidx.work:work-runtime:2.8.1"
+
+    // Para manejo de fechas
+    implementation 'com.jakewharton.threetenabp:threetenabp:1.4.6'
 }

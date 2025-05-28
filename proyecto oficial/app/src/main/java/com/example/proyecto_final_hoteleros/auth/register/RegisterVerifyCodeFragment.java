@@ -20,6 +20,8 @@ import androidx.lifecycle.ViewModelProvider;
 
 import com.example.proyecto_final_hoteleros.R;
 import com.google.android.material.button.MaterialButton;
+import com.example.proyecto_final_hoteleros.repository.UserRegistrationRepository;
+import com.example.proyecto_final_hoteleros.database.entities.UserRegistrationEntity;
 
 public class RegisterVerifyCodeFragment extends Fragment {
 
@@ -220,15 +222,58 @@ public class RegisterVerifyCodeFragment extends Fragment {
 
     private void navigateToRegisterSuccess() {
         if (getActivity() != null) {
-            // Intentar obtener userType de varias fuentes para mayor seguridad
+            // Obtener registrationId si está disponible
+            int registrationId = -1;
+            if (getArguments() != null && getArguments().containsKey("registrationId")) {
+                registrationId = getArguments().getInt("registrationId", -1);
+            }
+
             String userType = "client"; // Valor por defecto
 
-            // 1. Intentar primero desde los argumentos del fragmento
+            if (registrationId != -1) {
+                // Si tenemos registrationId, obtener datos desde Room
+                UserRegistrationRepository repository = new UserRegistrationRepository(getActivity());
+                repository.getUserRegistrationById(registrationId, new UserRegistrationRepository.RegistrationCallback() {
+                    @Override
+                    public void onSuccess(UserRegistrationEntity registration) {
+                        if (getActivity() != null) {
+                            getActivity().runOnUiThread(() -> {
+                                Log.d("VerifyCodeFragment", "UserType desde Room Database: " + registration.userType);
+
+                                Intent intent = new Intent(getActivity(), RegisterSuccessActivity.class);
+                                intent.putExtra("userType", registration.userType);
+                                intent.putExtra("registrationId", registration.id);
+                                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                                startActivity(intent);
+                                getActivity().finish();
+                            });
+                        }
+                    }
+
+                    @Override
+                    public void onError(String error) {
+                        Log.e("VerifyCodeFragment", "Error obteniendo registro desde Room: " + error);
+                        // Fallback al método anterior
+                        proceedWithFallbackMethod();
+                    }
+                });
+            } else {
+                // Fallback al método anterior si no hay registrationId
+                proceedWithFallbackMethod();
+            }
+        }
+    }
+
+    private void proceedWithFallbackMethod() {
+        if (getActivity() != null) {
+            String userType = "client"; // Valor por defecto
+
+            // Intentar obtener desde argumentos
             if (getArguments() != null && getArguments().containsKey("userType")) {
                 userType = getArguments().getString("userType", "client");
                 Log.d("VerifyCodeFragment", "UserType from arguments: " + userType);
             }
-            // 2. Si no, intentar del ViewModel
+            // Intentar desde ViewModel
             else {
                 try {
                     RegisterViewModel viewModel = new ViewModelProvider(getActivity()).get(RegisterViewModel.class);
@@ -242,7 +287,7 @@ public class RegisterVerifyCodeFragment extends Fragment {
                 }
             }
 
-            // 3. Si aún no tenemos el userType, intentar desde SharedPreferences
+            // Intentar desde SharedPreferences como último recurso
             if ("client".equals(userType)) {
                 String spUserType = getActivity().getSharedPreferences("UserData", getActivity().MODE_PRIVATE)
                         .getString("userType", "client");

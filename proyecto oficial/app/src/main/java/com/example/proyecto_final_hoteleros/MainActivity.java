@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.Toast;
+import com.example.proyecto_final_hoteleros.utils.DatabaseTestHelper;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -56,22 +57,25 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View v) {
                 Toast.makeText(MainActivity.this, "Continuando como huésped...", Toast.LENGTH_SHORT).show();
 
-                // Iniciar la HomeActivity que contiene el contenedor de fragmentos
-                Intent intent = new Intent(MainActivity.this, HomeActivity.class);
-                startActivity(intent);
+                // Cargar el fragmento de Home
+                getSupportFragmentManager().beginTransaction()
+                        .replace(R.id.main, new com.example.proyecto_final_hoteleros.client.fragment.HomeFragment())
+                        .addToBackStack(null)
+                        .commit();
             }
         });
 
-        // Configuración de "Continuar como superadmin"
+        // BOTÓN TEMPORAL PARA TESTING - Eliminar en producción
         LinearLayout layoutContinueAsSuperadmin = findViewById(R.id.layoutContinueAsSuperadmin);
         layoutContinueAsSuperadmin.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Toast.makeText(MainActivity.this, "Continuando como superadmin...", Toast.LENGTH_SHORT).show();
+                // Ejecutar tests de base de datos
+                DatabaseTestHelper testHelper = new DatabaseTestHelper(MainActivity.this);
+                testHelper.runDatabaseTests();
+                testHelper.testNotifications(MainActivity.this);
 
-                // Iniciar la HomeActivity que contiene el contenedor de fragmentos
-                Intent intent = new Intent(MainActivity.this, SuperadminActivity.class);
-                startActivity(intent);
+                Toast.makeText(MainActivity.this, "Tests ejecutados - Ver logs", Toast.LENGTH_LONG).show();
             }
         });
 

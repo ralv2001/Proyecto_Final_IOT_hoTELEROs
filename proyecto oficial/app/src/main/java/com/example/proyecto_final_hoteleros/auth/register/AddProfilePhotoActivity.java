@@ -3,6 +3,7 @@ package com.example.proyecto_final_hoteleros.auth.register;
 import android.app.Activity;
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
@@ -13,6 +14,12 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
+// Imports para Room Database y Repositorios
+import com.example.proyecto_final_hoteleros.database.entities.UserRegistrationEntity;
+import com.example.proyecto_final_hoteleros.database.entities.FileStorageEntity;
+import com.example.proyecto_final_hoteleros.repository.UserRegistrationRepository;
+import com.example.proyecto_final_hoteleros.repository.FileStorageRepository;
+import com.example.proyecto_final_hoteleros.utils.NotificationHelper;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -25,6 +32,7 @@ import com.google.android.material.button.MaterialButton;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+
 
 public class AddProfilePhotoActivity extends AppCompatActivity {
 
@@ -49,6 +57,12 @@ public class AddProfilePhotoActivity extends AppCompatActivity {
     private String userType;
     private String tempPhotoPath; // Para guardar la ruta del archivo temporal
 
+    // Agregar estas nuevas variables:
+    private UserRegistrationRepository userRegistrationRepository;
+    private FileStorageRepository fileStorageRepository;
+    private NotificationHelper notificationHelper;
+    private int currentRegistrationId = -1;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -63,6 +77,20 @@ public class AddProfilePhotoActivity extends AppCompatActivity {
 
         // Inicializar el ViewModel
         mViewModel = new ViewModelProvider(this).get(RegisterViewModel.class);
+
+        // Inicializar repositorios
+        userRegistrationRepository = new UserRegistrationRepository(this);
+        fileStorageRepository = new FileStorageRepository(this);
+        notificationHelper = new NotificationHelper(this);
+
+        // Recuperar ID de registro del intent
+        if (getIntent() != null && getIntent().hasExtra("registrationId")) {
+            currentRegistrationId = getIntent().getIntExtra("registrationId", -1);
+            Log.d("AddProfilePhoto", "Registration ID recibido: " + currentRegistrationId);
+        }
+
+        // Verificar si hay una foto existente
+        checkExistingPhoto();
 
         // Inicializar vistas
         ivProfilePhoto = findViewById(R.id.ivProfilePhoto);
@@ -173,6 +201,59 @@ public class AddProfilePhotoActivity extends AppCompatActivity {
 
         // Al final del método onCreate(), después de configurar todos los listeners
         updateContinueButtonState();
+    }
+
+    private void checkExistingPhoto() {
+        if (currentRegistrationId == -1) {
+            Log.d("AddProfilePhoto", "No registration ID, no photo to recover");
+            return;
+        }
+
+        Log.d("AddProfilePhoto", "=== CHECKING EXISTING PHOTO CON ROOM ===");
+        Log.d("AddProfilePhoto", "Registration ID: " + currentRegistrationId);
+
+        // Buscar foto en la base de datos
+        fileStorageRepository.getFileByRegistrationIdAndType(
+                currentRegistrationId,
+                FileStorageEntity.FILE_TYPE_PHOTO,
+                new FileStorageRepository.FileOperationCallback() {
+                    @Override
+                    public void onSuccess(FileStorageEntity fileEntity) {
+                        runOnUiThread(() -> {
+                            Log.d("AddProfilePhoto", "Foto encontrada en base de datos: " + fileEntity.originalName);
+
+                            // Verificar que el archivo físico existe
+                            File file = new File(fileEntity.storedPath);
+                            if (file.exists()) {
+                                try {
+                                    // Cargar imagen desde archivo
+                                    Bitmap bitmap = BitmapFactory.decodeFile(file.getAbsolutePath());
+                                    if (bitmap != null) {
+                                        tempPhotoPath = fileEntity.storedPath;
+                                        profilePhotoUri = Uri.fromFile(file);
+                                        isPhotoSelected = true;
+
+                                        displaySelectedImage(null, bitmap);
+                                        Log.d("AddProfilePhoto", "Foto recuperada exitosamente desde Room Database");
+                                    } else {
+                                        Log.e("AddProfilePhoto", "No se pudo decodificar la imagen");
+                                    }
+                                } catch (Exception e) {
+                                    Log.e("AddProfilePhoto", "Error cargando imagen existente", e);
+                                }
+                            } else {
+                                Log.e("AddProfilePhoto", "Archivo de foto no existe físicamente: " + fileEntity.storedPath);
+                            }
+                        });
+                    }
+
+                    @Override
+                    public void onError(String error) {
+                        Log.d("AddProfilePhoto", "No hay foto guardada en la base de datos: " + error);
+                        // Es normal, no hay foto previa
+                    }
+                }
+        );
     }
 
     private void loadImageFromUri(Uri uri) {
@@ -355,53 +436,103 @@ public class AddProfilePhotoActivity extends AppCompatActivity {
     }
 
     private void completeRegistration() {
-        // Guardar la URI de la foto en el ViewModel si se seleccionó una
-        if (isPhotoSelected) {
-            if (profilePhotoUri != null) {
-                mViewModel.setProfilePhotoUri(profilePhotoUri);
-            }
-            mViewModel.setHasProfilePhoto(true);
+        Log.d("AddProfilePhoto", "=== COMPLETANDO REGISTRO CON ROOM ===");
+        Log.d("AddProfilePhoto", "Registration ID: " + currentRegistrationId);
+        Log.d("AddProfilePhoto", "User Type: " + userType);
+        Log.d("AddProfilePhoto", "Photo selected: " + isPhotoSelected);
+
+        if (currentRegistrationId == -1) {
+            Toast.makeText(this, "Error: No hay registro activo", Toast.LENGTH_SHORT).show();
+            return;
         }
 
-        // Intenta obtener el email del ViewModel primero
-        String email = mViewModel.getEmail();
+        // Si hay foto seleccionada, guardarla primero
+        if (isPhotoSelected && profilePhotoUri != null && tempPhotoPath != null && savedImageBitmap != null) {
+            Log.d("AddProfilePhoto", "Guardando foto de perfil...");
 
-        // Si el email es null o vacío, intenta obtenerlo de SharedPreferences
-        if (email == null || email.isEmpty()) {
-            email = getSharedPreferences("UserData", MODE_PRIVATE)
-                    .getString("email", "");
-            Log.d("AddProfilePhoto", "Email recuperado de SharedPreferences: " + email);
+            String mimeType = "image/jpeg";
+            String originalName = "profile_photo.jpg";
+
+            fileStorageRepository.saveFile(
+                    currentRegistrationId,
+                    FileStorageEntity.FILE_TYPE_PHOTO,
+                    originalName,
+                    profilePhotoUri,
+                    mimeType,
+                    new FileStorageRepository.FileOperationCallback() {
+                        @Override
+                        public void onSuccess(FileStorageEntity fileEntity) {
+                            Log.d("AddProfilePhoto", "Foto guardada exitosamente: " + fileEntity.id);
+                            // Continuar con el completion del registro
+                            finalizeRegistration();
+                        }
+
+                        @Override
+                        public void onError(String error) {
+                            Log.e("AddProfilePhoto", "Error guardando foto: " + error);
+                            // Continuar de todos modos si no es crítico
+                            finalizeRegistration();
+                        }
+                    }
+            );
+        } else {
+            Log.d("AddProfilePhoto", "No hay foto para guardar, finalizando registro...");
+            finalizeRegistration();
         }
+    }
 
-        // Log para depuración
-        Log.d("AddProfilePhoto", "Email en completeRegistration: " + email);
-        Log.d("AddProfilePhoto", "UserType en completeRegistration: " + userType);
+    private void finalizeRegistration() {
+        // Marcar el registro como completado
+        userRegistrationRepository.markRegistrationAsCompleted(
+                currentRegistrationId,
+                new UserRegistrationRepository.RegistrationCallback() {
+                    @Override
+                    public void onSuccess(UserRegistrationEntity registration) {
+                        Log.d("AddProfilePhoto", "Registro marcado como completado exitosamente");
 
-        // Si todavía es null o vacío, usa uno de prueba (solo para desarrollo)
-        if (email == null || email.isEmpty()) {
-            email = "test@example.com";
-            Log.e("AddProfilePhoto", "Usando email por defecto: " + email);
-        }
+                        // Mostrar notificación de registro completado
+                        String userName = registration.nombres + " " + registration.apellidos;
+                        notificationHelper.showRegistrationCompleteNotification(registration.userType, userName);
 
-        // Guardar userType en SharedPreferences para asegurar persistencia
+                        // Limpiar datos temporales
+                        clearTemporaryData();
+
+                        // Mostrar Toast con mensaje de éxito
+                        runOnUiThread(() -> {
+                            String email = registration.email;
+                            Toast.makeText(AddProfilePhotoActivity.this,
+                                    "Código de verificación enviado a " + email, Toast.LENGTH_SHORT).show();
+
+                            // Navegar a la pantalla de verificación
+                            Intent intent = new Intent(AddProfilePhotoActivity.this, RegisterVerifyActivity.class);
+                            intent.putExtra("email", email);
+                            intent.putExtra("userType", registration.userType);
+                            intent.putExtra("registrationId", currentRegistrationId);
+                            startActivity(intent);
+                            finish();
+                        });
+                    }
+
+                    @Override
+                    public void onError(String error) {
+                        Log.e("AddProfilePhoto", "Error marcando registro como completado: " + error);
+                        runOnUiThread(() -> {
+                            Toast.makeText(AddProfilePhotoActivity.this,
+                                    "Error completando el registro: " + error, Toast.LENGTH_SHORT).show();
+                        });
+                    }
+                }
+        );
+    }
+
+    private void clearTemporaryData() {
+        // Limpiar SharedPreferences legacy
         getSharedPreferences("UserData", MODE_PRIVATE)
                 .edit()
-                .putString("userType", userType)
+                .clear()
                 .apply();
 
-        // Mostrar Toast con el mensaje de envío de código
-        Toast.makeText(this, "Código de verificación enviado a " + email, Toast.LENGTH_SHORT).show();
-
-        // Crear un intent específico para esta actividad
-        Intent intent = new Intent(this, RegisterVerifyActivity.class);
-        intent.putExtra("email", email);
-        intent.putExtra("userType", userType);
-
-        // Hacer log del email que enviamos
-        Log.d("AddProfilePhoto", "Enviando email: " + email);
-        Log.d("AddProfilePhoto", "Enviando userType: " + userType);
-
-        startActivity(intent);
+        Log.d("AddProfilePhoto", "Datos temporales limpiados");
     }
 
     // Método específico para limpiar cuando realmente salimos del flujo

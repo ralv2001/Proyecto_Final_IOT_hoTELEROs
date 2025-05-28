@@ -24,8 +24,12 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.proyecto_final_hoteleros.AuthActivity;
-import com.example.proyecto_final_hoteleros.FileDataManager;
 import com.example.proyecto_final_hoteleros.R;
+// Imports para Room Database y Repositorios
+import com.example.proyecto_final_hoteleros.database.entities.UserRegistrationEntity;
+import com.example.proyecto_final_hoteleros.repository.UserRegistrationRepository;
+import com.example.proyecto_final_hoteleros.repository.FileStorageRepository;
+import com.example.proyecto_final_hoteleros.utils.NotificationHelper;
 
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
@@ -89,6 +93,12 @@ public class RegisterUserActivity extends AppCompatActivity {
     private boolean isPasswordVisible = false;
     private boolean isConfirmPasswordVisible = false;
 
+    // Agregar estas nuevas variables aquí:
+    private UserRegistrationRepository userRegistrationRepository;
+    private FileStorageRepository fileStorageRepository;
+    private NotificationHelper notificationHelper;
+    private int currentRegistrationId = -1;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -101,6 +111,14 @@ public class RegisterUserActivity extends AppCompatActivity {
 
         // Inicializar el ViewModel
         mViewModel = new ViewModelProvider(this).get(RegisterViewModel.class);
+
+        // Inicializar repositorios
+        userRegistrationRepository = new UserRegistrationRepository(this);
+        fileStorageRepository = new FileStorageRepository(this);
+        notificationHelper = new NotificationHelper(this);
+
+        // Recuperar registro existente si existe
+        recoverExistingRegistration();
 
         // Inicializar las pestañas
         tvLoginTab = findViewById(R.id.tvLoginTab);
@@ -324,11 +342,8 @@ public class RegisterUserActivity extends AppCompatActivity {
         // Configurar listener para botón continuar
         btnContinuar.setOnClickListener(v -> {
             if (areAllFieldsFilled()) {
-                // Guardar los datos del formulario en el ViewModel
-                saveFormDataToViewModel();
-
-                // NO agregues ninguna navegación adicional aquí,
-                // ya que saveFormDataToViewModel() se encarga de la navegación
+                // Guardar los datos del formulario usando Room Database
+                saveFormDataToViewModel(); // Este método ahora usa Room internamente
             } else {
                 Toast.makeText(this, "Por favor complete todos los campos correctamente", Toast.LENGTH_SHORT).show();
             }
@@ -724,19 +739,18 @@ public class RegisterUserActivity extends AppCompatActivity {
 
     private void saveFormDataToViewModel() {
         if (mViewModel != null) {
-            // Guarda en el ViewModel
+            // Guarda en el ViewModel para compatibilidad
             mViewModel.setNombres(etNombres.getText().toString().trim());
             mViewModel.setApellidos(etApellidos.getText().toString().trim());
             String email = etEmail.getText().toString().trim();
             mViewModel.setEmail(email);
 
-            // También guarda el email en SharedPreferences
+            // También guarda el email en SharedPreferences para compatibilidad
             getSharedPreferences("UserData", MODE_PRIVATE)
                     .edit()
                     .putString("email", email)
                     .apply();
 
-            // Log para verificación
             Log.d("RegisterUser", "Guardando email en ViewModel y SharedPreferences: " + email);
 
             mViewModel.setFechaNacimiento(etFechaNacimiento.getText().toString().trim());
@@ -746,33 +760,14 @@ public class RegisterUserActivity extends AppCompatActivity {
             mViewModel.setDireccion(etDireccion.getText().toString().trim());
             mViewModel.setPassword(etContrasena.getText().toString());
             mViewModel.setUserType(userType);
-        }
 
-        if ("driver".equals(userType)) {
-            // Guardar placa de vehículo para taxistas
-            String placa = etPlacaVehiculo.getText().toString().trim();
-            if (mViewModel != null) {
-                mViewModel.setPlacaVehiculo(placa);
+            if ("driver".equals(userType)) {
+                mViewModel.setPlacaVehiculo(etPlacaVehiculo.getText().toString().trim());
             }
-
-            // NO limpiar el flag navigatingWithinFlow aquí - se necesita para que
-            // UploadDriverDocumentsActivity sepa que debe mantener los archivos
-
-            // TAXISTAS: Navegar a la pantalla de subir documentos PRIMERO
-            Log.d("RegisterUser", "Navigating to UploadDriverDocumentsActivity for driver");
-            Intent intent = new Intent(RegisterUserActivity.this, UploadDriverDocumentsActivity.class);
-            intent.putExtra("userType", userType);
-            intent.putExtra("placaVehiculo", placa);
-            startActivity(intent);
-        } else {
-            // Para clientes también NO limpiar el flag aquí
-
-            // CLIENTES: Navegar directamente a la pantalla de subir foto
-            Log.d("RegisterUser", "Navigating to AddProfilePhotoActivity for client");
-            Intent intent = new Intent(RegisterUserActivity.this, AddProfilePhotoActivity.class);
-            intent.putExtra("userType", userType);
-            startActivity(intent);
         }
+
+        // IMPORTANTE: Usar la nueva función de base de datos
+        saveFormDataToDatabase();
     }
 
     @Override
@@ -812,13 +807,20 @@ public class RegisterUserActivity extends AppCompatActivity {
                 .remove("navigatingWithinFlow")
                 .apply();
 
-        // También limpiar el ViewModel si existe
-        if (mViewModel != null) {
-            mViewModel.clearAllData();
-        }
+        // Limpiar registro de la base de datos si existe y no está completado
+        if (currentRegistrationId != -1) {
+            userRegistrationRepository.deleteUserRegistration(currentRegistrationId, new UserRegistrationRepository.RegistrationCallback() {
+                @Override
+                public void onSuccess(UserRegistrationEntity registration) {
+                    Log.d("RegisterUser", "Registro limpiado de la base de datos: " + currentRegistrationId);
+                }
 
-        // Y limpiar el FileDataManager
-        FileDataManager.getInstance().clearAll();
+                @Override
+                public void onError(String error) {
+                    Log.d("RegisterUser", "No se pudo limpiar el registro: " + error);
+                }
+            });
+        }
 
         super.onBackPressed();
     }
@@ -852,5 +854,139 @@ public class RegisterUserActivity extends AppCompatActivity {
 
         // NO limpiar el flag aquí - se mantendrá hasta que realmente salgamos del flujo
         Log.d("RegisterUser", "onResume completado - flag mantenido");
+    }
+
+    // Método para recuperar registro existente
+    private void recoverExistingRegistration() {
+        userRegistrationRepository.getLatestUserRegistration(new UserRegistrationRepository.RegistrationCallback() {
+            @Override
+            public void onSuccess(UserRegistrationEntity registration) {
+                if (!registration.isCompleted) {
+                    runOnUiThread(() -> {
+                        currentRegistrationId = registration.id;
+                        populateFieldsFromRegistration(registration);
+                        Log.d("RegisterUser", "Registro recuperado: " + currentRegistrationId);
+                    });
+                }
+            }
+
+            @Override
+            public void onError(String error) {
+                Log.d("RegisterUser", "No hay registros anteriores: " + error);
+            }
+        });
+    }
+
+    // Método para poblar campos desde el registro recuperado
+    private void populateFieldsFromRegistration(UserRegistrationEntity registration) {
+        etNombres.setText(registration.nombres != null ? registration.nombres : "");
+        etApellidos.setText(registration.apellidos != null ? registration.apellidos : "");
+        etEmail.setText(registration.email != null ? registration.email : "");
+        etFechaNacimiento.setText(registration.fechaNacimiento != null ? registration.fechaNacimiento : "");
+        etTelefono.setText(registration.telefono != null ? registration.telefono : "");
+        etNumeroDocumento.setText(registration.numeroDocumento != null ? registration.numeroDocumento : "");
+        etDireccion.setText(registration.direccion != null ? registration.direccion : "");
+
+        if ("driver".equals(registration.userType) && registration.placaVehiculo != null) {
+            etPlacaVehiculo.setText(registration.placaVehiculo);
+        }
+
+        // Configurar tipo de documento si existe
+        if (registration.tipoDocumento != null) {
+            currentDocType = registration.tipoDocumento;
+            tvDocType.setText(currentDocType);
+            updateDocumentFieldForType(currentDocType);
+        }
+    }
+
+    // Método helper para actualizar campo de documento
+    private void updateDocumentFieldForType(String docType) {
+        etNumeroDocumento.setText("");
+
+        if ("DNI".equals(docType)) {
+            etNumeroDocumento.setInputType(android.text.InputType.TYPE_CLASS_NUMBER);
+            etNumeroDocumento.setFilters(new android.text.InputFilter[] {
+                    new android.text.InputFilter.LengthFilter(8)
+            });
+            etNumeroDocumento.setHint("Ingrese su DNI (8 dígitos)");
+        } else {
+            etNumeroDocumento.setInputType(android.text.InputType.TYPE_CLASS_TEXT |
+                    android.text.InputType.TYPE_TEXT_FLAG_CAP_CHARACTERS);
+            etNumeroDocumento.setFilters(new android.text.InputFilter[] {
+                    new android.text.InputFilter.LengthFilter(12)
+            });
+            etNumeroDocumento.setHint("Ingrese su CE (máx. 12 caracteres)");
+        }
+    }
+
+    // Nuevo método para guardar datos usando Room
+    private void saveFormDataToDatabase() {
+        UserRegistrationEntity registration = userRegistrationRepository.createFromViewModel(
+                userType,
+                etNombres.getText().toString().trim(),
+                etApellidos.getText().toString().trim(),
+                etEmail.getText().toString().trim(),
+                etFechaNacimiento.getText().toString().trim(),
+                etTelefono.getText().toString().trim(),
+                currentDocType,
+                etNumeroDocumento.getText().toString().trim(),
+                etDireccion.getText().toString().trim(),
+                "driver".equals(userType) ? etPlacaVehiculo.getText().toString().trim() : null,
+                etContrasena.getText().toString()
+        );
+
+        // Si ya existe un registro, usar su ID
+        if (currentRegistrationId != -1) {
+            registration.id = currentRegistrationId;
+
+            userRegistrationRepository.updateUserRegistration(registration, new UserRegistrationRepository.RegistrationCallback() {
+                @Override
+                public void onSuccess(UserRegistrationEntity updatedRegistration) {
+                    Log.d("RegisterUser", "Registro actualizado exitosamente: " + updatedRegistration.id);
+                    proceedToNextStep(updatedRegistration.id);
+                }
+
+                @Override
+                public void onError(String error) {
+                    Log.e("RegisterUser", "Error actualizando registro: " + error);
+                    Toast.makeText(RegisterUserActivity.this, "Error al guardar: " + error, Toast.LENGTH_SHORT).show();
+                }
+            });
+        } else {
+            // Crear nuevo registro
+            userRegistrationRepository.saveUserRegistration(registration, new UserRegistrationRepository.RegistrationIdCallback() {
+                @Override
+                public void onSuccess(int registrationId) {
+                    currentRegistrationId = registrationId;
+                    Log.d("RegisterUser", "Nuevo registro creado: " + registrationId);
+                    proceedToNextStep(registrationId);
+                }
+
+                @Override
+                public void onError(String error) {
+                    Log.e("RegisterUser", "Error creando registro: " + error);
+                    Toast.makeText(RegisterUserActivity.this, "Error al guardar: " + error, Toast.LENGTH_SHORT).show();
+                }
+            });
+        }
+    }
+
+    // Método para proceder al siguiente paso
+    private void proceedToNextStep(int registrationId) {
+        // También actualizar ViewModel para compatibilidad
+        saveFormDataToViewModel();
+
+        if ("driver".equals(userType)) {
+            Intent intent = new Intent(RegisterUserActivity.this, UploadDriverDocumentsActivity.class);
+            intent.putExtra("userType", userType);
+            intent.putExtra("registrationId", registrationId);
+            intent.putExtra("placaVehiculo", etPlacaVehiculo.getText().toString().trim());
+            startActivity(intent);
+        } else {
+            Intent intent = new Intent(RegisterUserActivity.this, AddProfilePhotoActivity.class);
+            intent.putExtra("userType", userType);
+            intent.putExtra("registrationId", registrationId);
+            startActivity(intent);
+        }
     }
 }
