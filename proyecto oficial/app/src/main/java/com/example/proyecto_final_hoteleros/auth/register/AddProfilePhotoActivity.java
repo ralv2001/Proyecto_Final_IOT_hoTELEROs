@@ -427,4 +427,14 @@ public class AddProfilePhotoActivity extends AppCompatActivity {
             btnOmitir.setAlpha(1.0f);
         }
     }
+
+    @Override
+    public void onBackPressed() {
+        // Limpiar la foto si existe al volver atrás
+        resetPhotoState();
+
+        // Volver a la actividad anterior
+        super.onBackPressed();
+    }
+
 }

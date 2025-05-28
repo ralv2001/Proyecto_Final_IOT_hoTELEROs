@@ -23,8 +23,12 @@ public class RegisterViewModel extends ViewModel {
     private String placaVehiculo;
     private Uri profilePhotoUri;
     private boolean hasProfilePhoto = false;
+    private Uri driverDocumentsUri;
 
     // Getters y setters
+    public Uri getDriverDocumentsUri() {
+        return driverDocumentsUri;
+    }
     public Bitmap getProfilePhotoBitmap() {
         return profilePhotoBitmap;
     }
@@ -135,5 +139,9 @@ public class RegisterViewModel extends ViewModel {
 
     public void setProfilePhotoBitmap(Bitmap bitmap) {
         this.profilePhotoBitmap = bitmap;
+    }
+
+    public void setDriverDocumentsUri(Uri driverDocumentsUri) {
+        this.driverDocumentsUri = driverDocumentsUri;
     }
 }

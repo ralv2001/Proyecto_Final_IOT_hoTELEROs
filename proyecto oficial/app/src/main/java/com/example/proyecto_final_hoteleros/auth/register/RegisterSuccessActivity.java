@@ -26,6 +26,8 @@ public class RegisterSuccessActivity extends AppCompatActivity {
                 .remove("photoUri")
                 .remove("email")
                 .remove("photoSkipped")
+                .remove("pdfPath")  // Añadir esta línea para limpiar la ruta del PDF
+                .remove("pdfUri")   // Añadir esta línea para limpiar el URI del PDF
                 .apply();
 
         // Obtener el tipo de usuario del intent

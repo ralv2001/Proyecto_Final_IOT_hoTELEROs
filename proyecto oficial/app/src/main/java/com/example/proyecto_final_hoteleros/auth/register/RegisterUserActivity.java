@@ -748,9 +748,25 @@ public class RegisterUserActivity extends AppCompatActivity {
             mViewModel.setUserType(userType);
         }
 
-        // Guardar placa de vehículo si es taxista
-        if ("driver".equals(userType) && mViewModel != null) {
-            mViewModel.setPlacaVehiculo(etPlacaVehiculo.getText().toString().trim());
+        if ("driver".equals(userType)) {
+            // Guardar placa de vehículo para taxistas
+            String placa = etPlacaVehiculo.getText().toString().trim();
+            if (mViewModel != null) {
+                mViewModel.setPlacaVehiculo(placa);
+            }
+
+            // Navegar a la pantalla de subir documentos para taxistas
+            Log.d("RegisterUser", "Navigating to UploadDriverDocumentsActivity for driver");
+            Intent intent = new Intent(RegisterUserActivity.this, UploadDriverDocumentsActivity.class);
+            intent.putExtra("userType", userType);
+            intent.putExtra("placaVehiculo", placa);
+            startActivity(intent);
+        } else {
+            // Si es cliente, navegar directamente a la pantalla de subir foto
+            Log.d("RegisterUser", "Navigating to AddProfilePhotoActivity for client");
+            Intent intent = new Intent(RegisterUserActivity.this, AddProfilePhotoActivity.class);
+            intent.putExtra("userType", userType);
+            startActivity(intent);
         }
     }
 

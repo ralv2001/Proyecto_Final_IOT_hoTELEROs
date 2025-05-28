@@ -9,11 +9,18 @@ public class HotelerosApplication extends Application {
     public void onCreate() {
         super.onCreate();
 
-        // Limpiar las fotos temporales al iniciar la aplicación
+        // Solo limpiar los datos si la aplicación se está iniciando desde cero
+        // (no durante una rotación de pantalla o reinicio de actividad)
         SharedPreferences prefs = getSharedPreferences("UserData", MODE_PRIVATE);
-        prefs.edit()
-                .remove("photoPath")
-                .remove("photoUri")
-                .apply();
+        boolean isRegistrationInProgress = prefs.contains("email");
+
+        if (!isRegistrationInProgress) {
+            prefs.edit()
+                    .remove("photoPath")
+                    .remove("photoUri")
+                    .remove("pdfPath")
+                    .remove("pdfUri")
+                    .apply();
+        }
     }
 }
