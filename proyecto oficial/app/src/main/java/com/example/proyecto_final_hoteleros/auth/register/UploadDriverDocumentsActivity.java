@@ -399,7 +399,11 @@ public class UploadDriverDocumentsActivity extends AppCompatActivity {
 
     @Override
     public void onBackPressed() {
-        // Al volver atrás, NO eliminamos el archivo PDF para mantener la persistencia
+        // Al volver atrás desde UploadDriverDocuments hacia RegisterUserActivity,
+        // estamos navegando DENTRO del flujo, por lo que NO limpiamos la foto
+        // Solo mantenemos el PDF también
+        Log.d("UploadDriverDocuments", "Navegando hacia atrás DENTRO del flujo - foto y PDF mantenidos");
+
         super.onBackPressed();
     }
 

@@ -159,8 +159,8 @@ public class AddProfilePhotoActivity extends AppCompatActivity {
                         .putBoolean("photoSkipped", true)
                         .apply();
 
-                // Limpiar la foto si existe
-                resetPhotoState();
+                // Limpiar la foto si existe (aquí sí queremos limpiar todo)
+                resetPhotoState(true);
 
                 // Solo los clientes pueden omitir la foto
                 completeRegistration();
@@ -187,6 +187,10 @@ public class AddProfilePhotoActivity extends AppCompatActivity {
 
     // Método para resetear el estado de la foto
     private void resetPhotoState() {
+        resetPhotoState(true); // Llamada por defecto que limpia todo
+    }
+
+    private void resetPhotoState(boolean clearSharedPreferences) {
         profilePhotoUri = null;
         savedImageBitmap = null;
         isPhotoSelected = false;
@@ -197,12 +201,14 @@ public class AddProfilePhotoActivity extends AppCompatActivity {
         ivCircleOutline.setVisibility(View.VISIBLE);
         btnAddPhoto.setText("Añadir");
 
-        // Limpiar SharedPreferences para evitar errores futuros
-        getSharedPreferences("UserData", MODE_PRIVATE)
-                .edit()
-                .remove("photoPath")
-                .remove("photoUri")
-                .apply();
+        // Solo limpiar SharedPreferences si se especifica
+        if (clearSharedPreferences) {
+            getSharedPreferences("UserData", MODE_PRIVATE)
+                    .edit()
+                    .remove("photoPath")
+                    .remove("photoUri")
+                    .apply();
+        }
 
         // Actualizar el estado del botón continuar
         updateContinueButtonState();
@@ -398,6 +404,20 @@ public class AddProfilePhotoActivity extends AppCompatActivity {
         startActivity(intent);
     }
 
+    // Método específico para limpiar cuando realmente salimos del flujo
+    private void cleanupWhenExitingFlow() {
+        resetPhotoState(true);
+
+        // Limpiar también del ViewModel
+        if (mViewModel != null) {
+            mViewModel.setHasProfilePhoto(false);
+            mViewModel.setProfilePhotoUri(null);
+            mViewModel.setProfilePhotoBitmap(null);
+        }
+
+        Log.d("AddProfilePhoto", "Limpieza completa - saliendo del flujo de registro");
+    }
+
     @Override
     protected void onSaveInstanceState(@NonNull Bundle outState) {
         super.onSaveInstanceState(outState);
@@ -430,10 +450,32 @@ public class AddProfilePhotoActivity extends AppCompatActivity {
 
     @Override
     public void onBackPressed() {
-        // Limpiar la foto si existe al volver atrás
-        resetPhotoState();
+        // Al presionar atrás desde AddProfilePhotoActivity, estamos navegando DENTRO del flujo
+        // NO estamos saliendo del flujo, por lo que MANTENEMOS la foto
+        if (isPhotoSelected && profilePhotoUri != null && tempPhotoPath != null) {
+            // Guardar el estado actual en SharedPreferences para mantener persistencia
+            getSharedPreferences("UserData", MODE_PRIVATE)
+                    .edit()
+                    .putString("photoPath", tempPhotoPath)
+                    .putString("photoUri", profilePhotoUri.toString())
+                    .putBoolean("photoSkipped", false)
+                    .apply();
 
-        // Volver a la actividad anterior
+            // También mantener en el ViewModel
+            if (mViewModel != null) {
+                mViewModel.setHasProfilePhoto(true);
+                mViewModel.setProfilePhotoUri(profilePhotoUri);
+                if (savedImageBitmap != null) {
+                    mViewModel.setProfilePhotoBitmap(savedImageBitmap);
+                }
+            }
+
+            Log.d("AddProfilePhoto", "Navegando hacia atrás DENTRO del flujo - foto MANTENIDA");
+        } else {
+            Log.d("AddProfilePhoto", "Navegando hacia atrás sin foto seleccionada");
+        }
+
+        // Finalizar esta actividad y regresar a la anterior
         super.onBackPressed();
     }
 

@@ -325,10 +325,8 @@ public class RegisterUserActivity extends AppCompatActivity {
                 // Guardar los datos del formulario en el ViewModel
                 saveFormDataToViewModel();
 
-                // Navegar a la actividad de subida de foto (usando Intent)
-                Intent intent = new Intent(RegisterUserActivity.this, AddProfilePhotoActivity.class);
-                intent.putExtra("userType", userType);
-                startActivity(intent);
+                // NO agregues ninguna navegación adicional aquí,
+                // ya que saveFormDataToViewModel() se encarga de la navegación
             } else {
                 Toast.makeText(this, "Por favor complete todos los campos correctamente", Toast.LENGTH_SHORT).show();
             }
@@ -755,14 +753,14 @@ public class RegisterUserActivity extends AppCompatActivity {
                 mViewModel.setPlacaVehiculo(placa);
             }
 
-            // Navegar a la pantalla de subir documentos para taxistas
+            // TAXISTAS: Navegar a la pantalla de subir documentos PRIMERO
             Log.d("RegisterUser", "Navigating to UploadDriverDocumentsActivity for driver");
             Intent intent = new Intent(RegisterUserActivity.this, UploadDriverDocumentsActivity.class);
             intent.putExtra("userType", userType);
             intent.putExtra("placaVehiculo", placa);
             startActivity(intent);
         } else {
-            // Si es cliente, navegar directamente a la pantalla de subir foto
+            // CLIENTES: Navegar directamente a la pantalla de subir foto
             Log.d("RegisterUser", "Navigating to AddProfilePhotoActivity for client");
             Intent intent = new Intent(RegisterUserActivity.this, AddProfilePhotoActivity.class);
             intent.putExtra("userType", userType);
@@ -770,17 +768,21 @@ public class RegisterUserActivity extends AppCompatActivity {
         }
     }
 
-    // Añadir este método:
     @Override
     public void onBackPressed() {
-        // Limpiar los datos solo si se está saliendo del flujo de registro
+        // Cuando el usuario regresa desde RegisterUserActivity hacia SelectUserType,
+        // SÍ está saliendo del flujo de registro, por lo que limpiamos TODO
         getSharedPreferences("UserData", MODE_PRIVATE)
                 .edit()
                 .remove("photoPath")
                 .remove("photoUri")
+                .remove("pdfPath")
+                .remove("pdfUri")
                 .remove("email")
                 .remove("photoSkipped")
                 .apply();
+
+        Log.d("RegisterUser", "Usuario SALIÓ del flujo de registro hacia SelectUserType - datos eliminados");
 
         super.onBackPressed();
     }

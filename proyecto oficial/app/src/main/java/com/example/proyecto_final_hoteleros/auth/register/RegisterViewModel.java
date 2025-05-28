@@ -144,4 +144,25 @@ public class RegisterViewModel extends ViewModel {
     public void setDriverDocumentsUri(Uri driverDocumentsUri) {
         this.driverDocumentsUri = driverDocumentsUri;
     }
+
+    // Método para limpiar todos los datos del registro
+    public void clearAllData() {
+        profilePhotoBitmap = null;
+        nombres = null;
+        apellidos = null;
+        email = null;
+        fechaNacimiento = null;
+        telefono = null;
+        tipoDocumento = null;
+        numeroDocumento = null;
+        direccion = null;
+        password = null;
+        userType = null;
+        placaVehiculo = null;
+        profilePhotoUri = null;
+        hasProfilePhoto = false;
+        driverDocumentsUri = null;
+
+        Log.d("RegisterViewModel", "Todos los datos del ViewModel han sido limpiados");
+    }
 }

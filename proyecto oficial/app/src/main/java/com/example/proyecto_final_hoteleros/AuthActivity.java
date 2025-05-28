@@ -6,6 +6,7 @@ import androidx.fragment.app.FragmentTransaction;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ScrollView;
@@ -147,6 +148,19 @@ public class AuthActivity extends AppCompatActivity implements MessagerRegister 
     // Implementación de MessagerRegister
     @Override
     public void gotoMainRegister(String userType) {
+        // Limpiar datos del formulario cuando se inicia un nuevo registro
+        getSharedPreferences("UserData", MODE_PRIVATE)
+                .edit()
+                .remove("photoPath")
+                .remove("photoUri")
+                .remove("pdfPath")
+                .remove("pdfUri")
+                .remove("email")
+                .remove("photoSkipped")
+                .apply();
+
+        Log.d("AuthActivity", "Iniciando nuevo registro - datos anteriores eliminados");
+
         // En lugar de cargar un fragmento, iniciamos la nueva actividad
         Intent intent = new Intent(this, RegisterUserActivity.class);
         intent.putExtra("userType", userType);
