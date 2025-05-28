@@ -12,21 +12,33 @@
     android:focusable="true"
     android:foreground="?android:attr/selectableItemBackground">
 
+    <!-- Status indicator -->
+    <View
+        android:id="@+id/statusIndicator"
+        android:layout_width="4dp"
+        android:layout_height="match_parent"
+        android:background="@color/orange" />
+
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:padding="16dp">
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:paddingTop="12dp"
+        android:paddingBottom="12dp"
+        android:layout_marginStart="4dp">
 
         <de.hdodenhof.circleimageview.CircleImageView
             android:id="@+id/ivHotelLogo"
             android:layout_width="50dp"
             android:layout_height="50dp"
-            android:src="@drawable/perfil"
+            android:src="@drawable/belmond"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintBottom_toBottomOf="parent"/>
 
         <LinearLayout
+            android:id="@+id/infoContainer"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:orientation="vertical"
@@ -61,9 +73,10 @@
                 android:maxLines="1"
                 android:ellipsize="end"/>
 
+            <!-- MODIFICADO: Ajustado para evitar corte de texto -->
             <TextView
                 android:id="@+id/tvLastMessage"
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="No hay mensajes"
                 android:textSize="12sp"
@@ -71,8 +84,7 @@
                 android:fontFamily="@font/inter_regular"
                 android:layout_marginTop="2dp"
                 android:maxLines="2"
-                android:ellipsize="end"
-                android:visibility="visible"/>
+                android:ellipsize="end"/>
         </LinearLayout>
 
         <androidx.appcompat.widget.AppCompatButton
@@ -89,7 +101,6 @@
             android:clickable="true"
             android:focusable="true"
             android:elevation="2dp"
-
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintBottom_toBottomOf="parent"/>

@@ -1,5 +1,6 @@
 package com.example.proyecto_final_hoteleros.adminhotel;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.widget.Button;
 import android.widget.EditText;
@@ -42,6 +43,14 @@ public class NuevoServicioActivity extends AppCompatActivity {
             }
 
             Toast.makeText(this, "Servicio guardado: " + nombre, Toast.LENGTH_SHORT).show();
+
+            Intent resultIntent = new Intent();
+            resultIntent.putExtra("nombre", nombre);
+            resultIntent.putExtra("descripcion", descripcion);
+// puedes enviar una imagen fija por ahora
+            resultIntent.putExtra("imagen", R.drawable.sauna_sample);
+
+            setResult(RESULT_OK, resultIntent);
             finish(); // cerrar pantalla
         });
     }

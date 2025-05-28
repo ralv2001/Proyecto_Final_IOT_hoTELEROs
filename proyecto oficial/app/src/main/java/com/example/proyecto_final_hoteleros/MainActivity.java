@@ -16,12 +16,15 @@ import androidx.core.view.WindowInsetsCompat;
 import com.example.proyecto_final_hoteleros.adminhotel.AdminHotelActivity;
 import com.example.proyecto_final_hoteleros.superadmin.SuperadminActivity;
 import com.google.android.material.button.MaterialButton;
+import com.google.firebase.FirebaseApp;
 
 public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        // Inicializar Firebase (añade esta línea)
+        FirebaseApp.initializeApp(this);
         EdgeToEdge.enable(this);
         setContentView(R.layout.sistema_activity_main);
 
@@ -88,6 +91,17 @@ public class MainActivity extends AppCompatActivity {
 
                 // Iniciar la HomeActivity que contiene el contenedor de fragmentos
                 Intent intent = new Intent(MainActivity.this, AdminHotelActivity.class);
+                startActivity(intent);
+            }
+        });
+        LinearLayout layoutContinueAsTaxiDriver = findViewById(R.id.layoutContinueAsTaxiDriver);
+        layoutContinueAsTaxiDriver.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Toast.makeText(MainActivity.this, "Continuando como taxista...", Toast.LENGTH_SHORT).show();
+
+                // Iniciar la HomeActivity que contiene el contenedor de fragmentos
+                Intent intent = new Intent(MainActivity.this, DriverActivity.class);
                 startActivity(intent);
             }
         });

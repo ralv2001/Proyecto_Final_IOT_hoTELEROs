@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "366577529035",
+    "project_id": "hoteleros-d5725",
+    "storage_bucket": "hoteleros-d5725.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:366577529035:android:f3b127fb8cfb6eaf73eb4e",
+        "android_client_info": {
+          "package_name": "com.example.proyecto_final_hoteleros"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCl8osCeZIi9P9qgSf3-isU6f_UsFHTW2c"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

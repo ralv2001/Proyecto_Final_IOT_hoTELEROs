@@ -41,16 +41,17 @@
                     android:id="@+id/toolbar_title"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:text="Resumen de Reserva"
-                    android:textSize="20sp"
-                    android:textColor="#212121"
-                    android:textStyle="bold"
                     android:fontFamily="sans-serif-medium"
-                    android:gravity="center"
-                    app:layout_constraintTop_toTopOf="parent"
+                    android:gravity="center_horizontal"
+                    android:text="Resumen de Reserva"
+                    android:textColor="#212121"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
                     app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toEndOf="@id/btn_back"
-                    app:layout_constraintEnd_toEndOf="parent" />
+                    app:layout_constraintTop_toTopOf="parent"
+                    android:layout_marginEnd="48dp" />
             </androidx.constraintlayout.widget.ConstraintLayout>
         </androidx.appcompat.widget.Toolbar>
     </com.google.android.material.appbar.AppBarLayout>
@@ -500,9 +501,9 @@
                 </androidx.constraintlayout.widget.ConstraintLayout>
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- Información de pago con fondo blanco y borde sutil -->
+            <!-- NUEVA Tarjeta para agregar método de pago -->
             <com.google.android.material.card.MaterialCardView
-                android:id="@+id/card_payment_info"
+                android:id="@+id/card_payment_method"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="16dp"
@@ -522,33 +523,154 @@
                     android:layout_height="wrap_content"
                     android:padding="20dp">
 
+                    <TextView
+                        android:id="@+id/tv_payment_method_title"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:text="Método de pago"
+                        android:textSize="18sp"
+                        android:textColor="#212121"
+                        android:fontFamily="sans-serif-medium"
+                        android:textStyle="bold"
+                        app:layout_constraintTop_toTopOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintEnd_toEndOf="parent" />
+
+                    <!-- Estado de la tarjeta - visible solo cuando se ha agregado una tarjeta -->
+                    <androidx.constraintlayout.widget.ConstraintLayout
+                        android:id="@+id/layout_card_info"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="16dp"
+                        android:visibility="gone"
+                        app:layout_constraintTop_toBottomOf="@id/tv_payment_method_title">
+
+                        <ImageView
+                            android:id="@+id/icon_card"
+                            android:layout_width="32dp"
+                            android:layout_height="32dp"
+                            android:src="@drawable/ic_add_shopping_cart"
+                            app:layout_constraintTop_toTopOf="parent"
+                            app:layout_constraintStart_toStartOf="parent"
+                            app:tint="#536DFE" />
+
+                        <TextView
+                            android:id="@+id/tv_card_number"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:text="**** **** **** 1234"
+                            android:textSize="16sp"
+                            android:fontFamily="sans-serif-medium"
+                            android:textColor="#212121"
+                            android:layout_marginStart="16dp"
+                            app:layout_constraintTop_toTopOf="@id/icon_card"
+                            app:layout_constraintStart_toEndOf="@id/icon_card"
+                            app:layout_constraintEnd_toEndOf="parent" />
+
+                        <TextView
+                            android:id="@+id/tv_card_name"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:text="JUAN PEREZ"
+                            android:textSize="14sp"
+                            android:fontFamily="sans-serif"
+                            android:textColor="#757575"
+                            android:layout_marginStart="16dp"
+                            app:layout_constraintTop_toBottomOf="@id/tv_card_number"
+                            app:layout_constraintStart_toEndOf="@id/icon_card"
+                            app:layout_constraintEnd_toEndOf="parent" />
+
+                        <!-- Botón para cambiar la tarjeta -->
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btn_change_card"
+                            style="@style/Widget.MaterialComponents.Button.TextButton"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Cambiar"
+                            android:textAllCaps="false"
+                            android:textSize="14sp"
+                            android:textColor="#536DFE"
+                            android:layout_marginTop="8dp"
+                            app:layout_constraintTop_toBottomOf="@id/tv_card_name"
+                            app:layout_constraintStart_toStartOf="@id/tv_card_name" />
+                    </androidx.constraintlayout.widget.ConstraintLayout>
+
+                    <!-- Botón para agregar tarjeta -->
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btn_add_payment_method"
+                        android:layout_width="match_parent"
+                        android:layout_height="56dp"
+                        android:text="Agregar tarjeta como garantía"
+                        android:textAllCaps="false"
+                        android:textSize="15sp"
+                        android:fontFamily="sans-serif-medium"
+                        android:layout_marginTop="16dp"
+                        app:cornerRadius="28dp"
+                        app:backgroundTint="#FBF47C36"
+                        app:layout_constraintTop_toBottomOf="@id/tv_payment_method_title" />
+
+                    <!-- Texto informativo sobre tarjeta (que estaba incompleto) -->
+                    <TextView
+                        android:id="@+id/tv_payment_info"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Su tarjeta solo será registrada como garantía. El cobro se realizará al momento del checkout en el hotel."
+                        android:textSize="13sp"
+                        android:fontFamily="sans-serif"
+                        android:textColor="#757575"
+                        android:layout_marginTop="12dp"
+                        app:layout_constraintTop_toBottomOf="@id/btn_add_payment_method"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintEnd_toEndOf="parent" />
+                </androidx.constraintlayout.widget.ConstraintLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Información de política de cancelación con fondo blanco y borde sutil -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/card_cancellation_policy"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="20dp"
+                android:layout_marginEnd="16dp"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="2dp"
+                app:strokeWidth="1dp"
+                app:strokeColor="#E0E0E0"
+                app:cardBackgroundColor="@android:color/white"
+                app:layout_constraintTop_toBottomOf="@id/card_payment_method"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent">
+                <androidx.constraintlayout.widget.ConstraintLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="20dp">
                     <ImageView
-                        android:id="@+id/icon_info"
+                        android:id="@+id/icon_info_policy"
                         android:layout_width="24dp"
                         android:layout_height="24dp"
                         android:src="@drawable/ic_info"
                         app:layout_constraintTop_toTopOf="parent"
                         app:layout_constraintStart_toStartOf="parent"
                         app:tint="#536DFE" />
-
                     <TextView
-                        android:id="@+id/tv_payment_info"
+                        android:id="@+id/tv_cancellation_policy"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:text="Su tarjeta ha sido registrada como garantía. El cobro se realizará durante el checkout."
+                        android:text="Política de cancelación: Puede cancelar sin cargo hasta 24 horas antes de la fecha de check-in."
                         android:textSize="15sp"
                         android:fontFamily="sans-serif"
                         android:textColor="#757575"
                         android:layout_marginStart="16dp"
-                        app:layout_constraintTop_toTopOf="@id/icon_info"
-                        app:layout_constraintStart_toEndOf="@id/icon_info"
+                        app:layout_constraintTop_toTopOf="@id/icon_info_policy"
+                        app:layout_constraintStart_toEndOf="@id/icon_info_policy"
                         app:layout_constraintEnd_toEndOf="parent" />
                 </androidx.constraintlayout.widget.ConstraintLayout>
             </com.google.android.material.card.MaterialCardView>
         </androidx.constraintlayout.widget.ConstraintLayout>
     </androidx.core.widget.NestedScrollView>
 
-    <!-- Botón de confirmar y pagar (fijo abajo) con diseño mejorado -->
+    <!-- Botón de confirmar reserva (fijo abajo) con diseño mejorado -->
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/bottom_action_bar"
         android:layout_width="match_parent"
@@ -556,14 +678,12 @@
         android:layout_gravity="bottom"
         app:cardElevation="8dp"
         app:cardBackgroundColor="@android:color/white">
-
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:padding="16dp">
-
             <com.google.android.material.button.MaterialButton
-                android:id="@+id/btn_confirm_and_pay"
+                android:id="@+id/btn_confirm_reservation"
                 android:layout_width="match_parent"
                 android:layout_height="56dp"
                 android:text="Confirmar Reserva"
@@ -573,9 +693,90 @@
                 app:backgroundTint="#FF5722"
                 app:cornerRadius="28dp"
                 android:elevation="4dp"
+                android:enabled="false"
                 app:layout_constraintTop_toTopOf="parent"
                 app:layout_constraintBottom_toBottomOf="parent" />
         </androidx.constraintlayout.widget.ConstraintLayout>
     </com.google.android.material.card.MaterialCardView>
 
+    <!-- Overlay para dialogo de confirmación (inicialmente invisible) -->
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/confirmation_dialog_overlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#99000000"
+        android:visibility="gone"
+        android:clickable="true"
+        android:focusable="true">
+
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/confirmation_dialog"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="32dp"
+            android:layout_marginEnd="32dp"
+            app:cardCornerRadius="16dp"
+            app:cardElevation="8dp"
+            app:layout_constraintWidth_max="340dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="24dp">
+
+                <ImageView
+                    android:id="@+id/icon_success"
+                    android:layout_width="64dp"
+                    android:layout_height="64dp"
+                    android:src="@drawable/ic_check_circle"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:tint="#4CAF50" />
+
+                <TextView
+                    android:id="@+id/tv_success_title"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:fontFamily="sans-serif-medium"
+                    android:gravity="center"
+                    android:text="¡Reserva Confirmada!"
+                    android:textColor="#212121"
+                    android:textSize="20sp"
+                    android:textStyle="bold"
+                    app:layout_constraintTop_toBottomOf="@id/icon_success" />
+
+                <TextView
+                    android:id="@+id/tv_success_message"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:fontFamily="sans-serif"
+                    android:gravity="center"
+                    android:text="Tu reserva en Belmond Miraflores Park ha sido confirmada exitosamente. Recibirás un correo con los detalles de tu reserva."
+                    android:textColor="#757575"
+                    android:textSize="15sp"
+                    app:layout_constraintTop_toBottomOf="@id/tv_success_title" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_ok"
+                    android:layout_width="match_parent"
+                    android:layout_height="56dp"
+                    android:layout_marginTop="24dp"
+                    android:fontFamily="sans-serif-medium"
+                    android:text="Aceptar"
+                    android:textAllCaps="false"
+                    android:textSize="16sp"
+                    app:backgroundTint="#FF5722"
+                    app:cornerRadius="28dp"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/tv_success_message" />
+            </androidx.constraintlayout.widget.ConstraintLayout>
+        </com.google.android.material.card.MaterialCardView>
+    </androidx.constraintlayout.widget.ConstraintLayout>
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

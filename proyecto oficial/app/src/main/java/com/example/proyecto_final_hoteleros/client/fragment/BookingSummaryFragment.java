@@ -1,9 +1,14 @@
 package com.example.proyecto_final_hoteleros.client.fragment;
 
+import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.DecelerateInterpolator;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -11,29 +16,37 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.Navigation;
 
 import com.example.proyecto_final_hoteleros.R;
 import com.example.proyecto_final_hoteleros.client.model.RoomType;
 import com.google.android.material.button.MaterialButton;
-import com.google.android.material.dialog.MaterialAlertDialogBuilder;
-import com.google.android.material.snackbar.Snackbar;
+import com.google.android.material.card.MaterialCardView;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 import java.util.Random;
 
-public class BookingSummaryFragment extends Fragment {
-
+public class BookingSummaryFragment extends Fragment implements AddPaymentDialogFragment.PaymentDialogListener {
     // UI Components
     private ImageButton btnBack;
     private ImageView imgHotelBanner;
     private TextView tvHotelName, tvHotelAddress, tvRating;
     private TextView tvCheckInOut, tvNumberOfGuests, tvRoomType, tvRoomNumber, tvFreeTransport;
     private TextView tvRoomPriceValue, tvAdditionalServices, tvTotalPrice;
-    private MaterialButton btnConfirmAndPay;
+    private MaterialButton btnConfirmReservation;
+    private MaterialButton btnAddPaymentMethod;
+    private MaterialButton btnChangeCard;
+    private ConstraintLayout layoutCardInfo;
+    private TextView tvCardNumber, tvCardName, tvPaymentInfo;
+    private ConstraintLayout confirmationDialogOverlay;
+    private MaterialButton btnOk;
+
+    // Variables para gestionar el estado
+    private boolean isPaymentMethodAdded = false;
 
     // Data
     private String hotelName;
@@ -65,6 +78,9 @@ public class BookingSummaryFragment extends Fragment {
         retrieveArguments();
         setupData();
         setupActions();
+
+        // Inicialmente, el botón de confirmar está deshabilitado
+        updateConfirmButtonState();
     }
 
     /**
@@ -73,27 +89,33 @@ public class BookingSummaryFragment extends Fragment {
     private void initViews(View view) {
         // AppBar
         btnBack = view.findViewById(R.id.btn_back);
-
         // Hotel Info Card
         imgHotelBanner = view.findViewById(R.id.img_hotel_banner);
         tvHotelName = view.findViewById(R.id.tv_hotel_name);
         tvHotelAddress = view.findViewById(R.id.tv_hotel_address);
         tvRating = view.findViewById(R.id.tv_rating);
-
         // Stay Info Card
         tvCheckInOut = view.findViewById(R.id.tv_check_in_out);
         tvNumberOfGuests = view.findViewById(R.id.tv_number_of_guests);
         tvRoomType = view.findViewById(R.id.tv_room_type);
         tvRoomNumber = view.findViewById(R.id.tv_room_number);
         tvFreeTransport = view.findViewById(R.id.tv_free_transport);
-
         // Price Details Card
         tvRoomPriceValue = view.findViewById(R.id.tv_room_price_value);
         tvAdditionalServices = view.findViewById(R.id.tv_additional_services);
         tvTotalPrice = view.findViewById(R.id.tv_total_price);
-
+        // Payment Method Card
+        btnAddPaymentMethod = view.findViewById(R.id.btn_add_payment_method);
+        layoutCardInfo = view.findViewById(R.id.layout_card_info);
+        tvCardNumber = view.findViewById(R.id.tv_card_number);
+        tvCardName = view.findViewById(R.id.tv_card_name);
+        btnChangeCard = view.findViewById(R.id.btn_change_card);
+        tvPaymentInfo = view.findViewById(R.id.tv_payment_info);
         // Action Button
-        btnConfirmAndPay = view.findViewById(R.id.btn_confirm_and_pay);
+        btnConfirmReservation = view.findViewById(R.id.btn_confirm_reservation);
+        // Confirmation Dialog Overlay
+        confirmationDialogOverlay = view.findViewById(R.id.confirmation_dialog_overlay);
+        btnOk = view.findViewById(R.id.btn_ok);
     }
 
     /**
@@ -106,19 +128,15 @@ public class BookingSummaryFragment extends Fragment {
             hotelAddress = getArguments().getString("hotel_address", "Miraflores, Lima, Perú");
             hotelRating = getArguments().getFloat("hotel_rating", 4.9f);
             hotelImageResource = getArguments().getInt("hotel_image", R.drawable.belmond);
-
             // Room info
             selectedRoom = getArguments().getParcelable("selected_room");
-
             // Stay info
             checkInDate = getArguments().getString("check_in_date", "8 abril");
             checkOutDate = getArguments().getString("check_out_date", "9 abril");
             numAdults = getArguments().getInt("num_adults", 2);
             numChildren = getArguments().getInt("num_children", 0);
-
             // Room number - Generamos uno aleatorio si no se recibe
             roomNumber = getArguments().getString("room_number", generateRandomRoomNumber());
-
             // Additional services
             hasFreeTransport = getArguments().getBoolean("has_free_transport", false);
             additionalServicesPrice = getArguments().getDouble("additional_services_price", 60.0);
@@ -146,16 +164,13 @@ public class BookingSummaryFragment extends Fragment {
         tvHotelName.setText(hotelName);
         tvHotelAddress.setText(hotelAddress);
         tvRating.setText(String.format(Locale.getDefault(), "%.1f", hotelRating));
-
         // Si tenemos un recurso de imagen específico, lo usamos
         if (hotelImageResource != 0) {
             imgHotelBanner.setImageResource(hotelImageResource);
         }
-
         // Room info y cálculo de precios
         if (selectedRoom != null) {
             tvRoomType.setText(selectedRoom.getName());
-
             // Extraer el precio numérico
             try {
                 String priceStr = selectedRoom.getPrice().replace("S/", "").trim();
@@ -167,23 +182,17 @@ public class BookingSummaryFragment extends Fragment {
             tvRoomType.setText("Estándar");
             roomPrice = 290.0;
         }
-
         // Configurar fecha de estancia
         tvCheckInOut.setText(String.format("%s - %s", checkInDate, checkOutDate));
-
         // Configurar huéspedes
         tvNumberOfGuests.setText(String.format("%d adultos - %d niños", numAdults, numChildren));
-
         // Configurar número de habitación
         tvRoomNumber.setText(roomNumber);
-
         // Configurar transporte gratuito
         tvFreeTransport.setText(hasFreeTransport ? "Sí" : "No");
-
         // Configurar precios
         tvRoomPriceValue.setText(String.format(Locale.getDefault(), "S/ %.2f", roomPrice));
         tvAdditionalServices.setText(String.format(Locale.getDefault(), "S/ %.2f", additionalServicesPrice));
-
         // Calcular precio total
         totalPrice = roomPrice + additionalServicesPrice;
         tvTotalPrice.setText(String.format(Locale.getDefault(), "S/ %.2f", totalPrice));
@@ -196,31 +205,128 @@ public class BookingSummaryFragment extends Fragment {
         // Botón de retroceso
         btnBack.setOnClickListener(v -> requireActivity().onBackPressed());
 
+        // Botón para agregar método de pago (tarjeta)
+        btnAddPaymentMethod.setOnClickListener(v -> showAddPaymentMethodDialog());
+
+        // Botón para cambiar método de pago
+        btnChangeCard.setOnClickListener(v -> showAddPaymentMethodDialog());
+
         // Botón de confirmar reserva
-        btnConfirmAndPay.setOnClickListener(v -> confirmBooking());
+        btnConfirmReservation.setOnClickListener(v -> confirmBooking());
+
+        // Botón OK del diálogo de confirmación
+        btnOk.setOnClickListener(v -> {
+            // Primero ocultamos el overlay con animación de fade
+            confirmationDialogOverlay.animate()
+                    .alpha(0f)
+                    .setDuration(300)
+                    .setInterpolator(new DecelerateInterpolator())
+                    .setListener(new AnimatorListenerAdapter() {
+                        @Override
+                        public void onAnimationEnd(Animator animation) {
+                            confirmationDialogOverlay.setVisibility(View.GONE);
+                            navigateToBookingDetails();
+                        }
+                    });
+        });
+
+        // Configurar el overlay para detectar clics
+        confirmationDialogOverlay.setOnClickListener(null); // Anular comportamiento predeterminado
+
+        // El diálogo no debe cerrarse al hacer clic fuera
+        MaterialCardView confirmationDialog = confirmationDialogOverlay.findViewById(R.id.confirmation_dialog);
+        confirmationDialog.setOnClickListener(v -> {
+            // Consumir el evento para que no llegue al overlay
+        });
+    }
+
+    /**
+     * Actualiza el estado del botón de confirmar según si hay método de pago
+     */
+    private void updateConfirmButtonState() {
+        btnConfirmReservation.setEnabled(isPaymentMethodAdded);
+    }
+
+    /**
+     * Muestra el diálogo para agregar un método de pago
+     */
+    private void showAddPaymentMethodDialog() {
+        AddPaymentDialogFragment dialogFragment = AddPaymentDialogFragment.newInstance();
+        dialogFragment.setPaymentDialogListener(this);
+        dialogFragment.show(getChildFragmentManager(), "AddPaymentDialog");
+    }
+
+    /**
+     * Implementación del método de la interfaz PaymentDialogListener
+     */
+    @Override
+    public void onPaymentMethodAdded(String cardNumber, String cardHolderName) {
+        // Mostramos la información de la tarjeta
+        tvCardNumber.setText(cardNumber);
+        tvCardName.setText(cardHolderName);
+
+        // Hacemos INVISIBLE (no GONE) el botón para mantener el espacio ocupado durante la animación
+        btnAddPaymentMethod.setVisibility(View.INVISIBLE);
+
+        // Hacemos visible el layout de información de tarjeta
+        layoutCardInfo.setVisibility(View.VISIBLE);
+        layoutCardInfo.setAlpha(0f);
+
+        // Animamos la aparición de la información de la tarjeta
+        layoutCardInfo.animate()
+                .alpha(1f)
+                .setDuration(300)
+                .setListener(new AnimatorListenerAdapter() {
+                    @Override
+                    public void onAnimationEnd(Animator animation) {
+                        // Al finalizar la animación, ocultamos definitivamente el botón
+                        btnAddPaymentMethod.setVisibility(View.GONE);
+
+                        // Y ajustamos la posición del texto informativo
+                        ConstraintLayout.LayoutParams params = (ConstraintLayout.LayoutParams) tvPaymentInfo.getLayoutParams();
+                        params.topToBottom = layoutCardInfo.getId();
+                        tvPaymentInfo.setLayoutParams(params);
+                    }
+                });
+
+        // Actualizamos el estado y habilitamos el botón de confirmar
+        isPaymentMethodAdded = true;
+        updateConfirmButtonState();
+
+        // Mostrar mensaje de éxito
+        Toast.makeText(requireContext(), "Tarjeta agregada correctamente", Toast.LENGTH_SHORT).show();
     }
 
     /**
      * Procesa la confirmación de la reserva
      */
     private void confirmBooking() {
-        new MaterialAlertDialogBuilder(requireContext())
-                .setTitle("Confirmar Reserva")
-                .setMessage("Su tarjeta ha sido registrada como garantía. El cobro de S/ " +
-                        String.format(Locale.getDefault(), "%.2f", totalPrice) +
-                        " se realizará durante el checkout.\n\n¿Desea confirmar la reserva?")
-                .setPositiveButton("Confirmar", (dialog, which) -> {
-                    // Aquí se implementaría la lógica de guardar la reserva en la base de datos
-                    Snackbar.make(
-                                    requireView(),
-                                    "¡Reserva confirmada con éxito! Confirmación enviada a su correo.",
-                                    Snackbar.LENGTH_LONG
-                            )
-                            .setAction("Ver Detalle", v -> navigateToBookingDetails())
-                            .show();
-                })
-                .setNegativeButton("Cancelar", null)
-                .show();
+        // Configuramos el texto en el diálogo de confirmación
+        TextView tvSuccessMessage = confirmationDialogOverlay.findViewById(R.id.tv_success_message);
+        tvSuccessMessage.setText(
+                "Tu reserva en " + hotelName + " ha sido confirmada exitosamente. " +
+                        "Recibirás un correo con los detalles de tu reserva."
+        );
+
+        // Mostramos el overlay con animación de fade in
+        confirmationDialogOverlay.setVisibility(View.VISIBLE);
+        confirmationDialogOverlay.setAlpha(0f);
+        confirmationDialogOverlay.animate()
+                .alpha(1f)
+                .setDuration(300)
+                .setInterpolator(new DecelerateInterpolator())
+                .setListener(null);
+
+        // Animación del diálogo de confirmación
+        MaterialCardView confirmationDialog = confirmationDialogOverlay.findViewById(R.id.confirmation_dialog);
+        confirmationDialog.setScaleX(0.7f);
+        confirmationDialog.setScaleY(0.7f);
+        confirmationDialog.animate()
+                .scaleX(1f)
+                .scaleY(1f)
+                .setDuration(300)
+                .setInterpolator(new DecelerateInterpolator())
+                .setListener(null);
     }
 
     /**
@@ -238,7 +344,7 @@ public class BookingSummaryFragment extends Fragment {
     private String generateRandomRoomNumber() {
         Random random = new Random();
         int floor = random.nextInt(10) + 1; // Piso 1-10
-        int room = random.nextInt(20) + 1;  // Habitación 1-20
+        int room = random.nextInt(20) + 1; // Habitación 1-20
         return String.format(Locale.getDefault(), "%d%02d", floor, room);
     }
 }

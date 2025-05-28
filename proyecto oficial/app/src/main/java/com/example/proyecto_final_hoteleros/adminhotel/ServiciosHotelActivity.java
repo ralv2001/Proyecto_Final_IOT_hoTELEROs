@@ -18,6 +18,7 @@ public class ServiciosHotelActivity extends AppCompatActivity {
     private RecyclerView recyclerServicios;
     private ServicioAdapter adapter;
     private List<Servicio> listaServicios;
+    private static final int NUEVO_SERVICIO_REQUEST = 1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,5 +41,27 @@ public class ServiciosHotelActivity extends AppCompatActivity {
             Intent intent = new Intent(ServiciosHotelActivity.this, NuevoServicioActivity.class);
             startActivity(intent);
         });
+
+
+
+        btnAgregar.setOnClickListener(v -> {
+            Intent intent = new Intent(ServiciosHotelActivity.this, NuevoServicioActivity.class);
+            startActivityForResult(intent, NUEVO_SERVICIO_REQUEST);
+        });
+
+    }
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (requestCode == NUEVO_SERVICIO_REQUEST && resultCode == RESULT_OK && data != null) {
+            String nombre = data.getStringExtra("nombre");
+            String descripcion = data.getStringExtra("descripcion");
+            int imagen = data.getIntExtra("imagen", R.drawable.sauna_sample);
+
+            Servicio nuevo = new Servicio(nombre, imagen); // podrías añadir descripción al modelo también
+            listaServicios.add(nuevo);
+            adapter.notifyItemInserted(listaServicios.size() - 1);
+        }
     }
 }

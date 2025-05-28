@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginHorizontal="16dp"
+    android:layout_marginVertical="6dp"
+    app:cardCornerRadius="16dp"
+    app:cardElevation="2dp"
+    app:strokeWidth="0dp"
+    app:cardBackgroundColor="@android:color/white">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="20dp"
+        android:gravity="center_vertical">
+
+        <!-- Contenedor del icono -->
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            app:cardCornerRadius="24dp"
+            app:cardElevation="0dp"
+            app:cardBackgroundColor="#FFF3E0">
+
+            <ImageView
+                android:id="@+id/iv_field_icon"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:layout_gravity="center"
+                android:src="@drawable/ic_person"
+                android:contentDescription="Icono de campo"
+                app:tint="#FF6B35" />
+
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Contenido del campo -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="16dp"
+            android:orientation="vertical">
+
+            <!-- Título del campo -->
+            <TextView
+                android:id="@+id/tv_field_title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Título del campo"
+                android:textColor="#666666"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:letterSpacing="0.02"
+                android:fontFamily="@font/roboto_regular" />
+
+            <!-- Valor del campo -->
+            <TextView
+                android:id="@+id/tv_field_value"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="Valor del campo"
+                android:textColor="#1A1A1A"
+                android:textSize="16sp"
+                android:fontFamily="@font/roboto_regular" />
+
+        </LinearLayout>
+
+        <!-- Indicador de solo lectura -->
+        <ImageView
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:src="@drawable/ic_lock"
+            android:contentDescription="Campo de solo lectura"
+            app:tint="#CCCCCC" />
+
+    </LinearLayout>
+
+</com.google.android.material.card.MaterialCardView>

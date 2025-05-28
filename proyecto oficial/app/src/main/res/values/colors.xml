@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="black">#FF000000</color>
+
     <color name="white">#FFFFFFFF</color>
     <color name="colorPrimary">#F35D38</color>
     <color name="colorPrimaryDark">#D84C2A</color>
@@ -44,7 +45,19 @@
 
 
     <color name="light_orange_bg">#FFF6F0</color>
+    <!-- Colores generales de la app -->
 
+
+    <!-- Colores para el fondo de las tarjetas -->
+    <color name="card_default_blue">#1E88E5</color>
+    <color name="card_visa_blue">#0D47A1</color>
+    <color name="card_mastercard_red">#D32F2F</color>
+    <color name="card_amex_green">#2E7D32</color>
+    <color name="card_discover_orange">#FF6F00</color>
+
+    <!-- Colores de texto -->
+    <color name="text_white">#FFFFFF</color>
+    <color name="gray_text">#666666</color>
 
 
 </resources>
