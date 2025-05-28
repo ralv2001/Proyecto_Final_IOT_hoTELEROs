@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_dialog_rounded"
+    android:orientation="vertical"
+    android:padding="32dp">
+
+    <!-- Icono de advertencia -->
+    <androidx.cardview.widget.CardView
+        android:layout_width="80dp"
+        android:layout_height="80dp"
+        android:layout_gravity="center"
+        android:layout_marginBottom="20dp"
+        app:cardCornerRadius="40dp"
+        app:cardElevation="0dp"
+        app:cardBackgroundColor="@color/warning_primary">
+
+        <ImageView
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_gravity="center"
+            android:src="@drawable/ic_remove"
+            app:tint="@android:color/white" />
+    </androidx.cardview.widget.CardView>
+
+    <!-- Título -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:text="Limpiar carrito"
+        android:textSize="22sp"
+        android:textStyle="bold"
+        android:textColor="@color/text_primary"
+        android:fontFamily="@font/poppins_bold"
+        android:layout_marginBottom="12dp" />
+
+    <!-- Mensaje -->
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="¿Estás seguro de que deseas remover todos los servicios de tu carrito?"
+        android:textSize="16sp"
+        android:textColor="@color/text_secondary"
+        android:fontFamily="@font/poppins_regular"
+        android:textAlignment="center"
+        android:lineSpacingMultiplier="1.5"
+        android:layout_marginBottom="28dp" />
+
+    <!-- Botones -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:weightSum="2">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_cancel_clear"
+            android:layout_width="0dp"
+            android:layout_height="52dp"
+            android:layout_weight="1"
+            android:layout_marginEnd="8dp"
+            android:text="Cancelar"
+            android:textAllCaps="false"
+            android:textSize="16sp"
+            android:fontFamily="@font/poppins_medium"
+            app:backgroundTint="@color/light_gray"
+            android:textColor="@color/text_secondary"
+            app:cornerRadius="16dp"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_confirm_clear"
+            android:layout_width="0dp"
+            android:layout_height="52dp"
+            android:layout_weight="1"
+            android:layout_marginStart="8dp"
+            android:text="Sí, limpiar"
+            android:textAllCaps="false"
+            android:textSize="16sp"
+            android:fontFamily="@font/poppins_semibold"
+            app:backgroundTint="@color/red_primary"
+            app:cornerRadius="16dp" />
+    </LinearLayout>
+</LinearLayout>

@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginVertical="8dp"
+    app:cardCornerRadius="12dp"
+    app:cardElevation="2dp">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="16dp">
+
+        <!-- Círculo que simula el icono -->
+        <View
+            android:id="@+id/shimmer_icon"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:background="@drawable/bg_shimmer_circle"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <!-- Rectángulo que simula el título -->
+        <View
+            android:id="@+id/shimmer_title"
+            android:layout_width="0dp"
+            android:layout_height="20dp"
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="72dp"
+            android:background="@drawable/bg_shimmer_rect"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@id/shimmer_icon"
+            app:layout_constraintTop_toTopOf="@id/shimmer_icon" />
+
+        <!-- Rectángulo que simula la descripción -->
+        <View
+            android:id="@+id/shimmer_desc"
+            android:layout_width="0dp"
+            android:layout_height="16dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginStart="16dp"
+            android:background="@drawable/bg_shimmer_rect"
+            app:layout_constraintEnd_toEndOf="@id/shimmer_title"
+            app:layout_constraintStart_toEndOf="@id/shimmer_icon"
+            app:layout_constraintTop_toBottomOf="@id/shimmer_title" />
+
+        <!-- Rectángulo pequeño que simula botón -->
+        <View
+            android:layout_width="64dp"
+            android:layout_height="24dp"
+            android:layout_marginTop="8dp"
+            android:background="@drawable/bg_shimmer_rect"
+            app:layout_constraintStart_toStartOf="@id/shimmer_desc"
+            app:layout_constraintTop_toBottomOf="@id/shimmer_desc" />
+
+        <!-- Círculo que simula etiqueta de precio -->
+        <View
+            android:layout_width="48dp"
+            android:layout_height="24dp"
+            android:background="@drawable/bg_shimmer_pill"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="@id/shimmer_icon" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</androidx.cardview.widget.CardView>
