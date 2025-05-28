@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+
+    <!-- Edificio principal -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M3,3h15v18H3z" />
+
+    <!-- Ventanas (3 columnas x 4 filas) -->
+    <!-- Fila 1 -->
+    <path android:fillColor="#000000" android:pathData="M5,5h2v2H5z" />
+    <path android:fillColor="#000000" android:pathData="M9,5h2v2H9z" />
+    <path android:fillColor="#000000" android:pathData="M13,5h2v2H13z" />
+    <!-- Fila 2 -->
+    <path android:fillColor="#000000" android:pathData="M5,8h2v2H5z" />
+    <path android:fillColor="#000000" android:pathData="M9,8h2v2H9z" />
+    <path android:fillColor="#000000" android:pathData="M13,8h2v2H13z" />
+    <!-- Fila 3 -->
+    <path android:fillColor="#000000" android:pathData="M5,11h2v2H5z" />
+    <path android:fillColor="#000000" android:pathData="M9,11h2v2H9z" />
+    <path android:fillColor="#000000" android:pathData="M13,11h2v2H13z" />
+    <!-- Fila 4 -->
+    <path android:fillColor="#000000" android:pathData="M5,14h2v2H5z" />
+    <path android:fillColor="#000000" android:pathData="M9,14h2v2H9z" />
+    <path android:fillColor="#000000" android:pathData="M13,14h2v2H13z" />
+
+    <!-- Puerta -->
+    <path android:fillColor="#000000" android:pathData="M9,17h4v4H9z" />
+
+</vector>

@@ -386,16 +386,14 @@
             android:src="@drawable/ic_battery"
             app:tint="#000000" />
     </LinearLayout>
-
-    <!-- Bottom Navigation -->
-    <com.google.android.material.bottomnavigation.BottomNavigationView
-        android:id="@+id/bottom_navigation"
+    <include
+        android:id="@+id/bottom_nav"
+        layout="@layout/barra_admin"
         android:layout_width="match_parent"
-        android:layout_height="56dp"
-        android:background="@color/white"
-        app:itemIconTint="#FF7952"
-        app:itemTextColor="#FF7952"
+        android:layout_height="wrap_content"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:menu="@menu/bottom_nav_menu" />
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>
