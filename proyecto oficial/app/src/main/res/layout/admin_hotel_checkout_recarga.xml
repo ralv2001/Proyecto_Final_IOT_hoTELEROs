@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:background="#F5F5F5"
-    tools:context=".CheckoutActivity">
+    tools:context=".adminhotel.CheckoutActivity">
 
     <!-- Status Bar -->
     <LinearLayout
@@ -144,7 +144,7 @@
                                 android:id="@+id/tvName"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="Nombre completo: Nilo Rikel Cori Ramos"
+                                android:text="Nombre completo: Renato martinez pascual"
                                 android:textSize="13sp"
                                 android:textColor="#333333"
                                 android:layout_marginBottom="2dp" />
@@ -162,7 +162,7 @@
                                 android:id="@+id/tvBirthDate"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="Fecha de nacimiento: 15/06/2004"
+                                android:text="Fecha de nacimiento: 15/08/2190"
                                 android:textSize="12sp"
                                 android:textColor="#666666"
                                 android:layout_marginBottom="2dp" />
@@ -540,15 +540,7 @@
     </ScrollView>
 
     <!-- Bottom Navigation -->
-    <com.google.android.material.bottomnavigation.BottomNavigationView
-        android:id="@+id/bottom_navigation"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="@android:color/white"
-        app:itemIconTint="@color/bottom_nav_selector"
-        app:itemTextColor="@color/bottom_nav_selector"
-        app:layout="@layout/barra_admin"
-        app:layout_constraintBottom_toBottomOf="parent" />
+
     <!-- Incluimos la barra de navegación inferior -->
     <include
         android:id="@+id/bottom_nav"

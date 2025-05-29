@@ -58,6 +58,8 @@
     <!-- Colores de texto -->
     <color name="text_white">#FFFFFF</color>
     <color name="gray_text">#666666</color>
+    <color name="red">#D32F2F</color>
+    <color name="green">#388E3C</color>
 
     <!-- Nuevos colores -->
 

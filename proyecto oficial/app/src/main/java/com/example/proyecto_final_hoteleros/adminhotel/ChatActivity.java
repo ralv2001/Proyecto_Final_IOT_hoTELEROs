@@ -2,12 +2,13 @@ package com.example.proyecto_final_hoteleros.adminhotel;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.proyecto_final_hoteleros.R;
 
-public class ReporteVentasActivity extends AppCompatActivity {
+public class ChatActivity extends AppCompatActivity {
     private void setupBarraNavegacion() {
         findViewById(R.id.nav_home).setOnClickListener(v ->
                 startActivity(new Intent(this, AdminHotelActivity.class)));
@@ -24,11 +25,13 @@ public class ReporteVentasActivity extends AppCompatActivity {
         findViewById(R.id.nav_profile).setOnClickListener(v ->
                 startActivity(new Intent(this, PerfilHotelActivity.class)));
     }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.admin_hotel_reporte_ventas);
+        setContentView(R.layout.fragment_chat_admin);
         setupBarraNavegacion();
 
+        Toast.makeText(this, "Bienvenido al chat", Toast.LENGTH_SHORT).show();
     }
 }

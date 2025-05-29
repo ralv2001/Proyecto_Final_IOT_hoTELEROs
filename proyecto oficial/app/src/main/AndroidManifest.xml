@@ -127,6 +127,7 @@
             android:exported="true" />
 
         <!-- ========== ACTIVIDADES DE ADMIN HOTEL ========== -->
+        <activity android:name=".adminhotel.ChatActivity"/>
         <activity
             android:name=".adminhotel.AdminHotelActivity"
             android:exported="true" />
@@ -158,6 +159,12 @@
         <activity
             android:name=".adminhotel.NuevoServicioActivity"
             android:exported="false" />
+        <activity android:name=".adminhotel.NuevaHabitacionActivity"
+            android:exported="true" />
+        <activity android:name=".adminhotel.DatosHuespedActivity"
+            android:exported="true"/>
+
+
 
         <!-- ========== ACTIVIDADES DE SERVICIOS ========== -->
         <activity
