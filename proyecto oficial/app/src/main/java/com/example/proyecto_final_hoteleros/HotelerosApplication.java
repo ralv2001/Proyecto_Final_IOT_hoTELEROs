@@ -8,12 +8,6 @@ public class HotelerosApplication extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
-
-        // Limpiar las fotos temporales al iniciar la aplicación
-        SharedPreferences prefs = getSharedPreferences("UserData", MODE_PRIVATE);
-        prefs.edit()
-                .remove("photoPath")
-                .remove("photoUri")
-                .apply();
+        // Application initialization if needed
     }
 }

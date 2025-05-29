@@ -33,12 +33,26 @@ public class SelectUserTypeFragment extends Fragment {
         registerAsClientButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                // Limpiar datos anteriores cuando se selecciona un nuevo tipo de usuario
+                if (getActivity() != null) {
+                    getActivity().getSharedPreferences("UserData", getActivity().MODE_PRIVATE)
+                            .edit()
+                            .clear()
+                            .apply();
+                }
                 ((AuthActivity) getActivity()).gotoMainRegister("client");
             }});
         Button registerAsDriverButton = view.findViewById(R.id.btnRegistrarTaxista);
         registerAsDriverButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                // Limpiar datos anteriores cuando se selecciona un nuevo tipo de usuario
+                if (getActivity() != null) {
+                    getActivity().getSharedPreferences("UserData", getActivity().MODE_PRIVATE)
+                            .edit()
+                            .clear()
+                            .apply();
+                }
                 ((AuthActivity) getActivity()).gotoMainRegister("driver");
             }});
 

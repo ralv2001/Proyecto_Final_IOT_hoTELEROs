@@ -57,7 +57,82 @@
 
     <!-- Colores de texto -->
     <color name="text_white">#FFFFFF</color>
+    <color name="gray_text">#666666</color>
+
+    <!-- Nuevos colores -->
+
+    <color name="background_white">#FAFAFA</color> <!-- Blanco ligeramente grisáceo para fondos -->
+    <color name="text_dark">#212121</color>       <!-- Negro para texto principal -->
 
 
+
+
+    <!-- Colores de estado -->
+    <color name="success_green">#4CAF50</color>
+    <color name="success_green_light">#E8F5E9</color>
+    <color name="info_blue">#2196F3</color>
+    <color name="info_blue_light">#E3F2FD</color>
+    <color name="warning_yellow">#FFC107</color>
+    <color name="warning_yellow_light">#FFF8E1</color>
+
+    <!-- Colores neutros -->
+
+    <color name="text_disabled">#BDBDBD</color>
+    <color name="divider">#E0E0E0</color>
+    <color name="card_background">#FFFFFF</color>
+
+    <!-- Colores de sombra -->
+    <color name="shadow_color">#1A000000</color>
+    <color name="overlay_dark">#80000000</color>
+
+
+
+
+    <!-- Nuevos colores para gradientes -->
+    <color name="blue_gradient_start">#4FACFE</color>
+    <color name="blue_gradient_end">#00F2FE</color>
+    <color name="green_gradient_start">#43E97B</color>
+    <color name="green_gradient_end">#38F9D7</color>
+    <color name="pink_gradient_start">#FA709A</color>
+    <color name="yellow_gradient_end">#FEE140</color>
+    <color name="purple_gradient_start">#667EEA</color>
+    <color name="purple_gradient_end">#764BA2</color>
+
+
+    <color name="purple_light">#EDE9FE</color>
+
+    <color name="background_gradient_start">#F5F7FA</color>
+    <color name="background_gradient_end">#C3CFE2</color>
+
+    <color name="divider_light">#F3F4F6</color>
+
+    <color name="gray_border">#E9ECEF</color>
+    <color name="red_primary">#FF6B6B</color>
+    <color name="red_secondary">#EE5A52</color>
+    <color name="transparent">#00000000</color>
+
+    <!-- Colores para estados -->
+    <color name="success_primary">#28A745</color>
+    <color name="success_light">#D4EDDA</color>
+    <color name="info_primary">#17A2B8</color>
+    <color name="info_light">#D1ECF1</color>
+    <color name="warning_primary">#FFC107</color>
+    <color name="warning_light">#FFF3CD</color>
+
+
+
+
+    <color name="warning_orange">#F57C00</color>
+    <color name="error_primary">#F44336</color>
+
+
+    <!-- Colores para servicios -->
+    <color name="blue_primary">#2196F3</color>
+
+
+    <color name="green_primary">#4CAF50</color>
+
+    <color name="purple_primary">#9C27B0</color>
+    <color name="light_purple">#F3E5F5</color>
 
 </resources>

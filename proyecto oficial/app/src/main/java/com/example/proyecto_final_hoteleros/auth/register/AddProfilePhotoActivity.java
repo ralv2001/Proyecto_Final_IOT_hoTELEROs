@@ -3,6 +3,7 @@ package com.example.proyecto_final_hoteleros.auth.register;
 import android.app.Activity;
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
@@ -13,6 +14,16 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+import android.content.pm.PackageManager;
+import android.Manifest;
+// Imports para Room Database y Repositorios
+import com.example.proyecto_final_hoteleros.database.entities.UserRegistrationEntity;
+import com.example.proyecto_final_hoteleros.database.entities.FileStorageEntity;
+import com.example.proyecto_final_hoteleros.repository.UserRegistrationRepository;
+import com.example.proyecto_final_hoteleros.repository.FileStorageRepository;
+import com.example.proyecto_final_hoteleros.utils.NotificationHelper;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -26,10 +37,13 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
+
 public class AddProfilePhotoActivity extends AppCompatActivity {
 
     private static final int REQUEST_IMAGE_CAPTURE = 1;
     private static final int REQUEST_IMAGE_PICK = 2;
+
+    private static final int REQUEST_CAMERA_PERMISSION = 100; // NUEVA CONSTANTE
 
     // Constantes para guardar el estado
     private static final String KEY_IS_PHOTO_SELECTED = "is_photo_selected";
@@ -49,6 +63,12 @@ public class AddProfilePhotoActivity extends AppCompatActivity {
     private String userType;
     private String tempPhotoPath; // Para guardar la ruta del archivo temporal
 
+    // Agregar estas nuevas variables:
+    private UserRegistrationRepository userRegistrationRepository;
+    private FileStorageRepository fileStorageRepository;
+    private NotificationHelper notificationHelper;
+    private int currentRegistrationId = -1;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -63,6 +83,20 @@ public class AddProfilePhotoActivity extends AppCompatActivity {
 
         // Inicializar el ViewModel
         mViewModel = new ViewModelProvider(this).get(RegisterViewModel.class);
+
+        // Inicializar repositorios
+        userRegistrationRepository = new UserRegistrationRepository(this);
+        fileStorageRepository = new FileStorageRepository(this);
+        notificationHelper = new NotificationHelper(this);
+
+        // Recuperar ID de registro del intent
+        if (getIntent() != null && getIntent().hasExtra("registrationId")) {
+            currentRegistrationId = getIntent().getIntExtra("registrationId", -1);
+            Log.d("AddProfilePhoto", "Registration ID recibido: " + currentRegistrationId);
+        }
+
+        // Verificar si hay una foto existente
+        checkExistingPhoto();
 
         // Inicializar vistas
         ivProfilePhoto = findViewById(R.id.ivProfilePhoto);
@@ -159,11 +193,56 @@ public class AddProfilePhotoActivity extends AppCompatActivity {
                         .putBoolean("photoSkipped", true)
                         .apply();
 
-                // Limpiar la foto si existe
-                resetPhotoState();
+                // IMPORTANTE: Eliminar foto de la base de datos si existe
+                if (currentRegistrationId != -1) {
+                    Log.d("AddProfilePhoto", "Eliminando foto al omitir...");
+                    fileStorageRepository.getFileByRegistrationIdAndType(
+                            currentRegistrationId,
+                            FileStorageEntity.FILE_TYPE_PHOTO,
+                            new FileStorageRepository.FileOperationCallback() {
+                                @Override
+                                public void onSuccess(FileStorageEntity fileEntity) {
+                                    // Eliminar el archivo de la base de datos
+                                    fileStorageRepository.deleteFile(fileEntity, new FileStorageRepository.FileOperationCallback() {
+                                        @Override
+                                        public void onSuccess(FileStorageEntity deletedFileEntity) {
+                                            Log.d("AddProfilePhoto", "Foto eliminada de la base de datos al omitir");
+                                            runOnUiThread(() -> {
+                                                // Limpiar la foto de la UI y variables locales
+                                                resetPhotoState(true);
+                                                // Proceder con el registro sin foto
+                                                completeRegistration();
+                                            });
+                                        }
 
-                // Solo los clientes pueden omitir la foto
-                completeRegistration();
+                                        @Override
+                                        public void onError(String error) {
+                                            Log.d("AddProfilePhoto", "No había foto para eliminar: " + error);
+                                            runOnUiThread(() -> {
+                                                // Limpiar la foto de la UI y variables locales
+                                                resetPhotoState(true);
+                                                // Proceder con el registro sin foto
+                                                completeRegistration();
+                                            });
+                                        }
+                                    });
+                                }
+
+                                @Override
+                                public void onError(String error) {
+                                    Log.d("AddProfilePhoto", "No había foto para eliminar: " + error);
+                                    // Limpiar la foto de la UI y variables locales
+                                    resetPhotoState(true);
+                                    // Proceder con el registro sin foto
+                                    completeRegistration();
+                                }
+                            }
+                    );
+                } else {
+                    // Si no hay registrationId, solo limpiar UI
+                    resetPhotoState(true);
+                    completeRegistration();
+                }
             }
         });
 
@@ -173,6 +252,59 @@ public class AddProfilePhotoActivity extends AppCompatActivity {
 
         // Al final del método onCreate(), después de configurar todos los listeners
         updateContinueButtonState();
+    }
+
+    private void checkExistingPhoto() {
+        if (currentRegistrationId == -1) {
+            Log.d("AddProfilePhoto", "No registration ID, no photo to recover");
+            return;
+        }
+
+        Log.d("AddProfilePhoto", "=== CHECKING EXISTING PHOTO CON ROOM ===");
+        Log.d("AddProfilePhoto", "Registration ID: " + currentRegistrationId);
+
+        // Buscar foto en la base de datos
+        fileStorageRepository.getFileByRegistrationIdAndType(
+                currentRegistrationId,
+                FileStorageEntity.FILE_TYPE_PHOTO,
+                new FileStorageRepository.FileOperationCallback() {
+                    @Override
+                    public void onSuccess(FileStorageEntity fileEntity) {
+                        runOnUiThread(() -> {
+                            Log.d("AddProfilePhoto", "Foto encontrada en base de datos: " + fileEntity.originalName);
+
+                            // Verificar que el archivo físico existe
+                            File file = new File(fileEntity.storedPath);
+                            if (file.exists()) {
+                                try {
+                                    // Cargar imagen desde archivo
+                                    Bitmap bitmap = BitmapFactory.decodeFile(file.getAbsolutePath());
+                                    if (bitmap != null) {
+                                        tempPhotoPath = fileEntity.storedPath;
+                                        profilePhotoUri = Uri.fromFile(file);
+                                        isPhotoSelected = true;
+
+                                        displaySelectedImage(null, bitmap);
+                                        Log.d("AddProfilePhoto", "Foto recuperada exitosamente desde Room Database");
+                                    } else {
+                                        Log.e("AddProfilePhoto", "No se pudo decodificar la imagen");
+                                    }
+                                } catch (Exception e) {
+                                    Log.e("AddProfilePhoto", "Error cargando imagen existente", e);
+                                }
+                            } else {
+                                Log.e("AddProfilePhoto", "Archivo de foto no existe físicamente: " + fileEntity.storedPath);
+                            }
+                        });
+                    }
+
+                    @Override
+                    public void onError(String error) {
+                        Log.d("AddProfilePhoto", "No hay foto guardada en la base de datos: " + error);
+                        // Es normal, no hay foto previa
+                    }
+                }
+        );
     }
 
     private void loadImageFromUri(Uri uri) {
@@ -187,6 +319,10 @@ public class AddProfilePhotoActivity extends AppCompatActivity {
 
     // Método para resetear el estado de la foto
     private void resetPhotoState() {
+        resetPhotoState(true); // Llamada por defecto que limpia todo
+    }
+
+    private void resetPhotoState(boolean clearSharedPreferences) {
         profilePhotoUri = null;
         savedImageBitmap = null;
         isPhotoSelected = false;
@@ -197,12 +333,14 @@ public class AddProfilePhotoActivity extends AppCompatActivity {
         ivCircleOutline.setVisibility(View.VISIBLE);
         btnAddPhoto.setText("Añadir");
 
-        // Limpiar SharedPreferences para evitar errores futuros
-        getSharedPreferences("UserData", MODE_PRIVATE)
-                .edit()
-                .remove("photoPath")
-                .remove("photoUri")
-                .apply();
+        // Solo limpiar SharedPreferences si se especifica
+        if (clearSharedPreferences) {
+            getSharedPreferences("UserData", MODE_PRIVATE)
+                    .edit()
+                    .remove("photoPath")
+                    .remove("photoUri")
+                    .apply();
+        }
 
         // Actualizar el estado del botón continuar
         updateContinueButtonState();
@@ -227,12 +365,70 @@ public class AddProfilePhotoActivity extends AppCompatActivity {
     }
 
     private void dispatchTakePictureIntent() {
+        // Verificar si tenemos permisos de cámara
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
+                != PackageManager.PERMISSION_GRANTED) {
+
+            Log.d("AddProfilePhoto", "Solicitando permisos de cámara...");
+
+            // Solicitar permisos de cámara
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.CAMERA},
+                    REQUEST_CAMERA_PERMISSION);
+            return;
+        }
+
+        // Si ya tenemos permisos, proceder con la cámara
+        launchCamera();
+    }
+
+    private void launchCamera() {
         Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
         if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
+            Log.d("AddProfilePhoto", "Lanzando cámara...");
             startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
         } else {
             Toast.makeText(this, "No hay aplicación de cámara disponible", Toast.LENGTH_SHORT).show();
         }
+    }
+
+    // Manejar la respuesta de permisos
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
+                                           @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+
+        if (requestCode == REQUEST_CAMERA_PERMISSION) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                Log.d("AddProfilePhoto", "✅ Permisos de cámara concedidos");
+                // Permisos concedidos, ahora lanzar la cámara
+                launchCamera();
+            } else {
+                Log.d("AddProfilePhoto", "❌ Permisos de cámara denegados");
+                Toast.makeText(this, "Se necesitan permisos de cámara para tomar fotos", Toast.LENGTH_LONG).show();
+
+                // Opcional: Mostrar explicación de por qué necesitamos el permiso
+                if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.CAMERA)) {
+                    showPermissionExplanation();
+                }
+            }
+        }
+    }
+
+    private void showPermissionExplanation() {
+        new android.app.AlertDialog.Builder(this)
+                .setTitle("Permisos de Cámara")
+                .setMessage("Esta aplicación necesita acceso a la cámara para tomar fotos de perfil. " +
+                        "Puedes habilitar los permisos en Configuración > Aplicaciones.")
+                .setPositiveButton("Configuración", (dialog, which) -> {
+                    // Abrir configuración de la app
+                    Intent intent = new Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+                    Uri uri = Uri.fromParts("package", getPackageName(), null);
+                    intent.setData(uri);
+                    startActivity(intent);
+                })
+                .setNegativeButton("Cancelar", null)
+                .show();
     }
 
     private void openGallery() {
@@ -349,53 +545,119 @@ public class AddProfilePhotoActivity extends AppCompatActivity {
     }
 
     private void completeRegistration() {
-        // Guardar la URI de la foto en el ViewModel si se seleccionó una
-        if (isPhotoSelected) {
-            if (profilePhotoUri != null) {
-                mViewModel.setProfilePhotoUri(profilePhotoUri);
-            }
-            mViewModel.setHasProfilePhoto(true);
+        Log.d("AddProfilePhoto", "=== COMPLETANDO REGISTRO CON ROOM ===");
+        Log.d("AddProfilePhoto", "Registration ID: " + currentRegistrationId);
+        Log.d("AddProfilePhoto", "User Type: " + userType);
+        Log.d("AddProfilePhoto", "Photo selected: " + isPhotoSelected);
+
+        // Verificar si se omitió la foto
+        boolean photoSkipped = getSharedPreferences("UserData", MODE_PRIVATE)
+                .getBoolean("photoSkipped", false);
+        Log.d("AddProfilePhoto", "Photo skipped: " + photoSkipped);
+
+        if (currentRegistrationId == -1) {
+            Toast.makeText(this, "Error: No hay registro activo", Toast.LENGTH_SHORT).show();
+            return;
         }
 
-        // Intenta obtener el email del ViewModel primero
-        String email = mViewModel.getEmail();
+        // Si hay foto seleccionada Y NO se omitió, guardarla primero
+        if (isPhotoSelected && profilePhotoUri != null && tempPhotoPath != null && savedImageBitmap != null && !photoSkipped) {
+            Log.d("AddProfilePhoto", "Guardando foto de perfil...");
 
-        // Si el email es null o vacío, intenta obtenerlo de SharedPreferences
-        if (email == null || email.isEmpty()) {
-            email = getSharedPreferences("UserData", MODE_PRIVATE)
-                    .getString("email", "");
-            Log.d("AddProfilePhoto", "Email recuperado de SharedPreferences: " + email);
+            String mimeType = "image/jpeg";
+            String originalName = "profile_photo.jpg";
+
+            fileStorageRepository.saveFile(
+                    currentRegistrationId,
+                    FileStorageEntity.FILE_TYPE_PHOTO,
+                    originalName,
+                    profilePhotoUri,
+                    mimeType,
+                    new FileStorageRepository.FileOperationCallback() {
+                        @Override
+                        public void onSuccess(FileStorageEntity fileEntity) {
+                            Log.d("AddProfilePhoto", "Foto guardada exitosamente: " + fileEntity.id);
+                            // Continuar con el completion del registro
+                            finalizeRegistration();
+                        }
+
+                        @Override
+                        public void onError(String error) {
+                            Log.e("AddProfilePhoto", "Error guardando foto: " + error);
+                            // Continuar de todos modos si no es crítico
+                            finalizeRegistration();
+                        }
+                    }
+            );
+        } else {
+            Log.d("AddProfilePhoto", "No hay foto para guardar, finalizando registro...");
+            finalizeRegistration();
         }
+    }
 
-        // Log para depuración
-        Log.d("AddProfilePhoto", "Email en completeRegistration: " + email);
-        Log.d("AddProfilePhoto", "UserType en completeRegistration: " + userType);
+    private void finalizeRegistration() {
+        // Marcar el registro como completado
+        userRegistrationRepository.markRegistrationAsCompleted(
+                currentRegistrationId,
+                new UserRegistrationRepository.RegistrationCallback() {
+                    @Override
+                    public void onSuccess(UserRegistrationEntity registration) {
+                        Log.d("AddProfilePhoto", "Registro marcado como completado exitosamente");
 
-        // Si todavía es null o vacío, usa uno de prueba (solo para desarrollo)
-        if (email == null || email.isEmpty()) {
-            email = "test@example.com";
-            Log.e("AddProfilePhoto", "Usando email por defecto: " + email);
-        }
+                        // Limpiar datos temporales
+                        clearTemporaryData();
 
-        // Guardar userType en SharedPreferences para asegurar persistencia
+                        // Mostrar Toast con mensaje de éxito
+                        runOnUiThread(() -> {
+                            String email = registration.email;
+                            Toast.makeText(AddProfilePhotoActivity.this,
+                                    "Código de verificación enviado a " + email, Toast.LENGTH_SHORT).show();
+
+                            // Navegar a la pantalla de verificación
+                            Intent intent = new Intent(AddProfilePhotoActivity.this, RegisterVerifyActivity.class);
+                            intent.putExtra("email", email);
+                            intent.putExtra("userType", registration.userType);
+                            intent.putExtra("registrationId", currentRegistrationId);
+                            intent.putExtra("userName", registration.nombres + " " + registration.apellidos);
+                            startActivity(intent);
+                            finish();
+                        });
+                    }
+
+                    @Override
+                    public void onError(String error) {
+                        Log.e("AddProfilePhoto", "Error marcando registro como completado: " + error);
+                        runOnUiThread(() -> {
+                            Toast.makeText(AddProfilePhotoActivity.this,
+                                    "Error completando el registro: " + error, Toast.LENGTH_SHORT).show();
+                        });
+                    }
+                }
+        );
+    }
+
+    private void clearTemporaryData() {
+        // Limpiar SharedPreferences legacy
         getSharedPreferences("UserData", MODE_PRIVATE)
                 .edit()
-                .putString("userType", userType)
+                .clear()
                 .apply();
 
-        // Mostrar Toast con el mensaje de envío de código
-        Toast.makeText(this, "Código de verificación enviado a " + email, Toast.LENGTH_SHORT).show();
+        Log.d("AddProfilePhoto", "Datos temporales limpiados");
+    }
 
-        // Crear un intent específico para esta actividad
-        Intent intent = new Intent(this, RegisterVerifyActivity.class);
-        intent.putExtra("email", email);
-        intent.putExtra("userType", userType);
+    // Método específico para limpiar cuando realmente salimos del flujo
+    private void cleanupWhenExitingFlow() {
+        resetPhotoState(true);
 
-        // Hacer log del email que enviamos
-        Log.d("AddProfilePhoto", "Enviando email: " + email);
-        Log.d("AddProfilePhoto", "Enviando userType: " + userType);
+        // Limpiar también del ViewModel
+        if (mViewModel != null) {
+            mViewModel.setHasProfilePhoto(false);
+            mViewModel.setProfilePhotoUri(null);
+            mViewModel.setProfilePhotoBitmap(null);
+        }
 
-        startActivity(intent);
+        Log.d("AddProfilePhoto", "Limpieza completa - saliendo del flujo de registro");
     }
 
     @Override
@@ -427,4 +689,42 @@ public class AddProfilePhotoActivity extends AppCompatActivity {
             btnOmitir.setAlpha(1.0f);
         }
     }
+
+    @Override
+    public void onBackPressed() {
+        // Al presionar atrás desde AddProfilePhotoActivity, estamos navegando DENTRO del flujo
+        // NO estamos saliendo del flujo, por lo que MANTENEMOS la foto
+        if (isPhotoSelected && profilePhotoUri != null && tempPhotoPath != null) {
+            // Guardar el estado actual en SharedPreferences para mantener persistencia
+            getSharedPreferences("UserData", MODE_PRIVATE)
+                    .edit()
+                    .putString("photoPath", tempPhotoPath)
+                    .putString("photoUri", profilePhotoUri.toString())
+                    .putBoolean("photoSkipped", false)
+                    .apply();
+
+            // También mantener en el ViewModel
+            if (mViewModel != null) {
+                mViewModel.setHasProfilePhoto(true);
+                mViewModel.setProfilePhotoUri(profilePhotoUri);
+                if (savedImageBitmap != null) {
+                    mViewModel.setProfilePhotoBitmap(savedImageBitmap);
+                }
+            }
+
+            Log.d("AddProfilePhoto", "Navegando hacia atrás DENTRO del flujo - foto MANTENIDA");
+        } else {
+            Log.d("AddProfilePhoto", "Navegando hacia atrás sin foto seleccionada");
+        }
+
+        // Marcar que estamos navegando DENTRO del flujo para que RegisterUserActivity no limpie
+        getSharedPreferences("UserData", MODE_PRIVATE)
+                .edit()
+                .putBoolean("navigatingWithinFlow", true)
+                .apply();
+
+        // Finalizar esta actividad y regresar a la anterior
+        super.onBackPressed();
+    }
+
 }

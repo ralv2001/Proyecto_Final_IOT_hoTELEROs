@@ -1,100 +1,37 @@
 package com.example.proyecto_final_hoteleros.adminhotel;
 
-import android.content.Intent;
 import android.os.Bundle;
-import android.view.View;
-import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.proyecto_final_hoteleros.R;
-import com.example.proyecto_final_hoteleros.superadmin.ListaUsuariosActivity;
-import com.example.proyecto_final_hoteleros.superadmin.LogEventosActivity;
-import com.example.proyecto_final_hoteleros.superadmin.RegistroAdministradorActivity;
-import com.example.proyecto_final_hoteleros.superadmin.ReporteReservasActivity;
-import com.example.proyecto_final_hoteleros.superadmin.SolicitudesTaxistasActivity;
-import com.example.proyecto_final_hoteleros.superadmin.SuperadminActivity;
-import com.google.android.material.button.MaterialButton;
+import com.example.proyecto_final_hoteleros.adapters.HuespedAdapter;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class AdminHotelActivity extends AppCompatActivity {
-    private MaterialButton btnPerfilHotel;
-    private MaterialButton btnHabitaciones;
-    private MaterialButton btnServiciosHotel;
-    private MaterialButton btnAsigTaxistas;
-    private MaterialButton btnReportEventos;
-    private MaterialButton btnCheckout;
-    private MaterialButton btnCerrarSesion;
+
+    private RecyclerView recyclerHuespedes;
+    private HuespedAdapter adapter;
+    private List<Huesped> listaHuespedes;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.admin_hotel); // Asegúrate de que tu archivo XML se llama así
+        setContentView(R.layout.admin_hotel);
 
-        // Referencias a los botones
-        btnPerfilHotel = findViewById(R.id.btn_perfil_hotel);
-        btnHabitaciones = findViewById(R.id.btn_habitaciones);
-        btnServiciosHotel = findViewById(R.id.btn_servicios_hotel);
-        btnAsigTaxistas = findViewById(R.id.btn_asignacion_taxistas);
-        btnReportEventos = findViewById(R.id.btn_reporte_ventas);
-        btnCheckout = findViewById(R.id.btn_checkout);
-        btnCerrarSesion = findViewById(R.id.btnLogin);
+        recyclerHuespedes = findViewById(R.id.recycler_huespedes);
+        recyclerHuespedes.setLayoutManager(new LinearLayoutManager(this));
 
-        // Acciones para cada botón
-        btnPerfilHotel.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Toast.makeText(AdminHotelActivity.this, "Ir a Pefil de Hotel", Toast.LENGTH_SHORT).show();
-                startActivity(new Intent(AdminHotelActivity.this, PerfilHotelActivity.class));
-            }
-        });
+        listaHuespedes = new ArrayList<>();
+        listaHuespedes.add(new Huesped("Francis Sulca", "Lun 27, 14:45"));
+        listaHuespedes.add(new Huesped("Carlos Ramos", "Lun 27, 15:10"));
+        listaHuespedes.add(new Huesped("Ana Palacios", "Dom 26, 11:00"));
 
-        btnHabitaciones.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Toast.makeText(AdminHotelActivity.this, "Ir a Habitaciones", Toast.LENGTH_SHORT).show();
-                startActivity(new Intent(AdminHotelActivity.this, HabitacionesActivity.class));
-            }
-        });
-
-        btnServiciosHotel.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Toast.makeText(AdminHotelActivity.this, "Ir a Servicios de Hotel", Toast.LENGTH_SHORT).show();
-                startActivity(new Intent(AdminHotelActivity.this, ServiciosHotelActivity.class));
-            }
-        });
-
-        btnAsigTaxistas.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Toast.makeText(AdminHotelActivity.this, "Ir a Asingación de Taxistas", Toast.LENGTH_SHORT).show();
-                startActivity(new Intent(AdminHotelActivity.this, TaxistasHotelActivity.class));
-            }
-        });
-
-        btnReportEventos.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Toast.makeText(AdminHotelActivity.this, "Reporte de Ventas", Toast.LENGTH_SHORT).show();
-                startActivity(new Intent(AdminHotelActivity.this, ReporteVentasActivity.class));
-            }
-        });
-
-        btnCheckout.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Toast.makeText(AdminHotelActivity.this, "Checkout", Toast.LENGTH_SHORT).show();
-                startActivity(new Intent(AdminHotelActivity.this, CheckoutActivity.class));
-            }
-        });
-
-        btnCerrarSesion.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Toast.makeText(AdminHotelActivity.this, "Sesión cerrada", Toast.LENGTH_SHORT).show();
-                // startActivity(new Intent(MainActivity.this, LoginActivity.class));
-                // finish();
-            }
-        });
+        adapter = new HuespedAdapter(listaHuespedes);
+        recyclerHuespedes.setAdapter(adapter);
     }
 }

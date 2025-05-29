@@ -45,7 +45,11 @@ dependencies {
     // Firebase
     implementation 'com.google.firebase:firebase-auth:21.0.1'
     implementation 'com.google.firebase:firebase-messaging:23.0.0'
+    implementation 'com.facebook.shimmer:shimmer:0.5.0'
 
+
+    // Para animaciones
+    implementation 'com.airbnb.android:lottie:3.4.0'
 
     // Firebase Realtime Database - AÑADIR ESTO
     implementation 'com.google.firebase:firebase-database:20.3.0'
@@ -86,4 +90,13 @@ dependencies {
     testImplementation libs.junit
     androidTestImplementation libs.ext.junit
     androidTestImplementation libs.espresso.core
+    // Room Database
+    implementation "androidx.room:room-runtime:2.5.0"
+    annotationProcessor "androidx.room:room-compiler:2.5.0"
+
+    // WorkManager para notificaciones
+    implementation "androidx.work:work-runtime:2.8.1"
+
+    // Para manejo de fechas
+    implementation 'com.jakewharton.threetenabp:threetenabp:1.4.6'
 }

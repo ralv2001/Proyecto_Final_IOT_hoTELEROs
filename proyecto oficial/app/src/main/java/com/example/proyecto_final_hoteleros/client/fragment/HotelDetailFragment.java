@@ -2,15 +2,19 @@ package com.example.proyecto_final_hoteleros.client.fragment;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.cardview.widget.CardView;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -201,23 +205,40 @@ public class HotelDetailFragment extends Fragment implements ThumbnailAdapter.On
     }
 
     private void setupHotelServices() {
-        // Cargar servicios destacados
-        loadFeaturedServices();
+        try {
+            // Cargar servicios destacados
+            loadFeaturedServices();
 
-        // Configurar RecyclerView en formato de grid
-        rvServices.setLayoutManager(new GridLayoutManager(getContext(), 4));
+            // Configurar RecyclerView en formato de grid
+            if (rvServices != null) {
+                rvServices.setLayoutManager(new GridLayoutManager(getContext(), 4));
 
-        // Crear y configurar adaptador personalizado para servicios
-        ServicePreviewAdapter adapter = new ServicePreviewAdapter(featuredServices);
-        rvServices.setAdapter(adapter);
+                // Crear y configurar adaptador personalizado para servicios
+                ServicePreviewAdapter adapter = new ServicePreviewAdapter(featuredServices);
+                rvServices.setAdapter(adapter);
+            }
 
-        // Configurar botón "Ver todo"
-        tvSeeAllServices.setOnClickListener(v -> {
-            // Navegar a la actividad de todos los servicios de alojamiento
-            Intent intent = new Intent(getContext(), AllHotelServicesActivity.class);
-            startActivity(intent);
-        });
+            // Configurar botón "Ver todo"
+            if (tvSeeAllServices != null) {
+                tvSeeAllServices.setOnClickListener(v -> {
+                    try {
+                        // Navegar a la actividad de todos los servicios de alojamiento
+                        Intent intent = new Intent(getContext(), AllHotelServicesActivity.class);
+                        startActivity(intent);
+                    } catch (Exception e) {
+                        Log.e("HotelDetailFragment", "Error navegando a servicios: " + e.getMessage());
+                        if (getContext() != null) {
+                            Toast.makeText(getContext(), "Error abriendo servicios", Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                });
+            }
+
+        } catch (Exception e) {
+            Log.e("HotelDetailFragment", "Error configurando servicios: " + e.getMessage());
+        }
     }
+
 
     private void loadFeaturedServices() {
         // Estos serían los servicios destacados que aparecen en la pantalla principal
@@ -311,7 +332,7 @@ public class HotelDetailFragment extends Fragment implements ThumbnailAdapter.On
         private List<HotelService> services;
 
         public ServicePreviewAdapter(List<HotelService> services) {
-            this.services = services;
+            this.services = services != null ? services : new ArrayList<>();
         }
 
         @NonNull
@@ -324,8 +345,10 @@ public class HotelDetailFragment extends Fragment implements ThumbnailAdapter.On
 
         @Override
         public void onBindViewHolder(@NonNull ServiceViewHolder holder, int position) {
-            HotelService service = services.get(position);
-            holder.bind(service);
+            if (position < services.size()) {
+                HotelService service = services.get(position);
+                holder.bind(service);
+            }
         }
 
         @Override
@@ -336,44 +359,87 @@ public class HotelDetailFragment extends Fragment implements ThumbnailAdapter.On
         class ServiceViewHolder extends RecyclerView.ViewHolder {
             private ImageView ivServiceIcon;
             private TextView tvServiceName;
+            private CardView iconContainer;
 
             public ServiceViewHolder(@NonNull View itemView) {
                 super(itemView);
-                ivServiceIcon  = itemView.findViewById(R.id.iv_service_icon);
-
+                ivServiceIcon = itemView.findViewById(R.id.iv_service_icon);
                 tvServiceName = itemView.findViewById(R.id.tv_service_name);
+                iconContainer = itemView.findViewById(R.id.fl_service_icon_container);
             }
 
             public void bind(HotelService service) {
-                tvServiceName.setText(service.getName());
+                try {
+                    if (service == null) return;
 
-                // Configurar icono
-                if (service.getImageUrl() != null) {
-                    // Aquí cargarías la imagen desde la URL usando Glide, Picasso, etc.
-                    // Por ejemplo con Glide:
-                    // Glide.with(itemView.getContext()).load(service.getImageUrl()).into(ivServiceIcon);
-                } else {
-                    // Usar icono por defecto
-                    int resourceId = itemView.getContext().getResources().getIdentifier(
-                            service.getIconResourceName(), "drawable",
-                            itemView.getContext().getPackageName());
-                    ivServiceIcon.setImageResource(resourceId);
+                    tvServiceName.setText(service.getName());
+
+                    // Configurar icono
+                    setupServiceIcon(service);
+
+                    // Configurar click
+                    itemView.setOnClickListener(v -> {
+                        try {
+                            String message = service.getName();
+                            if (service.isConditional()) {
+                                message += " - " + service.getConditionalDescription();
+                            }
+
+                            if (getContext() != null) {
+                                Toast.makeText(getContext(), message, Toast.LENGTH_SHORT).show();
+                            }
+                        } catch (Exception e) {
+                            Log.e("ServiceViewHolder", "Error en click: " + e.getMessage());
+                        }
+                    });
+
+                } catch (Exception e) {
+                    Log.e("ServiceViewHolder", "Error en bind: " + e.getMessage());
                 }
+            }
 
-                // Fondo naranja circular para el icono
-                ivServiceIcon.setBackgroundResource(R.drawable.bg_circle_orange);
+            private void setupServiceIcon(HotelService service) {
+                try {
+                    if (ivServiceIcon == null || iconContainer == null) return;
 
-                // Manejar clics en los servicios
-                itemView.setOnClickListener(v -> {
-                    String message = service.getName();
-                    if (service.isConditional()) {
-                        message += " - " + service.getConditionalDescription();
+                    // Configurar icono
+                    String iconName = service.getIconResourceName();
+                    if (iconName != null && !iconName.isEmpty()) {
+                        int resourceId = itemView.getContext().getResources().getIdentifier(
+                                iconName, "drawable", itemView.getContext().getPackageName());
+
+                        if (resourceId > 0) {
+                            ivServiceIcon.setImageResource(resourceId);
+                        } else {
+                            ivServiceIcon.setImageResource(R.drawable.ic_hotel_service_default);
+                        }
+                    } else {
+                        ivServiceIcon.setImageResource(R.drawable.ic_hotel_service_default);
                     }
 
-                    // Mostrar detalle o navegar a la página de detalle del servicio
-                    // Toast.makeText(itemView.getContext(), message, Toast.LENGTH_SHORT).show();
-                });
+                    // Configurar fondo según tipo de servicio
+                    int backgroundRes = R.color.orange_light;
+                    switch (service.getServiceType()) {
+                        case "free":
+                            backgroundRes = R.color.success_light;
+                            break;
+                        case "conditional":
+                            backgroundRes = R.color.purple_light;
+                            break;
+                        case "paid":
+                        default:
+                            backgroundRes = R.color.orange_light;
+                            break;
+                    }
+
+                    iconContainer.setCardBackgroundColor(
+                            ContextCompat.getColor(itemView.getContext(), backgroundRes));
+
+                } catch (Exception e) {
+                    Log.e("ServiceViewHolder", "Error configurando icono: " + e.getMessage());
+                }
             }
         }
     }
+
 }

@@ -56,10 +56,15 @@ public class RegisterVerifyActivity extends AppCompatActivity {
                 .apply();
 
         // Cargar el fragmento de verificación de código con el email y userType
+        // Obtener registrationId del intent si está disponible
+        int registrationId = getIntent().getIntExtra("registrationId", -1);
+
+        // Cargar el fragmento de verificación de código con el email, userType y registrationId
         if (savedInstanceState == null) {
             Bundle args = new Bundle();
             args.putString("email", email);
             args.putString("userType", userType);
+            args.putInt("registrationId", registrationId);
 
             RegisterVerifyCodeFragment fragment = RegisterVerifyCodeFragment.newInstance(email);
             fragment.setArguments(args);

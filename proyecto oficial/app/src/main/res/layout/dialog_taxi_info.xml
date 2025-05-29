@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_dialog_rounded"
+    android:orientation="vertical"
+    android:padding="32dp">
+
+    <!-- Icono de taxi -->
+    <androidx.cardview.widget.CardView
+        android:layout_width="80dp"
+        android:layout_height="80dp"
+        android:layout_gravity="center"
+        android:layout_marginBottom="20dp"
+        app:cardCornerRadius="40dp"
+        app:cardElevation="0dp"
+        app:cardBackgroundColor="@color/orange_primary">
+
+        <ImageView
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_gravity="center"
+            android:src="@drawable/ic_taxi"
+            app:tint="@android:color/white" />
+    </androidx.cardview.widget.CardView>
+
+    <!-- Título -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:text="Servicio de Taxi Premium"
+        android:textSize="22sp"
+        android:textStyle="bold"
+        android:textColor="@color/text_primary"
+        android:fontFamily="@font/poppins_bold"
+        android:layout_marginBottom="12dp" />
+
+    <!-- Mensaje -->
+    <TextView
+        android:id="@+id/tv_taxi_message"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="¡Excelente noticia! Tu reserva califica para el servicio de taxi gratuito al aeropuerto. Has ahorrado S/. 60.00"
+        android:textSize="16sp"
+        android:textColor="@color/text_secondary"
+        android:fontFamily="@font/poppins_regular"
+        android:textAlignment="center"
+        android:lineSpacingMultiplier="1.5"
+        android:layout_marginBottom="28dp" />
+
+    <!-- Botón -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btn_taxi_ok"
+        android:layout_width="match_parent"
+        android:layout_height="52dp"
+        android:text="¡Genial!"
+        android:textAllCaps="false"
+        android:textSize="16sp"
+        android:fontFamily="@font/poppins_semibold"
+        app:backgroundTint="@color/orange_primary"
+        app:cornerRadius="16dp" />
+</LinearLayout>

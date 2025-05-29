@@ -11,12 +11,15 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
-    <!-- Permisos de notificaciones -->
+    <!-- Permisos de notificaciones (TUS CAMBIOS) -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.VIBRATE" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
 
-    <!-- Permisos para galería e imágenes (para EditProfile) -->
+    <!-- Permisos para galería e imágenes -->
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
+    <uses-permission android:name="android.permission.CAMERA" />
 
     <!-- Permisos para llamadas telefónicas -->
     <uses-permission android:name="android.permission.CALL_PHONE" />
@@ -25,9 +28,6 @@
     <uses-feature
         android:name="android.hardware.camera"
         android:required="false" />
-
-    <!-- Permiso opcional para cámara (si quieres agregar funcionalidad de cámara) -->
-    <uses-permission android:name="android.permission.CAMERA" />
 
     <application
         android:name=".HotelerosApplication"
@@ -56,15 +56,23 @@
             android:exported="true" />
 
         <activity
+            android:name=".AllHotelServicesActivityImproved"
+            android:exported="false"
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
+        <activity
             android:name=".HomeActivity"
             android:exported="false" />
 
-        <!-- Actividad del Taxista (de tu manifest) -->
+        <!-- Actividad del Taxista -->
         <activity
             android:name=".DriverActivity"
             android:exported="false" />
 
-        <!-- ========== ACTIVIDADES DE AUTENTICACIÓN ========== -->
+        <!-- ========== ACTIVIDADES DE AUTENTICACIÓN (TUS CAMBIOS) ========== -->
+        <activity
+            android:name=".auth.register.UploadDriverDocumentsActivity"
+            android:exported="false" />
+
         <activity
             android:name=".auth.register.RegisterVerifyActivity"
             android:exported="false" />
@@ -165,13 +173,13 @@
             android:name=".HotelServicesPreviewActivity"
             android:exported="true" />
 
-        <!-- Actividad de prueba de notificaciones (de tu compañero) -->
+        <!-- Actividad de prueba de notificaciones -->
         <activity
             android:name=".NotificationTestActivity"
             android:exported="false" />
 
         <!-- ========== SERVICIOS ========== -->
-        <!-- Servicio de notificaciones de Firebase (de tu compañero) -->
+        <!-- Servicio de notificaciones de Firebase -->
         <service
             android:name=".services.FirebaseNotificationService"
             android:exported="false">
@@ -181,7 +189,7 @@
         </service>
 
         <!-- ========== METADATOS ========== -->
-        <!-- API Key de Google Maps (usando la de tu compañero que parece más reciente) -->
+        <!-- API Key de Google Maps -->
         <meta-data
             android:name="com.google.android.geo.API_KEY"
             android:value="AIzaSyBdghOu6DZktjZcg0_PJzffH72NC-nR0ok" />
