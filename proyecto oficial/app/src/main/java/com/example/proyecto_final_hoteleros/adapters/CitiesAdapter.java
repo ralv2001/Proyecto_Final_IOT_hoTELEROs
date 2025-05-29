@@ -18,9 +18,20 @@ import java.util.List;
 public class CitiesAdapter extends RecyclerView.Adapter<CitiesAdapter.CityViewHolder> {
     private List<City> citiesList;
     private Context context;
+    private OnCityClickListener listener;
+
+    // Interfaz para manejar clics en las ciudades
+    public interface OnCityClickListener {
+        void onCityClick(City city);
+    }
 
     public CitiesAdapter(List<City> citiesList) {
         this.citiesList = citiesList;
+    }
+
+    // Setter para el listener
+    public void setOnCityClickListener(OnCityClickListener listener) {
+        this.listener = listener;
     }
 
     @Override
@@ -36,7 +47,6 @@ public class CitiesAdapter extends RecyclerView.Adapter<CitiesAdapter.CityViewHo
         holder.tvCityName.setText(city.getName());
 
         // Cargar la imagen dependiendo de cómo estés manejando las imágenes
-        // Si estás usando recursos drawable:
         if (city.getImageResourceId() != 0) {
             holder.ivCityImage.setImageResource(city.getImageResourceId());
         } else {
@@ -46,9 +56,13 @@ public class CitiesAdapter extends RecyclerView.Adapter<CitiesAdapter.CityViewHo
 
         // Configurar click listener
         holder.itemView.setOnClickListener(v -> {
-            // Manejar la selección de la ciudad aquí
-            Toast.makeText(context, "Ciudad seleccionada: " + city.getName(), Toast.LENGTH_SHORT).show();
-            // Aquí puedes lanzar una actividad o fragmento con más información de la ciudad
+            if (listener != null) {
+                // Llamar al listener personalizado en lugar del Toast
+                listener.onCityClick(city);
+            } else {
+                // Fallback al comportamiento anterior
+                Toast.makeText(context, "Ciudad seleccionada: " + city.getName(), Toast.LENGTH_SHORT).show();
+            }
         });
     }
 

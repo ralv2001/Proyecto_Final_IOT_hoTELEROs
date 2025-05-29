@@ -8,6 +8,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.AnimationUtils;
+import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -23,6 +24,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.proyecto_final_hoteleros.HomeActivity;
+import com.example.proyecto_final_hoteleros.HotelResultsActivity;
 import com.example.proyecto_final_hoteleros.R;
 import com.example.proyecto_final_hoteleros.adapters.CitiesAdapter;
 import com.example.proyecto_final_hoteleros.adapters.HotelsAdapter;
@@ -156,7 +158,8 @@ public class HomeFragment extends Fragment {
         rvHotels.setLayoutManager(
                 new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false)
         );
-        rvHotels.setAdapter(new HotelsAdapter(listaDeHoteles));
+
+// Crear y configurar el adapter para hoteles horizontales
         HotelsAdapter hotelsAdapter = new HotelsAdapter(listaDeHoteles);
         hotelsAdapter.setOnHotelClickListener((hotel, position) -> {
             // Navegar al fragmento de detalle cuando se hace clic en un hotel
@@ -165,38 +168,39 @@ public class HomeFragment extends Fragment {
         rvHotels.setAdapter(hotelsAdapter);
         // Configuración del RecyclerView de hoteles populares (vertical)
         RecyclerView rvPopularHotels = rootView.findViewById(R.id.rvPopularHotels);
-        PopularHotelsAdapter popularHotelsAdapter = new PopularHotelsAdapter(listaDeHoteles);
+        rvPopularHotels.setLayoutManager(
+                new LinearLayoutManager(getContext(), LinearLayoutManager.VERTICAL, false)
+        );
+
+// Crear y configurar el adapter para hoteles populares
+        PopularHotelsAdapter popularHotelsAdapter = new PopularHotelsAdapter(listaHotelesPopulares); // Usar la lista correcta
         popularHotelsAdapter.setOnHotelClickListener((hotel, position) -> {
             // Navegar al fragmento de detalle cuando se hace clic en un hotel popular
             navigateToHotelDetail(hotel);
         });
+
+// Configurar el adapter UNA SOLA VEZ
         rvPopularHotels.setAdapter(popularHotelsAdapter);
-        rvPopularHotels.setLayoutManager(
-                new LinearLayoutManager(getContext(), LinearLayoutManager.VERTICAL, false)
-        );
-        rvPopularHotels.setAdapter(new PopularHotelsAdapter(listaDeHoteles));
 // Crear lista de ciudades
-        List<City> listaCiudades = new ArrayList<>();
-        listaCiudades.add(new City("Lima", R.drawable.lima));
-        listaCiudades.add(new City("Cusco", R.drawable.cuzco));
-        listaCiudades.add(new City("Arequipa", R.drawable.arequipa));
-        listaCiudades.add(new City("Piura", R.drawable.inkaterra)); // Usar una imagen apropiada para Piura
-        listaCiudades.add(new City("Trujillo", R.drawable.belmond)); // Usar una imagen apropiada para Trujillo
-
-// Configuración del RecyclerView de ciudades
-        RecyclerView rvCities = rootView.findViewById(R.id.rvCities);
-        rvCities.setLayoutManager(
-                new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false)
-        );
-        rvCities.setAdapter(new CitiesAdapter(listaCiudades));
-
-// Ver todo - ciudades
-        TextView tvSeeAllCities = rootView.findViewById(R.id.tv_see_all_cities);
-        tvSeeAllCities.setOnClickListener(v -> {
-            Toast.makeText(getContext(), "Ver todas las ciudades", Toast.LENGTH_SHORT).show();
-            // Implementar navegación a una actividad o fragmento que muestre todas las ciudades
-        });
+        setupCitiesSection(rootView);
         // Configuración del navegador inferior
+
+        TextView tvSeeAllNearby = rootView.findViewById(R.id.tv_see_all );
+        if (tvSeeAllNearby != null) {
+            tvSeeAllNearby.setOnClickListener(v -> navigateToNearbyHotels());
+        }
+
+// Para hoteles populares (asumiendo que tienes un TextView tvSeeAllPopular)
+        TextView tvSeeAllPopular = rootView.findViewById(R.id.tv_see_all_popular);
+        if (tvSeeAllPopular != null) {
+            tvSeeAllPopular.setOnClickListener(v -> navigateToPopularHotels());
+        }
+
+// Si tienes un botón de búsqueda, agregar este listener:
+        Button btnSearch = rootView.findViewById(R.id.btnSearch );
+        if (btnSearch != null) {
+            btnSearch.setOnClickListener(v -> performSearch());
+        }
         setupBottomNavigation(rootView);
 
         return rootView;
@@ -210,6 +214,47 @@ public class HomeFragment extends Fragment {
             navigateToNotificationsFragment();
         });
     }
+
+    private void performSearch() {
+        // Obtener los valores de búsqueda actuales
+        TextView tvLocation = getView().findViewById(R.id.tvLocation);
+        TextView tvDates = getView().findViewById(R.id.tvDates);
+        TextView tvGuests = getView().findViewById(R.id.tvGuests);
+
+        String location = tvLocation.getText().toString();
+        String dates = tvDates.getText().toString();
+        String guests = tvGuests.getText().toString();
+
+        // Navegar a la actividad de resultados con parámetros completos
+        Intent intent = new Intent(getActivity(), HotelResultsActivity.class);
+        intent.putExtra("filter_type", "search");
+        intent.putExtra("location", location);
+        intent.putExtra("dates", dates);
+        intent.putExtra("guests", guests);
+        startActivity(intent);
+    }
+    private void navigateToNearbyHotels() {
+        Intent intent = new Intent(getActivity(), HotelResultsActivity.class);
+        intent.putExtra("filter_type", "nearby");
+        startActivity(intent);
+    }
+
+    /**
+     * Método para navegar a "Ver todo" de hoteles populares
+     */
+    private void navigateToPopularHotels() {
+        Intent intent = new Intent(getActivity(), HotelResultsActivity.class);
+        intent.putExtra("filter_type", "popular");
+        startActivity(intent);
+    }
+
+    private void navigateToCityHotels(String cityName) {
+        Intent intent = new Intent(getActivity(), HotelResultsActivity.class);
+        intent.putExtra("filter_type", "city");
+        intent.putExtra("location", cityName);
+        startActivity(intent);
+    }
+
 
     /**
      * Navega al fragmento de notificaciones
@@ -466,6 +511,40 @@ public class HomeFragment extends Fragment {
             }
         });
     }
+
+    private void setupCitiesSection(View rootView) {
+        // Crear lista de ciudades
+        List<City> listaCiudades = new ArrayList<>();
+        listaCiudades.add(new City("Lima", R.drawable.lima));
+        listaCiudades.add(new City("Cusco", R.drawable.cuzco));
+        listaCiudades.add(new City("Arequipa", R.drawable.arequipa));
+        listaCiudades.add(new City("Piura", R.drawable.inkaterra));
+        listaCiudades.add(new City("Trujillo", R.drawable.belmond));
+
+        // Configuración del RecyclerView de ciudades
+        RecyclerView rvCities = rootView.findViewById(R.id.rvCities);
+        rvCities.setLayoutManager(
+                new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false)
+        );
+
+        // Modificar el CitiesAdapter para incluir el listener de clic
+        CitiesAdapter citiesAdapter = new CitiesAdapter(listaCiudades);
+        citiesAdapter.setOnCityClickListener(city -> {
+            // Navegar a la página de resultados con filtro por ciudad
+            navigateToCityHotels(city.getName());
+        });
+        rvCities.setAdapter(citiesAdapter);
+
+        // Ver todo - ciudades
+        TextView tvSeeAllCities = rootView.findViewById(R.id.tv_see_all_cities);
+        tvSeeAllCities.setOnClickListener(v -> {
+            // Navegar a la página de resultados mostrando todas las ciudades
+            Intent intent = new Intent(getActivity(), HotelResultsActivity.class);
+            intent.putExtra("filter_type", "all_cities");
+            startActivity(intent);
+        });
+    }
+
 
     // Método para navegar a un fragmento con animación
     private void navigateToFragment(Fragment fragment, boolean addToBackStack) {
