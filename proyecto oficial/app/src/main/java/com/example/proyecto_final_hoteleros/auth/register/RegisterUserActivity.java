@@ -748,7 +748,6 @@ public class RegisterUserActivity extends AppCompatActivity {
         SharedPreferences prefs = getSharedPreferences("UserData", MODE_PRIVATE);
         boolean navigatingWithinFlow = prefs.getBoolean("navigatingWithinFlow", false);
 
-        // Log para debugging
         Log.d("RegisterUser", "onBackPressed - navigatingWithinFlow: " + navigatingWithinFlow);
         Log.d("RegisterUser", "Estado actual de SharedPreferences:");
         Log.d("RegisterUser", "  - photoPath: " + prefs.getString("photoPath", "NO_ENCONTRADO"));
@@ -759,7 +758,7 @@ public class RegisterUserActivity extends AppCompatActivity {
             // Venimos de una vista posterior del formulario (PDF o Foto), NO limpiar NADA
             Log.d("RegisterUser", "Navegando hacia atrás DENTRO del flujo - NO SE LIMPIA NADA");
 
-            // Solo limpiar el flag de navegación AHORA que regresamos
+            // Limpiar el flag de navegación DESPUÉS de procesar
             prefs.edit().remove("navigatingWithinFlow").apply();
 
             super.onBackPressed();
@@ -767,7 +766,7 @@ public class RegisterUserActivity extends AppCompatActivity {
         }
 
         // Si llegamos aquí, estamos yendo hacia SelectUserType (SALIENDO del flujo)
-        Log.d("RegisterUser", "Usuario SALIÓ del flujo hacia SelectUserType - limpiando TODOS los datos");
+        Log.d("RegisterUser", "Usuario SALIÓ del flujo hacia SelectUserType - limpiando datos");
 
         // Limpiar SharedPreferences
         prefs.edit()
