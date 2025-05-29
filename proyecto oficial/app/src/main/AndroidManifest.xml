@@ -171,7 +171,9 @@
         <activity
             android:name=".HotelServicesPreviewActivity"
             android:exported="true" />
-
+        <activity
+            android:name=".HotelResultsActivity"
+            android:exported="false" />
         <!-- Actividad de prueba de notificaciones -->
         <activity
             android:name=".NotificationTestActivity"
