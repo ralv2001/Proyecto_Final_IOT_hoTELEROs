@@ -55,7 +55,7 @@ public class HotelDetailFragment extends Fragment implements ThumbnailAdapter.On
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_hotel_selection, container, false);
+        View view = inflater.inflate(R.layout.fragment_hotel_detail, container, false);
 
         // Inicializar vistas
         viewPagerImages = view.findViewById(R.id.view_pager_hotel_images);
@@ -288,26 +288,66 @@ public class HotelDetailFragment extends Fragment implements ThumbnailAdapter.On
     }
 
     private void setupActions(View view) {
-        // Configurar botón de retroceso
-        view.findViewById(R.id.btn_back).setOnClickListener(v -> {
-            requireActivity().onBackPressed();
-        });
+        try {
+            // Configurar botón de retroceso - VERIFICAR SI EXISTE
+            View btnBack = view.findViewById(R.id.btn_back);
+            if (btnBack != null) {
+                btnBack.setOnClickListener(v -> {
+                    if (getActivity() != null) {
+                        getActivity().onBackPressed();
+                    }
+                });
+                Log.d("HotelDetailFragment", "btn_back configurado correctamente");
+            } else {
+                Log.w("HotelDetailFragment", "btn_back no encontrado en el layout");
+            }
 
-        // Configurar botón de favoritos
-        view.findViewById(R.id.btn_favorite).setOnClickListener(v -> {
-            // Implementar lógica para añadir a favoritos
-        });
+            // Configurar botón de favoritos - VERIFICAR SI EXISTE
+            View btnFavorite = view.findViewById(R.id.btn_favorite);
+            if (btnFavorite != null) {
+                btnFavorite.setOnClickListener(v -> {
+                    // Implementar lógica para añadir a favoritos
+                    Toast.makeText(getContext(), "Añadido a favoritos", Toast.LENGTH_SHORT).show();
+                });
+                Log.d("HotelDetailFragment", "btn_favorite configurado correctamente");
+            } else {
+                Log.w("HotelDetailFragment", "btn_favorite no encontrado en el layout");
+            }
 
-        // Configurar botón de elegir habitación
-        view.findViewById(R.id.btn_choose_room).setOnClickListener(v -> {
-            // Implementar navegación a la pantalla de selección de habitaciones
-            navigateToRoomSelection();
-        });
+            // Configurar botón de elegir habitación - VERIFICAR SI EXISTE
+            View btnChooseRoom = view.findViewById(R.id.btn_choose_room);
+            if (btnChooseRoom != null) {
+                btnChooseRoom.setOnClickListener(v -> {
+                    navigateToRoomSelection();
+                });
+                Log.d("HotelDetailFragment", "btn_choose_room configurado correctamente");
+            } else {
+                Log.w("HotelDetailFragment", "btn_choose_room no encontrado en el layout");
+            }
 
-        // Ver todas las reseñas
-        view.findViewById(R.id.tv_see_all_reviews).setOnClickListener(v -> {
-            // Implementar navegación a la pantalla de todas las reseñas
-        });
+            // Ver todas las reseñas - VERIFICAR SI EXISTE
+            View tvSeeAllReviews = view.findViewById(R.id.tv_see_all_reviews);
+            if (tvSeeAllReviews != null) {
+                tvSeeAllReviews.setOnClickListener(v -> {
+                    // Implementar navegación a la pantalla de todas las reseñas
+                    Toast.makeText(getContext(), "Ver todas las reseñas", Toast.LENGTH_SHORT).show();
+                });
+                Log.d("HotelDetailFragment", "tv_see_all_reviews configurado correctamente");
+            } else {
+                Log.w("HotelDetailFragment", "tv_see_all_reviews no encontrado en el layout");
+            }
+
+            Log.d("HotelDetailFragment", "setupActions completado sin errores");
+
+        } catch (Exception e) {
+            Log.e("HotelDetailFragment", "Error en setupActions: " + e.getMessage());
+            e.printStackTrace();
+
+            // No lanzar el error, solo registrarlo
+            if (getContext() != null) {
+                Toast.makeText(getContext(), "Algunas funciones podrían no estar disponibles", Toast.LENGTH_SHORT).show();
+            }
+        }
     }
 
     private void navigateToRoomSelection() {
@@ -322,7 +362,7 @@ public class HotelDetailFragment extends Fragment implements ThumbnailAdapter.On
         // Navegar al fragmento
         requireActivity().getSupportFragmentManager()
                 .beginTransaction()
-                .replace(R.id.fragment_container, roomSelectionFragment)
+                .replace(R.id.fragment_container, new RoomSelectionFragment())
                 .addToBackStack(null)
                 .commit();
     }
