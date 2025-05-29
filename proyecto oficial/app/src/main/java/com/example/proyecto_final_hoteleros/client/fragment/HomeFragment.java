@@ -38,6 +38,7 @@ import java.util.List;
 import java.util.Locale;
 
 public class HomeFragment extends Fragment {
+    private static final int HOTEL_RESULTS_REQUEST_CODE = 1235;
     private static final int LOCATION_REQUEST_CODE = 1234;
     private List<Hotel> listaDeHoteles = new ArrayList<>();
 
@@ -231,29 +232,27 @@ public class HomeFragment extends Fragment {
         intent.putExtra("location", location);
         intent.putExtra("dates", dates);
         intent.putExtra("guests", guests);
-        startActivity(intent);
+        startActivityForResult(intent, HOTEL_RESULTS_REQUEST_CODE);
     }
     private void navigateToNearbyHotels() {
         Intent intent = new Intent(getActivity(), HotelResultsActivity.class);
         intent.putExtra("filter_type", "nearby");
-        startActivity(intent);
+        startActivityForResult(intent, HOTEL_RESULTS_REQUEST_CODE);
     }
 
-    /**
-     * Método para navegar a "Ver todo" de hoteles populares
-     */
     private void navigateToPopularHotels() {
         Intent intent = new Intent(getActivity(), HotelResultsActivity.class);
         intent.putExtra("filter_type", "popular");
-        startActivity(intent);
+        startActivityForResult(intent, HOTEL_RESULTS_REQUEST_CODE);
     }
 
     private void navigateToCityHotels(String cityName) {
         Intent intent = new Intent(getActivity(), HotelResultsActivity.class);
         intent.putExtra("filter_type", "city");
         intent.putExtra("location", cityName);
-        startActivity(intent);
+        startActivityForResult(intent, HOTEL_RESULTS_REQUEST_CODE);
     }
+
 
 
     /**
@@ -588,11 +587,26 @@ public class HomeFragment extends Fragment {
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
+
         if (requestCode == LOCATION_REQUEST_CODE && resultCode == Activity.RESULT_OK) {
             String location = data.getStringExtra("selected_location");
             TextView tvLocation = getView().findViewById(R.id.tvLocation);
             tvLocation.setText(location);
             tvLocation.setTextColor(ContextCompat.getColor(getContext(), R.color.black));
+        }
+
+        // NUEVO: Manejar resultado de HotelResultsActivity
+        if (requestCode == HOTEL_RESULTS_REQUEST_CODE && resultCode == Activity.RESULT_OK) {
+            // El usuario seleccionó un hotel, navegar al detalle
+            String hotelName = data.getStringExtra("hotel_name");
+            String hotelLocation = data.getStringExtra("hotel_location");
+            String hotelPrice = data.getStringExtra("hotel_price");
+            String hotelRating = data.getStringExtra("hotel_rating");
+            String hotelImage = data.getStringExtra("hotel_image");
+
+            // Crear objeto Hotel y navegar al detalle
+            Hotel selectedHotel = new Hotel(hotelName, hotelLocation, hotelImage, hotelPrice, hotelRating);
+            navigateToHotelDetail(selectedHotel);
         }
     }
 }

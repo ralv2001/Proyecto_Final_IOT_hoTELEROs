@@ -137,4 +137,22 @@
     <color name="purple_primary">#9C27B0</color>
     <color name="light_purple">#F3E5F5</color>
 
+
+
+
+    <!-- Card Gradient Colors -->
+    <color name="card_gradient_start">#1565C0</color>
+    <color name="card_gradient_end">#0D47A1</color>
+
+    <!-- Visa Gradient -->
+    <color name="visa_gradient_start">#1A237E</color>
+    <color name="visa_gradient_end">#3949AB</color>
+
+    <!-- Mastercard Gradient -->
+    <color name="mastercard_gradient_start">#D32F2F</color>
+    <color name="mastercard_gradient_end">#F44336</color>
+
+    <!-- UI Colors -->
+    <color name="security_green">#4CAF50</color>
+
 </resources>
