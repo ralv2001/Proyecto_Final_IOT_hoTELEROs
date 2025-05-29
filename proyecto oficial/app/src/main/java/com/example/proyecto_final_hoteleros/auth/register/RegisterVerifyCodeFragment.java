@@ -19,6 +19,7 @@ import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.example.proyecto_final_hoteleros.R;
+import com.example.proyecto_final_hoteleros.auth.register.AddProfilePhotoActivity;
 import com.google.android.material.button.MaterialButton;
 import com.example.proyecto_final_hoteleros.repository.UserRegistrationRepository;
 import com.example.proyecto_final_hoteleros.database.entities.UserRegistrationEntity;
@@ -95,7 +96,26 @@ public class RegisterVerifyCodeFragment extends Fragment {
         // Configurar el botón de retroceso
         btnBack.setOnClickListener(v -> {
             if (getActivity() != null) {
-                getActivity().onBackPressed();
+                // Obtener datos del registro
+                int registrationId = -1;
+                String userType = "client";
+
+                if (getArguments() != null) {
+                    registrationId = getArguments().getInt("registrationId", -1);
+                    userType = getArguments().getString("userType", "client");
+                }
+
+                Log.d("VerifyCodeFragment", "Navegando de vuelta a AddProfilePhoto");
+                Log.d("VerifyCodeFragment", "RegistrationId: " + registrationId + ", UserType: " + userType);
+
+                // Navegar específicamente a AddProfilePhotoActivity
+                Intent intent = new Intent(getActivity(), AddProfilePhotoActivity.class);
+                intent.putExtra("registrationId", registrationId);
+                intent.putExtra("userType", userType);
+                startActivity(intent);
+
+                // Cerrar la actividad actual
+                getActivity().finish();
             }
         });
 
@@ -243,6 +263,7 @@ public class RegisterVerifyCodeFragment extends Fragment {
                                 Intent intent = new Intent(getActivity(), RegisterSuccessActivity.class);
                                 intent.putExtra("userType", registration.userType);
                                 intent.putExtra("registrationId", registration.id);
+                                intent.putExtra("userName", registration.nombres + " " + registration.apellidos);
                                 intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                                 startActivity(intent);
                                 getActivity().finish();
@@ -301,6 +322,7 @@ public class RegisterVerifyCodeFragment extends Fragment {
 
             Intent intent = new Intent(getActivity(), RegisterSuccessActivity.class);
             intent.putExtra("userType", userType);
+            intent.putExtra("userName", "Usuario"); // Valor por defecto para el fallback
             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
             startActivity(intent);
             getActivity().finish();

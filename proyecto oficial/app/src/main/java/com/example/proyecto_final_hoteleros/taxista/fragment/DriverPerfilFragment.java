@@ -196,13 +196,14 @@ public class DriverPerfilFragment extends Fragment implements
 
     private void handleHotelesDisponibles() {
         Log.d(TAG, "Hoteles Disponibles clicked");
-        Toast.makeText(getContext(), "Mostrando hoteles disponibles...", Toast.LENGTH_SHORT).show();
 
-        // TODO: Implementar navegación a fragmento de hoteles disponibles
-        // getParentFragmentManager().beginTransaction()
-        //     .replace(R.id.fragment_container, new HotelesDisponiblesFragment())
-        //     .addToBackStack(null)
-        //     .commit();
+        // Navegar al fragmento de hoteles disponibles
+        AvailableHotelsFragment hotelsFragment = new AvailableHotelsFragment();
+
+        getParentFragmentManager().beginTransaction()
+                .replace(R.id.fragment_container, hotelsFragment)
+                .addToBackStack(null)
+                .commit();
     }
 
     private void handleEditarPerfil() {

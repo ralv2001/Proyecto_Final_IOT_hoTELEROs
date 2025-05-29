@@ -21,9 +21,15 @@
     <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
     <uses-permission android:name="android.permission.CAMERA" />
 
+    <!-- Permisos para llamadas telefónicas -->
+    <uses-permission android:name="android.permission.CALL_PHONE" />
+
     <!-- Declarar que la cámara es opcional -->
     <uses-feature
         android:name="android.hardware.camera"
+        android:required="false" />
+    <uses-feature
+        android:name="android.hardware.telephony"
         android:required="false" />
 
     <application
@@ -165,7 +171,9 @@
         <activity
             android:name=".HotelServicesPreviewActivity"
             android:exported="true" />
-
+        <activity
+            android:name=".HotelResultsActivity"
+            android:exported="false" />
         <!-- Actividad de prueba de notificaciones -->
         <activity
             android:name=".NotificationTestActivity"

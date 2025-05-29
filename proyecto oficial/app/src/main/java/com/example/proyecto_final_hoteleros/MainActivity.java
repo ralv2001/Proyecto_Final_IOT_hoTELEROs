@@ -60,11 +60,9 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View v) {
                 Toast.makeText(MainActivity.this, "Continuando como huésped...", Toast.LENGTH_SHORT).show();
 
-                // Cargar el fragmento de Home
-                getSupportFragmentManager().beginTransaction()
-                        .replace(R.id.main, new com.example.proyecto_final_hoteleros.client.fragment.HomeFragment())
-                        .addToBackStack(null)
-                        .commit();
+                Intent intent = new Intent(MainActivity.this, HomeActivity.class);
+                startActivity(intent);
+                finish(); // Opcional: cerrar MainActivity
             }
         });
 

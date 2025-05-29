@@ -242,6 +242,7 @@
                 </LinearLayout>
 
                 <!-- Primero, incluya los servicios después de la ubicación -->
+                <!-- ✅ CORRECTO - Incluye el layout correcto para vista previa -->
                 <include
                     android:id="@+id/services_preview_section"
                     layout="@layout/activity_hotel_services_preview"
@@ -251,7 +252,6 @@
                     app:layout_constraintTop_toBottomOf="@id/hotel_location_container"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintEnd_toEndOf="parent" />
-
                 <!-- Luego, coloque el título de estancia después de los servicios -->
                 <TextView
                     android:id="@+id/tv_stay_title"

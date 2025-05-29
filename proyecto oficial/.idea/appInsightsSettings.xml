@@ -9,10 +9,10 @@
             <InsightsFilterSettings>
               <option name="connection">
                 <ConnectionSetting>
-                  <option name="appId" value="PLACEHOLDER" />
-                  <option name="mobileSdkAppId" value="" />
-                  <option name="projectId" value="" />
-                  <option name="projectNumber" value="" />
+                  <option name="appId" value="com.example.proyecto_final_hoteleros" />
+                  <option name="mobileSdkAppId" value="1:366577529035:android:f3b127fb8cfb6eaf73eb4e" />
+                  <option name="projectId" value="hoteleros-d5725" />
+                  <option name="projectNumber" value="366577529035" />
                 </ConnectionSetting>
               </option>
               <option name="signal" value="SIGNAL_UNSPECIFIED" />
