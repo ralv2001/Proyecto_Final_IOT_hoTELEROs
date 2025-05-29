@@ -47,7 +47,7 @@ public class UploadDriverDocumentsActivity extends AppCompatActivity {
 
     private LinearLayout layoutSelectedFile;
     private TextView tvFileName, tvFileSize, tvUploadStatus;
-    private ProgressBar progressUpload;
+    // private ProgressBar progressUpload; // Ya no se usa en el nuevo diseño
     private Button btnBrowseFile;
     private ImageButton btnDeleteFile;
     private MaterialButton btnContinuar;
@@ -119,15 +119,15 @@ public class UploadDriverDocumentsActivity extends AppCompatActivity {
         tvFileName = findViewById(R.id.tvFileName);
         tvFileSize = findViewById(R.id.tvFileSize);
         tvUploadStatus = findViewById(R.id.tvUploadStatus);
-        progressUpload = findViewById(R.id.progressUpload);
+        // progressUpload = findViewById(R.id.progressUpload); // Ya no se usa en el nuevo diseño
         btnBrowseFile = findViewById(R.id.btnBrowseFile);
         btnDeleteFile = findViewById(R.id.btnDeleteFile);
         btnContinuar = findViewById(R.id.btnContinuar);
         tvSunarpLink = findViewById(R.id.tvSunarpLink);
-        tvLoginTab = findViewById(R.id.tvLoginTab);
-        tvRegisterTab = findViewById(R.id.tvRegisterTab);
-        viewTabIndicatorLogin = findViewById(R.id.viewTabIndicatorLogin);
-        viewTabIndicatorRegister = findViewById(R.id.viewTabIndicatorRegister);
+        //tvLoginTab = findViewById(R.id.tvLoginTab);
+        //tvRegisterTab = findViewById(R.id.tvRegisterTab);
+        //viewTabIndicatorLogin = findViewById(R.id.viewTabIndicatorLogin);
+        //viewTabIndicatorRegister = findViewById(R.id.viewTabIndicatorRegister);
 
         // Configurar botón de volver
         ImageButton btnBack = findViewById(R.id.btnBack);
@@ -144,25 +144,13 @@ public class UploadDriverDocumentsActivity extends AppCompatActivity {
     }
 
     private void setupTabsAndIndicators() {
-        // Configurar clic en pestaña "Iniciar Sesión"
-        tvLoginTab.setOnClickListener(v -> {
-            // Limpiar datos al cambiar a login
-            getSharedPreferences("UserData", MODE_PRIVATE)
-                    .edit()
-                    .remove("photoPath")
-                    .remove("photoUri")
-                    .remove("pdfPath")
-                    .remove("pdfUri")
-                    .remove("email")
-                    .remove("photoSkipped")
-                    .apply();
-
-            // Ir a AuthActivity mostrando la pestaña de login
-            Intent intent = new Intent(UploadDriverDocumentsActivity.this, AuthActivity.class);
-            intent.putExtra("mode", "login");
-            startActivity(intent);
-            finish();
-        });
+        // Ya no se necesita configurar las pestañas
+    /*
+    // Configurar clic en pestaña "Iniciar Sesión"
+    tvLoginTab.setOnClickListener(v -> {
+        // ... código comentado
+    });
+    */
     }
 
     private void setupSunarpLink() {
@@ -385,7 +373,7 @@ public class UploadDriverDocumentsActivity extends AppCompatActivity {
         tvFileSize.setText(fileSize);
         tvUploadStatus.setText("Completado");
         tvUploadStatus.setTextColor(getResources().getColor(android.R.color.holo_green_dark));
-        progressUpload.setProgress(100);
+        // progressUpload.setProgress(100); // Ya no se usa en el nuevo diseño
 
         layoutSelectedFile.setVisibility(View.VISIBLE);
     }
@@ -501,30 +489,15 @@ public class UploadDriverDocumentsActivity extends AppCompatActivity {
         );
     }
 
-    private void displayFileInfoFromFile(File file) {
-        String fileName = file.getName();
-        String fileSize = formatSize(file.length());
-
-        tvFileName.setText(fileName);
-        tvFileSize.setText(fileSize);
-        tvUploadStatus.setText("Completado");
-        tvUploadStatus.setTextColor(getResources().getColor(android.R.color.holo_green_dark));
-        progressUpload.setProgress(100);
-
-        layoutSelectedFile.setVisibility(View.VISIBLE);
-
-        Log.d(TAG, "Mostrando info del archivo: " + fileName + " (" + fileSize + ")");
-    }
-
     private void displayFileInfoFromFileEntity(FileStorageEntity fileEntity) {
         String fileName = fileEntity.originalName;
         String fileSize = formatSize(fileEntity.fileSize);
 
         tvFileName.setText(fileName);
-        tvFileSize.setText(fileSize);
+        tvFileSize.setText(fileSize + " of " + fileSize + " •"); // Incluir el bullet point
         tvUploadStatus.setText("Completado");
         tvUploadStatus.setTextColor(getResources().getColor(android.R.color.holo_green_dark));
-        progressUpload.setProgress(100);
+        // progressUpload.setProgress(100); // Ya no se usa
 
         layoutSelectedFile.setVisibility(View.VISIBLE);
 

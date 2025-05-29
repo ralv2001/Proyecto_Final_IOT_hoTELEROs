@@ -8,58 +8,17 @@
     android:background="#FFFFFF"
     tools:context=".auth.register.UploadDriverDocumentsActivity">
 
-    <LinearLayout
-        android:id="@+id/tabLayout"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+    <!-- Botón de retroceso FIJO -->
+    <ImageButton
+        android:id="@+id/btnBack"
+        android:layout_width="42dp"
+        android:layout_height="42dp"
+        android:src="@drawable/custom_back_button"
+        android:background="@null"
+        android:layout_marginStart="25dp"
         android:layout_marginTop="30dp"
-        android:layout_marginBottom="6dp"
-        android:paddingHorizontal="40dp"
-        android:orientation="horizontal">
-
-        <TextView
-            android:id="@+id/tvLoginTab"
-            style="@style/InactiveTabTextStyle"
-            android:layout_height="wrap_content"
-            android:layout_width="0dp"
-            android:layout_weight="1"
-            android:text="Iniciar Sesión"
-            android:clickable="true"
-            android:focusable="true"
-            android:gravity="center" />
-
-        <TextView
-            android:id="@+id/tvRegisterTab"
-            style="@style/ActiveTabTextStyle"
-            android:layout_height="wrap_content"
-            android:layout_width="0dp"
-            android:layout_weight="1"
-            android:gravity="center"
-            android:text="Registro"
-            android:clickable="true"
-            android:focusable="true" />
-    </LinearLayout>
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
         android:layout_marginBottom="20dp"
-        android:paddingHorizontal="40dp">
-
-        <View
-            android:id="@+id/viewTabIndicatorLogin"
-            android:layout_width="0dp"
-            android:layout_height="2dp"
-            android:layout_weight="1"
-            android:background="#ffffff" />
-        <View
-            android:id="@+id/viewTabIndicatorRegister"
-            android:layout_width="0dp"
-            android:layout_height="2dp"
-            android:layout_weight="1"
-            android:background="#F35D38" />
-    </LinearLayout>
+        android:contentDescription="Volver" />
 
     <ScrollView
         android:layout_width="match_parent"
@@ -73,16 +32,6 @@
             android:orientation="vertical"
             android:paddingHorizontal="25dp"
             android:paddingBottom="20dp">
-
-            <!-- Botón de retroceso -->
-            <ImageButton
-                android:id="@+id/btnBack"
-                android:layout_width="42dp"
-                android:layout_height="42dp"
-                android:src="@drawable/custom_back_button"
-                android:background="@null"
-                android:layout_marginBottom="20dp"
-                android:contentDescription="Volver" />
 
             <!-- Título -->
             <TextView
@@ -133,45 +82,73 @@
                 android:lineSpacingExtra="4sp"
                 android:layout_marginBottom="32dp"/>
 
-            <!-- Upload Files Section -->
-            <LinearLayout
+            <!-- Upload Files Section - Contenedor Grande -->
+            <RelativeLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical"
-                android:layout_marginBottom="16dp">
+                android:layout_height="51dp"
+                android:layout_marginBottom="20dp"
+                android:paddingVertical="4dp">
 
+                <!-- Ícono izquierdo - MISMA altura que el contenedor grande -->
                 <ImageView
-                    android:layout_width="32dp"
-                    android:layout_height="32dp"
-                    android:layout_marginEnd="12dp"
+                    android:id="@+id/ivCloudIcon"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:layout_alignParentStart="true"
+                    android:layout_alignParentTop="true"
+                    android:layout_alignParentBottom="true"
+                    android:adjustViewBounds="true"
+                    android:scaleType="fitCenter"
                     android:src="@drawable/ic_nubecitapdf" />
 
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Subir archivos"
-                    android:textSize="18sp"
-                    android:textColor="#1E1E1E"
-                    android:fontFamily="@font/poppins_medium"/>
-
+                <!-- Ícono derecho - esquina superior derecha -->
                 <ImageView
                     android:id="@+id/ivHelp"
                     android:layout_width="24dp"
                     android:layout_height="24dp"
-                    android:src="@drawable/ic_uploadpdfgozu"
-                    android:contentDescription="Ayuda"/>
-            </LinearLayout>
+                    android:layout_alignParentTop="true"
+                    android:layout_alignParentEnd="true"
+                    android:layout_marginTop="2dp"
+                    android:contentDescription="Ayuda"
+                    android:src="@drawable/ic_uploadpdfgozu" />
 
-            <TextView
+                <!-- Contenedor pequeño - centrado verticalmente -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_centerVertical="true"
+                    android:layout_marginStart="12dp"
+                    android:layout_marginEnd="12dp"
+                    android:layout_toStartOf="@id/ivHelp"
+                    android:layout_toEndOf="@id/ivCloudIcon"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="0dp"
+                        android:fontFamily="@font/poppins_medium"
+                        android:text="Subir archivos"
+                        android:textColor="#1E1E1E"
+                        android:textSize="16sp" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="@font/inter_semibold"
+                        android:text="Selecciona y sube el archivo de tu elección"
+                        android:textColor="#989898"
+                        android:textSize="11sp" />
+                </LinearLayout>
+
+            </RelativeLayout>
+
+            <!-- Línea separadora -->
+            <View
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Selecciona y sube el archivo de tu elección"
-                android:textSize="14sp"
-                android:textColor="#989898"
-                android:fontFamily="@font/inter_semibold"
-                android:layout_marginBottom="20dp"/>
+                android:layout_height="1dp"
+                android:background="#CBD0DC"
+                android:layout_marginBottom="20dp" />
 
             <!-- Drop zone -->
             <FrameLayout
@@ -228,89 +205,111 @@
                         android:paddingVertical="8dp"
                         style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
 
-
                 </LinearLayout>
             </FrameLayout>
 
-            <!-- Archivo seleccionado (visible solo cuando se ha seleccionado un archivo) -->
+            <!-- Archivo seleccionado MEJORADO (visible solo cuando se ha seleccionado un archivo) -->
             <LinearLayout
                 android:id="@+id/layoutSelectedFile"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
-                android:background="@drawable/file_background"
-                android:padding="12dp"
+                android:background="@drawable/sistema_file_background"
+                android:padding="16dp"
                 android:gravity="center_vertical"
                 android:layout_marginBottom="30dp"
                 android:visibility="gone">
 
-                <ImageView
-                    android:layout_width="32dp"
-                    android:layout_height="32dp"
-                    android:src="@drawable/ic_pdfgozu"
-                    android:layout_marginEnd="12dp"/>
+                <!-- Icono PDF mejorado -->
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:gravity="center"
+                    android:layout_marginEnd="16dp">
 
+                    <ImageView
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:src="@drawable/ic_pdfgozu"
+                        android:layout_marginBottom="4dp"/>
+
+                </LinearLayout>
+
+                <!-- Información del archivo -->
                 <LinearLayout
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:orientation="vertical">
 
-                    <TextView
-                        android:id="@+id/tvFileName"
+                    <!-- Nombre del archivo -->
+                    <!-- Header con nombre y botón eliminar -->
+                    <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="documento.pdf"
-                        android:textSize="16sp"
-                        android:textColor="#1E1E1E"
-                        android:fontFamily="@font/poppins_medium"
-                        android:maxLines="1"
-                        android:ellipsize="middle"/>
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:layout_marginBottom="8dp">
 
+                        <TextView
+                            android:id="@+id/tvFileName"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="Google-certificate.pdf"
+                            android:textSize="16sp"
+                            android:textColor="#292D32"
+                            android:fontFamily="@font/inter_semibold"
+                            android:maxLines="1"
+                            android:ellipsize="middle"/>
+
+                        <ImageButton
+                            android:id="@+id/btnDeleteFile"
+                            android:layout_width="19dp"
+                            android:layout_height="19dp"
+                            android:src="@drawable/ic_eliminarpdf"
+                            android:background="@null"
+                            android:scaleType="fitCenter"
+                            android:contentDescription="Eliminar archivo"/>
+                    </LinearLayout>
+
+                    <!-- Información de progreso -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="horizontal"
                         android:gravity="center_vertical">
 
+                        <!-- Tamaño del archivo con bullet point -->
                         <TextView
                             android:id="@+id/tvFileSize"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="1.2 MB"
-                            android:textSize="14sp"
-                            android:textColor="#989898"
+                            android:text="94 KB of 94 KB •"
+                            android:textSize="12sp"
+                            android:textColor="#A9ACB4"
                             android:fontFamily="@font/inter_regular"
-                            android:layout_marginEnd="16dp"/>
+                            android:layout_marginEnd="8dp"/>
 
-                        <ProgressBar
-                            android:id="@+id/progressUpload"
-                            style="?android:attr/progressBarStyleHorizontal"
-                            android:layout_width="0dp"
-                            android:layout_height="4dp"
-                            android:layout_weight="1"
-                            android:progressTint="#F35D38"
-                            android:progress="100"/>
+                        <!-- Icono de check y status -->
+                        <ImageView
+                            android:layout_width="16dp"
+                            android:layout_height="16dp"
+                            android:src="@drawable/ic_check"
+                            android:layout_marginEnd="4dp" />
 
                         <TextView
                             android:id="@+id/tvUploadStatus"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Completed"
-                            android:textSize="14sp"
-                            android:textColor="#4CAF50"
-                            android:fontFamily="@font/inter_regular"
-                            android:layout_marginStart="16dp"/>
+                            android:text="Completado"
+                            android:textSize="12sp"
+                            android:textColor="#292D32"
+                            android:fontFamily="@font/inter_regular"/>
                     </LinearLayout>
                 </LinearLayout>
 
-                <ImageButton
-                    android:id="@+id/btnDeleteFile"
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
-                    android:src="@drawable/ic_eliminarpdf"
-                    android:background="@null"
-                    android:contentDescription="Eliminar archivo"/>
             </LinearLayout>
         </LinearLayout>
     </ScrollView>
