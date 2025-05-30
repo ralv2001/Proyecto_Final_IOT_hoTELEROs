@@ -21,6 +21,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.proyecto_final_hoteleros.R;
 import com.example.proyecto_final_hoteleros.adapters.ViajesAdapter;
 import com.example.proyecto_final_hoteleros.taxista.model.SolicitudViaje;
+import com.example.proyecto_final_hoteleros.taxista.utils.DriverPreferenceManager;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.example.proyecto_final_hoteleros.taxista.fragment.TripDetailsFragment;
 
@@ -42,6 +43,7 @@ public class DriverViajesFragment extends Fragment implements ViajesAdapter.Viaj
     public DriverViajesFragment() {
         // Constructor vacío requerido
     }
+    private DriverPreferenceManager preferenceManager;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -73,6 +75,9 @@ public class DriverViajesFragment extends Fragment implements ViajesAdapter.Viaj
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
+        // Inicializar PreferenceManager
+        preferenceManager = new DriverPreferenceManager(requireContext());
+
         // Cargar datos al iniciar
         cargarSolicitudes();
     }
@@ -81,9 +86,19 @@ public class DriverViajesFragment extends Fragment implements ViajesAdapter.Viaj
         // Mostrar estado de carga
         showLoadingState();
 
-        // Simulamos una carga de datos de la base de datos (reemplazar con Firebase)
+        // Intentar cargar datos guardados primero
+        List<SolicitudViaje> savedRequests = preferenceManager.getTripRequests();
+        if (!savedRequests.isEmpty()) {
+            // Mostrar datos guardados inmediatamente
+            solicitudesList.clear();
+            solicitudesList.addAll(savedRequests);
+            adapter.notifyDataSetChanged();
+            actualizarContador();
+            updateVisibility();
+        }
+
+        // Simular carga de nuevos datos de la red
         new Handler().postDelayed(() -> {
-            // Aquí cargarías los datos reales
             List<SolicitudViaje> nuevasSolicitudes = generarDatosEjemplo();
 
             // Actualizar la lista
@@ -91,13 +106,14 @@ public class DriverViajesFragment extends Fragment implements ViajesAdapter.Viaj
             solicitudesList.addAll(nuevasSolicitudes);
             adapter.notifyDataSetChanged();
 
-            // Actualizar contador
-            actualizarContador();
+            // Guardar en local storage
+            preferenceManager.saveTripRequests(solicitudesList);
 
-            // Mostrar estado correspondiente
+            // Actualizar contador y visibilidad
+            actualizarContador();
             updateVisibility();
 
-        }, 1500); // Simular tiempo de carga
+        }, 1500);
     }
 
     private void actualizarContador() {
@@ -134,14 +150,17 @@ public class DriverViajesFragment extends Fragment implements ViajesAdapter.Viaj
 
     @Override
     public void onRejectClick(SolicitudViaje solicitud) {
-        // Implementar lógica para rechazar solicitud
         Toast.makeText(getContext(), "Solicitud rechazada", Toast.LENGTH_SHORT).show();
 
-        // En una implementación real, aquí actualizarías la base de datos
-
-        // Para el ejemplo, simplemente eliminamos la solicitud de la lista
+        // Eliminar de la lista local
         solicitudesList.remove(solicitud);
         adapter.notifyDataSetChanged();
+
+        // Actualizar local storage
+        if (preferenceManager != null) {
+            preferenceManager.saveTripRequests(solicitudesList);
+        }
+
         actualizarContador();
         updateVisibility();
     }

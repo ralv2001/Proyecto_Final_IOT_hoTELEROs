@@ -18,6 +18,8 @@ import com.example.proyecto_final_hoteleros.R;
 import com.example.proyecto_final_hoteleros.adapters.DriverProfileAdapter;
 import com.example.proyecto_final_hoteleros.taxista.model.DriverProfile;
 import com.example.proyecto_final_hoteleros.taxista.model.ProfileMenuItem;
+import com.example.proyecto_final_hoteleros.taxista.utils.DriverPreferenceManager;
+import com.example.proyecto_final_hoteleros.taxista.utils.NotificationHelper;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -36,6 +38,8 @@ public class DriverPerfilFragment extends Fragment implements
     public DriverPerfilFragment() {
         // Constructor vacío requerido
     }
+    private DriverPreferenceManager preferenceManager;
+    private NotificationHelper notificationHelper;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -43,6 +47,10 @@ public class DriverPerfilFragment extends Fragment implements
         View view = inflater.inflate(R.layout.fragment_driver_perfil, container, false);
 
         recyclerProfile = view.findViewById(R.id.recycler_profile);
+
+        // Inicializar managers
+        preferenceManager = new DriverPreferenceManager(requireContext());
+        notificationHelper = new NotificationHelper(requireContext());
 
         setupRecyclerView();
         loadProfileData();
@@ -72,21 +80,8 @@ public class DriverPerfilFragment extends Fragment implements
     }
 
     private DriverProfile generateDriverProfile() {
-        return new DriverProfile(
-                "driver001",
-                "Renato Delgado Aquino",
-                "renato.delgado@email.com",
-                "+51 987 654 321",
-                "https://png.pngtree.com/png-clipart/20241214/original/pngtree-cat-in-a-suit-and-shirt-png-image_17854633.png",
-                "Av. Lima 123, San Miguel, Lima",
-                "L12345678",
-                true,
-                true,
-                4.8f,
-                127,
-                124,
-                2450.50
-        );
+        // Cargar perfil guardado o usar datos por defecto
+        return preferenceManager.getDriverProfile();
     }
 
     private List<ProfileMenuItem> generateMenuItems() {
@@ -209,37 +204,48 @@ public class DriverPerfilFragment extends Fragment implements
     private void handleEditarPerfil() {
         Log.d(TAG, "Editar Perfil clicked");
 
-        // Crear el fragmento de editar perfil
         EditDriverProfileFragment editFragment = new EditDriverProfileFragment();
 
-        // Pasar el perfil actual como argumento (opcional pero recomendado)
+        // Pasar el perfil actual como argumento
         Bundle args = new Bundle();
         args.putParcelable("driver_profile", currentDriver);
         editFragment.setArguments(args);
 
-        // Navegar al fragmento de editar perfil
         getParentFragmentManager().beginTransaction()
-                .replace(R.id.fragment_container, editFragment) // Cambia este ID por el correcto de tu layout
+                .replace(R.id.fragment_container, editFragment)
                 .addToBackStack(null)
                 .commit();
     }
 
     private void handleHistorial() {
         Log.d(TAG, "Historial clicked");
-        Toast.makeText(getContext(), "Ver historial de viajes...", Toast.LENGTH_SHORT).show();
 
-        // Navegar al fragmento de historial que ya tienes (DriverHistorialFragment)
-        // getParentFragmentManager().beginTransaction()
-        //     .replace(R.id.fragment_container, new DriverHistorialFragment())
-        //     .addToBackStack(null)
-        //     .commit();
+        try {
+            DriverHistorialFragment historialFragment = new DriverHistorialFragment();
+
+            if (getParentFragmentManager() != null) {
+                getParentFragmentManager().beginTransaction()
+                        .replace(R.id.fragment_container, historialFragment)
+                        .addToBackStack("historial")
+                        .commit();
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "Error navegando al historial: " + e.getMessage(), e);
+            if (getContext() != null && isAdded()) {
+                Toast.makeText(getContext(), "Error al abrir historial", Toast.LENGTH_SHORT).show();
+            }
+        }
     }
 
     private void handleMetodosPago() {
         Log.d(TAG, "Métodos de Pago clicked");
-        Toast.makeText(getContext(), "Gestionar métodos de pago...", Toast.LENGTH_SHORT).show();
 
-        // TODO: Implementar navegación a fragmento de métodos de pago
+        PaymentMethodsFragment paymentFragment = new PaymentMethodsFragment();
+
+        getParentFragmentManager().beginTransaction()
+                .replace(R.id.fragment_container, paymentFragment)
+                .addToBackStack("payment_methods")
+                .commit();
     }
 
     private void handleNotificaciones() {

@@ -27,7 +27,12 @@ import androidx.cardview.widget.CardView;
 import androidx.core.app.ActivityCompat;
 import androidx.fragment.app.Fragment;
 
+import com.bumptech.glide.Glide;
 import com.example.proyecto_final_hoteleros.R;
+import com.example.proyecto_final_hoteleros.taxista.model.DriverProfile;
+import com.example.proyecto_final_hoteleros.taxista.services.MockNotificationService;
+import com.example.proyecto_final_hoteleros.taxista.utils.DriverPreferenceManager;
+import com.example.proyecto_final_hoteleros.taxista.utils.NotificationHelper;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationRequest;
@@ -41,7 +46,6 @@ import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MapStyleOptions;
-import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
@@ -54,13 +58,12 @@ import java.util.Random;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 
-
 public class DriverMapFragment extends Fragment implements OnMapReadyCallback {
 
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 1;
-
     private static final double SERVICE_RADIUS_METERS = 5000;
-    private Marker driverMarker; // Declarar como variable de clase
+
+    private Marker driverMarker;
     private GoogleMap mMap;
     private FusedLocationProviderClient fusedLocationClient;
     private LocationCallback locationCallback;
@@ -74,13 +77,15 @@ public class DriverMapFragment extends Fragment implements OnMapReadyCallback {
     private boolean hasLocationPermission = false;
     private FloatingActionButton btnZoomIn;
     private FloatingActionButton btnZoomOut;
-    // Agregar la lista de marcadores de hoteles
     private List<Marker> hotelMarkers;
     private CircleImageView ivProfilePhoto;
     private TextView tvDriverName;
     private ImageView ivNotifications;
     private int notificationCount = 0;
     private TextView tvNotificationBadge;
+    private DriverPreferenceManager preferenceManager;
+    private NotificationHelper notificationHelper;
+    private MockNotificationService mockNotificationService;
 
     public DriverMapFragment() {
         // Constructor vacío requerido
@@ -91,20 +96,18 @@ public class DriverMapFragment extends Fragment implements OnMapReadyCallback {
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_driver_map, container, false);
 
+        // Inicializar vistas
         ivProfilePhoto = view.findViewById(R.id.ivProfilePhoto);
         tvDriverName = view.findViewById(R.id.tvDriverName);
         ivNotifications = view.findViewById(R.id.ivNotifications);
-
-        // Inicializar vistas
         cardEstadoTaxista = view.findViewById(R.id.cardEstadoTaxista);
         tvEstadoServicio = view.findViewById(R.id.tvEstadoServicio);
         switchDisponible = view.findViewById(R.id.switchDisponible);
         btnMyLocation = view.findViewById(R.id.btnMyLocation);
-
         btnZoomIn = view.findViewById(R.id.btnZoomIn);
         btnZoomOut = view.findViewById(R.id.btnZoomOut);
-
         tvNotificationBadge = view.findViewById(R.id.tvNotificationBadge);
+
         notificationCount = 3;
         updateNotificationBadge();
 
@@ -115,11 +118,10 @@ public class DriverMapFragment extends Fragment implements OnMapReadyCallback {
                 updateDriverStatus(isChecked);
             }
         });
-        // Configurar listener para notificaciones
+
         ivNotifications.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // Mostrar panel de notificaciones o marcar como leídas
                 showNotificationsDialog();
             }
         });
@@ -130,7 +132,6 @@ public class DriverMapFragment extends Fragment implements OnMapReadyCallback {
                 getCurrentLocation();
             }
         });
-
 
         btnZoomIn.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -154,18 +155,60 @@ public class DriverMapFragment extends Fragment implements OnMapReadyCallback {
         btnTestNotification.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                addNotification("Prueba de notificación");
+                if (mockNotificationService != null) {
+                    showNotificationTestMenu();
+                }
             }
         });
 
         return view;
     }
+
+    // MÉTODO MOVIDO FUERA DE onCreateView() - ESTA ES LA CORRECCIÓN PRINCIPAL
+    private void showNotificationTestMenu() {
+        String[] options = {
+                "🚗 Solicitud de viaje",
+                "✅ Viaje completado",
+                "💰 Resumen de ganancias",
+                "📢 Notificación general"
+        };
+
+        new androidx.appcompat.app.AlertDialog.Builder(requireContext())
+                .setTitle("Probar Notificaciones")
+                .setItems(options, (dialog, which) -> {
+                    switch (which) {
+                        case 0: // Solicitud de viaje
+                            if (mockNotificationService != null) {
+                                mockNotificationService.sendRandomTripNotification();
+                            }
+                            break;
+                        case 1: // Viaje completado
+                            addNotification("Viaje completado exitosamente");
+                            break;
+                        case 2: // Ganancias
+                            if (mockNotificationService != null) {
+                                mockNotificationService.sendTestEarningsNotification();
+                            }
+                            break;
+                        case 3: // General
+                            if (mockNotificationService != null) {
+                                mockNotificationService.sendTestGeneralNotification();
+                            }
+                            break;
+                    }
+
+                    // Agregar notificación local también
+                    addNotification("Nueva notificación de prueba: " + options[which]);
+                })
+                .setNegativeButton("Cancelar", null)
+                .show();
+    }
+
     private void showNotificationsDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
         builder.setTitle("Notificaciones");
 
         if (notificationCount > 0) {
-            // Crear una lista de notificaciones de ejemplo
             String[] notifications = new String[notificationCount];
             for (int i = 0; i < notificationCount; i++) {
                 notifications[i] = "Notificación #" + (i+1) + ": Nuevo viaje disponible cerca de tu ubicación.";
@@ -187,15 +230,29 @@ public class DriverMapFragment extends Fragment implements OnMapReadyCallback {
         builder.setNegativeButton("Cerrar", null);
         builder.show();
     }
+
     public void addNotification(String message) {
         notificationCount++;
         updateNotificationBadge();
 
-        // Mostrar una notificación Toast al usuario
+        if (notificationHelper != null) {
+            if (message.contains("viaje") || message.contains("solicitud")) {
+                notificationHelper.showTripRequestNotification(
+                        "Hotel Gran Plaza",
+                        "Carlos Mendoza",
+                        "Av. La Marina 123, San Miguel",
+                        85.50
+                );
+            } else {
+                notificationHelper.showGeneralNotification("Nueva Notificación", message);
+            }
+        }
+
         if (isAdded() && getContext() != null) {
             Toast.makeText(requireContext(), "Nueva notificación: " + message, Toast.LENGTH_SHORT).show();
         }
     }
+
     private void updateNotificationBadge() {
         if (notificationCount > 0) {
             tvNotificationBadge.setVisibility(View.VISIBLE);
@@ -204,7 +261,6 @@ public class DriverMapFragment extends Fragment implements OnMapReadyCallback {
             tvNotificationBadge.setVisibility(View.GONE);
         }
 
-        // También actualizamos el ícono si es necesario
         if (notificationCount > 0) {
             ivNotifications.setImageResource(R.drawable.ic_notification_active);
         } else {
@@ -215,21 +271,33 @@ public class DriverMapFragment extends Fragment implements OnMapReadyCallback {
     private void updateDriverStatus(boolean isAvailable) {
         if (isAvailable) {
             tvEstadoServicio.setText("En servicio");
-            tvEstadoServicio.setTextColor(Color.parseColor("#4CAF50")); // Verde
+            tvEstadoServicio.setTextColor(Color.parseColor("#4CAF50"));
             btnMyLocation.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#4CAF50")));
 
-            // Si está disponible, asegurarse de que las actualizaciones de ubicación están activas
+            if (notificationHelper != null) {
+                notificationHelper.showDriverStatusNotification(true);
+                notificationHelper.showOnlineStatusNotification();
+                mockNotificationService.startMockNotifications();
+            }
         } else {
             tvEstadoServicio.setText("Fuera de servicio");
-            tvEstadoServicio.setTextColor(Color.parseColor("#E53935")); // Rojo
+            tvEstadoServicio.setTextColor(Color.parseColor("#E53935"));
             btnMyLocation.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#E53935")));
+
+            if (notificationHelper != null) {
+                notificationHelper.showDriverStatusNotification(false);
+                notificationHelper.hideOnlineStatusNotification();
+                mockNotificationService.stopMockNotifications();
+            }
+        }
+
+        if (preferenceManager != null) {
+            preferenceManager.setDriverAvailable(isAvailable);
+            preferenceManager.setDriverStatus(isAvailable ? "En servicio" : "Fuera de servicio");
         }
     }
-    private void addNearbyHotels(LatLng driverLocation) {
-        // En una implementación real, estos datos vendrían de tu base de datos o API
-        // Aquí los simularemos con ubicaciones aleatorias cercanas
 
-        // Limpiar marcadores de hoteles anteriores si existen
+    private void addNearbyHotels(LatLng driverLocation) {
         if (hotelMarkers != null) {
             for (Marker marker : hotelMarkers) {
                 marker.remove();
@@ -239,9 +307,7 @@ public class DriverMapFragment extends Fragment implements OnMapReadyCallback {
         hotelMarkers = new ArrayList<>();
         Random random = new Random();
 
-        // Crear algunos hoteles cercanos aleatorios
         for (int i = 0; i < 5; i++) {
-            // Generar ubicación aleatoria dentro del radio de servicio
             double r = SERVICE_RADIUS_METERS * 0.8 * Math.sqrt(random.nextDouble());
             double theta = random.nextDouble() * 2 * Math.PI;
 
@@ -250,7 +316,6 @@ public class DriverMapFragment extends Fragment implements OnMapReadyCallback {
 
             LatLng hotelLocation = new LatLng(lat, lng);
 
-            // Crear marcador para el hotel
             MarkerOptions markerOptions = new MarkerOptions()
                     .position(hotelLocation)
                     .title("Hotel " + (i+1))
@@ -262,27 +327,25 @@ public class DriverMapFragment extends Fragment implements OnMapReadyCallback {
         }
     }
 
-
-
-
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        // Inicializar el mapa
+        preferenceManager = new DriverPreferenceManager(requireContext());
+        notificationHelper = new NotificationHelper(requireContext());
+        mockNotificationService = new MockNotificationService(notificationHelper, preferenceManager);
+
+        loadSavedState();
+
         SupportMapFragment mapFragment = (SupportMapFragment) getChildFragmentManager()
                 .findFragmentById(R.id.map);
         if (mapFragment != null) {
             mapFragment.getMapAsync(this);
         }
 
-        // Inicializar el proveedor de ubicación
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireActivity());
-
-        // Crear solicitud de ubicación
         createLocationRequest();
 
-        // Configurar callback de ubicación
         locationCallback = new LocationCallback() {
             @Override
             public void onLocationResult(LocationResult locationResult) {
@@ -295,16 +358,38 @@ public class DriverMapFragment extends Fragment implements OnMapReadyCallback {
             }
         };
 
-        // Verificar permisos de ubicación
         checkLocationPermission();
     }
 
-    // Dentro de onMapReady en DriverMapFragment
+    private void loadSavedState() {
+        boolean isAvailable = preferenceManager.isDriverAvailable();
+        switchDisponible.setChecked(isAvailable);
+        updateDriverStatus(isAvailable);
+
+        int savedNotificationCount = preferenceManager.getNotificationCount();
+        notificationCount = savedNotificationCount;
+        updateNotificationBadge();
+
+        DriverProfile profile = preferenceManager.getDriverProfile();
+        tvDriverName.setText(profile.getFullName());
+
+        Glide.with(this)
+                .load(profile.getProfileImageUrl())
+                .placeholder(R.drawable.perfil)
+                .circleCrop()
+                .into(ivProfilePhoto);
+    }
+
+    private void saveCurrentState() {
+        preferenceManager.setDriverAvailable(switchDisponible.isChecked());
+        preferenceManager.setDriverStatus(tvEstadoServicio.getText().toString());
+        preferenceManager.setNotificationCount(notificationCount);
+    }
+
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
 
-        // Personalizar el estilo del mapa
         try {
             boolean success = googleMap.setMapStyle(
                     MapStyleOptions.loadRawResourceStyle(
@@ -317,11 +402,9 @@ public class DriverMapFragment extends Fragment implements OnMapReadyCallback {
             Log.e("MapsActivity", "No se puede encontrar el estilo del mapa. Error: ", e);
         }
 
-        // Resto de tu código...
         mMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
         mMap.getUiSettings().setZoomControlsEnabled(false);
 
-        // Si ya tenemos permiso, configurar el mapa para mostrar la ubicación
         if (hasLocationPermission) {
             enableMyLocation();
         }
@@ -333,18 +416,11 @@ public class DriverMapFragment extends Fragment implements OnMapReadyCallback {
         }
 
         try {
-            // Habilitar el botón de "Mi ubicación" del mapa
             mMap.setMyLocationEnabled(true);
-            mMap.getUiSettings().setMyLocationButtonEnabled(false); // Usamos nuestro botón personalizado
-
-            // Obtener ubicación inicial
+            mMap.getUiSettings().setMyLocationButtonEnabled(false);
             getCurrentLocation();
-
-            // Iniciar actualizaciones de ubicación
             startLocationUpdates();
         } catch (SecurityException e) {
-            // Este bloque no debería ejecutarse si hasLocationPermission es true,
-            // pero lo añadimos por seguridad
             hasLocationPermission = false;
             requestLocationPermission();
         }
@@ -361,12 +437,10 @@ public class DriverMapFragment extends Fragment implements OnMapReadyCallback {
                     .addOnSuccessListener(requireActivity(), location -> {
                         if (location != null) {
                             updateLocationOnMap(location);
-                            // Mover cámara a la ubicación actual con zoom adecuado
                             LatLng currentLatLng = new LatLng(location.getLatitude(), location.getLongitude());
                             mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(currentLatLng, 15f));
                             addNearbyHotels(currentLatLng);
                         } else {
-                            // Si no hay última ubicación conocida, forzar actualizaciones para obtenerla
                             Toast.makeText(requireContext(), "Obteniendo ubicación...", Toast.LENGTH_SHORT).show();
                             if (!isLocationUpdatesActive) {
                                 startLocationUpdates();
@@ -387,7 +461,7 @@ public class DriverMapFragment extends Fragment implements OnMapReadyCallback {
         final Handler handler = new Handler();
         final long start = SystemClock.uptimeMillis();
         final LatLng startLatLng = marker.getPosition();
-        final long duration = 500; // duración en milisegundos
+        final long duration = 500;
         final Interpolator interpolator = new LinearInterpolator();
 
         handler.post(new Runnable() {
@@ -400,33 +474,30 @@ public class DriverMapFragment extends Fragment implements OnMapReadyCallback {
                 marker.setPosition(new LatLng(lat, lng));
 
                 if (t < 1.0) {
-                    // Reprogramar la animación
-                    handler.postDelayed(this, 16); // 16ms = ~60fps
+                    handler.postDelayed(this, 16);
                 }
             }
         });
     }
 
-
     private void updateLocationOnMap(Location location) {
         if (mMap != null && location != null) {
             LatLng currentLatLng = new LatLng(location.getLatitude(), location.getLongitude());
 
-            // Actualizar o crear el marcador del taxista
+            if (preferenceManager != null) {
+                preferenceManager.saveDriverLocation(location.getLatitude(), location.getLongitude());
+            }
+
             if (driverMarker == null) {
                 try {
-                    // Usar un icono por defecto en caso de error
                     MarkerOptions markerOptions = new MarkerOptions()
                             .position(currentLatLng)
                             .title("Mi ubicación");
 
-                    // Intentar cargar el icono personalizado
                     try {
-                        // Asegúrate de que este recurso exista y sea un bitmap válido
                         BitmapDescriptor icon = BitmapDescriptorFactory.fromResource(R.drawable.ic_hotelitos_20);
                         markerOptions.icon(icon);
                     } catch (Exception e) {
-                        // Si falla, usar el icono por defecto
                         Log.e("DriverMapFragment", "Error al cargar icono personalizado: " + e.getMessage());
                     }
 
@@ -435,16 +506,13 @@ public class DriverMapFragment extends Fragment implements OnMapReadyCallback {
                     Log.e("DriverMapFragment", "Error al añadir marcador: " + e.getMessage());
                 }
             } else {
-                // Solo actualizar la posición del marcador existente
                 driverMarker.setPosition(currentLatLng);
 
-                // Si tienes la dirección del taxista, puedes rotar el ícono
                 if (location.hasBearing()) {
                     driverMarker.setRotation(location.getBearing());
                 }
             }
 
-            // Centrar el mapa en la ubicación actual si es necesario
             if (shouldCenterCamera) {
                 mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(currentLatLng, 16f));
                 shouldCenterCamera = false;
@@ -452,35 +520,14 @@ public class DriverMapFragment extends Fragment implements OnMapReadyCallback {
         }
     }
 
-    // Agregar una variable de clase para controlar cuándo centrar la cámara
-
-
-// Modificar el método del botón para activar el centrado
-
-
     private void updateDriverLocationInDatabase(LatLng location) {
-        // Aquí implementarías el código para actualizar la ubicación en tu base de datos
-        // Por ejemplo, si usas Firebase:
-        /*
-        String driverId = FirebaseAuth.getInstance().getCurrentUser().getUid();
-        DatabaseReference driverLocationRef = FirebaseDatabase.getInstance().getReference()
-                .child("driversAvailable").child(driverId);
-
-        HashMap<String, Object> driverMap = new HashMap<>();
-        driverMap.put("latitude", location.latitude);
-        driverMap.put("longitude", location.longitude);
-
-        driverLocationRef.updateChildren(driverMap);
-        */
-
-        // Como no has compartido tu implementación de base de datos,
-        // este método queda como un placeholder para que implementes tu lógica específica
+        // Implementar actualización en base de datos
     }
 
     private void createLocationRequest() {
         locationRequest = LocationRequest.create();
-        locationRequest.setInterval(10000); // 10 segundos
-        locationRequest.setFastestInterval(5000); // 5 segundos
+        locationRequest.setInterval(10000);
+        locationRequest.setFastestInterval(5000);
         locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
     }
 
@@ -494,7 +541,7 @@ public class DriverMapFragment extends Fragment implements OnMapReadyCallback {
             fusedLocationClient.requestLocationUpdates(
                     locationRequest,
                     locationCallback,
-                    Looper.getMainLooper() // Usar el Looper principal para recibir callbacks en el hilo principal
+                    Looper.getMainLooper()
             );
             isLocationUpdatesActive = true;
         } catch (SecurityException e) {
@@ -516,7 +563,6 @@ public class DriverMapFragment extends Fragment implements OnMapReadyCallback {
         if (ActivityCompat.checkSelfPermission(requireContext(),
                 Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
 
-            // Solicitar permisos
             requestPermissions(
                     new String[]{
                             Manifest.permission.ACCESS_FINE_LOCATION,
@@ -526,7 +572,6 @@ public class DriverMapFragment extends Fragment implements OnMapReadyCallback {
             );
         } else {
             hasLocationPermission = true;
-            // Si el mapa ya está listo, habilitar la ubicación
             if (mMap != null) {
                 enableMyLocation();
             }
@@ -540,23 +585,18 @@ public class DriverMapFragment extends Fragment implements OnMapReadyCallback {
         );
     }
 
-
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
                                            @NonNull int[] grantResults) {
         if (requestCode == LOCATION_PERMISSION_REQUEST_CODE) {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 hasLocationPermission = true;
-                // Si el mapa ya está listo, habilitar la ubicación
                 if (mMap != null) {
                     enableMyLocation();
                 }
-
-                // Iniciar actualizaciones de ubicación si es necesario
                 startLocationUpdates();
             } else {
                 hasLocationPermission = false;
-                // El usuario ha rechazado el permiso, explicar por qué se necesita
                 Toast.makeText(requireContext(),
                         "Se necesitan permisos de ubicación para mostrar tu posición en el mapa",
                         Toast.LENGTH_LONG).show();
@@ -576,12 +616,15 @@ public class DriverMapFragment extends Fragment implements OnMapReadyCallback {
     public void onPause() {
         super.onPause();
         stopLocationUpdates();
+
+        if (preferenceManager != null) {
+            saveCurrentState();
+        }
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
-        // Asegurarse de que se detienen las actualizaciones de ubicación
         stopLocationUpdates();
     }
 }

@@ -71,6 +71,7 @@ dependencies {
     implementation libs.firebase.messaging
     implementation libs.firebase.database
     implementation libs.room.runtime.android
+    implementation libs.room.common.jvm
     annotationProcessor 'com.github.bumptech.glide:compiler:4.15.1'
     implementation 'de.hdodenhof:circleimageview:3.1.0'
     implementation libs.appcompat

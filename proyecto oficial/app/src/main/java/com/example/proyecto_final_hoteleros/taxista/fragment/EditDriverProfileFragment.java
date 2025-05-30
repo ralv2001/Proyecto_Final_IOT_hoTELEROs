@@ -23,6 +23,7 @@ import com.example.proyecto_final_hoteleros.R;
 import com.example.proyecto_final_hoteleros.adapters.EditProfileAdapter;
 import com.example.proyecto_final_hoteleros.taxista.model.EditProfileItem;
 import com.example.proyecto_final_hoteleros.taxista.model.DriverProfile;
+import com.example.proyecto_final_hoteleros.taxista.utils.DriverPreferenceManager;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.appbar.MaterialToolbar;
 
@@ -48,6 +49,8 @@ public class EditDriverProfileFragment extends Fragment implements
     private ActivityResultLauncher<Intent> profileImageLauncher;
     private ActivityResultLauncher<Intent> carImageLauncher;
 
+    private DriverPreferenceManager preferenceManager;
+
     public EditDriverProfileFragment() {
         // Constructor vacío requerido
     }
@@ -55,6 +58,8 @@ public class EditDriverProfileFragment extends Fragment implements
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        preferenceManager = new DriverPreferenceManager(requireContext());
 
         // Configurar launchers para selección de imágenes
         profileImageLauncher = registerForActivityResult(
@@ -271,22 +276,7 @@ public class EditDriverProfileFragment extends Fragment implements
     }
 
     private DriverProfile getCurrentDriverData() {
-        // Usando tu constructor existente sin modificaciones
-        return new DriverProfile(
-                "driver001",
-                "Renato Delgado Aquino",
-                "renato.delgado@email.com",
-                "+51 987 654 321",
-                "https://png.pngtree.com/png-clipart/20241214/original/pngtree-cat-in-a-suit-and-shirt-png-image_17854633.png",
-                "Av. Lima 123, San Miguel, Lima",
-                "L12345678",
-                true,
-                true,
-                4.8f,
-                127,
-                124,
-                2450.50
-        );
+        return preferenceManager.getDriverProfile();
     }
 
     private String extractFirstName(String fullName) {
@@ -360,13 +350,12 @@ public class EditDriverProfileFragment extends Fragment implements
     private void saveProfile() {
         Log.d(TAG, "Guardando perfil...");
 
-        // Variables para almacenar los valores editables que NO están en tu modelo DriverProfile
         String newPhone = "";
         String newCarModel = "";
         String newProfileImageUrl = currentDriver.getProfileImageUrl();
         String newCarImageUrl = "";
 
-        // Recopilar todos los cambios de los campos editables
+        // Recopilar cambios de los campos editables
         for (EditProfileItem item : profileItems) {
             if (item.getType() == EditProfileItem.EditItemType.EDITABLE_FIELD) {
                 switch (item.getKey()) {
@@ -384,7 +373,6 @@ public class EditDriverProfileFragment extends Fragment implements
         if (selectedProfileImageUri != null) {
             newProfileImageUrl = selectedProfileImageUri.toString();
         }
-
         if (selectedCarImageUri != null) {
             newCarImageUrl = selectedCarImageUri.toString();
         }
@@ -394,22 +382,20 @@ public class EditDriverProfileFragment extends Fragment implements
             Toast.makeText(getContext(), "El teléfono es obligatorio", Toast.LENGTH_SHORT).show();
             return;
         }
-
         if (newCarModel.trim().isEmpty()) {
             Toast.makeText(getContext(), "El modelo del auto es obligatorio", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        // Actualizar solo los campos que existen en tu modelo DriverProfile
+        // Actualizar el perfil del conductor
         currentDriver.setPhoneNumber(newPhone);
         currentDriver.setProfileImageUrl(newProfileImageUrl);
 
-        // Para campos que NO están en tu modelo, los guardas por separado
-        // Puedes usar SharedPreferences, una base de datos local, o enviarlos al servidor
-        saveAdditionalProfileData(newCarModel, newCarImageUrl);
+        // Guardar perfil actualizado en local storage
+        preferenceManager.saveDriverProfile(currentDriver);
 
-        // Guardar en el servidor
-        saveProfileToServer(currentDriver, newCarModel, newCarImageUrl);
+        // Guardar información adicional del vehículo
+        preferenceManager.saveCarInfo(newCarModel, newCarImageUrl, "ABC-123");
 
         Toast.makeText(getContext(), "Perfil actualizado correctamente", Toast.LENGTH_SHORT).show();
 

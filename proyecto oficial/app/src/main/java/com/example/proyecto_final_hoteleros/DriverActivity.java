@@ -1,10 +1,12 @@
 package com.example.proyecto_final_hoteleros;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.os.Looper;
 import android.util.Log;
 import android.view.View;
 import android.widget.LinearLayout;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
@@ -14,6 +16,8 @@ import com.example.proyecto_final_hoteleros.taxista.fragment.DriverHistorialFrag
 import com.example.proyecto_final_hoteleros.taxista.fragment.DriverMapFragment;
 import com.example.proyecto_final_hoteleros.taxista.fragment.DriverPerfilFragment;
 import com.example.proyecto_final_hoteleros.taxista.fragment.DriverViajesFragment;
+import com.example.proyecto_final_hoteleros.taxista.utils.DriverPreferenceManager;
+import com.example.proyecto_final_hoteleros.taxista.utils.NotificationHelper;
 
 public class DriverActivity extends AppCompatActivity {
 
@@ -35,7 +39,20 @@ public class DriverActivity extends AppCompatActivity {
         navHistorial = findViewById(R.id.nav_historial);
         navPerfil = findViewById(R.id.nav_perfil);
 
-        // Configurar listeners
+        // Configurar listeners existentes...
+        setupNavigationListeners();
+
+        // Manejar intents de notificaciones
+        handleNotificationIntent(getIntent());
+
+        // Cargar fragment por defecto si no viene de notificación
+        if (savedInstanceState == null && !handleNotificationIntent(getIntent())) {
+            loadFragment(new DriverMapFragment());
+            lastSelectedNavItem = navMapa;
+            updateSelectedNavItem(navMapa);
+        }
+    }
+    private void setupNavigationListeners() {
         navMapa.setOnClickListener(v -> {
             updateSelectedNavItem(v);
             loadFragment(new DriverMapFragment());
@@ -55,14 +72,81 @@ public class DriverActivity extends AppCompatActivity {
             updateSelectedNavItem(v);
             loadFragment(new DriverPerfilFragment());
         });
+    }
 
-        // Cargar el fragment del mapa por defecto
-        if (savedInstanceState == null) {
-            loadFragment(new DriverMapFragment());
-            // Marcar visualmente el ítem seleccionado
-            lastSelectedNavItem = navMapa;
-            updateSelectedNavItem(navMapa);
+    private boolean handleNotificationIntent(Intent intent) {
+        if (intent != null) {
+            // Manejar fragmento específico desde notificación
+            String openFragment = intent.getStringExtra("open_fragment");
+            if (openFragment != null) {
+                switch (openFragment) {
+                    case "mapa":
+                        loadFragment(new DriverMapFragment());
+                        updateSelectedNavItem(navMapa);
+                        return true;
+                    case "viajes":
+                        loadFragment(new DriverViajesFragment());
+                        updateSelectedNavItem(navViajes);
+                        return true;
+                    case "perfil":
+                        loadFragment(new DriverPerfilFragment());
+                        updateSelectedNavItem(navPerfil);
+                        return true;
+                }
+            }
+
+            // Manejar acciones de notificaciones de viaje
+            String tripAction = intent.getStringExtra("trip_action");
+            if (tripAction != null) {
+                handleTripAction(tripAction);
+                return true;
+            }
+
+            // Manejar acciones de estado
+            String statusAction = intent.getStringExtra("status_action");
+            if (statusAction != null) {
+                handleStatusAction(statusAction);
+                return true;
+            }
         }
+        return false;
+    }
+
+    private void handleTripAction(String action) {
+        // Cargar fragment de viajes y realizar acción
+        loadFragment(new DriverViajesFragment());
+        updateSelectedNavItem(navViajes);
+
+        if ("accept".equals(action)) {
+            // Lógica para aceptar viaje automáticamente
+            // Puedes implementar esto más adelante
+            Toast.makeText(this, "Viaje aceptado desde notificación", Toast.LENGTH_SHORT).show();
+        } else if ("reject".equals(action)) {
+            Toast.makeText(this, "Viaje rechazado desde notificación", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void handleStatusAction(String action) {
+        if ("disconnect".equals(action)) {
+            // Cambiar a fragment de mapa y desconectar
+            loadFragment(new DriverMapFragment());
+            updateSelectedNavItem(navMapa);
+
+            // Desconectar conductor
+            DriverPreferenceManager preferenceManager = new DriverPreferenceManager(this);
+            preferenceManager.setDriverAvailable(false);
+
+            NotificationHelper notificationHelper = new NotificationHelper(this);
+            notificationHelper.hideOnlineStatusNotification();
+
+            Toast.makeText(this, "Te has desconectado", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        handleNotificationIntent(intent);
     }
 
     private void updateSelectedNavItem(View selectedItem) {
