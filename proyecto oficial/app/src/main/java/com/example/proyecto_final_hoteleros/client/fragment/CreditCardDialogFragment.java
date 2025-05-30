@@ -339,14 +339,6 @@ public class CreditCardDialogFragment extends DialogFragment {
                 frontColor = getResources().getColor(R.color.card_mastercard_red);
                 backColor = frontColor;
                 break;
-            case CardUtils.AMEX:
-                frontColor = getResources().getColor(R.color.card_amex_green);
-                backColor = frontColor;
-                break;
-            case CardUtils.DISCOVER:
-                frontColor = getResources().getColor(R.color.card_discover_orange);
-                backColor = frontColor;
-                break;
             default:
                 frontColor = getResources().getColor(R.color.card_default_blue);
                 backColor = frontColor;

@@ -2,6 +2,7 @@ package com.example.proyecto_final_hoteleros.auth.register;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
@@ -692,18 +693,19 @@ public class AddProfilePhotoActivity extends AppCompatActivity {
 
     @Override
     public void onBackPressed() {
-        // Al presionar atrás desde AddProfilePhotoActivity, estamos navegando DENTRO del flujo
-        // NO estamos saliendo del flujo, por lo que MANTENEMOS la foto
-        if (isPhotoSelected && profilePhotoUri != null && tempPhotoPath != null) {
-            // Guardar el estado actual en SharedPreferences para mantener persistencia
-            getSharedPreferences("UserData", MODE_PRIVATE)
-                    .edit()
-                    .putString("photoPath", tempPhotoPath)
-                    .putString("photoUri", profilePhotoUri.toString())
-                    .putBoolean("photoSkipped", false)
-                    .apply();
+        Log.d("AddProfilePhoto", "=== BACK PRESSED EN ADD PROFILE PHOTO ===");
 
-            // También mantener en el ViewModel
+        // Marcar que estamos navegando DENTRO del flujo
+        SharedPreferences prefs = getSharedPreferences("UserData", MODE_PRIVATE);
+        prefs.edit()
+                .putBoolean("navigatingWithinFlow", true)
+                .apply();
+
+        Log.d("AddProfilePhoto", "Flag navigatingWithinFlow establecido - navegando hacia UploadDriverDocuments o RegisterUser");
+
+        // Al presionar atrás desde AddProfilePhotoActivity, estamos navegando DENTRO del flujo
+        if (isPhotoSelected && profilePhotoUri != null && tempPhotoPath != null) {
+            // Mantener la foto en el ViewModel
             if (mViewModel != null) {
                 mViewModel.setHasProfilePhoto(true);
                 mViewModel.setProfilePhotoUri(profilePhotoUri);
@@ -717,13 +719,6 @@ public class AddProfilePhotoActivity extends AppCompatActivity {
             Log.d("AddProfilePhoto", "Navegando hacia atrás sin foto seleccionada");
         }
 
-        // Marcar que estamos navegando DENTRO del flujo para que RegisterUserActivity no limpie
-        getSharedPreferences("UserData", MODE_PRIVATE)
-                .edit()
-                .putBoolean("navigatingWithinFlow", true)
-                .apply();
-
-        // Finalizar esta actividad y regresar a la anterior
         super.onBackPressed();
     }
 

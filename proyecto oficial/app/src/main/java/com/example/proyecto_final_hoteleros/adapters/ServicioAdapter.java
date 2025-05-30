@@ -15,6 +15,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.proyecto_final_hoteleros.R;
 import com.example.proyecto_final_hoteleros.adminhotel.Servicio;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class ServicioAdapter extends RecyclerView.Adapter<ServicioAdapter.ViewHolder> {
@@ -25,6 +26,9 @@ public class ServicioAdapter extends RecyclerView.Adapter<ServicioAdapter.ViewHo
     public ServicioAdapter(List<Servicio> servicios, Context context) {
         this.servicios = servicios;
         this.context = context;
+    }
+
+    public ServicioAdapter(ArrayList<String> servicios) {
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {

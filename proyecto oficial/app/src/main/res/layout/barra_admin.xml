@@ -35,7 +35,7 @@
 
     <!-- Botón Explorar/Reservar -->
     <LinearLayout
-        android:id="@+id/nav_explore"
+        android:id="@+id/nav_hotel"
         android:layout_width="0dp"
         android:layout_height="match_parent"
         android:layout_weight="1"
@@ -49,13 +49,54 @@
             android:layout_width="30dp"
             android:layout_height="30dp"
             android:drawableTint="#FDFDFD"
-            android:src="@drawable/ic_hotel2"
-             />
+            android:src="@drawable/ic_hotel2" />
     </LinearLayout>
 
-    <!-- Botón Chat/Mensajes -->
+    <!-- Botón Chat - NUEVO BOTÓN EN EL MEDIO -->
     <LinearLayout
-        android:id="@+id/nav_chat"
+        android:id="@+id/nav_chat_center"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:clickable="true"
+        android:focusable="true"
+        android:background="?attr/selectableItemBackgroundBorderless">
+
+        <!-- Botón de chat destacado -->
+        <androidx.cardview.widget.CardView
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            app:cardCornerRadius="25dp"
+            app:cardElevation="6dp"
+            android:layout_marginBottom="2dp"
+            app:cardBackgroundColor="#FA5D31">
+
+            <ImageView
+                android:id="@+id/iv_chat_center"
+                android:layout_width="28dp"
+                android:layout_height="28dp"
+                android:layout_gravity="center"
+                android:src="@drawable/ic_chat"
+                app:tint="@android:color/white" />
+
+        </androidx.cardview.widget.CardView>
+
+        <!-- Texto Chat -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Chat"
+            android:textColor="#FA5D31"
+            android:textSize="10sp"
+            android:textStyle="bold" />
+
+    </LinearLayout>
+
+    <!-- Botón Reportes -->
+    <LinearLayout
+        android:id="@+id/nav_reports"
         android:layout_width="0dp"
         android:layout_height="match_parent"
         android:layout_weight="1"
@@ -65,11 +106,11 @@
         android:focusable="true"
         android:background="?attr/selectableItemBackgroundBorderless">
         <ImageView
-            android:id="@+id/iv_chat"
+            android:id="@+id/iv_reports"
             android:layout_width="30dp"
             android:layout_height="30dp"
             android:src="@drawable/ic_reportes"
-             />
+            app:tint="#FDFDFD" />
     </LinearLayout>
 
     <!-- Botón Perfil -->

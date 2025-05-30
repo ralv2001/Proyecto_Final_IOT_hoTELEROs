@@ -47,7 +47,7 @@ public class UploadDriverDocumentsActivity extends AppCompatActivity {
 
     private LinearLayout layoutSelectedFile;
     private TextView tvFileName, tvFileSize, tvUploadStatus;
-    private ProgressBar progressUpload;
+    // private ProgressBar progressUpload; // Ya no se usa en el nuevo diseño
     private Button btnBrowseFile;
     private ImageButton btnDeleteFile;
     private MaterialButton btnContinuar;
@@ -119,15 +119,15 @@ public class UploadDriverDocumentsActivity extends AppCompatActivity {
         tvFileName = findViewById(R.id.tvFileName);
         tvFileSize = findViewById(R.id.tvFileSize);
         tvUploadStatus = findViewById(R.id.tvUploadStatus);
-        progressUpload = findViewById(R.id.progressUpload);
+        // progressUpload = findViewById(R.id.progressUpload); // Ya no se usa en el nuevo diseño
         btnBrowseFile = findViewById(R.id.btnBrowseFile);
         btnDeleteFile = findViewById(R.id.btnDeleteFile);
         btnContinuar = findViewById(R.id.btnContinuar);
         tvSunarpLink = findViewById(R.id.tvSunarpLink);
-        tvLoginTab = findViewById(R.id.tvLoginTab);
-        tvRegisterTab = findViewById(R.id.tvRegisterTab);
-        viewTabIndicatorLogin = findViewById(R.id.viewTabIndicatorLogin);
-        viewTabIndicatorRegister = findViewById(R.id.viewTabIndicatorRegister);
+        //tvLoginTab = findViewById(R.id.tvLoginTab);
+        //tvRegisterTab = findViewById(R.id.tvRegisterTab);
+        //viewTabIndicatorLogin = findViewById(R.id.viewTabIndicatorLogin);
+        //viewTabIndicatorRegister = findViewById(R.id.viewTabIndicatorRegister);
 
         // Configurar botón de volver
         ImageButton btnBack = findViewById(R.id.btnBack);
@@ -144,25 +144,13 @@ public class UploadDriverDocumentsActivity extends AppCompatActivity {
     }
 
     private void setupTabsAndIndicators() {
-        // Configurar clic en pestaña "Iniciar Sesión"
-        tvLoginTab.setOnClickListener(v -> {
-            // Limpiar datos al cambiar a login
-            getSharedPreferences("UserData", MODE_PRIVATE)
-                    .edit()
-                    .remove("photoPath")
-                    .remove("photoUri")
-                    .remove("pdfPath")
-                    .remove("pdfUri")
-                    .remove("email")
-                    .remove("photoSkipped")
-                    .apply();
-
-            // Ir a AuthActivity mostrando la pestaña de login
-            Intent intent = new Intent(UploadDriverDocumentsActivity.this, AuthActivity.class);
-            intent.putExtra("mode", "login");
-            startActivity(intent);
-            finish();
-        });
+        // Ya no se necesita configurar las pestañas
+    /*
+    // Configurar clic en pestaña "Iniciar Sesión"
+    tvLoginTab.setOnClickListener(v -> {
+        // ... código comentado
+    });
+    */
     }
 
     private void setupSunarpLink() {
@@ -385,7 +373,7 @@ public class UploadDriverDocumentsActivity extends AppCompatActivity {
         tvFileSize.setText(fileSize);
         tvUploadStatus.setText("Completado");
         tvUploadStatus.setTextColor(getResources().getColor(android.R.color.holo_green_dark));
-        progressUpload.setProgress(100);
+        // progressUpload.setProgress(100); // Ya no se usa en el nuevo diseño
 
         layoutSelectedFile.setVisibility(View.VISIBLE);
     }
@@ -456,7 +444,7 @@ public class UploadDriverDocumentsActivity extends AppCompatActivity {
 
     private void checkExistingPdfFile() {
         Log.d(TAG, "=== CHECKING EXISTING PDF FILE CON ROOM ===");
-        Log.d(TAG, "Current Registration ID: " + currentRegistrationId);
+        Log.d(TAG, "Registration ID: " + currentRegistrationId);
 
         if (currentRegistrationId == -1) {
             Log.d(TAG, "No registration ID, no PDF to recover");
@@ -480,8 +468,8 @@ public class UploadDriverDocumentsActivity extends AppCompatActivity {
                                 tempPdfFile = file;
                                 pdfUri = Uri.fromFile(file);
 
-                                // Mostrar información del archivo
-                                displayFileInfoFromFile(file);
+                                // Mostrar información del archivo usando los datos de la base de datos
+                                displayFileInfoFromFileEntity(fileEntity);
                                 updateButtonState();
 
                                 Log.d(TAG, "PDF recuperado exitosamente desde Room Database");
@@ -501,30 +489,15 @@ public class UploadDriverDocumentsActivity extends AppCompatActivity {
         );
     }
 
-    private void displayFileInfoFromFile(File file) {
-        String fileName = file.getName();
-        String fileSize = formatSize(file.length());
-
-        tvFileName.setText(fileName);
-        tvFileSize.setText(fileSize);
-        tvUploadStatus.setText("Completado");
-        tvUploadStatus.setTextColor(getResources().getColor(android.R.color.holo_green_dark));
-        progressUpload.setProgress(100);
-
-        layoutSelectedFile.setVisibility(View.VISIBLE);
-
-        Log.d(TAG, "Mostrando info del archivo: " + fileName + " (" + fileSize + ")");
-    }
-
     private void displayFileInfoFromFileEntity(FileStorageEntity fileEntity) {
         String fileName = fileEntity.originalName;
         String fileSize = formatSize(fileEntity.fileSize);
 
         tvFileName.setText(fileName);
-        tvFileSize.setText(fileSize);
+        tvFileSize.setText(fileSize + " of " + fileSize + " •"); // Incluir el bullet point
         tvUploadStatus.setText("Completado");
         tvUploadStatus.setTextColor(getResources().getColor(android.R.color.holo_green_dark));
-        progressUpload.setProgress(100);
+        // progressUpload.setProgress(100); // Ya no se usa
 
         layoutSelectedFile.setVisibility(View.VISIBLE);
 
@@ -578,54 +551,86 @@ public class UploadDriverDocumentsActivity extends AppCompatActivity {
 
     @Override
     public void onBackPressed() {
-        // Al volver atrás desde UploadDriverDocuments hacia RegisterUserActivity,
-        // estamos navegando DENTRO del flujo, por lo que NO limpiamos la foto ni el PDF
-
-        // Asegurar que el PDF se mantenga en SharedPreferences
-        if (tempPdfFile != null && tempPdfFile.exists() && pdfUri != null) {
-            getSharedPreferences("UserData", MODE_PRIVATE)
-                    .edit()
-                    .putString("pdfPath", tempPdfFile.getAbsolutePath())
-                    .putString("pdfUri", pdfUri.toString())
-                    .apply();
-        }
+        Log.d(TAG, "=== BACK PRESSED EN UPLOAD DRIVER DOCUMENTS ===");
 
         // Marcar que estamos navegando DENTRO del flujo
-        getSharedPreferences("UserData", MODE_PRIVATE)
-                .edit()
+        SharedPreferences prefs = getSharedPreferences("UserData", MODE_PRIVATE);
+        prefs.edit()
                 .putBoolean("navigatingWithinFlow", true)
                 .apply();
 
-        Log.d("UploadDriverDocuments", "Navegando hacia atrás DENTRO del flujo - foto y PDF mantenidos");
+        Log.d(TAG, "Flag navigatingWithinFlow establecido - navegando hacia RegisterUser");
 
-        super.onBackPressed();
+        // Verificar estado del PDF antes de regresar
+        if (currentRegistrationId != -1) {
+            fileStorageRepository.getFileByRegistrationIdAndType(
+                    currentRegistrationId,
+                    FileStorageEntity.FILE_TYPE_PDF,
+                    new FileStorageRepository.FileOperationCallback() {
+                        @Override
+                        public void onSuccess(FileStorageEntity fileEntity) {
+                            Log.d(TAG, "PDF confirmado antes de regresar: " + fileEntity.storedPath);
+                            // Verificar que el archivo físico existe
+                            File physicalFile = new File(fileEntity.storedPath);
+                            Log.d(TAG, "Archivo físico existe: " + physicalFile.exists());
+
+                            runOnUiThread(() -> {
+                                UploadDriverDocumentsActivity.super.onBackPressed();
+                            });
+                        }
+
+                        @Override
+                        public void onError(String error) {
+                            Log.w(TAG, "No hay PDF guardado al regresar: " + error);
+                            runOnUiThread(() -> {
+                                UploadDriverDocumentsActivity.super.onBackPressed();
+                            });
+                        }
+                    }
+            );
+        } else {
+            super.onBackPressed();
+        }
     }
 
     @Override
     protected void onDestroy() {
-        // Si la aplicación se cierra sin completar el registro, eliminar archivos temporales
+        // IMPORTANTE: NO eliminar archivos cuando navegamos dentro del flujo
+        // Solo eliminar si realmente estamos saliendo de la aplicación sin completar el registro
+
         if (isFinishing() && !isChangingConfigurations()) {
-            cleanupTemporaryFiles();
+            // Verificar si estamos navegando dentro del flujo
+            SharedPreferences prefs = getSharedPreferences("UserData", MODE_PRIVATE);
+            boolean navigatingWithinFlow = prefs.getBoolean("navigatingWithinFlow", false);
+
+            if (!navigatingWithinFlow) {
+                Log.d(TAG, "Saliendo completamente del flujo - limpiando archivos temporales");
+                cleanupTemporaryFiles();
+            } else {
+                Log.d(TAG, "Navegando dentro del flujo - manteniendo archivos");
+            }
         }
         super.onDestroy();
     }
 
     private void cleanupTemporaryFiles() {
-        // Solo eliminamos los archivos temporales si estamos saliendo del flujo de registro
-        // No cuando estamos rotando la pantalla o navegando en el flujo
-        boolean isExitingRegistrationFlow = isFinishing() && !isChangingConfigurations();
+        // Solo limpiar archivos de caché temporal, NO los archivos permanentes de Room
+        Log.d(TAG, "Limpiando solo archivos de caché temporal");
 
-        if (isExitingRegistrationFlow) {
-            if (tempPdfFile != null && tempPdfFile.exists()) {
-                tempPdfFile.delete();
+        // Limpiar solo archivos en getCacheDir(), NO en getFilesDir()
+        File cacheDir = getCacheDir();
+        if (cacheDir.exists()) {
+            File[] cacheFiles = cacheDir.listFiles();
+            if (cacheFiles != null) {
+                for (File file : cacheFiles) {
+                    if (file.getName().contains("pdf_") || file.getName().contains("temp")) {
+                        boolean deleted = file.delete();
+                        Log.d(TAG, "Archivo de caché eliminado: " + file.getName() + " (" + deleted + ")");
+                    }
+                }
             }
-
-            // Limpiar SharedPreferences
-            SharedPreferences prefs = getSharedPreferences("UserData", MODE_PRIVATE);
-            prefs.edit()
-                    .remove("pdfPath")
-                    .remove("pdfUri")
-                    .apply();
         }
+
+        // NO eliminar SharedPreferences aquí - se hace en otros lugares apropiados
     }
 }
