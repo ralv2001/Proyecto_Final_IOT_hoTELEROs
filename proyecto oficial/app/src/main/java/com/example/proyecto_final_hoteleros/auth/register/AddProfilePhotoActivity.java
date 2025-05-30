@@ -232,10 +232,12 @@ public class AddProfilePhotoActivity extends AppCompatActivity {
                                 @Override
                                 public void onError(String error) {
                                     Log.d("AddProfilePhoto", "No había foto para eliminar: " + error);
-                                    // Limpiar la foto de la UI y variables locales
-                                    resetPhotoState(true);
-                                    // Proceder con el registro sin foto
-                                    completeRegistration();
+                                    runOnUiThread(() -> {
+                                        // Limpiar la foto de la UI y variables locales
+                                        resetPhotoState(true);
+                                        // Proceder con el registro sin foto
+                                        completeRegistration();
+                                    });
                                 }
                             }
                     );
