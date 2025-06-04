@@ -1,4 +1,4 @@
-package com.example.proyecto_final_hoteleros.adapters;
+package com.example.proyecto_final_hoteleros.taxista.adapters;
 
 import android.content.Context;
 import android.view.LayoutInflater;

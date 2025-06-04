@@ -1,17 +1,15 @@
-package com.example.proyecto_final_hoteleros;
+package com.example.proyecto_final_hoteleros.taxista.activity;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.os.Looper;
-import android.util.Log;
 import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentTransaction;
 
+import com.example.proyecto_final_hoteleros.R;
 import com.example.proyecto_final_hoteleros.taxista.fragment.DriverHistorialFragment;
 import com.example.proyecto_final_hoteleros.taxista.fragment.DriverMapFragment;
 import com.example.proyecto_final_hoteleros.taxista.fragment.DriverPerfilFragment;

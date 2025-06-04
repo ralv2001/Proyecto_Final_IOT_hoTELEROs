@@ -13,14 +13,13 @@ import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
-import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.proyecto_final_hoteleros.R;
-import com.example.proyecto_final_hoteleros.adapters.EditProfileAdapter;
+import com.example.proyecto_final_hoteleros.taxista.adapters.EditProfileAdapter;
 import com.example.proyecto_final_hoteleros.taxista.model.EditProfileItem;
 import com.example.proyecto_final_hoteleros.taxista.model.DriverProfile;
 import com.example.proyecto_final_hoteleros.taxista.utils.DriverPreferenceManager;

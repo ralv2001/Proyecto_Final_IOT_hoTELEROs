@@ -19,13 +19,11 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.proyecto_final_hoteleros.R;
-import com.example.proyecto_final_hoteleros.adapters.ViajesAdapter;
+import com.example.proyecto_final_hoteleros.taxista.adapters.ViajesAdapter;
 import com.example.proyecto_final_hoteleros.taxista.model.SolicitudViaje;
 import com.example.proyecto_final_hoteleros.taxista.utils.DriverPreferenceManager;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
-import com.example.proyecto_final_hoteleros.taxista.fragment.TripDetailsFragment;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.List;
 

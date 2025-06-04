@@ -7,12 +7,11 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.BitmapFactory;
 import android.media.RingtoneManager;
-import android.net.Uri;
 import android.os.Build;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
-import com.example.proyecto_final_hoteleros.taxista.utils.NotificationHelper;
-import com.example.proyecto_final_hoteleros.DriverActivity;
+
+import com.example.proyecto_final_hoteleros.taxista.activity.DriverActivity;
 import com.example.proyecto_final_hoteleros.R;
 
 public class NotificationHelper {

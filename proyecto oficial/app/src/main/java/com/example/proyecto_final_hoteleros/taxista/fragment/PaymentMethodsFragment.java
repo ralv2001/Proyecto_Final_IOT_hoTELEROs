@@ -17,7 +17,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.proyecto_final_hoteleros.R;
-import com.example.proyecto_final_hoteleros.adapters.PaymentMethodsAdapter;
+import com.example.proyecto_final_hoteleros.taxista.adapters.PaymentMethodsAdapter;
 import com.example.proyecto_final_hoteleros.taxista.model.PaymentMethod;
 import com.example.proyecto_final_hoteleros.taxista.utils.DriverPreferenceManager;
 import com.google.android.material.appbar.MaterialToolbar;

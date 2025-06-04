@@ -7,6 +7,7 @@ import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import com.example.proyecto_final_hoteleros.client.activity.HomeActivity;
+import com.example.proyecto_final_hoteleros.taxista.activity.DriverActivity;
 import com.example.proyecto_final_hoteleros.utils.DatabaseTestHelper;
 
 import androidx.activity.EdgeToEdge;

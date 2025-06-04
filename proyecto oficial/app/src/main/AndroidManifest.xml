@@ -64,7 +64,7 @@
 
         <!-- Actividad del Taxista -->
         <activity
-            android:name=".DriverActivity"
+            android:name=".taxista.activity.DriverActivity"
             android:exported="false" />
 
         <!-- ========== ACTIVIDADES DE AUTENTICACIÓN (TUS CAMBIOS) ========== -->
