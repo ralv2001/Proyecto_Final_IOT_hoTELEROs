@@ -16,6 +16,7 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 import com.example.proyecto_final_hoteleros.adminhotel.AdminHotelActivity;
+import com.example.proyecto_final_hoteleros.utils.FirebaseTestHelper;
 import com.google.android.material.button.MaterialButton;
 import com.google.firebase.FirebaseApp;
 
@@ -72,12 +73,21 @@ public class MainActivity extends AppCompatActivity {
         layoutContinueAsSuperadmin.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // Ejecutar tests de base de datos
+                // Ejecutar tests de base de datos (Room)
                 DatabaseTestHelper testHelper = new DatabaseTestHelper(MainActivity.this);
                 testHelper.runDatabaseTests();
                 testHelper.testNotifications(MainActivity.this);
 
-                Toast.makeText(MainActivity.this, "Tests ejecutados - Ver logs", Toast.LENGTH_LONG).show();
+                // ========== NUEVO: TESTS DE FIREBASE ==========
+                FirebaseTestHelper firebaseTestHelper = new FirebaseTestHelper(MainActivity.this);
+                firebaseTestHelper.runAllTests();
+
+                // Test especial para taxistas (después de 8 segundos)
+                new android.os.Handler().postDelayed(() -> {
+                    firebaseTestHelper.testDriverRegistration();
+                }, 8000);
+
+                Toast.makeText(MainActivity.this, "Tests de Room + Firebase ejecutados - Ver logs", Toast.LENGTH_LONG).show();
             }
         });
 

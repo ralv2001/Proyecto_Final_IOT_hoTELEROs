@@ -24,12 +24,21 @@ import com.google.android.material.button.MaterialButton;
 import com.example.proyecto_final_hoteleros.repository.UserRegistrationRepository;
 import com.example.proyecto_final_hoteleros.database.entities.UserRegistrationEntity;
 
+// ========== NUEVOS IMPORTS FIREBASE ==========
+import com.example.proyecto_final_hoteleros.utils.FirebaseManager;
+import com.example.proyecto_final_hoteleros.models.UserModel;
+
 public class RegisterVerifyCodeFragment extends Fragment {
+
+    private static final String TAG = "RegisterVerifyCodeFragment";
 
     private EditText etCode1, etCode2, etCode3, etCode4, etCode5;
     private MaterialButton btnRegister;
     private TextView tvEmailSent, tvResendCode;
     private String email;
+
+    // ========== FIREBASE ==========
+    private FirebaseManager firebaseManager;
 
     public static RegisterVerifyCodeFragment newInstance(String email) {
         RegisterVerifyCodeFragment fragment = new RegisterVerifyCodeFragment();
@@ -44,10 +53,13 @@ public class RegisterVerifyCodeFragment extends Fragment {
                              @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.sistema_fragment_verify_code, container, false);
 
+        // ========== INICIALIZAR FIREBASE ==========
+        firebaseManager = FirebaseManager.getInstance();
+
         // Obtener el email de los argumentos
         if (getArguments() != null) {
             email = getArguments().getString("email", "");
-            Log.d("VerifyCodeFragment", "Email from arguments: " + email);
+            Log.d(TAG, "Email from arguments: " + email);
         }
 
         // Inicializar vistas
@@ -69,10 +81,10 @@ public class RegisterVerifyCodeFragment extends Fragment {
         // Configurar el texto del email enmascarado
         if (!email.isEmpty()) {
             String maskedEmail = maskEmail(email);
-            Log.d("VerifyCodeFragment", "Masked email: " + maskedEmail);
+            Log.d(TAG, "Masked email: " + maskedEmail);
             tvEmailSent.setText("Hemos enviado un código a " + maskedEmail);
         } else {
-            Log.e("VerifyCodeFragment", "Email is empty!");
+            Log.e(TAG, "Email is empty!");
         }
 
         // Configurar el focus automático
@@ -82,7 +94,7 @@ public class RegisterVerifyCodeFragment extends Fragment {
         btnRegister.setOnClickListener(v -> {
             String code = getCompleteCode();
             if (code.length() == 5) {
-                verifyCode(code);
+                verifyCodeAndRegister(code);
             } else {
                 Toast.makeText(getContext(), "Por favor, ingrese el código completo", Toast.LENGTH_SHORT).show();
             }
@@ -105,8 +117,8 @@ public class RegisterVerifyCodeFragment extends Fragment {
                     userType = getArguments().getString("userType", "client");
                 }
 
-                Log.d("VerifyCodeFragment", "Navegando de vuelta a AddProfilePhoto");
-                Log.d("VerifyCodeFragment", "RegistrationId: " + registrationId + ", UserType: " + userType);
+                Log.d(TAG, "Navegando de vuelta a AddProfilePhoto");
+                Log.d(TAG, "RegistrationId: " + registrationId + ", UserType: " + userType);
 
                 // Navegar específicamente a AddProfilePhotoActivity
                 Intent intent = new Intent(getActivity(), AddProfilePhotoActivity.class);
@@ -129,7 +141,7 @@ public class RegisterVerifyCodeFragment extends Fragment {
         // Obtener el email de los argumentos
         if (getArguments() != null) {
             email = getArguments().getString("email", "");
-            Log.d("VerifyCodeFragment", "Email recibido: " + email);
+            Log.d(TAG, "Email recibido: " + email);
 
             // Actualizar el texto inmediatamente
             if (tvEmailSent != null && !email.isEmpty()) {
@@ -207,7 +219,7 @@ public class RegisterVerifyCodeFragment extends Fragment {
 
         // Verificar si el correo tiene formato válido
         if (!email.contains("@")) {
-            Log.e("VerifyCode", "Email inválido (sin @): " + email);
+            Log.e(TAG, "Email inválido (sin @): " + email);
             return email;
         }
 
@@ -215,7 +227,7 @@ public class RegisterVerifyCodeFragment extends Fragment {
         String username = email.substring(0, atIndex);
         String domain = email.substring(atIndex); // Incluye el @
 
-        Log.d("VerifyCode", "Username: " + username + ", Domain: " + domain);
+        Log.d(TAG, "Username: " + username + ", Domain: " + domain);
 
         // Solo mostrar el primer carácter del nombre de usuario
         if (username.length() > 0) {
@@ -225,74 +237,201 @@ public class RegisterVerifyCodeFragment extends Fragment {
         }
     }
 
-    private void verifyCode(String code) {
+    // ========== NUEVO MÉTODO CON FIREBASE ==========
+    private void verifyCodeAndRegister(String code) {
+        Log.d(TAG, "=== INICIANDO VERIFICACIÓN Y REGISTRO CON FIREBASE ===");
+
         // TODO: Implementar la validación real del código
         // Por ahora, cualquier código de 5 dígitos se considera válido para testing
         if (code.length() == 5) {
-            // Mostrar mensaje de éxito
-            Toast.makeText(getContext(), "Código verificado correctamente", Toast.LENGTH_SHORT).show();
+            // Mostrar loading
+            btnRegister.setEnabled(false);
+            btnRegister.setText("Registrando...");
 
-            // Navegar a la pantalla de registro exitoso
-            navigateToRegisterSuccess();
+            // Obtener datos del registro desde Room
+            getRegistrationDataAndRegisterInFirebase();
         } else {
-            // TODO: Implementar lógica cuando el código está incorrecto
             Toast.makeText(getContext(), "Código incorrecto. Por favor, inténtelo de nuevo.", Toast.LENGTH_SHORT).show();
         }
     }
 
-    private void navigateToRegisterSuccess() {
-        if (getActivity() != null) {
-            // Obtener registrationId si está disponible
-            int registrationId = -1;
-            if (getArguments() != null && getArguments().containsKey("registrationId")) {
-                registrationId = getArguments().getInt("registrationId", -1);
-            }
+    private void getRegistrationDataAndRegisterInFirebase() {
+        // Obtener registrationId si está disponible
+        int registrationId = -1;
+        if (getArguments() != null && getArguments().containsKey("registrationId")) {
+            registrationId = getArguments().getInt("registrationId", -1);
+        }
 
-            String userType = "client"; // Valor por defecto
+        String userType = "client"; // Valor por defecto
 
-            if (registrationId != -1) {
-                // Si tenemos registrationId, obtener datos desde Room
-                UserRegistrationRepository repository = new UserRegistrationRepository(getActivity());
-                repository.getUserRegistrationById(registrationId, new UserRegistrationRepository.RegistrationCallback() {
-                    @Override
-                    public void onSuccess(UserRegistrationEntity registration) {
-                        if (getActivity() != null) {
-                            getActivity().runOnUiThread(() -> {
-                                Log.d("VerifyCodeFragment", "UserType desde Room Database: " + registration.userType);
-
-                                Intent intent = new Intent(getActivity(), RegisterSuccessActivity.class);
-                                intent.putExtra("userType", registration.userType);
-                                intent.putExtra("registrationId", registration.id);
-                                intent.putExtra("userName", registration.nombres + " " + registration.apellidos);
-                                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                                startActivity(intent);
-                                getActivity().finish();
-                            });
-                        }
+        if (registrationId != -1) {
+            // Si tenemos registrationId, obtener datos desde Room
+            UserRegistrationRepository repository = new UserRegistrationRepository(getActivity());
+            repository.getUserRegistrationById(registrationId, new UserRegistrationRepository.RegistrationCallback() {
+                @Override
+                public void onSuccess(UserRegistrationEntity registration) {
+                    if (getActivity() != null) {
+                        getActivity().runOnUiThread(() -> {
+                            Log.d(TAG, "✅ Datos obtenidos desde Room Database");
+                            registerUserInFirebase(registration);
+                        });
                     }
+                }
 
-                    @Override
-                    public void onError(String error) {
-                        Log.e("VerifyCodeFragment", "Error obteniendo registro desde Room: " + error);
-                        // Fallback al método anterior
-                        proceedWithFallbackMethod();
-                    }
-                });
-            } else {
-                // Fallback al método anterior si no hay registrationId
-                proceedWithFallbackMethod();
-            }
+                @Override
+                public void onError(String error) {
+                    Log.e(TAG, "❌ Error obteniendo registro desde Room: " + error);
+                    // Fallback al método anterior
+                    proceedWithFallbackRegistration();
+                }
+            });
+        } else {
+            // Fallback al método anterior si no hay registrationId
+            proceedWithFallbackRegistration();
         }
     }
 
-    private void proceedWithFallbackMethod() {
+    private void registerUserInFirebase(UserRegistrationEntity registration) {
+        Log.d(TAG, "=== REGISTRANDO EN FIREBASE ===");
+        Log.d(TAG, "Email: " + registration.email);
+        Log.d(TAG, "UserType: " + registration.userType);
+        Log.d(TAG, "Nombre: " + registration.nombres + " " + registration.apellidos);
+
+        // Crear UserModel desde UserRegistrationEntity
+        UserModel userModel = new UserModel();
+        userModel.setUserType(registration.userType);
+        userModel.setNombres(registration.nombres);
+        userModel.setApellidos(registration.apellidos);
+        userModel.setEmail(registration.email);
+        userModel.setFechaNacimiento(registration.fechaNacimiento);
+        userModel.setTelefono(registration.telefono);
+        userModel.setTipoDocumento(registration.tipoDocumento);
+        userModel.setNumeroDocumento(registration.numeroDocumento);
+        userModel.setDireccion(registration.direccion);
+        userModel.setPlacaVehiculo(registration.placaVehiculo);
+
+        // Registrar usuario en Firebase Auth
+        firebaseManager.registerUser(registration.email, registration.password, new FirebaseManager.AuthCallback() {
+            @Override
+            public void onSuccess(String userId) {
+                Log.d(TAG, "✅ Usuario registrado en Firebase Auth: " + userId);
+
+                // Agregar userId al modelo
+                userModel.setUserId(userId);
+
+                // Guardar datos en Firestore
+                saveUserDataInFirestore(userModel, registration);
+            }
+
+            @Override
+            public void onError(String error) {
+                Log.e(TAG, "❌ Error registrando en Firebase Auth: " + error);
+
+                if (getActivity() != null) {
+                    getActivity().runOnUiThread(() -> {
+                        btnRegister.setEnabled(true);
+                        btnRegister.setText("Registrarse");
+
+                        String userFriendlyError = translateFirebaseError(error);
+                        Toast.makeText(getContext(), userFriendlyError, Toast.LENGTH_LONG).show();
+                    });
+                }
+            }
+        });
+    }
+
+    private void saveUserDataInFirestore(UserModel userModel, UserRegistrationEntity registration) {
+        Log.d(TAG, "=== GUARDANDO DATOS EN FIRESTORE ===");
+
+        if ("driver".equals(userModel.getUserType())) {
+            // Para taxistas: guardar en colección de pendientes
+            firebaseManager.savePendingDriver(userModel.getUserId(), userModel, new FirebaseManager.DataCallback() {
+                @Override
+                public void onSuccess() {
+                    Log.d(TAG, "✅ Taxista guardado en pending_drivers");
+                    onRegistrationComplete(userModel, registration);
+                }
+
+                @Override
+                public void onError(String error) {
+                    Log.e(TAG, "❌ Error guardando taxista: " + error);
+                    handleFirestoreError(error);
+                }
+            });
+        } else {
+            // Para clientes: guardar directamente en users
+            firebaseManager.saveUserData(userModel.getUserId(), userModel, new FirebaseManager.DataCallback() {
+                @Override
+                public void onSuccess() {
+                    Log.d(TAG, "✅ Cliente guardado en users");
+                    onRegistrationComplete(userModel, registration);
+                }
+
+                @Override
+                public void onError(String error) {
+                    Log.e(TAG, "❌ Error guardando cliente: " + error);
+                    handleFirestoreError(error);
+                }
+            });
+        }
+    }
+
+    private void onRegistrationComplete(UserModel userModel, UserRegistrationEntity registration) {
+        Log.d(TAG, "🎉 REGISTRO COMPLETADO EXITOSAMENTE");
+
+        if (getActivity() != null) {
+            getActivity().runOnUiThread(() -> {
+                // Mostrar mensaje de éxito
+                Toast.makeText(getContext(), "¡Registro completado exitosamente!", Toast.LENGTH_SHORT).show();
+
+                // Navegar a la pantalla de éxito
+                Intent intent = new Intent(getActivity(), RegisterSuccessActivity.class);
+                intent.putExtra("userType", userModel.getUserType());
+                intent.putExtra("registrationId", registration.id);
+                intent.putExtra("userName", userModel.getFullName());
+                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                startActivity(intent);
+                getActivity().finish();
+            });
+        }
+    }
+
+    private void handleFirestoreError(String error) {
+        if (getActivity() != null) {
+            getActivity().runOnUiThread(() -> {
+                btnRegister.setEnabled(true);
+                btnRegister.setText("Registrarse");
+
+                Toast.makeText(getContext(),
+                        "Error guardando datos: " + error, Toast.LENGTH_LONG).show();
+            });
+        }
+    }
+
+    private String translateFirebaseError(String error) {
+        if (error == null) return "Error desconocido";
+
+        if (error.contains("email-already-in-use")) {
+            return "Este correo electrónico ya está registrado. Por favor, usa otro correo o inicia sesión.";
+        } else if (error.contains("weak-password")) {
+            return "La contraseña es muy débil. Debe tener al menos 6 caracteres.";
+        } else if (error.contains("invalid-email")) {
+            return "El formato del correo electrónico no es válido.";
+        } else if (error.contains("network-request-failed")) {
+            return "Error de conexión. Verifica tu conexión a internet e inténtalo de nuevo.";
+        } else {
+            return "Error en el registro: " + error;
+        }
+    }
+
+    private void proceedWithFallbackRegistration() {
         if (getActivity() != null) {
             String userType = "client"; // Valor por defecto
 
             // Intentar obtener desde argumentos
             if (getArguments() != null && getArguments().containsKey("userType")) {
                 userType = getArguments().getString("userType", "client");
-                Log.d("VerifyCodeFragment", "UserType from arguments: " + userType);
+                Log.d(TAG, "UserType from arguments: " + userType);
             }
             // Intentar desde ViewModel
             else {
@@ -301,10 +440,10 @@ public class RegisterVerifyCodeFragment extends Fragment {
                     String vmUserType = viewModel.getUserType();
                     if (vmUserType != null && !vmUserType.isEmpty()) {
                         userType = vmUserType;
-                        Log.d("VerifyCodeFragment", "UserType from ViewModel: " + userType);
+                        Log.d(TAG, "UserType from ViewModel: " + userType);
                     }
                 } catch (Exception e) {
-                    Log.e("VerifyCodeFragment", "Error getting userType from ViewModel", e);
+                    Log.e(TAG, "Error getting userType from ViewModel", e);
                 }
             }
 
@@ -314,18 +453,20 @@ public class RegisterVerifyCodeFragment extends Fragment {
                         .getString("userType", "client");
                 if (!"client".equals(spUserType)) {
                     userType = spUserType;
-                    Log.d("VerifyCodeFragment", "UserType from SharedPreferences: " + userType);
+                    Log.d(TAG, "UserType from SharedPreferences: " + userType);
                 }
             }
 
-            Log.d("VerifyCodeFragment", "Final userType being sent to RegisterSuccessActivity: " + userType);
+            Log.d(TAG, "Final userType being sent to RegisterSuccessActivity: " + userType);
 
-            Intent intent = new Intent(getActivity(), RegisterSuccessActivity.class);
-            intent.putExtra("userType", userType);
-            intent.putExtra("userName", "Usuario"); // Valor por defecto para el fallback
-            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-            startActivity(intent);
-            getActivity().finish();
+            // FALLBACK: Por ahora, mostrar mensaje de que necesitamos implementar Firebase
+            getActivity().runOnUiThread(() -> {
+                btnRegister.setEnabled(true);
+                btnRegister.setText("Registrarse");
+
+                Toast.makeText(getContext(),
+                        "Funcionalidad en desarrollo. Contacta al administrador.", Toast.LENGTH_LONG).show();
+            });
         }
     }
 

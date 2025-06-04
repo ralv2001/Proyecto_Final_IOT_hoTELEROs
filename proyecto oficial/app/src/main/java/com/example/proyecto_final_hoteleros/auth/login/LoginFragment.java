@@ -11,6 +11,7 @@ import androidx.fragment.app.Fragment;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.text.method.PasswordTransformationMethod;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -21,6 +22,9 @@ import android.widget.TextView;
 import android.widget.Toast;
 import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
+
+import com.example.proyecto_final_hoteleros.utils.FirebaseManager;
+import com.example.proyecto_final_hoteleros.models.UserModel;
 
 import com.example.proyecto_final_hoteleros.AuthActivity;
 import com.example.proyecto_final_hoteleros.R;
@@ -223,14 +227,91 @@ public class LoginFragment extends Fragment {
         }
 
         // El resto del métodito se mantiene igual
-        // Simulación de login (para demostración)
-        if (email.equals("luchito@stuardiño.com") && password.equals("password")) {
-            Toast.makeText(getContext(), "Inicio de sesión exitoso", Toast.LENGTH_SHORT).show();
-            tvErrorMessage.setVisibility(View.INVISIBLE);
-            // Implementar navegación a la siguiente pantalla
-        } else {
-            tvErrorMessage.setVisibility(View.VISIBLE);
-        }
+        // ========== LOGIN CON FIREBASE ==========
+        FirebaseManager firebaseManager = FirebaseManager.getInstance();
+
+// Deshabilitar botón mientras se procesa
+        btnContinue.setEnabled(false);
+        btnContinue.setText("Iniciando sesión...");
+        btnContinue.setAlpha(0.6f);
+
+        firebaseManager.loginUser(email, password, new FirebaseManager.AuthCallback() {
+            @Override
+            public void onSuccess(String userId) {
+                Log.d("LoginFragment", "✅ Login exitoso: " + userId);
+
+                // Obtener datos del usuario desde Firestore
+                firebaseManager.getUserData(userId, new FirebaseManager.UserCallback() {
+                    @Override
+                    public void onUserFound(UserModel user) {
+                        if (getActivity() != null) {
+                            getActivity().runOnUiThread(() -> {
+                                Log.d("LoginFragment", "✅ Datos del usuario obtenidos: " + user.getFullName());
+
+                                Toast.makeText(getContext(),
+                                        "¡Bienvenido " + user.getNombres() + "!", Toast.LENGTH_SHORT).show();
+
+                                tvErrorMessage.setVisibility(View.INVISIBLE);
+
+                                // TODO: Navegar a la pantalla principal según el tipo de usuario
+                                if (user.isDriver()) {
+                                    // Navegar a pantalla de taxista
+                                    Toast.makeText(getContext(), "Navegando a pantalla de taxista...", Toast.LENGTH_SHORT).show();
+                                } else {
+                                    // Navegar a pantalla de cliente
+                                    Toast.makeText(getContext(), "Navegando a pantalla de cliente...", Toast.LENGTH_SHORT).show();
+                                }
+
+                                // Restaurar botón
+                                resetLoginButton();
+                            });
+                        }
+                    }
+
+                    @Override
+                    public void onUserNotFound() {
+                        if (getActivity() != null) {
+                            getActivity().runOnUiThread(() -> {
+                                Log.w("LoginFragment", "⚠️ Usuario autenticado pero sin datos en Firestore");
+                                Toast.makeText(getContext(),
+                                        "Error: Datos de usuario no encontrados", Toast.LENGTH_SHORT).show();
+                                resetLoginButton();
+                            });
+                        }
+                    }
+
+                    @Override
+                    public void onError(String error) {
+                        if (getActivity() != null) {
+                            getActivity().runOnUiThread(() -> {
+                                Log.e("LoginFragment", "❌ Error obteniendo datos: " + error);
+                                Toast.makeText(getContext(),
+                                        "Error obteniendo datos del usuario", Toast.LENGTH_SHORT).show();
+                                resetLoginButton();
+                            });
+                        }
+                    }
+                });
+            }
+
+            @Override
+            public void onError(String error) {
+                if (getActivity() != null) {
+                    getActivity().runOnUiThread(() -> {
+                        Log.e("LoginFragment", "❌ Error en login: " + error);
+
+                        // Mostrar mensaje de error amigable
+                        String userFriendlyError = translateFirebaseError(error);
+                        Toast.makeText(getContext(), userFriendlyError, Toast.LENGTH_LONG).show();
+
+                        tvErrorMessage.setText(userFriendlyError);
+                        tvErrorMessage.setVisibility(View.VISIBLE);
+
+                        resetLoginButton();
+                    });
+                }
+            }
+        });
     }
 
     // Añadir justo antes del último corchete de cierre de la clase
@@ -262,6 +343,32 @@ public class LoginFragment extends Fragment {
 
         // Si pasa todas las validaciones, eliminar error
         etEmail.setError(null);
+    }
+
+    private void resetLoginButton() {
+        btnContinue.setEnabled(true);
+        btnContinue.setText("Continuar");
+        btnContinue.setAlpha(1.0f);
+    }
+
+    private String translateFirebaseError(String error) {
+        if (error == null) return "Error desconocido";
+
+        if (error.contains("user-not-found")) {
+            return "Usuario no encontrado. Verifica tu correo electrónico.";
+        } else if (error.contains("wrong-password")) {
+            return "Contraseña incorrecta. Inténtalo de nuevo.";
+        } else if (error.contains("invalid-email")) {
+            return "Formato de correo electrónico inválido.";
+        } else if (error.contains("user-disabled")) {
+            return "Esta cuenta ha sido deshabilitada. Contacta al administrador.";
+        } else if (error.contains("too-many-requests")) {
+            return "Demasiados intentos fallidos. Inténtalo más tarde.";
+        } else if (error.contains("network-request-failed")) {
+            return "Error de conexión. Verifica tu internet e inténtalo de nuevo.";
+        } else {
+            return "Error de inicio de sesión: " + error;
+        }
     }
 
 }
