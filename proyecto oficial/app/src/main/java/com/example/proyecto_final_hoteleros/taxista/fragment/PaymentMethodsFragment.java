@@ -49,7 +49,7 @@ public class PaymentMethodsFragment extends Fragment implements PaymentMethodsAd
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_payment_methods, container, false);
+        View view = inflater.inflate(R.layout.taxi_fragment_payment_methods, container, false);
 
         try {
             initializeViews(view);
@@ -274,7 +274,7 @@ public class PaymentMethodsFragment extends Fragment implements PaymentMethodsAd
     }
 
     private void showPaymentMethodForm(String paymentType, int typeIndex) {
-        View formView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_add_payment_method, null);
+        View formView = LayoutInflater.from(requireContext()).inflate(R.layout.admin_hotel_dialog_add_payment_method, null);
 
         TextView tvTitle = formView.findViewById(R.id.tv_form_title);
         com.google.android.material.textfield.TextInputEditText etName = formView.findViewById(R.id.et_payment_name);

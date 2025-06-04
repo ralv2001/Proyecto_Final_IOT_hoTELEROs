@@ -21,7 +21,7 @@ public class BarraFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.barra_admin, container, false);
+        View view = inflater.inflate(R.layout.admin_hotel_bottom_navigation, container, false);
         setupBottomNavigation(view);
         return view;
     }

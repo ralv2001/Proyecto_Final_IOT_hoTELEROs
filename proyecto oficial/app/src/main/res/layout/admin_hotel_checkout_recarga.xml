@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:background="#F5F5F5"
-    tools:context=".adminhotel.CheckoutActivity">
+    tools:context=".adminhotel.activity.CheckoutActivity">
 
     <!-- Status Bar -->
     <LinearLayout
@@ -544,7 +544,7 @@
     <!-- Incluimos la barra de navegación inferior -->
     <include
         android:id="@+id/bottom_nav"
-        layout="@layout/barra_admin"
+        layout="@layout/admin_hotel_bottom_navigation"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         app:layout_constraintBottom_toBottomOf="parent"

@@ -16,7 +16,7 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
-import com.example.proyecto_final_hoteleros.adminhotel.AdminHotelActivity;
+import com.example.proyecto_final_hoteleros.adminhotel.activity.AdminHotelActivity;
 import com.example.proyecto_final_hoteleros.utils.FirebaseTestHelper;
 import com.google.android.material.button.MaterialButton;
 import com.google.firebase.FirebaseApp;

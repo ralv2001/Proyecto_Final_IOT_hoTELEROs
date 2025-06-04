@@ -44,7 +44,7 @@ public class CardDialogActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.dialog_add_payment);
+        setContentView(R.layout.client_dialog_add_payment);
 
         // Initialize views
         cardFrontView = findViewById(R.id.card_front_view);

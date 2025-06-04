@@ -29,7 +29,7 @@ public class DriverActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_driver);
+        setContentView(R.layout.taxi_activity_driver);
 
         // Inicializar las vistas de navegación
         navMapa = findViewById(R.id.nav_mapa);

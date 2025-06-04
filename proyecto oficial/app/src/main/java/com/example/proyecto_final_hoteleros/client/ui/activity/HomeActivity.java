@@ -47,7 +47,7 @@ public class HomeActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
-        setContentView(R.layout.activity_home);
+        setContentView(R.layout.client_activity_home);
 
         // ========== OBTENER DATOS DEL USUARIO DESDE EL INTENT ==========
         getUserDataFromIntent();

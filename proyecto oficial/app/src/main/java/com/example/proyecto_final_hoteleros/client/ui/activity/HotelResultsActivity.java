@@ -45,7 +45,7 @@ public class HotelResultsActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_hotel_results);
+        setContentView(R.layout.client_activity_hotel_results);
 
         initViews();
         getSearchParameters();

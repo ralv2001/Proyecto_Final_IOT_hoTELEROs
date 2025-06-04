@@ -1,7 +1,6 @@
 package com.example.proyecto_final_hoteleros.client.ui.adapters;
 
 import android.content.Context;
-import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -49,7 +48,7 @@ public class ChatListAdapter extends RecyclerView.Adapter<ChatListAdapter.ChatVi
     @NonNull
     @Override
     public ChatViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(context).inflate(R.layout.item_chat, parent, false);
+        View view = LayoutInflater.from(context).inflate(R.layout.client_item_chat, parent, false);
         Log.d(TAG, "Creating new ChatViewHolder");
         return new ChatViewHolder(view);
     }

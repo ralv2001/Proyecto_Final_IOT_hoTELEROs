@@ -57,7 +57,7 @@ public class AllHotelServicesActivity extends AppCompatActivity implements Servi
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_all_hotel_services);
+        setContentView(R.layout.client_activity_all_hotel_services);
 
         Log.d(TAG, "Iniciando AllHotelServicesActivity");
 
@@ -360,7 +360,7 @@ public class AllHotelServicesActivity extends AppCompatActivity implements Servi
         try {
             Dialog dialog = new Dialog(this);
             dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
-            dialog.setContentView(R.layout.dialog_clear_cart);
+            dialog.setContentView(R.layout.client_dialog_clear_cart);
             if (dialog.getWindow() != null) {
                 dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
             }
@@ -393,7 +393,7 @@ public class AllHotelServicesActivity extends AppCompatActivity implements Servi
         try {
             Dialog dialog = new Dialog(this);
             dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
-            dialog.setContentView(R.layout.dialog_success);
+            dialog.setContentView(R.layout.client_dialog_success);
             if (dialog.getWindow() != null) {
                 dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
             }
@@ -437,7 +437,7 @@ public class AllHotelServicesActivity extends AppCompatActivity implements Servi
         try {
             Dialog dialog = new Dialog(this);
             dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
-            dialog.setContentView(R.layout.dialog_taxi_info);
+            dialog.setContentView(R.layout.client_dialog_taxi_info);
             if (dialog.getWindow() != null) {
                 dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
             }

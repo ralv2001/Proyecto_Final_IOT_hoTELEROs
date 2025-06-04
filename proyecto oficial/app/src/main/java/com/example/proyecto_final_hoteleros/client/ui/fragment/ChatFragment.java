@@ -42,7 +42,7 @@ public class ChatFragment extends Fragment implements ChatListAdapter.OnChatClic
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        View rootView = inflater.inflate(R.layout.fragment_chat, container, false);
+        View rootView = inflater.inflate(R.layout.client_fragment_chat, container, false);
 
         try {
             Log.d(TAG, "Creating ChatFragment view");

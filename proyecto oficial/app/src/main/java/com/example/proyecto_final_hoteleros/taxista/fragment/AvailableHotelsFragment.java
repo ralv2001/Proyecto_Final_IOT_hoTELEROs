@@ -51,7 +51,7 @@ public class AvailableHotelsFragment extends Fragment implements AvailableHotels
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_available_hotels, container, false);
+        View view = inflater.inflate(R.layout.taxi_fragment_available_hotels, container, false);
 
         initViews(view);
         setupToolbar();

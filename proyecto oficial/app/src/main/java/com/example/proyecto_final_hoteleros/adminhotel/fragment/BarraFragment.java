@@ -12,11 +12,11 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
 import com.example.proyecto_final_hoteleros.R;
-import com.example.proyecto_final_hoteleros.adminhotel.AdminHotelActivity;
-import com.example.proyecto_final_hoteleros.adminhotel.ChatActivity;
-import com.example.proyecto_final_hoteleros.adminhotel.HabitacionesActivity;
-import com.example.proyecto_final_hoteleros.adminhotel.PerfilHotelActivity;
-import com.example.proyecto_final_hoteleros.adminhotel.ReporteVentasActivity;
+import com.example.proyecto_final_hoteleros.adminhotel.activity.AdminHotelActivity;
+import com.example.proyecto_final_hoteleros.adminhotel.activity.ChatActivity;
+import com.example.proyecto_final_hoteleros.adminhotel.activity.HabitacionesActivity;
+import com.example.proyecto_final_hoteleros.adminhotel.activity.PerfilHotelActivity;
+import com.example.proyecto_final_hoteleros.adminhotel.activity.ReporteVentasActivity;
 
 public class BarraFragment extends Fragment {
 
@@ -26,7 +26,7 @@ public class BarraFragment extends Fragment {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.barra_admin, container, false);
+        View view = inflater.inflate(R.layout.admin_hotel_bottom_navigation, container, false);
 
         LinearLayout navHome = view.findViewById(R.id.nav_home);
         LinearLayout navExplore = view.findViewById(R.id.nav_hotel);

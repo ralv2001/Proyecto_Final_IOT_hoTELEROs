@@ -31,7 +31,7 @@ public class ThumbnailAdapter extends RecyclerView.Adapter<ThumbnailAdapter.Thum
     @Override
     public ThumbnailViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext())
-                .inflate(R.layout.item_image_thumbnail, parent, false);
+                .inflate(R.layout.client_item_image_thumbnail, parent, false);
         return new ThumbnailViewHolder(view);
     }
 

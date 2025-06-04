@@ -68,7 +68,7 @@ public class LocationSelectorActivity extends AppCompatActivity implements Locat
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_location_selector);
+        setContentView(R.layout.client_activity_location_selector);
 
         Log.d(TAG, "Iniciando onCreate");
 

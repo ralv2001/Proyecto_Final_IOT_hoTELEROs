@@ -41,14 +41,14 @@ public class MessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
     @Override
     public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         if (viewType == VIEW_TYPE_USER) {
-            View view = LayoutInflater.from(context).inflate(R.layout.item_message_user, parent, false);
+            View view = LayoutInflater.from(context).inflate(R.layout.client_item_message_user, parent, false);
             return new UserMessageViewHolder(view);
         } else if (viewType == VIEW_TYPE_HOTEL) {
-            View view = LayoutInflater.from(context).inflate(R.layout.item_message_hotel, parent, false);
+            View view = LayoutInflater.from(context).inflate(R.layout.client_item_message_hotel, parent, false);
             return new HotelMessageViewHolder(view);
         } else {
             // System message
-            View view = LayoutInflater.from(context).inflate(R.layout.item_message_system, parent, false);
+            View view = LayoutInflater.from(context).inflate(R.layout.client_item_message_system, parent, false);
             return new SystemMessageViewHolder(view);
         }
     }
