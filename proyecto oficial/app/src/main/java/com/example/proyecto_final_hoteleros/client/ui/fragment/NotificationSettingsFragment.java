@@ -8,11 +8,11 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageButton;
-import android.widget.Switch;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.widget.SwitchCompat; // CAMBIO IMPORTANTE: Importar SwitchCompat
 import androidx.fragment.app.Fragment;
 
 import com.example.proyecto_final_hoteleros.R;
@@ -25,10 +25,10 @@ public class NotificationSettingsFragment extends Fragment {
     public static final String PREF_CHECKIN_NOTIFICATION = "checkin_notification";
     public static final String PREF_CHECKOUT_NOTIFICATION = "checkout_notification";
 
-    // UI Elements
-    private Switch switchBooking;
-    private Switch switchCheckIn;
-    private Switch switchCheckOut;
+    // UI Elements - CAMBIO IMPORTANTE: Usar SwitchCompat en lugar de Switch
+    private SwitchCompat switchBooking;
+    private SwitchCompat switchCheckIn;
+    private SwitchCompat switchCheckOut;
     private Button btnSaveNotifications;
     private ImageButton btnBack;
 
@@ -61,6 +61,7 @@ public class NotificationSettingsFragment extends Fragment {
     }
 
     private void initializeViews(View rootView) {
+        // CAMBIO IMPORTANTE: Buscar SwitchCompat en lugar de Switch
         switchBooking = rootView.findViewById(R.id.switchBooking);
         switchCheckIn = rootView.findViewById(R.id.switchCheckIn);
         switchCheckOut = rootView.findViewById(R.id.switchCheckOut);
@@ -70,27 +71,43 @@ public class NotificationSettingsFragment extends Fragment {
 
     private void loadSavedPreferences() {
         // Load saved preferences with default values of true
-        switchBooking.setChecked(preferences.getBoolean(PREF_BOOKING_NOTIFICATION, true));
-        switchCheckIn.setChecked(preferences.getBoolean(PREF_CHECKIN_NOTIFICATION, true));
-        switchCheckOut.setChecked(preferences.getBoolean(PREF_CHECKOUT_NOTIFICATION, true));
+        if (switchBooking != null) {
+            switchBooking.setChecked(preferences.getBoolean(PREF_BOOKING_NOTIFICATION, true));
+        }
+        if (switchCheckIn != null) {
+            switchCheckIn.setChecked(preferences.getBoolean(PREF_CHECKIN_NOTIFICATION, true));
+        }
+        if (switchCheckOut != null) {
+            switchCheckOut.setChecked(preferences.getBoolean(PREF_CHECKOUT_NOTIFICATION, true));
+        }
     }
 
     private void setupClickListeners() {
         // Save button click listener
-        btnSaveNotifications.setOnClickListener(v -> saveNotificationPreferences());
+        if (btnSaveNotifications != null) {
+            btnSaveNotifications.setOnClickListener(v -> saveNotificationPreferences());
+        }
 
         // Back button click listener
-        btnBack.setOnClickListener(v -> goBack());
+        if (btnBack != null) {
+            btnBack.setOnClickListener(v -> goBack());
+        }
     }
 
     private void saveNotificationPreferences() {
         // Get the SharedPreferences editor
         SharedPreferences.Editor editor = preferences.edit();
 
-        // Save the current state of switches
-        editor.putBoolean(PREF_BOOKING_NOTIFICATION, switchBooking.isChecked());
-        editor.putBoolean(PREF_CHECKIN_NOTIFICATION, switchCheckIn.isChecked());
-        editor.putBoolean(PREF_CHECKOUT_NOTIFICATION, switchCheckOut.isChecked());
+        // Save the current state of switches - CAMBIO: Verificar que no sean null
+        if (switchBooking != null) {
+            editor.putBoolean(PREF_BOOKING_NOTIFICATION, switchBooking.isChecked());
+        }
+        if (switchCheckIn != null) {
+            editor.putBoolean(PREF_CHECKIN_NOTIFICATION, switchCheckIn.isChecked());
+        }
+        if (switchCheckOut != null) {
+            editor.putBoolean(PREF_CHECKOUT_NOTIFICATION, switchCheckOut.isChecked());
+        }
 
         // Apply changes
         editor.apply();
@@ -103,6 +120,8 @@ public class NotificationSettingsFragment extends Fragment {
     }
 
     private void goBack() {
-        requireActivity().getSupportFragmentManager().popBackStack();
+        if (getActivity() != null && getActivity().getSupportFragmentManager() != null) {
+            getActivity().getSupportFragmentManager().popBackStack();
+        }
     }
 }

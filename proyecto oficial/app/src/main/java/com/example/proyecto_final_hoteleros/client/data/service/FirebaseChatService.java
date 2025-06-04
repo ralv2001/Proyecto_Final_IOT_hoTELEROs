@@ -66,7 +66,6 @@ public class FirebaseChatService {
         mMessagesRef = mDatabase.getReference("messages");
     }
 
-    // Método para obtener la instancia singleton
     public static FirebaseChatService getInstance() {
         if (instance == null) {
             instance = new FirebaseChatService();
@@ -74,17 +73,14 @@ public class FirebaseChatService {
         return instance;
     }
 
-    // Obtener ID del usuario actual
     public String getCurrentUserId() {
         FirebaseUser user = mAuth.getCurrentUser();
         return user != null ? user.getUid() : "user_1"; // Fallback para pruebas
     }
 
-    // Crear un nuevo chat
     public void createNewChat(ChatSummary chatSummary, final OnMessageSentListener listener) {
         String userId = getCurrentUserId();
 
-        // Primero crear el resumen del chat
         FirebaseChatSummary fbChatSummary = FirebaseChatSummary.fromChatSummary(chatSummary, userId);
 
         mChatSummariesRef.child(chatSummary.getId()).setValue(fbChatSummary)
@@ -93,7 +89,6 @@ public class FirebaseChatService {
                     public void onSuccess(Void aVoid) {
                         Log.d(TAG, "Chat creado exitosamente: " + chatSummary.getId());
 
-                        // Crear un mensaje de sistema inicial
                         Message systemMessage = new Message(
                                 "system_" + System.currentTimeMillis(),
                                 "system",
@@ -103,7 +98,6 @@ public class FirebaseChatService {
                                 Message.MessageType.SYSTEM
                         );
 
-                        // Enviar mensaje de sistema
                         sendMessage(chatSummary.getId(), systemMessage, listener);
                     }
                 })
@@ -118,15 +112,13 @@ public class FirebaseChatService {
                 });
     }
 
-    // Cargar lista de chats del usuario
     public void loadChatSummaries(final OnChatSummariesLoadedListener listener) {
         String userId = getCurrentUserId();
-        // Remover listener anterior si existe
+
         if (chatSummariesListener != null) {
             mChatSummariesRef.removeEventListener(chatSummariesListener);
         }
 
-        // Cargar todos los chats disponibles
         Query query = mChatSummariesRef;
 
         chatSummariesListener = new ValueEventListener() {
@@ -144,7 +136,6 @@ public class FirebaseChatService {
                         }
                     } catch (Exception e) {
                         Log.e(TAG, "Error al convertir chat: " + e.getMessage());
-                        // Continuar con el siguiente chat en caso de error
                     }
                 }
                 if (listener != null) {
@@ -163,15 +154,12 @@ public class FirebaseChatService {
         query.addValueEventListener(chatSummariesListener);
     }
 
-    // Cargar mensajes de un chat específico
     public void loadMessages(final String chatId, final OnMessagesLoadedListener listener) {
-        // Remover listener anterior si existe
         if (messageListeners.containsKey(chatId)) {
             mMessagesRef.child(chatId).removeEventListener(messageListeners.get(chatId));
             messageListeners.remove(chatId);
         }
 
-        // Consultar mensajes ordenados por timestamp
         Query query = mMessagesRef.child(chatId).orderByChild("timestamp");
 
         final List<Message> messagesList = new ArrayList<>();
@@ -184,12 +172,10 @@ public class FirebaseChatService {
                     Message message = fbMessage.toMessage();
                     messagesList.add(message);
 
-                    // Notificar solo el mensaje añadido
                     if (listener != null) {
                         listener.onMessageAdded(message);
                     }
 
-                    // Si el mensaje es del hotel y no está leído, marcarlo como leído
                     if (fbMessage.getType().equals("HOTEL") && !fbMessage.isRead()) {
                         markMessageAsRead(chatId, fbMessage.getId());
                     }
@@ -223,7 +209,6 @@ public class FirebaseChatService {
         query.addChildEventListener(messagesListener);
         messageListeners.put(chatId, messagesListener);
 
-        // También cargar todos los mensajes iniciales
         query.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
@@ -242,7 +227,6 @@ public class FirebaseChatService {
         });
     }
 
-    // Enviar un mensaje
     public void sendMessage(final String chatId, Message message, final OnMessageSentListener listener) {
         String messageId = mMessagesRef.child(chatId).push().getKey();
         if (messageId == null) {
@@ -252,23 +236,17 @@ public class FirebaseChatService {
             return;
         }
 
-        // Asignar el ID generado
         message.setId(messageId);
-
-        // Convertir a FirebaseMessage
         FirebaseMessage fbMessage = FirebaseMessage.fromMessage(message);
 
-        // Guardar mensaje
         mMessagesRef.child(chatId).child(messageId).setValue(fbMessage)
                 .addOnSuccessListener(new OnSuccessListener<Void>() {
                     @Override
                     public void onSuccess(Void aVoid) {
                         Log.d(TAG, "Mensaje enviado exitosamente");
 
-                        // Actualizar el último mensaje en el resumen del chat
                         updateChatLastMessage(chatId, message.getText());
 
-                        // Si es el primer mensaje del usuario, actualizar estado a ACTIVE
                         if (message.getType() == Message.MessageType.USER) {
                             updateChatStatus(chatId, ChatSummary.ChatStatus.ACTIVE);
                         }
@@ -289,7 +267,6 @@ public class FirebaseChatService {
                 });
     }
 
-    // Actualizar el último mensaje en el resumen del chat
     private void updateChatLastMessage(String chatId, String lastMessage) {
         Map<String, Object> updates = new HashMap<>();
         updates.put("lastMessage", lastMessage);
@@ -304,7 +281,6 @@ public class FirebaseChatService {
                 });
     }
 
-    // Actualizar el estado del chat
     public void updateChatStatus(String chatId, ChatSummary.ChatStatus status) {
         String statusStr;
         switch (status) {
@@ -331,7 +307,6 @@ public class FirebaseChatService {
                     public void onSuccess(Void aVoid) {
                         Log.d(TAG, "Estado del chat actualizado exitosamente");
 
-                        // Si el chat está finalizado, añadir mensaje de sistema
                         if (status == ChatSummary.ChatStatus.FINISHED) {
                             sendSystemMessage(chatId, "Este chat ha sido cerrado. Su reserva ha finalizado.");
                         }
@@ -345,10 +320,7 @@ public class FirebaseChatService {
                 });
     }
 
-    // Enviar mensaje de sistema
     private void sendSystemMessage(String chatId, String text) {
-        String userId = getCurrentUserId();
-
         Message systemMessage = new Message(
                 "system_" + System.currentTimeMillis(),
                 "system",
@@ -361,7 +333,6 @@ public class FirebaseChatService {
         sendMessage(chatId, systemMessage, null);
     }
 
-    // Marcar mensaje como leído
     private void markMessageAsRead(String chatId, String messageId) {
         Map<String, Object> updates = new HashMap<>();
         updates.put("read", true);
@@ -375,7 +346,6 @@ public class FirebaseChatService {
                 });
     }
 
-    // Limpiar listeners al cerrar la app
     public void cleanup() {
         if (chatSummariesListener != null) {
             mChatSummariesRef.removeEventListener(chatSummariesListener);

@@ -19,6 +19,8 @@ import com.example.proyecto_final_hoteleros.client.ui.fragment.HomeFragment;
 import com.example.proyecto_final_hoteleros.client.data.model.ChatSummary;
 import com.example.proyecto_final_hoteleros.client.data.service.FirebaseChatService;
 import com.example.proyecto_final_hoteleros.client.data.service.HotelResponseSimulator;
+import com.example.proyecto_final_hoteleros.client.navigation.NavigationManager;
+import com.example.proyecto_final_hoteleros.client.utils.UserDataManager;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.FirebaseApp;
@@ -49,16 +51,19 @@ public class HomeActivity extends AppCompatActivity {
         EdgeToEdge.enable(this);
         setContentView(R.layout.client_activity_home);
 
+        // ========== INICIALIZAR MANAGERS ==========
+        NavigationManager.getInstance().init(this);
+
         // ========== OBTENER DATOS DEL USUARIO DESDE EL INTENT ==========
         getUserDataFromIntent();
+        UserDataManager.getInstance().setUserData(userId, userName, userFullName, userEmail, userType);
 
-        // Inicializar Firebase - asegúrate de que esto se ejecute primero
+        // Inicializar Firebase
         try {
             FirebaseApp.initializeApp(this);
             testFirebaseConnection();
             Log.d(TAG, "Firebase inicializado correctamente");
 
-            // CAMBIO AQUÍ: Inicializar chats de ejemplo automáticamente en modo DEBUG
             if (BuildConfig.DEBUG) {
                 initializeExampleChats();
             }
@@ -76,37 +81,21 @@ public class HomeActivity extends AppCompatActivity {
             return insets;
         });
 
-        // Cargar el fragmento HomeFragment como fragmento inicial
+        // ========== CARGAR FRAGMENTO INICIAL USANDO NAVIGATIONMANAGER ==========
         if (savedInstanceState == null) {
-            // Crear el fragmento y pasarle los datos del usuario
-            HomeFragment homeFragment = new HomeFragment();
-
-            // Crear Bundle con los datos del usuario
-            Bundle args = new Bundle();
-            args.putString("user_id", userId);
-            args.putString("user_name", userName);
-            args.putString("user_full_name", userFullName);
-            args.putString("user_email", userEmail);
-            args.putString("user_type", userType);
-            homeFragment.setArguments(args);
-
-            getSupportFragmentManager()
-                    .beginTransaction()
-                    .replace(R.id.fragment_container, homeFragment)
-                    .commit();
+            NavigationManager.getInstance().navigateToHome(
+                    UserDataManager.getInstance().getUserBundle()
+            );
         }
     }
 
-    // ========== NUEVO MÉTODO PARA OBTENER DATOS DEL USUARIO ==========
     private void getUserDataFromIntent() {
-        // Obtener datos desde el Intent
         userId = getIntent().getStringExtra("user_id");
         userName = getIntent().getStringExtra("user_name");
         userFullName = getIntent().getStringExtra("user_full_name");
         userEmail = getIntent().getStringExtra("user_email");
         userType = getIntent().getStringExtra("user_type");
 
-        // Log para debugging
         Log.d(TAG, "=== DATOS DEL USUARIO RECIBIDOS ===");
         Log.d(TAG, "User ID: " + userId);
         Log.d(TAG, "User Name: " + userName);
@@ -114,7 +103,7 @@ public class HomeActivity extends AppCompatActivity {
         Log.d(TAG, "User Email: " + userEmail);
         Log.d(TAG, "User Type: " + userType);
 
-        // Valores por defecto si no se reciben datos (para modo guest o testing)
+        // Valores por defecto si no se reciben datos
         if (userName == null || userName.isEmpty()) {
             userName = "Huésped";
             Log.d(TAG, "Usando nombre por defecto: " + userName);
@@ -125,39 +114,34 @@ public class HomeActivity extends AppCompatActivity {
         }
     }
 
-    // ========== MÉTODO PÚBLICO PARA QUE EL FRAGMENTO ACCEDA A LOS DATOS ==========
+    // ========== MÉTODOS PÚBLICOS PARA ACCESO A DATOS (MANTENIDOS PARA COMPATIBILIDAD) ==========
     public String getUserName() {
-        return userName != null ? userName : "Huésped";
+        return UserDataManager.getInstance().getUserName();
     }
 
     public String getUserFullName() {
-        return userFullName != null ? userFullName : getUserName();
+        return UserDataManager.getInstance().getUserFullName();
     }
 
     public String getUserId() {
-        return userId;
+        return UserDataManager.getInstance().getUserId();
     }
 
     public String getUserEmail() {
-        return userEmail;
+        return UserDataManager.getInstance().getUserEmail();
     }
 
     public String getUserType() {
-        return userType;
+        return UserDataManager.getInstance().getUserType();
     }
 
     private void initializeFirebaseServices() {
-        // Inicializar servicio de chat
         chatService = FirebaseChatService.getInstance();
-
-        // Inicializar y activar simulador de respuestas para los chats de demostración
         responseSimulator = HotelResponseSimulator.getInstance();
 
-        // Cargar lista de chats del usuario actual
         chatService.loadChatSummaries(new FirebaseChatService.OnChatSummariesLoadedListener() {
             @Override
             public void onChatSummariesLoaded(List<ChatSummary> chatSummaries) {
-                // Para cada chat activo, iniciar el simulador de respuestas
                 for (ChatSummary chat : chatSummaries) {
                     if (chat.getStatus() == ChatSummary.ChatStatus.ACTIVE ||
                             chat.getStatus() == ChatSummary.ChatStatus.AVAILABLE) {
@@ -165,9 +149,6 @@ public class HomeActivity extends AppCompatActivity {
                     }
                 }
 
-                // También puedes iniciar los simuladores para los chats de demostración
-                // si estás en modo desarrollo
-                // Solo para desarrollo, hacer visible el botón
                 if (BuildConfig.DEBUG) {
                     Button btnInitChats = findViewById(R.id.btnInitChats);
                     if (btnInitChats != null) {
@@ -179,9 +160,6 @@ public class HomeActivity extends AppCompatActivity {
 
             @Override
             public void onChatSummariesError(String error) {
-                // Si hay un error al cargar los chats, aún podemos iniciar los simuladores
-                // para los chats de demostración en modo desarrollo
-                // Solo para desarrollo, hacer visible el botón
                 if (BuildConfig.DEBUG) {
                     Button btnInitChats = findViewById(R.id.btnInitChats);
                     if (btnInitChats != null) {
@@ -194,21 +172,16 @@ public class HomeActivity extends AppCompatActivity {
     }
 
     private void startResponseSimulators() {
-        // Iniciar simuladores para todos los chats de prueba
         HotelResponseSimulator simulator = HotelResponseSimulator.getInstance();
         simulator.startListening("chat_available", "hotel_1");
         simulator.startListening("chat_active", "hotel_2");
-        // No iniciamos para chat_finished porque ya está cerrado
     }
 
-    // NUEVO: Método para inicializar chats de ejemplo en Firebase
     private void initializeExampleChats() {
-        // Usar el ID del usuario actual si está disponible, si no usar un ID por defecto
         String currentUserId = userId != null ? userId :
                 (FirebaseAuth.getInstance().getCurrentUser() != null ?
                         FirebaseAuth.getInstance().getCurrentUser().getUid() : "user_1");
 
-        // Crear timestamp base
         long now = System.currentTimeMillis();
         long oneDayAgo = now - 86400000;
         long twoDaysAgo = now - 172800000;
@@ -231,7 +204,6 @@ public class HomeActivity extends AppCompatActivity {
         chatAvailableRef.setValue(chatAvailable)
                 .addOnSuccessListener(aVoid -> {
                     Log.d(TAG, "Chat AVAILABLE creado exitosamente");
-                    // Mensaje de sistema para chat AVAILABLE
                     DatabaseReference msgRef = FirebaseDatabase.getInstance()
                             .getReference("messages").child("chat_available").child("system_welcome");
 
@@ -267,11 +239,9 @@ public class HomeActivity extends AppCompatActivity {
                 .addOnSuccessListener(aVoid -> {
                     Log.d(TAG, "Chat ACTIVE creado exitosamente");
 
-                    // Crear mensajes para chat ACTIVE
                     DatabaseReference msgsRef = FirebaseDatabase.getInstance()
                             .getReference("messages").child("chat_active");
 
-                    // Mensaje de bienvenida del sistema
                     Map<String, Object> msg1 = new HashMap<>();
                     msg1.put("id", "system_welcome");
                     msg1.put("senderId", "system");
@@ -281,7 +251,6 @@ public class HomeActivity extends AppCompatActivity {
                     msg1.put("type", "SYSTEM");
                     msg1.put("read", true);
 
-                    // Primer mensaje del usuario
                     Map<String, Object> msg2 = new HashMap<>();
                     msg2.put("id", "user_msg_1");
                     msg2.put("senderId", currentUserId);
@@ -291,7 +260,6 @@ public class HomeActivity extends AppCompatActivity {
                     msg2.put("type", "USER");
                     msg2.put("read", true);
 
-                    // Respuesta del hotel
                     Map<String, Object> msg3 = new HashMap<>();
                     msg3.put("id", "hotel_msg_1");
                     msg3.put("senderId", "hotel_2");
@@ -301,7 +269,6 @@ public class HomeActivity extends AppCompatActivity {
                     msg3.put("type", "HOTEL");
                     msg3.put("read", true);
 
-                    // Último mensaje del usuario
                     Map<String, Object> msg4 = new HashMap<>();
                     msg4.put("id", "user_msg_2");
                     msg4.put("senderId", currentUserId);
@@ -311,7 +278,6 @@ public class HomeActivity extends AppCompatActivity {
                     msg4.put("type", "USER");
                     msg4.put("read", true);
 
-                    // Guardar todos los mensajes
                     msgsRef.child("system_welcome").setValue(msg1);
                     msgsRef.child("user_msg_1").setValue(msg2);
                     msgsRef.child("hotel_msg_1").setValue(msg3);
@@ -338,11 +304,9 @@ public class HomeActivity extends AppCompatActivity {
                 .addOnSuccessListener(aVoid -> {
                     Log.d(TAG, "Chat FINISHED creado exitosamente");
 
-                    // Crear mensajes para chat FINISHED
                     DatabaseReference msgsRef = FirebaseDatabase.getInstance()
                             .getReference("messages").child("chat_finished");
 
-                    // Mensaje de bienvenida del sistema
                     Map<String, Object> msg1 = new HashMap<>();
                     msg1.put("id", "system_welcome");
                     msg1.put("senderId", "system");
@@ -352,7 +316,6 @@ public class HomeActivity extends AppCompatActivity {
                     msg1.put("type", "SYSTEM");
                     msg1.put("read", true);
 
-                    // Primer mensaje del usuario
                     Map<String, Object> msg2 = new HashMap<>();
                     msg2.put("id", "user_msg_1");
                     msg2.put("senderId", currentUserId);
@@ -362,7 +325,6 @@ public class HomeActivity extends AppCompatActivity {
                     msg2.put("type", "USER");
                     msg2.put("read", true);
 
-                    // Respuesta del hotel
                     Map<String, Object> msg3 = new HashMap<>();
                     msg3.put("id", "hotel_msg_1");
                     msg3.put("senderId", "hotel_3");
@@ -372,7 +334,6 @@ public class HomeActivity extends AppCompatActivity {
                     msg3.put("type", "HOTEL");
                     msg3.put("read", true);
 
-                    // Mensaje de agradecimiento del usuario
                     Map<String, Object> msg4 = new HashMap<>();
                     msg4.put("id", "user_msg_2");
                     msg4.put("senderId", currentUserId);
@@ -382,7 +343,6 @@ public class HomeActivity extends AppCompatActivity {
                     msg4.put("type", "USER");
                     msg4.put("read", true);
 
-                    // Último mensaje del hotel
                     Map<String, Object> msg5 = new HashMap<>();
                     msg5.put("id", "hotel_msg_2");
                     msg5.put("senderId", "hotel_3");
@@ -392,7 +352,6 @@ public class HomeActivity extends AppCompatActivity {
                     msg5.put("type", "HOTEL");
                     msg5.put("read", true);
 
-                    // Mensaje de sistema indicando que el chat ha finalizado
                     Map<String, Object> msg6 = new HashMap<>();
                     msg6.put("id", "system_closed");
                     msg6.put("senderId", "system");
@@ -402,7 +361,6 @@ public class HomeActivity extends AppCompatActivity {
                     msg6.put("type", "SYSTEM");
                     msg6.put("read", true);
 
-                    // Guardar todos los mensajes
                     msgsRef.child("system_welcome").setValue(msg1);
                     msgsRef.child("user_msg_1").setValue(msg2);
                     msgsRef.child("hotel_msg_1").setValue(msg3);
@@ -428,7 +386,6 @@ public class HomeActivity extends AppCompatActivity {
     protected void onDestroy() {
         super.onDestroy();
 
-        // Limpiar recursos del simulador
         if (responseSimulator != null) {
             responseSimulator.cleanup();
         }

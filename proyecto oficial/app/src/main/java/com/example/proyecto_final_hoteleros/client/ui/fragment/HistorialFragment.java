@@ -12,7 +12,6 @@ import android.widget.ViewFlipper;
 
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentTransaction;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -23,10 +22,7 @@ import com.example.proyecto_final_hoteleros.client.data.model.Reservation;
 import java.util.ArrayList;
 import java.util.List;
 
-public class HistorialFragment extends Fragment {
-    // Variables para el navegador inferior
-    private LinearLayout navHome, navExplore, navChat, navProfile;
-    private ImageView ivHome, ivExplore, ivChat, ivProfile;
+public class HistorialFragment extends BaseBottomNavigationFragment {
 
     // Variables para los tabs y contenido
     private TextView tabProximas, tabActuales, tabCheckout, tabCompletadas;
@@ -45,36 +41,35 @@ public class HistorialFragment extends Fragment {
     private List<Reservation> checkoutReservations = new ArrayList<>();
     private List<Reservation> completadasReservations = new ArrayList<>();
 
+    @Override
+    protected NavigationTab getCurrentTab() {
+        return NavigationTab.EXPLORE;
+    }
+
     // Listener para acciones en las tarjetas de reserva
     private final ReservationAdapter.ReservationActionListener reservationActionListener =
             new ReservationAdapter.ReservationActionListener() {
                 @Override
                 public void onActionButtonClicked(Reservation reservation, int position) {
-                    // Implementar acciones según el estado de la reserva
                     switch (reservation.getStatus()) {
                         case Reservation.STATUS_PROXIMA:
                             // Navegar a detalles de la reserva próxima
-                            // Por ejemplo: navigateToReservationDetails(reservation);
                             break;
                         case Reservation.STATUS_ACTUAL:
                             // Navegar a servicios adicionales
-                            // Por ejemplo: navigateToServices(reservation);
                             break;
                         case Reservation.STATUS_CHECKOUT:
                             // Iniciar proceso de checkout
-                            // Por ejemplo: startCheckoutProcess(reservation);
                             break;
                         case Reservation.STATUS_COMPLETADA:
                             // Mostrar factura
-                            // Por ejemplo: showInvoice(reservation);
                             break;
                     }
                 }
 
                 @Override
                 public void onReservationCardClicked(Reservation reservation, int position) {
-                    // Por defecto, mostrar detalles de la reserva independientemente del estado
-                    // Por ejemplo: navigateToReservationDetails(reservation);
+                    // Mostrar detalles de la reserva
                 }
             };
 
@@ -83,16 +78,13 @@ public class HistorialFragment extends Fragment {
                              Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.client_fragment_historial, container, false);
 
-        // Configuración del navegador inferior
-        setupBottomNavigation(rootView);
-
         // Configuración de los tabs y recyclerviews
         setupViews(rootView);
 
         // Configurar adaptadores con el listener definido
         setupRecyclerViews();
 
-        // Cargar datos de ejemplo (en una app real, esto vendría de una API o base de datos)
+        // Cargar datos de ejemplo
         loadMockData();
 
         return rootView;
@@ -118,10 +110,7 @@ public class HistorialFragment extends Fragment {
         tvEmptyStateMessage = rootView.findViewById(R.id.tvEmptyStateMessage);
         ivEmptyState = rootView.findViewById(R.id.ivEmptyState);
 
-        // Establecer listeners para cada tab con animación de feedback
         setupTabClickListeners();
-
-        // Establecer el tab "Próximas" como seleccionado por defecto
         updateSelectedTab(0);
     }
 
@@ -148,7 +137,6 @@ public class HistorialFragment extends Fragment {
     }
 
     private void animateTabClick(View view) {
-        // Animación sutil al hacer clic en un tab
         view.animate()
                 .scaleX(0.95f)
                 .scaleY(0.95f)
@@ -162,19 +150,15 @@ public class HistorialFragment extends Fragment {
     }
 
     private void setupRecyclerViews() {
-        // Configurar RecyclerView para Próximas con animación
         setupRecyclerView(recyclerProximas, proximasReservations,
                 ReservationAdapter.ESTADO_PROXIMA, R.anim.item_animation_from_right);
 
-        // Configurar RecyclerView para Actuales con animación
         setupRecyclerView(recyclerActuales, actualesReservations,
                 ReservationAdapter.ESTADO_ACTUAL, R.anim.item_animation_from_right);
 
-        // Configurar RecyclerView para Checkout con animación
         setupRecyclerView(recyclerCheckout, checkoutReservations,
                 ReservationAdapter.ESTADO_CHECKOUT, R.anim.item_animation_from_right);
 
-        // Configurar RecyclerView para Completadas con animación
         setupRecyclerView(recyclerCompletadas, completadasReservations,
                 ReservationAdapter.ESTADO_COMPLETADA, R.anim.item_animation_from_right);
     }
@@ -187,11 +171,9 @@ public class HistorialFragment extends Fragment {
         ReservationAdapter adapter = new ReservationAdapter(dataList, estado, reservationActionListener);
         recyclerView.setAdapter(adapter);
 
-        // Aplicar animación al RecyclerView
         recyclerView.setLayoutAnimation(
                 AnimationUtils.loadLayoutAnimation(requireContext(), animResId));
 
-        // Guardar referencia al adaptador según el estado
         switch (estado) {
             case ReservationAdapter.ESTADO_PROXIMA:
                 adapterProximas = adapter;
@@ -208,12 +190,9 @@ public class HistorialFragment extends Fragment {
         }
     }
 
-    // Método para actualizar el tab seleccionado y su contenido
     private void updateSelectedTab(int selectedIndex) {
-        // Resetear el estilo de todos los tabs
         resetTabsStyle();
 
-        // Establecer el estilo del tab seleccionado y verificar el estado vacío
         switch (selectedIndex) {
             case 0:
                 setSelectedTabStyle(tabProximas, proximasReservations,
@@ -241,11 +220,8 @@ public class HistorialFragment extends Fragment {
                 break;
         }
 
-        // Cambiar la vista en el ViewFlipper si no está mostrando el estado vacío
         if (!isEmptyList(selectedIndex)) {
             viewFlipper.setDisplayedChild(selectedIndex);
-
-            // Animar la aparición del contenido
             View currentView = viewFlipper.getCurrentView();
             currentView.startAnimation(
                     AnimationUtils.loadAnimation(requireContext(), R.anim.fade_in));
@@ -275,24 +251,19 @@ public class HistorialFragment extends Fragment {
 
     private void setSelectedTabStyle(TextView tab, List<Reservation> reservations,
                                      String emptyTitle, String emptyMessage, int emptyIcon) {
-        // Configurar estilo del tab seleccionado
         tab.setBackground(ContextCompat.getDrawable(requireContext(), R.drawable.tab_selected_background));
         tab.setTextColor(ContextCompat.getColor(requireContext(), android.R.color.white));
 
-        // Verificar estado vacío
         if (reservations.isEmpty()) {
             showEmptyState(emptyTitle, emptyMessage, emptyIcon);
         }
     }
 
-    // Método para mostrar el estado vacío con los mensajes apropiados
     private void showEmptyState(String title, String message, int iconResId) {
-        // Configurar contenido del estado vacío
         tvEmptyStateTitle.setText(title);
         tvEmptyStateMessage.setText(message);
         ivEmptyState.setImageResource(iconResId);
 
-        // Asegurar que la vista de estado vacío exista en el ViewFlipper
         boolean emptyStateExists = false;
         for (int i = 0; i < viewFlipper.getChildCount(); i++) {
             if (viewFlipper.getChildAt(i) == emptyStateView) {
@@ -302,7 +273,6 @@ public class HistorialFragment extends Fragment {
         }
 
         if (!emptyStateExists) {
-            // Si el emptyStateView está actualmente en algún otro contenedor, retirarlo primero
             ViewGroup parent = (ViewGroup) emptyStateView.getParent();
             if (parent != null) {
                 parent.removeView(emptyStateView);
@@ -310,22 +280,18 @@ public class HistorialFragment extends Fragment {
             viewFlipper.addView(emptyStateView);
         }
 
-        // Mostrar vista de estado vacío con animación
         emptyStateView.setVisibility(View.VISIBLE);
         viewFlipper.setDisplayedChild(viewFlipper.indexOfChild(emptyStateView));
         emptyStateView.startAnimation(
                 AnimationUtils.loadAnimation(requireContext(), R.anim.fade_in));
     }
 
-    // Método para cargar datos de ejemplo (en una aplicación real, esto vendría de una API o base de datos)
     private void loadMockData() {
-        // Limpiar listas para evitar duplicados en caso de recarga
         proximasReservations.clear();
         actualesReservations.clear();
         checkoutReservations.clear();
         completadasReservations.clear();
 
-        // Ejemplos de reservas próximas
         proximasReservations.add(new Reservation(
                 "Gocta Lodge",
                 "Chachapoyas, Gocta, Amazonas",
@@ -346,11 +312,9 @@ public class HistorialFragment extends Fragment {
                 Reservation.STATUS_PROXIMA
         ));
 
-        // Añadir un servicio adicional a la primera reserva próxima
         Reservation primerReservaProxima = proximasReservations.get(0);
         primerReservaProxima.addService("Early check-in", 50.0, 1);
 
-        // Ejemplos de reservas actuales
         actualesReservations.add(new Reservation(
                 "Hotel Costa del Sol",
                 "Chiclayo, Lambayeque",
@@ -361,12 +325,10 @@ public class HistorialFragment extends Fragment {
                 Reservation.STATUS_ACTUAL
         ));
 
-        // Añadir servicios a la reserva actual
         Reservation reservaActual = actualesReservations.get(0);
         reservaActual.addService("Desayuno buffet", 45.0, 2);
         reservaActual.addService("Spa", 120.0, 1);
 
-        // Ejemplo de reserva en checkout (añadir una para mostrar cómo se ve)
         Reservation checkoutReservation = new Reservation(
                 "Casa Andina Premium",
                 "Miraflores, Lima",
@@ -381,7 +343,6 @@ public class HistorialFragment extends Fragment {
         checkoutReservation.addService("Lavandería", 45.0, 1);
         checkoutReservations.add(checkoutReservation);
 
-        // Ejemplos de reservas completadas
         completadasReservations.add(new Reservation(
                 "Belmond Hotel Monasterio",
                 "Cusco, Centro Histórico",
@@ -402,15 +363,12 @@ public class HistorialFragment extends Fragment {
                 Reservation.STATUS_COMPLETADA
         ));
 
-        // Notificar a los adaptadores sobre los cambios en los datos
         notifyAllAdapters();
 
-        // Verificar estado inicial según el tab seleccionado
         int currentTab = viewFlipper.getDisplayedChild();
-        if (currentTab < 4) { // Si es uno de los tabs normales (no el estado vacío)
+        if (currentTab < 4) {
             updateSelectedTab(currentTab);
         } else {
-            // Por defecto, mostrar el primer tab
             updateSelectedTab(0);
         }
     }
@@ -420,110 +378,5 @@ public class HistorialFragment extends Fragment {
         if (adapterActuales != null) adapterActuales.notifyDataSetChanged();
         if (adapterCheckout != null) adapterCheckout.notifyDataSetChanged();
         if (adapterCompletadas != null) adapterCompletadas.notifyDataSetChanged();
-    }
-
-    // Método para configurar el navegador inferior
-    private void setupBottomNavigation(View rootView) {
-        // Referencias a los elementos del navegador
-        navHome = rootView.findViewById(R.id.nav_home);
-        navExplore = rootView.findViewById(R.id.nav_explore);
-        navChat = rootView.findViewById(R.id.nav_chat);
-        navProfile = rootView.findViewById(R.id.nav_profile);
-
-        ivHome = rootView.findViewById(R.id.iv_home);
-        ivExplore = rootView.findViewById(R.id.iv_explore);
-        ivChat = rootView.findViewById(R.id.iv_chat);
-        ivProfile = rootView.findViewById(R.id.iv_profile);
-
-        // Marcar Explore como seleccionado
-        setSelectedNavItem(navExplore, ivExplore);
-
-        // Establecer listeners para cada elemento del navegador
-        setupNavListeners();
-    }
-
-    private void setupNavListeners() {
-        navHome.setOnClickListener(v -> {
-            animateNavClick(v);
-            if (!isCurrentFragment(HomeFragment.class)) {
-                setSelectedNavItem(navHome, ivHome);
-                navigateToFragment(new HomeFragment(), false);
-            }
-        });
-
-        navExplore.setOnClickListener(v -> {
-            animateNavClick(v);
-            if (!isCurrentFragment(HistorialFragment.class)) {
-                setSelectedNavItem(navExplore, ivExplore);
-                // Ya estamos en Historial, no necesitamos cambiar
-            }
-        });
-
-        navChat.setOnClickListener(v -> {
-            animateNavClick(v);
-            if (!isCurrentFragment(ChatFragment.class)) {
-                setSelectedNavItem(navChat, ivChat);
-                navigateToFragment(new ChatFragment(), true);
-            }
-        });
-
-        navProfile.setOnClickListener(v -> {
-            animateNavClick(v);
-            if (!isCurrentFragment(ProfileFragment.class)) {
-                setSelectedNavItem(navProfile, ivProfile);
-                navigateToFragment(new ProfileFragment(), true);
-            }
-        });
-    }
-
-    private void animateNavClick(View view) {
-        // Animación sutil al hacer clic en un elemento de navegación
-        view.animate()
-                .alpha(0.7f)
-                .setDuration(100)
-                .withEndAction(() ->
-                        view.animate()
-                                .alpha(1f)
-                                .setDuration(100)
-                );
-    }
-
-    // Método para navegar a un fragmento con animación
-    private void navigateToFragment(Fragment fragment, boolean addToBackStack) {
-        FragmentTransaction transaction = requireActivity().getSupportFragmentManager()
-                .beginTransaction()
-                .setCustomAnimations(
-                        R.anim.slide_in_right,
-                        R.anim.slide_out_left,
-                        R.anim.slide_in_left,
-                        R.anim.slide_out_right
-                )
-                .replace(R.id.fragment_container, fragment);
-
-        if (addToBackStack) {
-            transaction.addToBackStack(null);
-        }
-
-        transaction.commit();
-    }
-
-    // Método para verificar si el fragmento actual es del tipo especificado
-    private boolean isCurrentFragment(Class<? extends Fragment> fragmentClass) {
-        Fragment currentFragment = requireActivity().getSupportFragmentManager()
-                .findFragmentById(R.id.fragment_container);
-
-        return currentFragment != null && fragmentClass.isInstance(currentFragment);
-    }
-
-    // Método para resaltar el ítem seleccionado
-    private void setSelectedNavItem(LinearLayout navItem, ImageView icon) {
-        // Resetear todos los íconos a color blanco
-        ivHome.setColorFilter(ContextCompat.getColor(requireContext(), android.R.color.white));
-        ivExplore.setColorFilter(ContextCompat.getColor(requireContext(), android.R.color.white));
-        ivChat.setColorFilter(ContextCompat.getColor(requireContext(), android.R.color.white));
-        ivProfile.setColorFilter(ContextCompat.getColor(requireContext(), android.R.color.white));
-
-        // Establecer el ícono seleccionado a color naranja
-        icon.setColorFilter(ContextCompat.getColor(requireContext(), R.color.orange));
     }
 }
