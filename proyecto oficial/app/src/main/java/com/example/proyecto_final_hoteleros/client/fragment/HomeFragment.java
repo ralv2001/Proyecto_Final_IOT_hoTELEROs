@@ -23,12 +23,12 @@ import androidx.fragment.app.FragmentTransaction;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.proyecto_final_hoteleros.HomeActivity;
-import com.example.proyecto_final_hoteleros.HotelResultsActivity;
+import com.example.proyecto_final_hoteleros.client.activity.HomeActivity;
+import com.example.proyecto_final_hoteleros.client.activity.HotelResultsActivity;
 import com.example.proyecto_final_hoteleros.R;
-import com.example.proyecto_final_hoteleros.adapters.CitiesAdapter;
-import com.example.proyecto_final_hoteleros.adapters.HotelsAdapter;
-import com.example.proyecto_final_hoteleros.adapters.PopularHotelsAdapter;
+import com.example.proyecto_final_hoteleros.client.adapters.CitiesAdapter;
+import com.example.proyecto_final_hoteleros.client.adapters.HotelsAdapter;
+import com.example.proyecto_final_hoteleros.client.adapters.PopularHotelsAdapter;
 import com.example.proyecto_final_hoteleros.client.model.City;
 import com.example.proyecto_final_hoteleros.client.model.Hotel;
 

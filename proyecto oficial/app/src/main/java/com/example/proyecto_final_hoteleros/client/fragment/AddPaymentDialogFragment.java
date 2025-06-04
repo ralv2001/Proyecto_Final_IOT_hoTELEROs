@@ -16,7 +16,7 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.DialogFragment;
-import com.example.proyecto_final_hoteleros.CardUtils;
+import com.example.proyecto_final_hoteleros.client.utils.CardUtils;
 import com.example.proyecto_final_hoteleros.R;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;

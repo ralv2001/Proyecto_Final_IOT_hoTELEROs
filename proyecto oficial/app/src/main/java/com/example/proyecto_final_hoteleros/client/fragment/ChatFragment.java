@@ -17,9 +17,9 @@ import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.example.proyecto_final_hoteleros.R;
-import com.example.proyecto_final_hoteleros.adapters.ChatListAdapter;
+import com.example.proyecto_final_hoteleros.client.adapters.ChatListAdapter;
 import com.example.proyecto_final_hoteleros.client.model.ChatSummary;
-import com.example.proyecto_final_hoteleros.services.FirebaseChatService;
+import com.example.proyecto_final_hoteleros.client.service.FirebaseChatService;
 
 import java.util.ArrayList;
 import java.util.List;

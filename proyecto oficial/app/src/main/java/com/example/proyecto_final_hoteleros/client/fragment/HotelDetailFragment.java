@@ -21,11 +21,11 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewpager2.widget.ViewPager2;
 
-import com.example.proyecto_final_hoteleros.AllHotelServicesActivity;
+import com.example.proyecto_final_hoteleros.client.activity.AllHotelServicesActivity;
 import com.example.proyecto_final_hoteleros.R;
-import com.example.proyecto_final_hoteleros.adapters.CitiesAdapter;
-import com.example.proyecto_final_hoteleros.adapters.HotelImageAdapter;
-import com.example.proyecto_final_hoteleros.adapters.ThumbnailAdapter;
+import com.example.proyecto_final_hoteleros.client.adapters.CitiesAdapter;
+import com.example.proyecto_final_hoteleros.client.adapters.HotelImageAdapter;
+import com.example.proyecto_final_hoteleros.client.adapters.ThumbnailAdapter;
 import com.example.proyecto_final_hoteleros.client.model.City;
 import com.example.proyecto_final_hoteleros.client.model.HotelService;
 

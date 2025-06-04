@@ -6,7 +6,7 @@
     android:id="@+id/main_container"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".HomeActivity">
+    tools:context=".client.activity.HomeActivity">
 
     <!-- Este FrameLayout contendrá todos los fragmentos -->
     <FrameLayout

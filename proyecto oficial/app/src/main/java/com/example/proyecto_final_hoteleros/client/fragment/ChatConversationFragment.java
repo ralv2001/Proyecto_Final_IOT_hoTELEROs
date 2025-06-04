@@ -1,6 +1,5 @@
 package com.example.proyecto_final_hoteleros.client.fragment;
 
-import android.animation.ObjectAnimator;
 import android.os.Bundle;
 import android.os.Handler;
 import android.text.Editable;
@@ -26,10 +25,10 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.proyecto_final_hoteleros.R;
-import com.example.proyecto_final_hoteleros.adapters.MessageAdapter;
+import com.example.proyecto_final_hoteleros.client.adapters.MessageAdapter;
 import com.example.proyecto_final_hoteleros.client.model.ChatSummary;
 import com.example.proyecto_final_hoteleros.client.model.Message;
-import com.example.proyecto_final_hoteleros.services.FirebaseChatService;
+import com.example.proyecto_final_hoteleros.client.service.FirebaseChatService;
 
 import java.util.ArrayList;
 import java.util.List;

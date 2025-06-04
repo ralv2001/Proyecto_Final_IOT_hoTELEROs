@@ -21,7 +21,7 @@ import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.example.proyecto_final_hoteleros.R;
 
-import com.example.proyecto_final_hoteleros.adapters.NotificationAdapter;
+import com.example.proyecto_final_hoteleros.client.adapters.NotificationAdapter;
 import com.example.proyecto_final_hoteleros.client.model.Notification;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentReference;

@@ -5,6 +5,8 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.Toast;
+
+import com.example.proyecto_final_hoteleros.client.activity.HomeActivity;
 import com.example.proyecto_final_hoteleros.utils.DatabaseTestHelper;
 
 import androidx.activity.EdgeToEdge;
@@ -14,7 +16,6 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 import com.example.proyecto_final_hoteleros.adminhotel.AdminHotelActivity;
-import com.example.proyecto_final_hoteleros.superadmin.SuperadminActivity;
 import com.google.android.material.button.MaterialButton;
 import com.google.firebase.FirebaseApp;
 

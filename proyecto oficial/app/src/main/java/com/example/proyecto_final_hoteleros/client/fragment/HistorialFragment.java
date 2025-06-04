@@ -10,7 +10,6 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.ViewFlipper;
 
-import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
@@ -18,7 +17,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.proyecto_final_hoteleros.R;
-import com.example.proyecto_final_hoteleros.adapters.ReservationAdapter;
+import com.example.proyecto_final_hoteleros.client.adapters.ReservationAdapter;
 import com.example.proyecto_final_hoteleros.client.model.Reservation;
 
 import java.util.ArrayList;

@@ -7,7 +7,6 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.proyecto_final_hoteleros.HomeActivity;
 import com.example.proyecto_final_hoteleros.R;
 import com.example.proyecto_final_hoteleros.adapters.HuespedAdapter;
 

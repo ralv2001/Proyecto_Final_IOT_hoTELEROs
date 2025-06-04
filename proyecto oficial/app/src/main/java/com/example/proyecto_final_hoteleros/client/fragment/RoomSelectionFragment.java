@@ -16,7 +16,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.proyecto_final_hoteleros.R;
-import com.example.proyecto_final_hoteleros.adapters.RoomTypeAdapter;
+import com.example.proyecto_final_hoteleros.client.adapters.RoomTypeAdapter;
 import com.example.proyecto_final_hoteleros.client.model.RoomType;
 
 import java.util.ArrayList;
