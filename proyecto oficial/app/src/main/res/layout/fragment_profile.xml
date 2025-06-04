@@ -44,11 +44,12 @@
             app:layout_constraintEnd_toEndOf="parent"
             android:layout_marginTop="40dp"/>
 
+        <!-- Cambiar esta línea -->
         <TextView
             android:id="@+id/tvProfileName"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Adrián López"
+            android:text="Usuario"
             android:textSize="20sp"
             android:textStyle="bold"
             android:textColor="@android:color/black"
