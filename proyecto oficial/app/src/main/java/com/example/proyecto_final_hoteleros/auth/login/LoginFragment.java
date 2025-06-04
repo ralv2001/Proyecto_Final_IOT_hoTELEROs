@@ -2,6 +2,7 @@ package com.example.proyecto_final_hoteleros.auth.login;
 
 import androidx.lifecycle.ViewModelProvider;
 
+import android.content.Intent;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
@@ -242,6 +243,8 @@ public class LoginFragment extends Fragment {
 
                 // Obtener datos del usuario desde Firestore
                 firebaseManager.getUserData(userId, new FirebaseManager.UserCallback() {
+                    // En LoginFragment.java, dentro del método attemptLogin(), reemplaza la parte del onUserFound:
+
                     @Override
                     public void onUserFound(UserModel user) {
                         if (getActivity() != null) {
@@ -253,13 +256,31 @@ public class LoginFragment extends Fragment {
 
                                 tvErrorMessage.setVisibility(View.INVISIBLE);
 
-                                // TODO: Navegar a la pantalla principal según el tipo de usuario
+                                // Navegar según el tipo de usuario
                                 if (user.isDriver()) {
                                     // Navegar a pantalla de taxista
                                     Toast.makeText(getContext(), "Navegando a pantalla de taxista...", Toast.LENGTH_SHORT).show();
+                                    // TODO: Implementar navegación a DriverActivity cuando esté listo
+                                } else if (user.isClient()) {
+                                    // Navegar a pantalla de cliente (HomeActivity)
+                                    Intent intent = new Intent(getActivity(), com.example.proyecto_final_hoteleros.client.ui.activity.HomeActivity.class);
+
+                                    // Pasar datos del usuario a HomeActivity
+                                    intent.putExtra("user_id", user.getUserId());
+                                    intent.putExtra("user_name", user.getNombres());
+                                    intent.putExtra("user_full_name", user.getFullName());
+                                    intent.putExtra("user_email", user.getEmail());
+                                    intent.putExtra("user_type", user.getUserType());
+
+                                    startActivity(intent);
+
+                                    // Cerrar AuthActivity para que el usuario no pueda volver atrás
+                                    if (getActivity() != null) {
+                                        getActivity().finish();
+                                    }
                                 } else {
-                                    // Navegar a pantalla de cliente
-                                    Toast.makeText(getContext(), "Navegando a pantalla de cliente...", Toast.LENGTH_SHORT).show();
+                                    // Tipo de usuario no reconocido
+                                    Toast.makeText(getContext(), "Tipo de usuario no reconocido", Toast.LENGTH_SHORT).show();
                                 }
 
                                 // Restaurar botón
