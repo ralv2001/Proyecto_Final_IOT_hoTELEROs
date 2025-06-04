@@ -22,7 +22,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.proyecto_final_hoteleros.R;
-import com.example.proyecto_final_hoteleros.adapters.AvailableHotelsAdapter;
+import com.example.proyecto_final_hoteleros.client.adapters.AvailableHotelsAdapter;
 import com.example.proyecto_final_hoteleros.taxista.model.AvailableHotel;
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;

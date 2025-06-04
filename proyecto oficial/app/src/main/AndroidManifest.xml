@@ -59,7 +59,7 @@
             android:exported="true" />
 
         <activity
-            android:name=".HomeActivity"
+            android:name=".client.activity.HomeActivity"
             android:exported="false" />
 
         <!-- Actividad del Taxista -->
@@ -168,28 +168,28 @@
 
         <!-- ========== ACTIVIDADES DE SERVICIOS ========== -->
         <activity
-            android:name=".AllHotelServicesActivity"
+            android:name=".client.activity.AllHotelServicesActivity"
             android:exported="true" />
 
         <activity
-            android:name=".CardDialogActivity"
+            android:name=".client.activity.CardDialogActivity"
             android:exported="true" />
 
         <activity
-            android:name=".HotelServicesPreviewActivity"
+            android:name=".client.activity.HotelServicesPreviewActivity"
             android:exported="true" />
         <activity
-            android:name=".HotelResultsActivity"
+            android:name=".client.activity.HotelResultsActivity"
             android:exported="false" />
         <!-- Actividad de prueba de notificaciones -->
         <activity
-            android:name=".NotificationTestActivity"
+            android:name=".client.activity.NotificationTestActivity"
             android:exported="false" />
 
         <!-- ========== SERVICIOS ========== -->
         <!-- Servicio de notificaciones de Firebase -->
         <service
-            android:name=".services.FirebaseNotificationService"
+            android:name=".client.service.FirebaseNotificationService"
             android:exported="false">
             <intent-filter>
                 <action android:name="com.google.firebase.MESSAGING_EVENT" />
