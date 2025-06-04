@@ -13,7 +13,7 @@ import com.example.proyecto_final_hoteleros.database.entities.UserRegistrationEn
 
 @Database(
         entities = {UserRegistrationEntity.class, FileStorageEntity.class},
-        version = 1,
+        version = 2,  // ← INCREMENTAR A 2
         exportSchema = false
 )
 public abstract class AppDatabase extends RoomDatabase {
@@ -33,7 +33,7 @@ public abstract class AppDatabase extends RoomDatabase {
                                     AppDatabase.class,
                                     DATABASE_NAME
                             )
-                            .fallbackToDestructiveMigration() // Para desarrollo - eliminar en producción
+                            .fallbackToDestructiveMigration() // Esto limpiará la DB anterior
                             .build();
                 }
             }

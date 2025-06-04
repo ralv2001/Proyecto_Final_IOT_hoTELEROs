@@ -7,6 +7,7 @@ import android.util.Log;
 import com.example.proyecto_final_hoteleros.database.AppDatabase;
 import com.example.proyecto_final_hoteleros.database.dao.FileStorageDao;
 import com.example.proyecto_final_hoteleros.database.entities.FileStorageEntity;
+import com.example.proyecto_final_hoteleros.utils.AwsFileManager;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -228,4 +229,93 @@ public class FileStorageRepository {
             }
         });
     }
+
+    // ========== INTEGRACIÓN CON AWS ==========
+    private AwsFileManager awsFileManager;
+
+    // Inicializar AWS Manager
+    private void initializeAwsManager() {
+        if (awsFileManager == null) {
+            awsFileManager = new AwsFileManager(context);
+        }
+    }
+
+    // Método para subir archivo a AWS y guardarlo en Room
+    public void saveFileWithAws(int registrationId, String fileType, String originalName,
+                                Uri tempUri, String mimeType, FileOperationCallback callback) {
+
+        initializeAwsManager();
+
+        executor.execute(() -> {
+            try {
+                // Determinar folder según tipo de archivo
+                String awsFolder = fileType.equals(FileStorageEntity.FILE_TYPE_PDF) ? "documents" : "photos";
+                String userId = "reg_" + registrationId; // Usar registration ID como user ID temporal
+
+                Log.d(TAG, "Subiendo archivo a AWS: " + originalName);
+
+                awsFileManager.uploadFile(tempUri, userId, awsFolder, new AwsFileManager.UploadCallback() {
+                    @Override
+                    public void onSuccess(AwsFileManager.AwsFileInfo fileInfo) {
+                        Log.d(TAG, "Archivo subido a AWS exitosamente: " + fileInfo.s3Key);
+
+                        // Ahora guardar en Room Database con la URL de AWS
+                        FileStorageEntity fileEntity = new FileStorageEntity(
+                                registrationId,
+                                fileType,
+                                originalName,
+                                fileInfo.fileUrl, // Usar URL de AWS en lugar de path local
+                                fileInfo.fileSizeBytes,
+                                mimeType
+                        );
+
+                        // Añadir metadatos de AWS
+                        fileEntity.awsS3Key = fileInfo.s3Key;
+                        fileEntity.awsStoredName = fileInfo.storedName;
+                        fileEntity.awsETag = fileInfo.etag;
+
+                        long id = fileStorageDao.insertFile(fileEntity);
+                        fileEntity.id = (int) id;
+
+                        Log.d(TAG, "Archivo guardado en Room con referencia AWS");
+                        callback.onSuccess(fileEntity);
+                    }
+
+                    @Override
+                    public void onError(String error) {
+                        Log.e(TAG, "Error subiendo a AWS: " + error);
+
+                        // Fallback: guardar localmente como antes
+                        Log.d(TAG, "Fallback: guardando archivo localmente");
+                        saveFile(registrationId, fileType, originalName, tempUri, mimeType, callback);
+                    }
+
+                    @Override
+                    public void onProgress(int percentage) {
+                        Log.d(TAG, "Progreso upload AWS: " + percentage + "%");
+                    }
+                });
+
+            } catch (Exception e) {
+                Log.e(TAG, "Error iniciando upload AWS: " + e.getMessage());
+                // Fallback: guardar localmente
+                saveFile(registrationId, fileType, originalName, tempUri, mimeType, callback);
+            }
+        });
+    }
+
+    // Actualizar archivo existente
+    public void updateFile(FileStorageEntity fileEntity, FileOperationCallback callback) {
+        executor.execute(() -> {
+            try {
+                fileStorageDao.updateFile(fileEntity);
+                Log.d(TAG, "File updated successfully: " + fileEntity.id);
+                callback.onSuccess(fileEntity);
+            } catch (Exception e) {
+                Log.e(TAG, "Error updating file", e);
+                callback.onError("Error al actualizar el archivo: " + e.getMessage());
+            }
+        });
+    }
+
 }

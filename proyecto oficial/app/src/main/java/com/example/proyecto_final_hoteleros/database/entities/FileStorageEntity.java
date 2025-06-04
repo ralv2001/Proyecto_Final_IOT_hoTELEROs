@@ -38,6 +38,21 @@ public class FileStorageEntity {
     @ColumnInfo(name = "created_at")
     public long createdAt;
 
+    // Campos para AWS S3
+    @ColumnInfo(name = "aws_s3_key")
+    public String awsS3Key;
+
+    @ColumnInfo(name = "aws_stored_name")
+    public String awsStoredName;
+
+    @ColumnInfo(name = "aws_etag")
+    public String awsETag;
+
+    // Método helper para verificar si está en AWS
+    public boolean isStoredInAws() {
+        return awsS3Key != null && !awsS3Key.isEmpty();
+    }
+
     // Constantes para tipos de archivo
     public static final String FILE_TYPE_PDF = "PDF";
     public static final String FILE_TYPE_PHOTO = "PHOTO";

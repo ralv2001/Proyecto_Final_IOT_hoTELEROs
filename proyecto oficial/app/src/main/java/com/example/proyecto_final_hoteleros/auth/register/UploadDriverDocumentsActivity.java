@@ -124,6 +124,7 @@ public class UploadDriverDocumentsActivity extends AppCompatActivity {
         btnDeleteFile = findViewById(R.id.btnDeleteFile);
         btnContinuar = findViewById(R.id.btnContinuar);
         tvSunarpLink = findViewById(R.id.tvSunarpLink);
+        tvSunarpLink = findViewById(R.id.tvSunarpLink);
         //tvLoginTab = findViewById(R.id.tvLoginTab);
         //tvRegisterTab = findViewById(R.id.tvRegisterTab);
         //viewTabIndicatorLogin = findViewById(R.id.viewTabIndicatorLogin);

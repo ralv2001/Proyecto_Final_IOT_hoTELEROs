@@ -2,12 +2,14 @@ package com.example.proyecto_final_hoteleros;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import com.example.proyecto_final_hoteleros.client.ui.activity.HomeActivity;
 import com.example.proyecto_final_hoteleros.taxista.activity.DriverActivity;
+import com.example.proyecto_final_hoteleros.utils.AwsFileManager;
 import com.example.proyecto_final_hoteleros.utils.DatabaseTestHelper;
 
 import androidx.activity.EdgeToEdge;
@@ -74,7 +76,7 @@ public class MainActivity extends AppCompatActivity {
         layoutContinueAsSuperadmin.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // Ejecutar tests de base de datos (Room)
+                // Tests de base de datos (Room)
                 DatabaseTestHelper testHelper = new DatabaseTestHelper(MainActivity.this);
                 testHelper.runDatabaseTests();
                 testHelper.testNotifications(MainActivity.this);
@@ -89,6 +91,15 @@ public class MainActivity extends AppCompatActivity {
                 }, 8000);
 
                 Toast.makeText(MainActivity.this, "Tests de Room + Firebase ejecutados - Ver logs", Toast.LENGTH_LONG).show();
+            }
+        });
+
+        // LONG PRESS para test de AWS
+        layoutContinueAsSuperadmin.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                testAwsUpload();
+                return true;
             }
         });
 
@@ -122,6 +133,48 @@ public class MainActivity extends AppCompatActivity {
         Intent intent = new Intent(MainActivity.this, AuthActivity.class);
         intent.putExtra("mode", mode); // Para indicar qué pestaña mostrar (login o register)
         startActivity(intent);
+    }
+
+    // MÉTODO TEMPORAL PARA TESTING AWS - ELIMINAR EN PRODUCCIÓN
+    private void testAwsUpload() {
+        Log.d("AWSTest", "=== INICIANDO TEST DE AWS ===");
+
+        AwsFileManager awsManager = new AwsFileManager(this);
+
+        // Crear imagen de prueba pequeña
+        android.graphics.Bitmap testBitmap = android.graphics.Bitmap.createBitmap(100, 100, android.graphics.Bitmap.Config.ARGB_8888);
+        testBitmap.eraseColor(android.graphics.Color.RED);
+
+        awsManager.uploadImage(testBitmap, "test_image.jpg", "test_user", "photos",
+                new AwsFileManager.UploadCallback() {
+                    @Override
+                    public void onSuccess(AwsFileManager.AwsFileInfo fileInfo) {
+                        runOnUiThread(() -> {
+                            Toast.makeText(MainActivity.this,
+                                    "✅ AWS Upload exitoso: " + fileInfo.storedName,
+                                    Toast.LENGTH_LONG).show();
+                            Log.d("AWSTest", "✅ Archivo subido exitosamente:");
+                            Log.d("AWSTest", "  - S3 Key: " + fileInfo.s3Key);
+                            Log.d("AWSTest", "  - File URL: " + fileInfo.fileUrl);
+                            Log.d("AWSTest", "  - Size: " + fileInfo.fileSizeMB + " MB");
+                        });
+                    }
+
+                    @Override
+                    public void onError(String error) {
+                        runOnUiThread(() -> {
+                            Toast.makeText(MainActivity.this,
+                                    "❌ AWS Error: " + error,
+                                    Toast.LENGTH_LONG).show();
+                            Log.e("AWSTest", "❌ Error: " + error);
+                        });
+                    }
+
+                    @Override
+                    public void onProgress(int percentage) {
+                        Log.d("AWSTest", "📊 Progreso: " + percentage + "%");
+                    }
+                });
     }
 
 

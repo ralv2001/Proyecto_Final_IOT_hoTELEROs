@@ -83,4 +83,7 @@ dependencies {
 
     // Para manejo de fechas
     implementation 'com.jakewharton.threetenabp:threetenabp:1.4.6'
+
+    // OkHttp para requests HTTP
+    implementation 'com.squareup.okhttp3:okhttp:4.11.0'
 }

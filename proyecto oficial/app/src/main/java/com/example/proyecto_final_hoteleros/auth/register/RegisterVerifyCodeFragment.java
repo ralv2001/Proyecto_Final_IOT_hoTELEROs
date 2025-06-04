@@ -1,6 +1,7 @@
 package com.example.proyecto_final_hoteleros.auth.register;
 
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -20,6 +21,9 @@ import androidx.lifecycle.ViewModelProvider;
 
 import com.example.proyecto_final_hoteleros.R;
 import com.example.proyecto_final_hoteleros.auth.register.AddProfilePhotoActivity;
+import com.example.proyecto_final_hoteleros.database.entities.FileStorageEntity;
+import com.example.proyecto_final_hoteleros.repository.FileStorageRepository;
+import com.example.proyecto_final_hoteleros.utils.AwsFileManager;
 import com.google.android.material.button.MaterialButton;
 import com.example.proyecto_final_hoteleros.repository.UserRegistrationRepository;
 import com.example.proyecto_final_hoteleros.database.entities.UserRegistrationEntity;
@@ -27,6 +31,8 @@ import com.example.proyecto_final_hoteleros.database.entities.UserRegistrationEn
 // ========== NUEVOS IMPORTS FIREBASE ==========
 import com.example.proyecto_final_hoteleros.utils.FirebaseManager;
 import com.example.proyecto_final_hoteleros.models.UserModel;
+
+import java.util.List;
 
 public class RegisterVerifyCodeFragment extends Fragment {
 
@@ -377,7 +383,124 @@ public class RegisterVerifyCodeFragment extends Fragment {
     }
 
     private void onRegistrationComplete(UserModel userModel, UserRegistrationEntity registration) {
-        Log.d(TAG, "🎉 REGISTRO COMPLETADO EXITOSAMENTE");
+        Log.d(TAG, "🎉 REGISTRO COMPLETADO - INICIANDO UPLOAD A AWS");
+
+        if (getActivity() != null) {
+            getActivity().runOnUiThread(() -> {
+                // Mostrar mensaje de progreso
+                btnRegister.setText("Subiendo archivos...");
+                btnRegister.setEnabled(false);
+
+                // Subir archivos a AWS antes de mostrar éxito
+                uploadFilesToAwsAndComplete(userModel, registration);
+            });
+        }
+    }
+
+    private void uploadFilesToAwsAndComplete(UserModel userModel, UserRegistrationEntity registration) {
+        Log.d(TAG, "=== SUBIENDO ARCHIVOS A AWS ===");
+
+        // Obtener archivos desde Room Database
+        FileStorageRepository fileRepo = new FileStorageRepository(getActivity());
+
+        fileRepo.getFilesByRegistrationId(registration.id, new FileStorageRepository.FileListCallback() {
+            @Override
+            public void onSuccess(List<FileStorageEntity> files) {
+                if (files.isEmpty()) {
+                    Log.d(TAG, "No hay archivos para subir, completando registro");
+                    completeRegistrationSuccess(userModel, registration);
+                    return;
+                }
+
+                Log.d(TAG, "Encontrados " + files.size() + " archivos para subir a AWS");
+                uploadFilesSequentially(files, 0, userModel, registration);
+            }
+
+            @Override
+            public void onError(String error) {
+                Log.e(TAG, "Error obteniendo archivos: " + error);
+                // Continuar sin archivos
+                completeRegistrationSuccess(userModel, registration);
+            }
+        });
+    }
+
+    private void uploadFilesSequentially(List<FileStorageEntity> files, int currentIndex,
+                                         UserModel userModel, UserRegistrationEntity registration) {
+
+        if (currentIndex >= files.size()) {
+            Log.d(TAG, "✅ Todos los archivos subidos a AWS exitosamente");
+            completeRegistrationSuccess(userModel, registration);
+            return;
+        }
+
+        FileStorageEntity fileEntity = files.get(currentIndex);
+        Log.d(TAG, "Subiendo archivo " + (currentIndex + 1) + "/" + files.size() + ": " + fileEntity.originalName);
+
+        // Actualizar progreso en UI
+        if (getActivity() != null) {
+            getActivity().runOnUiThread(() -> {
+                btnRegister.setText("Subiendo " + (currentIndex + 1) + "/" + files.size() + "...");
+            });
+        }
+
+        // Crear AwsFileManager
+        AwsFileManager awsManager = new AwsFileManager(getActivity());
+
+        // Determinar folder y userId
+        String awsFolder = fileEntity.isPdf() ? "documents" : "photos";
+        String userId = userModel.getUserId();
+
+        // Crear URI desde el path almacenado
+        Uri fileUri = Uri.parse(fileEntity.storedPath);
+
+        awsManager.uploadFileFromPath(fileEntity.storedPath, fileEntity.originalName,
+                fileEntity.mimeType, userId, awsFolder, new AwsFileManager.UploadCallback() {
+            @Override
+            public void onSuccess(AwsFileManager.AwsFileInfo fileInfo) {
+                Log.d(TAG, "✅ Archivo subido a AWS: " + fileInfo.s3Key);
+
+                // Actualizar el FileStorageEntity con datos de AWS
+                fileEntity.awsS3Key = fileInfo.s3Key;
+                fileEntity.awsStoredName = fileInfo.storedName;
+                fileEntity.awsETag = fileInfo.etag;
+                fileEntity.storedPath = fileInfo.fileUrl; // Actualizar con URL de AWS
+
+                // Guardar cambios en Room Database
+                FileStorageRepository fileRepo = new FileStorageRepository(getActivity());
+                fileRepo.updateFile(fileEntity, new FileStorageRepository.FileOperationCallback() {
+                    @Override
+                    public void onSuccess(FileStorageEntity updatedEntity) {
+                        Log.d(TAG, "✅ FileEntity actualizado con datos AWS");
+                        // Continuar con el siguiente archivo
+                        uploadFilesSequentially(files, currentIndex + 1, userModel, registration);
+                    }
+
+                    @Override
+                    public void onError(String error) {
+                        Log.w(TAG, "⚠️ Error actualizando FileEntity: " + error);
+                        // Continuar de todos modos
+                        uploadFilesSequentially(files, currentIndex + 1, userModel, registration);
+                    }
+                });
+            }
+
+            @Override
+            public void onError(String error) {
+                Log.e(TAG, "❌ Error subiendo archivo " + fileEntity.originalName + ": " + error);
+                // Continuar con el siguiente archivo (no fallar todo por un archivo)
+                uploadFilesSequentially(files, currentIndex + 1, userModel, registration);
+            }
+
+            @Override
+            public void onProgress(int percentage) {
+                Log.d(TAG, "📊 Progreso archivo " + (currentIndex + 1) + ": " + percentage + "%");
+            }
+        });
+    }
+
+    private void completeRegistrationSuccess(UserModel userModel, UserRegistrationEntity registration) {
+        Log.d(TAG, "🎉 REGISTRO Y UPLOAD COMPLETADOS EXITOSAMENTE");
 
         if (getActivity() != null) {
             getActivity().runOnUiThread(() -> {
