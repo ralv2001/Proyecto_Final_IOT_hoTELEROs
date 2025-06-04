@@ -59,7 +59,7 @@
             android:exported="true" />
 
         <activity
-            android:name=".client.activity.HomeActivity"
+            android:name=".client.ui.activity.HomeActivity"
             android:exported="false" />
 
         <!-- Actividad del Taxista -->
@@ -94,7 +94,7 @@
 
         <!-- ========== ACTIVIDADES DE CLIENTE ========== -->
         <activity
-            android:name=".client.fragment.LocationSelectorActivity"
+            android:name=".client.ui.activity.LocationSelectorActivity"
             android:exported="true" />
 
         <!-- ========== ACTIVIDADES DE SUPERADMIN ========== -->
@@ -168,28 +168,28 @@
 
         <!-- ========== ACTIVIDADES DE SERVICIOS ========== -->
         <activity
-            android:name=".client.activity.AllHotelServicesActivity"
+            android:name=".client.ui.activity.AllHotelServicesActivity"
             android:exported="true" />
 
         <activity
-            android:name=".client.activity.CardDialogActivity"
+            android:name=".client.ui.activity.CardDialogActivity"
             android:exported="true" />
 
         <activity
-            android:name=".client.activity.HotelServicesPreviewActivity"
+            android:name=".client.ui.activity.HotelServicesPreviewActivity"
             android:exported="true" />
         <activity
-            android:name=".client.activity.HotelResultsActivity"
+            android:name=".client.ui.activity.HotelResultsActivity"
             android:exported="false" />
         <!-- Actividad de prueba de notificaciones -->
         <activity
-            android:name=".client.activity.NotificationTestActivity"
+            android:name=".client.ui.activity.NotificationTestActivity"
             android:exported="false" />
 
         <!-- ========== SERVICIOS ========== -->
         <!-- Servicio de notificaciones de Firebase -->
         <service
-            android:name=".client.service.FirebaseNotificationService"
+            android:name=".client.data.service.FirebaseNotificationService"
             android:exported="false">
             <intent-filter>
                 <action android:name="com.google.firebase.MESSAGING_EVENT" />

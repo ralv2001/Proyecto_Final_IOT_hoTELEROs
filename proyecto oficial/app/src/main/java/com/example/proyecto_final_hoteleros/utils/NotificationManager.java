@@ -1,10 +1,9 @@
 package com.example.proyecto_final_hoteleros.utils;
 
 import android.app.NotificationChannel;
-import android.content.Context;
 import android.util.Log;
 
-import com.example.proyecto_final_hoteleros.client.model.Notification;
+import com.example.proyecto_final_hoteleros.client.data.model.Notification;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
 

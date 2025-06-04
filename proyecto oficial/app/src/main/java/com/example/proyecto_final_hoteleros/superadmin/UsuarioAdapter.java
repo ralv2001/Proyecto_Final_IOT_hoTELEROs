@@ -7,7 +7,7 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 import com.example.proyecto_final_hoteleros.R;
-import com.example.proyecto_final_hoteleros.client.model.Usuario;
+import com.example.proyecto_final_hoteleros.client.data.model.Usuario;
 
 import java.util.List;
 

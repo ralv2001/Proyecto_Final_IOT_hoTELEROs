@@ -2,7 +2,7 @@ package com.example.proyecto_final_hoteleros.client.utils;
 
 import android.content.Context;
 import android.content.SharedPreferences;
-import com.example.proyecto_final_hoteleros.client.model.LocationItem;
+import com.example.proyecto_final_hoteleros.client.data.model.LocationItem;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
