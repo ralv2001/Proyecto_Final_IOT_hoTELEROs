@@ -70,22 +70,22 @@ public class EditProfileAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
 
         switch (viewType) {
             case TYPE_PROFILE_HEADER:
-                View headerView = inflater.inflate(R.layout.item_edit_profile_header, parent, false);
+                View headerView = inflater.inflate(R.layout.taxi_item_edit_profile_header, parent, false);
                 return new ProfileHeaderViewHolder(headerView);
             case TYPE_SECTION_HEADER:
-                View sectionView = inflater.inflate(R.layout.item_edit_section_header, parent, false);
+                View sectionView = inflater.inflate(R.layout.taxi_item_edit_section_header, parent, false);
                 return new SectionHeaderViewHolder(sectionView);
             case TYPE_READ_ONLY_FIELD:
-                View readOnlyView = inflater.inflate(R.layout.item_edit_readonly_field, parent, false);
+                View readOnlyView = inflater.inflate(R.layout.taxi_item_edit_readonly_field, parent, false);
                 return new ReadOnlyFieldViewHolder(readOnlyView);
             case TYPE_EDITABLE_FIELD:
-                View editableView = inflater.inflate(R.layout.item_edit_editable_field, parent, false);
+                View editableView = inflater.inflate(R.layout.taxi_item_edit_editable_field, parent, false);
                 return new EditableFieldViewHolder(editableView);
             case TYPE_CAR_IMAGE:
-                View carImageView = inflater.inflate(R.layout.item_edit_car_image, parent, false);
+                View carImageView = inflater.inflate(R.layout.taxi_item_edit_car_image, parent, false);
                 return new CarImageViewHolder(carImageView);
             default:
-                View defaultView = inflater.inflate(R.layout.item_edit_readonly_field, parent, false);
+                View defaultView = inflater.inflate(R.layout.taxi_item_edit_readonly_field, parent, false);
                 return new ReadOnlyFieldViewHolder(defaultView);
         }
     }

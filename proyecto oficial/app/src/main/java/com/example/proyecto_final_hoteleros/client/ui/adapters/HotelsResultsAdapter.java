@@ -44,7 +44,7 @@ public class HotelsResultsAdapter extends RecyclerView.Adapter<HotelsResultsAdap
     @Override
     public HotelResultViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         // USAR EL MISMO LAYOUT QUE EN EL HOME (item_popular_hotel_card)
-        View view = LayoutInflater.from(context).inflate(R.layout.item_popular_hotel_card, parent, false);
+        View view = LayoutInflater.from(context).inflate(R.layout.client_item_popular_hotel_card, parent, false);
         return new HotelResultViewHolder(view);
     }
 

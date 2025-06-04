@@ -35,7 +35,7 @@ public class HotelsAdapter extends RecyclerView.Adapter<HotelsAdapter.HotelViewH
     public HotelViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         // Inflar el layout del ítem (item_hotel_card.xml)
         View view = LayoutInflater.from(parent.getContext())
-                .inflate(R.layout.item_hotel_card, parent, false);
+                .inflate(R.layout.client_item_hotel_card, parent, false);
         return new HotelViewHolder(view);
     }
 

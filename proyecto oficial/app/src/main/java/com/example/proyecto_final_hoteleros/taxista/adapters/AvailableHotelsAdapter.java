@@ -40,7 +40,7 @@ public class AvailableHotelsAdapter extends RecyclerView.Adapter<AvailableHotels
     @NonNull
     @Override
     public HotelViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(context).inflate(R.layout.item_available_hotel, parent, false);
+        View view = LayoutInflater.from(context).inflate(R.layout.taxi_item_available_hotel, parent, false);
         return new HotelViewHolder(view);
     }
 

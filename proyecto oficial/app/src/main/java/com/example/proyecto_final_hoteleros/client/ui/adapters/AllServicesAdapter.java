@@ -50,7 +50,7 @@ public class AllServicesAdapter extends RecyclerView.Adapter<AllServicesAdapter.
     public ServiceViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         context = parent.getContext();
         View view = LayoutInflater.from(context)
-                .inflate(R.layout.item_service_detail, parent, false);
+                .inflate(R.layout.client_item_service_detail, parent, false);
         return new ServiceViewHolder(view);
     }
 

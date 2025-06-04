@@ -25,7 +25,7 @@ public class GuestCountBottomSheet extends BottomSheetDialogFragment {
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup parent, Bundle b) {
         try {
-            View v = inflater.inflate(R.layout.bottom_sheet_guest_count, parent, false);
+            View v = inflater.inflate(R.layout.client_bottom_sheet_guest_count, parent, false);
 
             // Encontrar todas las vistas
             TextView tvAdults = v.findViewById(R.id.tvAdultsCount);

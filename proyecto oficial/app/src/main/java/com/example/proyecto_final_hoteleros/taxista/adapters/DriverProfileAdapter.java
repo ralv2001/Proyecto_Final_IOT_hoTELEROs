@@ -60,11 +60,11 @@ public class DriverProfileAdapter extends RecyclerView.Adapter<RecyclerView.View
 
         switch (viewType) {
             case TYPE_HEADER:
-                View headerView = inflater.inflate(R.layout.item_profile_header, parent, false);
+                View headerView = inflater.inflate(R.layout.taxi_item_profile_header, parent, false);
                 return new HeaderViewHolder(headerView);
             case TYPE_MENU_ITEM:
             default:
-                View menuView = inflater.inflate(R.layout.item_profile_menu, parent, false);
+                View menuView = inflater.inflate(R.layout.taxi_item_profile_menu, parent, false);
                 return new MenuItemViewHolder(menuView);
         }
     }

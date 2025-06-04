@@ -14,7 +14,6 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
-import androidx.core.util.Pair;
 
 import com.example.proyecto_final_hoteleros.R;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
@@ -82,7 +81,7 @@ public class CustomDatePickerBottomSheet extends BottomSheetDialogFragment {
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.bottom_sheet_custom_date_picker, container, false);
+        View view = inflater.inflate(R.layout.client_bottom_sheet_custom_date_picker, container, false);
 
         tvCurrentMonthYear = view.findViewById(R.id.tvCurrentMonthYear);
         tvStartDate = view.findViewById(R.id.tvStartDate);
@@ -303,7 +302,7 @@ public class CustomDatePickerBottomSheet extends BottomSheetDialogFragment {
         public View getView(int position, View convertView, ViewGroup parent) {
             ViewHolder holder;
             if (convertView == null) {
-                convertView = inflater.inflate(R.layout.item_calendar_day, parent, false);
+                convertView = inflater.inflate(R.layout.client_item_calendar_day, parent, false);
                 holder = new ViewHolder();
                 holder.tvDayText = convertView.findViewById(R.id.tvDayText);
                 convertView.setTag(holder);

@@ -127,41 +127,41 @@
             android:exported="true" />
 
         <!-- ========== ACTIVIDADES DE ADMIN HOTEL ========== -->
-        <activity android:name=".adminhotel.ChatActivity"/>
+        <activity android:name=".adminhotel.activity.ChatActivity"/>
         <activity
-            android:name=".adminhotel.AdminHotelActivity"
+            android:name=".adminhotel.activity.AdminHotelActivity"
             android:exported="true" />
 
         <activity
-            android:name=".adminhotel.CheckoutActivity"
+            android:name=".adminhotel.activity.CheckoutActivity"
             android:exported="true" />
 
         <activity
-            android:name=".adminhotel.HabitacionesActivity"
+            android:name=".adminhotel.activity.HabitacionesActivity"
             android:exported="true" />
 
         <activity
-            android:name=".adminhotel.PerfilHotelActivity"
+            android:name=".adminhotel.activity.PerfilHotelActivity"
             android:exported="true" />
 
         <activity
-            android:name=".adminhotel.ReporteVentasActivity"
+            android:name=".adminhotel.activity.ReporteVentasActivity"
             android:exported="true" />
 
         <activity
-            android:name=".adminhotel.ServiciosHotelActivity"
+            android:name=".adminhotel.activity.ServiciosHotelActivity"
             android:exported="true" />
 
         <activity
-            android:name=".adminhotel.TaxistasHotelActivity"
+            android:name=".adminhotel.activity.TaxistasHotelActivity"
             android:exported="true" />
 
         <activity
-            android:name=".adminhotel.NuevoServicioActivity"
+            android:name=".adminhotel.activity.NuevoServicioActivity"
             android:exported="false" />
-        <activity android:name=".adminhotel.NuevaHabitacionActivity"
+        <activity android:name=".adminhotel.activity.NuevaHabitacionActivity"
             android:exported="true" />
-        <activity android:name=".adminhotel.DatosHuespedActivity"
+        <activity android:name=".adminhotel.activity.DatosHuespedActivity"
             android:exported="true"/>
 
 

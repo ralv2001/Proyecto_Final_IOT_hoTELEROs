@@ -82,7 +82,7 @@ public class ChatConversationFragment extends Fragment {
         View rootView = null;
         try {
             // Inflate the layout first
-            rootView = inflater.inflate(R.layout.fragment_chat_conversation, container, false);
+            rootView = inflater.inflate(R.layout.client_fragment_chat_conversation, container, false);
 
             // NUEVO: Configurar el comportamiento del teclado solo para esta vista
             if (getActivity() != null) {
@@ -138,7 +138,7 @@ public class ChatConversationFragment extends Fragment {
 
             // Still need to return a view even if there's an error
             if (rootView == null && inflater != null && container != null) {
-                rootView = inflater.inflate(R.layout.fragment_chat_conversation, container, false);
+                rootView = inflater.inflate(R.layout.client_fragment_chat_conversation, container, false);
             }
         }
 

@@ -52,7 +52,7 @@ public class DriverHistorialFragment extends Fragment implements HistorialAdapte
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_driver_historial, container, false);
+        View view = inflater.inflate(R.layout.taxi_fragment_driver_historial, container, false);
 
         try {
             // Inicializar vistas

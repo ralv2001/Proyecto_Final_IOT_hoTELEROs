@@ -94,7 +94,7 @@ public class DriverMapFragment extends Fragment implements OnMapReadyCallback {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_driver_map, container, false);
+        View view = inflater.inflate(R.layout.taxi_fragment_driver_map, container, false);
 
         // Inicializar vistas
         ivProfilePhoto = view.findViewById(R.id.ivProfilePhoto);

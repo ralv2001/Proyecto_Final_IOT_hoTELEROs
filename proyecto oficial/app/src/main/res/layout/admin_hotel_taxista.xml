@@ -139,7 +139,7 @@
         android:paddingEnd="16dp"
         app:layout_constraintBottom_toTopOf="@id/bottom_navigation"
         app:layout_constraintTop_toBottomOf="@id/filter_section"
-        tools:listitem="@layout/item_driver" />
+        tools:listitem="@layout/superadmin_item_driver" />
 
     <!-- Bottom Navigation -->
     <LinearLayout

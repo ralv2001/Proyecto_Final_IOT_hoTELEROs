@@ -34,7 +34,7 @@ public class PopularHotelsAdapter extends RecyclerView.Adapter<PopularHotelsAdap
     public PopularHotelViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         // Inflar el layout del ítem (item_popular_hotel_card.xml)
         View view = LayoutInflater.from(parent.getContext())
-                .inflate(R.layout.item_popular_hotel_card, parent, false);
+                .inflate(R.layout.client_item_popular_hotel_card, parent, false);
         return new PopularHotelViewHolder(view);
     }
 

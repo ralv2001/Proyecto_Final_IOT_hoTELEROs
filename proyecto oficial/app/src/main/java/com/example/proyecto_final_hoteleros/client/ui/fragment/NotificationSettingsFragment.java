@@ -14,7 +14,6 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentTransaction;
 
 import com.example.proyecto_final_hoteleros.R;
 
@@ -47,7 +46,7 @@ public class NotificationSettingsFragment extends Fragment {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        View rootView = inflater.inflate(R.layout.fragment_notification_settings, container, false);
+        View rootView = inflater.inflate(R.layout.client_fragment_notification_settings, container, false);
 
         // Initialize UI elements
         initializeViews(rootView);

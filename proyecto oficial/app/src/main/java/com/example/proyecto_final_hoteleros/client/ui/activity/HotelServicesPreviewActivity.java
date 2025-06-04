@@ -31,7 +31,7 @@ public class HotelServicesPreviewActivity extends AppCompatActivity implements S
         super.onCreate(savedInstanceState);
 
         try {
-            setContentView(R.layout.activity_hotel_services_preview);
+            setContentView(R.layout.client_activity_hotel_services_preview);
             Log.d(TAG, "Activity creada");
 
             initViews();

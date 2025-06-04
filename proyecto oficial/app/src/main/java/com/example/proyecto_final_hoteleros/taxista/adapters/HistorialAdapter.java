@@ -40,7 +40,7 @@ public class HistorialAdapter extends RecyclerView.Adapter<HistorialAdapter.Hist
     @Override
     public HistorialViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         Log.d("HistorialAdapter", "🏗️ Inflando layout: item_historial_viaje");
-        View view = LayoutInflater.from(context).inflate(R.layout.item_historial_viaje, parent, false);
+        View view = LayoutInflater.from(context).inflate(R.layout.taxi_item_historial_viaje, parent, false);
 
         // Debug: Buscar el botón directamente en la vista inflada
         View btnDetailsTest = view.findViewById(R.id.btn_details);

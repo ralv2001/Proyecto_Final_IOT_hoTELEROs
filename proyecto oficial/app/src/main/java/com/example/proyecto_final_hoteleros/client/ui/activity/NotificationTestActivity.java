@@ -27,7 +27,7 @@ public class NotificationTestActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_notification_test);
+        setContentView(R.layout.client_activity_notification_test);
 
         // Initialize notification service
         notificationService = new NotificationService(this);

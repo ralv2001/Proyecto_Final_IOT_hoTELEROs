@@ -55,7 +55,7 @@ public class HotelDetailFragment extends Fragment implements ThumbnailAdapter.On
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_hotel_detail, container, false);
+        View view = inflater.inflate(R.layout.client_fragment_hotel_detail, container, false);
 
         // Inicializar vistas
         viewPagerImages = view.findViewById(R.id.view_pager_hotel_images);
@@ -379,7 +379,7 @@ public class HotelDetailFragment extends Fragment implements ThumbnailAdapter.On
         @Override
         public ServiceViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
             View view = LayoutInflater.from(parent.getContext())
-                    .inflate(R.layout.item_service_preview, parent, false);
+                    .inflate(R.layout.client_item_service_preview, parent, false);
             return new ServiceViewHolder(view);
         }
 

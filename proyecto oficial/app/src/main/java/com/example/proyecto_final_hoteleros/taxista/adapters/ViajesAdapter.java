@@ -42,7 +42,7 @@ public class ViajesAdapter extends RecyclerView.Adapter<ViajesAdapter.ViajesView
     @NonNull
     @Override
     public ViajesViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(context).inflate(R.layout.item_solicitud_viaje, parent, false);
+        View view = LayoutInflater.from(context).inflate(R.layout.taxi_item_solicitud_viaje, parent, false);
         return new ViajesViewHolder(view);
     }
 

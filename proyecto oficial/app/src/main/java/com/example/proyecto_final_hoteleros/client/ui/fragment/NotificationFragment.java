@@ -53,7 +53,7 @@ public class NotificationFragment extends Fragment implements NotificationAdapte
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.notification_fragment, container, false);
+        View view = inflater.inflate(R.layout.client_notification_fragment, container, false);
 
         // Inicializar Firebase
         db = FirebaseFirestore.getInstance();

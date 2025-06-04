@@ -75,7 +75,7 @@ public class AddPaymentDialogFragment extends DialogFragment {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.dialog_add_payment, container, false);
+        return inflater.inflate(R.layout.client_dialog_add_payment, container, false);
     }
 
     @Override

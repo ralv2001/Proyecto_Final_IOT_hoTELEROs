@@ -85,7 +85,7 @@ public class EditDriverProfileFragment extends Fragment implements
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_edit_driver_profile, container, false);
+        View view = inflater.inflate(R.layout.taxi_fragment_edit_driver_profile, container, false);
 
         // Recibir el perfil del conductor si fue pasado como argumento
         if (getArguments() != null && getArguments().containsKey("driver_profile")) {

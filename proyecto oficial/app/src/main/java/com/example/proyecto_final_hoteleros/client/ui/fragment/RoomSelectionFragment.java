@@ -34,7 +34,7 @@ public class RoomSelectionFragment extends Fragment {
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_room_selection, container, false);
+        View view = inflater.inflate(R.layout.client_fragment_room_selection, container, false);
 
         // Inicializar vistas
         rvRoomTypes = view.findViewById(R.id.rv_room_types);

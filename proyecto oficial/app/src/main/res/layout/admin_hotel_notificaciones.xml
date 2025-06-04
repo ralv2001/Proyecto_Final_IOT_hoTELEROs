@@ -93,12 +93,12 @@
         android:background="@android:color/white"
         app:itemIconTint="@color/bottom_nav_selector"
         app:itemTextColor="@color/bottom_nav_selector"
-        app:layout="@layout/barra_admin"
+        app:layout="@layout/admin_hotel_bottom_navigation"
         app:layout_constraintBottom_toBottomOf="parent" />
     <!-- Incluimos la barra de navegación inferior -->
     <include
         android:id="@+id/bottom_nav"
-        layout="@layout/barra_admin"
+        layout="@layout/admin_hotel_bottom_navigation"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         app:layout_constraintBottom_toBottomOf="parent"
