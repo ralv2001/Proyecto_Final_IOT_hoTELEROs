@@ -3,11 +3,9 @@ plugins {
     id 'com.google.gms.google-services'
 }
 
-
 android {
     namespace 'com.example.proyecto_final_hoteleros'
     compileSdk 35
-
 
     defaultConfig {
         applicationId "com.example.proyecto_final_hoteleros"
@@ -15,11 +13,8 @@ android {
         targetSdk 35
         versionCode 1
         versionName "1.0"
-
-
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
-
 
     buildTypes {
         release {
@@ -28,11 +23,9 @@ android {
         }
     }
 
-
     buildFeatures {
         viewBinding true
     }
-
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_11
@@ -40,36 +33,24 @@ android {
     }
 }
 
-
 dependencies {
-    // Firebase
-    implementation 'com.google.firebase:firebase-auth:21.0.1'
-    implementation 'com.google.firebase:firebase-messaging:23.0.0'
+    // ========== FIREBASE (NUEVAS) ==========
+    implementation platform('com.google.firebase:firebase-bom:33.13.0')
+    implementation 'com.google.firebase:firebase-auth'
+    implementation 'com.google.firebase:firebase-firestore'
+    implementation 'com.google.firebase:firebase-analytics'
+    implementation 'com.google.firebase:firebase-messaging'
+    implementation 'com.google.firebase:firebase-database'
+    implementation 'com.google.firebase:firebase-storage'
+
+    // ========== EXISTENTES ==========
     implementation 'com.facebook.shimmer:shimmer:0.5.0'
-
-
-    // Para animaciones
     implementation 'com.airbnb.android:lottie:3.4.0'
-
-    // Firebase Realtime Database - AÑADIR ESTO
-    implementation 'com.google.firebase:firebase-database:20.3.0'
-
-    // Firebase Storage (por si necesitas enviar imágenes más adelante) - AÑADIR ESTO
-    implementation 'com.google.firebase:firebase-storage:20.3.0'
-
-    // SwipeRefreshLayout para la funcionalidad de Pull-to-Refresh - AÑADIR ESTO
     implementation 'androidx.swiperefreshlayout:swiperefreshlayout:1.1.0'
     implementation 'com.google.android.libraries.places:places:2.7.0'
     implementation 'com.google.android.gms:play-services-maps:18.1.0'
-    implementation 'com.google.firebase:firebase-messaging:24.0.0'
-    implementation platform('com.google.firebase:firebase-bom:33.13.0')
-    implementation 'com.google.firebase:firebase-analytics'
     implementation 'com.github.bumptech.glide:glide:4.15.1'
     implementation libs.navigation.runtime
-    implementation libs.firebase.firestore
-    implementation libs.firebase.auth
-    implementation libs.firebase.messaging
-    implementation libs.firebase.database
     implementation libs.room.runtime.android
     implementation libs.room.common.jvm
     annotationProcessor 'com.github.bumptech.glide:compiler:4.15.1'
@@ -92,6 +73,7 @@ dependencies {
     testImplementation libs.junit
     androidTestImplementation libs.ext.junit
     androidTestImplementation libs.espresso.core
+
     // Room Database
     implementation "androidx.room:room-runtime:2.5.0"
     annotationProcessor "androidx.room:room-compiler:2.5.0"
