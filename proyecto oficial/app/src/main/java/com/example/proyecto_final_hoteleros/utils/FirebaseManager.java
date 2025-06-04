@@ -186,6 +186,55 @@ public class FirebaseManager {
                 });
     }
 
+    // ========== EMAIL VERIFICATION ==========
+
+    public void sendEmailVerification(FirebaseUser user, DataCallback callback) {
+        Log.d(TAG, "Enviando email de verificación a: " + user.getEmail());
+
+        user.sendEmailVerification()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        Log.d(TAG, "✅ Email de verificación enviado exitosamente");
+                        callback.onSuccess();
+                    } else {
+                        String error = task.getException() != null ?
+                                task.getException().getMessage() : "Error enviando email";
+                        Log.e(TAG, "❌ Error enviando email de verificación: " + error);
+                        callback.onError(error);
+                    }
+                });
+    }
+
+    public void checkEmailVerification(FirebaseUser user, AuthCallback callback) {
+        Log.d(TAG, "Verificando estado del email: " + user.getEmail());
+
+        user.reload().addOnCompleteListener(task -> {
+            if (task.isSuccessful()) {
+                if (user.isEmailVerified()) {
+                    Log.d(TAG, "✅ Email verificado exitosamente");
+                    callback.onSuccess(user.getUid());
+                } else {
+                    Log.d(TAG, "❌ Email aún no verificado");
+                    callback.onError("Email no verificado");
+                }
+            } else {
+                String error = task.getException() != null ?
+                        task.getException().getMessage() : "Error verificando email";
+                Log.e(TAG, "❌ Error verificando estado del email: " + error);
+                callback.onError(error);
+            }
+        });
+    }
+
+    public void resendEmailVerification(DataCallback callback) {
+        FirebaseUser user = getCurrentUser();
+        if (user != null) {
+            sendEmailVerification(user, callback);
+        } else {
+            callback.onError("No hay usuario logueado");
+        }
+    }
+
     // ========== UTILIDADES ==========
 
     public void testConnection(DataCallback callback) {
