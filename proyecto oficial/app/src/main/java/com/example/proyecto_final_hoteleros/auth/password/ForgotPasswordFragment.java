@@ -106,34 +106,14 @@ public class ForgotPasswordFragment extends Fragment {
     }
 
     private void verifyEmailAndSendCode(String email) {
-        Log.d(TAG, "=== VERIFICANDO EMAIL EN FIREBASE ===");
+        Log.d(TAG, "=== ENVIANDO CÓDIGO PERSONALIZADO DIRECTAMENTE ===");
 
         // Deshabilitar botón
         btnResetPassword.setEnabled(false);
-        btnResetPassword.setText("Verificando...");
+        btnResetPassword.setText("Enviando código...");
 
-        // Primero verificar que el email existe en Firebase
-        firebaseManager.sendPasswordResetEmail(email, new FirebaseManager.DataCallback() {
-            @Override
-            public void onSuccess() {
-                // El email existe en Firebase, ahora enviar nuestro código
-                Log.d(TAG, "✅ Email verificado en Firebase, enviando código personalizado");
-                sendCustomCode(email);
-            }
-
-            @Override
-            public void onError(String error) {
-                if (getActivity() != null) {
-                    getActivity().runOnUiThread(() -> {
-                        btnResetPassword.setEnabled(true);
-                        btnResetPassword.setText("Restablecer contraseña");
-
-                        String userFriendlyError = translateFirebaseError(error);
-                        Toast.makeText(getContext(), userFriendlyError, Toast.LENGTH_LONG).show();
-                    });
-                }
-            }
-        });
+        // Enviar directamente nuestro código personalizado (sin verificar en Firebase)
+        sendCustomCode(email);
     }
 
     private void sendCustomCode(String email) {
