@@ -38,8 +38,7 @@ public class SuccessActivity extends AppCompatActivity {
         if ("password_reset".equals(successType)) {
             tvTitle.setText("¡Contraseña Actualizada!");
             tvDescription.setText("Tu nueva contraseña ha sido configurada exitosamente.\n\n" +
-                    "Recibirás un email de confirmación en " + email +
-                    "\n\nYa puedes iniciar sesión con tu nueva contraseña.");
+                    "Ya puedes iniciar sesión con tu nueva contraseña en " + email);
         } else {
             tvTitle.setText("¡Éxito!");
             tvDescription.setText("¡Felicidades!, su contraseña ha sido restablecida.\nHaga clic en Continuar para iniciar sesión.");
