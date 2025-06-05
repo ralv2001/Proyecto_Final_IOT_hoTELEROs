@@ -205,6 +205,7 @@ public class FirebaseManager {
                 });
     }
 
+
     public void checkEmailVerification(FirebaseUser user, AuthCallback callback) {
         Log.d(TAG, "Verificando estado del email: " + user.getEmail());
 
@@ -276,4 +277,6 @@ public class FirebaseManager {
                     callback.onError(e.getMessage());
                 });
     }
+
+
 }

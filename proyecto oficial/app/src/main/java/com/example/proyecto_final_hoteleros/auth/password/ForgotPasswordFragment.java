@@ -1,5 +1,6 @@
 package com.example.proyecto_final_hoteleros.auth.password;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -20,7 +21,6 @@ import androidx.fragment.app.FragmentTransaction;
 
 import com.example.proyecto_final_hoteleros.R;
 import com.example.proyecto_final_hoteleros.utils.FirebaseManager;
-import com.example.proyecto_final_hoteleros.utils.PasswordResetManager;
 import com.google.android.material.button.MaterialButton;
 
 import java.util.Arrays;
@@ -32,7 +32,6 @@ public class ForgotPasswordFragment extends Fragment {
 
     private EditText etEmail;
     private MaterialButton btnResetPassword;
-    private PasswordResetManager resetManager;
     private FirebaseManager firebaseManager;
 
     public static ForgotPasswordFragment newInstance() {
@@ -51,7 +50,6 @@ public class ForgotPasswordFragment extends Fragment {
         View view = inflater.inflate(R.layout.sistema_fragment_forgot_password, container, false);
 
         // Inicializar servicios
-        resetManager = new PasswordResetManager(getActivity());
         firebaseManager = FirebaseManager.getInstance();
 
         // Inicializar vistas
@@ -106,31 +104,25 @@ public class ForgotPasswordFragment extends Fragment {
     }
 
     private void verifyEmailAndSendCode(String email) {
-        Log.d(TAG, "=== ENVIANDO CÓDIGO PERSONALIZADO DIRECTAMENTE ===");
+        Log.d(TAG, "=== ENVIANDO EMAIL DE RESET CON FIREBASE ===");
 
         // Deshabilitar botón
         btnResetPassword.setEnabled(false);
-        btnResetPassword.setText("Enviando código...");
+        btnResetPassword.setText("Enviando email...");
 
-        // Enviar directamente nuestro código personalizado (sin verificar en Firebase)
-        sendCustomCode(email);
-    }
-
-    private void sendCustomCode(String email) {
-        Log.d(TAG, "=== ENVIANDO CÓDIGO PERSONALIZADO ===");
-
-        resetManager.startPasswordReset(email, new PasswordResetManager.ResetCallback() {
+        // Usar Firebase para enviar email de reset
+        firebaseManager.sendPasswordResetEmail(email, new FirebaseManager.DataCallback() {
             @Override
-            public void onCodeSent(String maskedEmail) {
+            public void onSuccess() {
                 if (getActivity() != null) {
                     getActivity().runOnUiThread(() -> {
-                        Log.d(TAG, "✅ Código enviado exitosamente");
+                        Log.d(TAG, "✅ Email de reset enviado exitosamente");
                         Toast.makeText(getContext(),
-                                "Código de verificación enviado a " + maskedEmail,
-                                Toast.LENGTH_SHORT).show();
+                                "Email de restablecimiento enviado a " + email,
+                                Toast.LENGTH_LONG).show();
 
-                        // Navegar a pantalla de verificación de código
-                        navigateToVerifyCode(email);
+                        // Navegar directamente a pantalla de éxito
+                        navigateToSuccess(email);
                     });
                 }
             }
@@ -141,7 +133,9 @@ public class ForgotPasswordFragment extends Fragment {
                     getActivity().runOnUiThread(() -> {
                         btnResetPassword.setEnabled(true);
                         btnResetPassword.setText("Restablecer contraseña");
-                        Toast.makeText(getContext(), "Error: " + error, Toast.LENGTH_SHORT).show();
+
+                        String friendlyError = translateFirebaseError(error);
+                        Toast.makeText(getContext(), friendlyError, Toast.LENGTH_LONG).show();
                     });
                 }
             }
@@ -253,11 +247,14 @@ public class ForgotPasswordFragment extends Fragment {
         }
     }
 
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-        if (resetManager != null) {
-            resetManager.cleanup();
+    private void navigateToSuccess(String email) {
+        if (getActivity() != null) {
+            Intent intent = new Intent(getActivity(), SuccessActivity.class);
+            intent.putExtra("success_type", "password_reset");
+            intent.putExtra("email", email);
+            intent.putExtra("message", "Te hemos enviado un enlace de restablecimiento a tu correo electrónico. Haz clic en el enlace para crear una nueva contraseña.");
+            startActivity(intent);
+            getActivity().finish();
         }
     }
 }
