@@ -1,5 +1,6 @@
 package com.example.proyecto_final_hoteleros.auth.login;
 
+
 import androidx.lifecycle.ViewModelProvider;
 
 import android.content.Intent;
@@ -19,10 +20,9 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
-import androidx.activity.OnBackPressedCallback;
-import androidx.annotation.NonNull;
 
 import com.example.proyecto_final_hoteleros.utils.FirebaseManager;
 import com.example.proyecto_final_hoteleros.models.UserModel;
@@ -35,7 +35,10 @@ import java.util.List;
 
 public class LoginFragment extends Fragment {
 
+    private static final String TAG = "LoginFragment";
+
     private LoginViewModel mViewModel;
+    private LinearLayout layoutGeneralError;
 
     private EditText etEmail;
     private EditText etPassword;
@@ -48,6 +51,9 @@ public class LoginFragment extends Fragment {
     private TextView tvRegisterPrompt;
 
     private boolean isPasswordVisible = false;
+
+    private View passwordLayoutContainer;
+    private TextView tvGeneralError;
 
     public static LoginFragment newInstance() {
         return new LoginFragment();
@@ -67,6 +73,10 @@ public class LoginFragment extends Fragment {
         btnFacebookLogin = view.findViewById(R.id.btnFacebookLogin);
         btnGoogleLogin = view.findViewById(R.id.btnGoogleLogin);
         tvRegisterPrompt = view.findViewById(R.id.tvRegisterPrompt);
+
+        passwordLayoutContainer = view.findViewById(R.id.passwordLayout);
+        tvGeneralError = view.findViewById(R.id.tvGeneralError);
+        layoutGeneralError = view.findViewById(R.id.layoutGeneralError);
 
         etEmail.addTextChangedListener(new TextWatcher() {
             @Override
@@ -106,6 +116,9 @@ public class LoginFragment extends Fragment {
 
                 btnContinue.setEnabled(enableButton);
                 btnContinue.setAlpha(enableButton ? 1.0f : 0.4f);
+
+                // Limpiar errores cuando el usuario empiece a escribir
+                clearLoginErrors();
             }
         };
 
@@ -231,10 +244,14 @@ public class LoginFragment extends Fragment {
         // ========== LOGIN CON FIREBASE ==========
         FirebaseManager firebaseManager = FirebaseManager.getInstance();
 
-// Deshabilitar botón mientras se procesa
+        // Deshabilitar botón mientras se procesa
         btnContinue.setEnabled(false);
         btnContinue.setText("Iniciando sesión...");
         btnContinue.setAlpha(0.6f);
+
+        Log.d(TAG, "=== INTENTANDO LOGIN ===");
+        Log.d(TAG, "Email: " + email);
+        Log.d(TAG, "Password length: " + password.length());
 
         firebaseManager.loginUser(email, password, new FirebaseManager.AuthCallback() {
             @Override
@@ -319,15 +336,16 @@ public class LoginFragment extends Fragment {
             public void onError(String error) {
                 if (getActivity() != null) {
                     getActivity().runOnUiThread(() -> {
-                        Log.e("LoginFragment", "❌ Error en login: " + error);
+                        Log.d(TAG, "=== ERROR CALLBACK ===");
+                        Log.d(TAG, "Error original: " + error);
+                        Log.d(TAG, "Error traducido: " + translateFirebaseError(error));
 
-                        // Mostrar mensaje de error amigable
-                        String userFriendlyError = translateFirebaseError(error);
-                        Toast.makeText(getContext(), userFriendlyError, Toast.LENGTH_LONG).show();
+                        Log.e(TAG, "❌ Error en login: " + error);
 
-                        tvErrorMessage.setText(userFriendlyError);
-                        tvErrorMessage.setVisibility(View.VISIBLE);
+                        // Mostrar errores visuales
+                        showLoginError(error);
 
+                        // Restaurar botón
                         resetLoginButton();
                     });
                 }
@@ -375,21 +393,48 @@ public class LoginFragment extends Fragment {
     private String translateFirebaseError(String error) {
         if (error == null) return "Error desconocido";
 
-        if (error.contains("user-not-found")) {
-            return "Usuario no encontrado. Verifica tu correo electrónico.";
-        } else if (error.contains("wrong-password")) {
-            return "Contraseña incorrecta. Inténtalo de nuevo.";
+        if (error.contains("user-not-found") || error.contains("wrong-password") ||
+                error.contains("invalid-credential") || error.contains("auth credential is incorrect")) {
+            return "Correo o contraseña incorrectos. Intente nuevamente";
         } else if (error.contains("invalid-email")) {
-            return "Formato de correo electrónico inválido.";
+            return "Formato de correo electrónico inválido";
         } else if (error.contains("user-disabled")) {
-            return "Esta cuenta ha sido deshabilitada. Contacta al administrador.";
+            return "Esta cuenta ha sido deshabilitada. Contacta al administrador";
         } else if (error.contains("too-many-requests")) {
-            return "Demasiados intentos fallidos. Inténtalo más tarde.";
+            return "Demasiados intentos fallidos. Inténtalo más tarde";
         } else if (error.contains("network-request-failed")) {
-            return "Error de conexión. Verifica tu internet e inténtalo de nuevo.";
+            return "Error de conexión. Verifica tu internet e inténtalo de nuevo";
         } else {
             return "Error de inicio de sesión: " + error;
         }
+    }
+
+    private void showLoginError(String error) {
+        // Cambiar el borde del campo de contraseña a rojo
+        passwordLayoutContainer.setBackgroundResource(R.drawable.sistema_se_ff0000_sw2cr12);
+
+        // Mostrar "Contraseña incorrecta" en gris
+        tvErrorMessage.setText("Contraseña incorrecta");
+        tvErrorMessage.setTextColor(getResources().getColor(R.color.colorTextTertiary));
+        tvErrorMessage.setVisibility(View.VISIBLE);
+
+        // Mostrar mensaje general de error
+        String userFriendlyError = translateFirebaseError(error);
+        tvGeneralError.setText("¡Ups! " + userFriendlyError);
+        layoutGeneralError.setVisibility(View.VISIBLE);
+
+        Log.d(TAG, "Mostrando error: " + userFriendlyError);
+    }
+
+    private void clearLoginErrors() {
+        // Restaurar borde normal del campo de contraseña
+        passwordLayoutContainer.setBackgroundResource(R.drawable.se1e1e1sw2cr12);
+
+        // Ocultar mensajes de error
+        tvErrorMessage.setVisibility(View.GONE);
+        layoutGeneralError.setVisibility(View.GONE);
+
+        Log.d(TAG, "Errores de login limpiados");
     }
 
 }

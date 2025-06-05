@@ -36,14 +36,13 @@ public class SuccessActivity extends AppCompatActivity {
         TextView tvDescription = findViewById(R.id.tvDescription);
 
         if ("password_reset".equals(successType)) {
-            tvTitle.setText("¡Email Enviado!");
+            tvTitle.setText("¡Solicitud Enviada!");
 
             String customMessage = getIntent().getStringExtra("message");
             if (customMessage != null && !customMessage.isEmpty()) {
                 tvDescription.setText(customMessage);
             } else {
-                tvDescription.setText("Te hemos enviado un enlace de restablecimiento a " + email +
-                        "\n\nRevisa tu correo electrónico y haz clic en el enlace para crear una nueva contraseña.");
+                tvDescription.setText("Si tu correo está registrado en nuestro sistema, recibirás un enlace de restablecimiento.\n\nRevisa tu bandeja de entrada y spam.");
             }
         } else {
             tvTitle.setText("¡Éxito!");

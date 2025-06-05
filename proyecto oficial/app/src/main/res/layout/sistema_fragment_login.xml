@@ -130,6 +130,35 @@
                         />
                 </LinearLayout>
 
+                <!-- Mensaje de error general -->
+                <LinearLayout
+                    android:id="@+id/layoutGeneralError"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="start|top"
+                    android:layout_marginHorizontal="26dp"
+                    android:layout_marginBottom="20dp"
+                    android:visibility="gone">
+
+                    <ImageView
+                        android:layout_width="16dp"
+                        android:layout_height="16dp"
+                        android:src="@drawable/ic_exclamacioncampoerroneo"
+                        android:layout_marginEnd="8dp"
+                        android:layout_marginTop="2dp" />
+
+                    <TextView
+                        android:id="@+id/tvGeneralError"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="¡Ups! Correo o contraseña incorrectos. Intente nuevamente"
+                        android:textSize="16sp"
+                        android:textColor="#C81818"
+                        android:fontFamily="@font/inter_medium" />
+                </LinearLayout>
+
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnContinue"
                     android:layout_width="match_parent"

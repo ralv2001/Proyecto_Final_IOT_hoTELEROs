@@ -10,14 +10,13 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentManager;
-import androidx.fragment.app.FragmentTransaction;
 
 import com.example.proyecto_final_hoteleros.R;
 import com.example.proyecto_final_hoteleros.utils.FirebaseManager;
@@ -33,6 +32,9 @@ public class ForgotPasswordFragment extends Fragment {
     private EditText etEmail;
     private MaterialButton btnResetPassword;
     private FirebaseManager firebaseManager;
+
+    private LinearLayout layoutGeneralError;
+    private TextView tvGeneralError;
 
     public static ForgotPasswordFragment newInstance() {
         return new ForgotPasswordFragment();
@@ -56,6 +58,10 @@ public class ForgotPasswordFragment extends Fragment {
         etEmail = view.findViewById(R.id.etEmail);
         btnResetPassword = view.findViewById(R.id.btnResetPassword);
         ImageButton btnBack = view.findViewById(R.id.btnBack);
+
+        // Nuevo
+        layoutGeneralError = view.findViewById(R.id.layoutGeneralError);
+        tvGeneralError = view.findViewById(R.id.tvGeneralError);
 
         // Configurar botón de retroceso
         btnBack.setOnClickListener(v -> {
@@ -91,6 +97,9 @@ public class ForgotPasswordFragment extends Fragment {
             public void afterTextChanged(Editable s) {
                 validateEmail(s.toString());
                 updateButtonState();
+
+                // Limpiar errores cuando el usuario empiece a escribir
+                clearForgotPasswordErrors();
             }
         });
 
@@ -106,6 +115,9 @@ public class ForgotPasswordFragment extends Fragment {
     private void verifyEmailAndSendCode(String email) {
         Log.d(TAG, "=== ENVIANDO EMAIL DE RESET CON FIREBASE ===");
 
+        // Limpiar errores previos
+        clearForgotPasswordErrors();
+
         // Deshabilitar botón
         btnResetPassword.setEnabled(false);
         btnResetPassword.setText("Enviando email...");
@@ -118,7 +130,7 @@ public class ForgotPasswordFragment extends Fragment {
                     getActivity().runOnUiThread(() -> {
                         Log.d(TAG, "✅ Email de reset enviado exitosamente");
                         Toast.makeText(getContext(),
-                                "Email de restablecimiento enviado a " + email,
+                                "Si el correo existe en nuestro sistema, recibirás un enlace de restablecimiento",
                                 Toast.LENGTH_LONG).show();
 
                         // Navegar directamente a pantalla de éxito
@@ -134,25 +146,12 @@ public class ForgotPasswordFragment extends Fragment {
                         btnResetPassword.setEnabled(true);
                         btnResetPassword.setText("Restablecer contraseña");
 
-                        String friendlyError = translateFirebaseError(error);
-                        Toast.makeText(getContext(), friendlyError, Toast.LENGTH_LONG).show();
+                        // Mostrar error visual
+                        showForgotPasswordError(error);
                     });
                 }
             }
         });
-    }
-
-    private void navigateToVerifyCode(String email) {
-        if (getActivity() != null) {
-            VerifyCodeFragment verifyCodeFragment = VerifyCodeFragment.newInstance(email);
-
-            FragmentManager fragmentManager = getActivity().getSupportFragmentManager();
-            FragmentTransaction transaction = fragmentManager.beginTransaction();
-
-            transaction.replace(R.id.fragmentContainer, verifyCodeFragment);
-            transaction.addToBackStack(null);
-            transaction.commit();
-        }
     }
 
     private void updateButtonState() {
@@ -212,13 +211,13 @@ public class ForgotPasswordFragment extends Fragment {
         if (error == null) return "Error desconocido";
 
         if (error.contains("user-not-found")) {
-            return "No hay ninguna cuenta registrada con este correo electrónico.";
+            return "El correo introducido no coincide con ninguno registrado en nuestra base de datos";
         } else if (error.contains("invalid-email")) {
-            return "El formato del correo electrónico no es válido.";
+            return "El formato del correo electrónico no es válido";
         } else if (error.contains("too-many-requests")) {
-            return "Demasiados intentos. Inténtalo más tarde.";
+            return "Demasiados intentos. Inténtalo más tarde";
         } else if (error.contains("network-request-failed")) {
-            return "Error de conexión. Verifica tu internet e inténtalo de nuevo.";
+            return "Error de conexión. Verifica tu internet e inténtalo de nuevo";
         } else {
             return "Error: " + error;
         }
@@ -256,5 +255,27 @@ public class ForgotPasswordFragment extends Fragment {
             startActivity(intent);
             getActivity().finish();
         }
+    }
+
+    private void showForgotPasswordError(String error) {
+        // Cambiar el borde del campo de email a rojo
+        etEmail.setBackgroundResource(R.drawable.sistema_se_ff0000_sw2cr12);
+
+        // Mostrar mensaje general de error
+        String userFriendlyError = translateFirebaseError(error);
+        tvGeneralError.setText("¡Ups! " + userFriendlyError);
+        layoutGeneralError.setVisibility(View.VISIBLE);
+
+        Log.d(TAG, "Mostrando error de forgot password: " + userFriendlyError);
+    }
+
+    private void clearForgotPasswordErrors() {
+        // Restaurar borde normal del campo de email
+        etEmail.setBackgroundResource(R.drawable.se1e1e1sw2cr12);
+
+        // Ocultar mensajes de error
+        layoutGeneralError.setVisibility(View.GONE);
+
+        Log.d(TAG, "Errores de forgot password limpiados");
     }
 }
