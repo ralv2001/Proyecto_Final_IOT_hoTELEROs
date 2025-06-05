@@ -191,7 +191,7 @@
                         android:layout_weight="1"
                         android:layout_marginHorizontal="8dp"
                         android:progress="45"
-                        android:progressDrawable="@drawable/progress_bar_2"
+                        android:progressDrawable="@drawable/progress_bar_2_adrian"
                         style="?android:attr/progressBarStyleHorizontal" />
 
                     <TextView
@@ -230,7 +230,7 @@
                         android:layout_weight="1"
                         android:layout_marginHorizontal="8dp"
                         android:progress="30"
-                        android:progressDrawable="@drawable/progress_bar_1"
+                        android:progressDrawable="@drawable/progress_bar_1_adrian"
                         style="?android:attr/progressBarStyleHorizontal" />
 
                     <TextView
@@ -269,7 +269,7 @@
                         android:layout_weight="1"
                         android:layout_marginHorizontal="8dp"
                         android:progress="15"
-                        android:progressDrawable="@drawable/progress_bar_0"
+                        android:progressDrawable="@drawable/progress_bar_0_adrian"
                         style="?android:attr/progressBarStyleHorizontal" />
 
                     <TextView
@@ -308,7 +308,7 @@
                         android:layout_weight="1"
                         android:layout_marginHorizontal="8dp"
                         android:progress="7"
-                        android:progressDrawable="@drawable/progress_bar_0"
+                        android:progressDrawable="@drawable/progress_bar_0_adrian"
                         style="?android:attr/progressBarStyleHorizontal" />
 
                     <TextView
@@ -347,7 +347,7 @@
                         android:layout_weight="1"
                         android:layout_marginHorizontal="8dp"
                         android:progress="3"
-                        android:progressDrawable="@drawable/progress_bar_0"
+                        android:progressDrawable="@drawable/progress_bar_0_adrian"
                         style="?android:attr/progressBarStyleHorizontal" />
 
                     <TextView

@@ -1,17 +1,12 @@
-<?xml version="1.0" encoding="utf-8"?>
-<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
-  <item android:id="@android:id/background">
-    <shape android:shape="rectangle">
-      <corners android:radius="3dp" />
-      <solid android:color="#E0E0E0" />
-    </shape>
-  </item>
-  <item android:id="@android:id/progress">
-    <clip>
-      <shape android:shape="rectangle">
-        <corners android:radius="3dp" />
-        <solid android:color="#FFC107" />
-      </shape>
-    </clip>
-  </item>
-</layer-list>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="343dp"
+    android:height="8dp"
+    android:viewportWidth="343"
+    android:viewportHeight="8">
+    <path
+        android:pathData="M0,4C0,1.79 1.79,0 4,0H339C341.21,0 343,1.79 343,4V4C343,6.21 341.21,8 339,8H4C1.79,8 0,6.21 0,4V4Z"
+        android:fillColor="#EDECEF"/>
+    <path
+        android:pathData="M0,4C0,1.79 1.79,0 4,0H4.57C6.78,0 8.57,1.79 8.57,4V4C8.57,6.21 6.78,8 4.57,8H4C1.79,8 0,6.21 0,4V4Z"
+        android:fillColor="#605D67"/>
+</vector>

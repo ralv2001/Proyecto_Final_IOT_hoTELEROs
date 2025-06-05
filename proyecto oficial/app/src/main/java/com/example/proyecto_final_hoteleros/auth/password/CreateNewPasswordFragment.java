@@ -23,7 +23,6 @@ import com.example.proyecto_final_hoteleros.R;
 import com.example.proyecto_final_hoteleros.utils.FirebaseManager;
 import com.example.proyecto_final_hoteleros.utils.PasswordResetManager;
 import com.google.android.material.button.MaterialButton;
-import com.google.firebase.auth.FirebaseUser;
 
 public class CreateNewPasswordFragment extends Fragment {
 
