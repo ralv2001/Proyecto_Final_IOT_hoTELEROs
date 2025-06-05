@@ -8,6 +8,7 @@ import android.app.AlertDialog;
 import android.app.DatePickerDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.res.Configuration;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.InputFilter;
@@ -360,6 +361,23 @@ public class RegisterUserActivity extends AppCompatActivity {
 
         // Establecer hint inicial para el número de documento según el tipo por defecto
         etNumeroDocumento.setHint("Ingrese su DNI (8 dígitos)");
+    }
+
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+
+        Log.d("RegisterUser", "=== CONFIGURATION CHANGED ===");
+        Log.d("RegisterUser", "Orientation: " + (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE ? "LANDSCAPE" : "PORTRAIT"));
+        Log.d("RegisterUser", "Preservando estado del formulario...");
+
+        // El estado del formulario se mantiene automáticamente
+        // Solo verificamos que los datos importantes estén preservados
+        SharedPreferences prefs = getSharedPreferences("UserData", MODE_PRIVATE);
+        Log.d("RegisterUser", "Estado después de rotación:");
+        Log.d("RegisterUser", "  - email: " + etEmail.getText().toString());
+        Log.d("RegisterUser", "  - registrationId: " + currentRegistrationId);
+        Log.d("RegisterUser", "  - navigatingWithinFlow: " + prefs.getBoolean("navigatingWithinFlow", false));
     }
 
     // Método para validar el formato de correo electrónico

@@ -3,6 +3,7 @@ package com.example.proyecto_final_hoteleros.auth.register;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
@@ -254,6 +255,24 @@ public class AddProfilePhotoActivity extends AppCompatActivity {
         });
 
         // Al final del método onCreate(), después de configurar todos los listeners
+        updateContinueButtonState();
+    }
+
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+
+        Log.d("AddProfilePhoto", "=== CONFIGURATION CHANGED ===");
+        Log.d("AddProfilePhoto", "Orientation: " + (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE ? "LANDSCAPE" : "PORTRAIT"));
+        Log.d("AddProfilePhoto", "Preservando estado de foto...");
+
+        // Verificar que el estado de la foto se mantiene
+        Log.d("AddProfilePhoto", "Estado después de rotación:");
+        Log.d("AddProfilePhoto", "  - isPhotoSelected: " + isPhotoSelected);
+        Log.d("AddProfilePhoto", "  - currentRegistrationId: " + currentRegistrationId);
+        Log.d("AddProfilePhoto", "  - userType: " + userType);
+
+        // El estado se mantiene automáticamente, solo actualizamos la UI si es necesario
         updateContinueButtonState();
     }
 

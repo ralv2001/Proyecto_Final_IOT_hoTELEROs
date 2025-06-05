@@ -1,7 +1,9 @@
 package com.example.proyecto_final_hoteleros.auth.password;
 
 import android.content.Intent;
+import android.content.res.Configuration;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
 
@@ -62,5 +64,23 @@ public class SuccessActivity extends AppCompatActivity {
                 finish();
             }
         });
+    }
+
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+
+        Log.d("SuccessActivity", "=== CONFIGURATION CHANGED ===");
+        Log.d("SuccessActivity", "Orientation: " + (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE ? "LANDSCAPE" : "PORTRAIT"));
+        Log.d("SuccessActivity", "Preservando estado de pantalla de éxito...");
+
+        // Verificar que los datos importantes se mantienen
+        String successType = getIntent().getStringExtra("success_type");
+        String email = getIntent().getStringExtra("email");
+
+        Log.d("SuccessActivity", "Estado después de rotación:");
+        Log.d("SuccessActivity", "  - successType: " + successType);
+        Log.d("SuccessActivity", "  - email: " + email);
+        Log.d("SuccessActivity", "Estado preservado correctamente");
     }
 }

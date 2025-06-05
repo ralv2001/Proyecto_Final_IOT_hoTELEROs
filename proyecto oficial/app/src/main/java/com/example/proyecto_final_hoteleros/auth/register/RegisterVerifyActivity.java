@@ -1,5 +1,6 @@
 package com.example.proyecto_final_hoteleros.auth.register;
 
+import android.content.res.Configuration;
 import android.os.Bundle;
 import android.util.Log;
 
@@ -73,5 +74,17 @@ public class RegisterVerifyActivity extends AppCompatActivity {
                     .replace(R.id.fragmentContainer, fragment)
                     .commit();
         }
+    }
+
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+
+        Log.d("RegisterVerify", "=== CONFIGURATION CHANGED ===");
+        Log.d("RegisterVerify", "Orientation: " + (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE ? "LANDSCAPE" : "PORTRAIT"));
+        Log.d("RegisterVerify", "Preservando estado de verificación...");
+
+        // El estado del fragmento se mantiene automáticamente
+        Log.d("RegisterVerify", "Estado después de rotación preservado");
     }
 }

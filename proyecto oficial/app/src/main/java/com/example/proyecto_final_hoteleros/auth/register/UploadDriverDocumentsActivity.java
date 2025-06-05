@@ -3,6 +3,7 @@ package com.example.proyecto_final_hoteleros.auth.register;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.res.Configuration;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
@@ -112,6 +113,24 @@ public class UploadDriverDocumentsActivity extends AppCompatActivity {
 
         // Verificar si ya hay un archivo PDF en SharedPreferences
         checkExistingPdfFile();
+    }
+
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+
+        Log.d("UploadDriverDocuments", "=== CONFIGURATION CHANGED ===");
+        Log.d("UploadDriverDocuments", "Orientation: " + (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE ? "LANDSCAPE" : "PORTRAIT"));
+        Log.d("UploadDriverDocuments", "Preservando estado de PDF...");
+
+        // Verificar que el estado del PDF se mantiene
+        Log.d("UploadDriverDocuments", "Estado después de rotación:");
+        Log.d("UploadDriverDocuments", "  - pdfUri: " + (pdfUri != null ? "PRESENT" : "NULL"));
+        Log.d("UploadDriverDocuments", "  - currentRegistrationId: " + currentRegistrationId);
+        Log.d("UploadDriverDocuments", "  - userType: " + userType);
+
+        // El estado se mantiene automáticamente, solo actualizamos la UI si es necesario
+        updateButtonState();
     }
 
     private void initViews() {

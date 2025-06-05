@@ -9,6 +9,69 @@
     android:layout_height="match_parent"
     tools:context=".AuthActivity">
 
+    <!-- PESTAÑAS FIJAS EN LA PARTE SUPERIOR -->
+    <LinearLayout
+        android:id="@+id/tabLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="30dp"
+        android:layout_marginBottom="6dp"
+        android:paddingHorizontal="40dp"
+        android:orientation="horizontal"
+        android:background="#FFFFFF">
+
+        <TextView
+            android:id="@+id/tvLoginTab"
+            style="@style/ActiveTabTextStyle"
+            android:layout_height="wrap_content"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:text="Iniciar Sesión"
+            android:clickable="true"
+            android:focusable="true"
+            android:gravity="center"
+            />
+
+        <TextView
+            android:id="@+id/tvRegisterTab"
+            style="@style/InactiveTabTextStyle"
+            android:layout_height="wrap_content"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:text="Registro"
+            android:clickable="true"
+            android:focusable="true"
+            />
+    </LinearLayout>
+
+    <!-- INDICADORES DE PESTAÑAS FIJOS -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginBottom="50dp"
+        android:paddingHorizontal="40dp"
+        android:background="#FFFFFF">
+
+        <View
+            android:id="@+id/viewTabIndicatorLogin"
+            android:layout_width="0dp"
+            android:layout_height="2dp"
+            android:layout_weight="1"
+            android:background="#F35D38"
+            />
+        <View
+            android:id="@+id/viewTabIndicatorRegister"
+            android:layout_width="0dp"
+            android:layout_height="2dp"
+            android:layout_weight="1"
+            android:background="#ffffff"
+            />
+
+    </LinearLayout>
+
+    <!-- CONTENIDO SCROLLEABLE -->
     <ScrollView
         android:id="@+id/scrollViewLogin"
         android:layout_width="match_parent"
@@ -21,70 +84,13 @@
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
-            <!-- Eliminada la barra de estado superior -->
-
-            <LinearLayout
-                android:id="@+id/tabLayout"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="30dp"
-                android:layout_marginBottom="6dp"
-                android:paddingHorizontal="40dp"
-                android:orientation="horizontal">
-
-                <TextView
-                    android:id="@+id/tvLoginTab"
-                    style="@style/ActiveTabTextStyle"
-                    android:layout_height="wrap_content"
-                    android:layout_width="0dp"
-                    android:layout_weight="1"
-                    android:text="Iniciar Sesión"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:gravity="center"
-                    />
-
-                <TextView
-                    android:id="@+id/tvRegisterTab"
-                    style="@style/InactiveTabTextStyle"
-                    android:layout_height="wrap_content"
-                    android:layout_width="0dp"
-                    android:layout_weight="1"
-                    android:gravity="center"
-                    android:text="Registro"
-                    android:clickable="true"
-                    android:focusable="true"
-                    />
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:layout_marginBottom="50dp"
-                android:paddingHorizontal="40dp">
-
-                <View
-                    android:id="@+id/viewTabIndicatorLogin"
-                    android:layout_width="0dp"
-                    android:layout_height="2dp"
-                    android:layout_weight="1"
-                    android:background="#F35D38"
-                    />
-                <View
-                    android:id="@+id/viewTabIndicatorRegister"
-                    android:layout_width="0dp"
-                    android:layout_height="2dp"
-                    android:layout_weight="1"
-                    android:background="#ffffff"
-                    />
-
-            </LinearLayout>
-
+            <!-- CONTENEDOR PARA LOS FRAGMENTOS CON EL MARGEN ORIGINAL -->
             <FrameLayout
                 android:id="@+id/fragmentContainer"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="0dp"
+                android:minHeight="600dp"
                 />
 
         </LinearLayout>

@@ -1,6 +1,7 @@
 package com.example.proyecto_final_hoteleros.auth.register;
 
 import android.content.Intent;
+import android.content.res.Configuration;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -97,6 +98,20 @@ public class RegisterSuccessActivity extends AppCompatActivity {
                 finish();
             }
         });
+    }
+
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+
+        Log.d("RegisterSuccess", "=== CONFIGURATION CHANGED ===");
+        Log.d("RegisterSuccess", "Orientation: " + (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE ? "LANDSCAPE" : "PORTRAIT"));
+        Log.d("RegisterSuccess", "Preservando estado de éxito...");
+
+        // Verificar que los datos importantes se mantienen
+        Log.d("RegisterSuccess", "Estado después de rotación:");
+        Log.d("RegisterSuccess", "  - userType: " + userType);
+        Log.d("RegisterSuccess", "  - userName: " + userName);
     }
 
     private void checkAndRequestNotificationPermission() {

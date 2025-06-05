@@ -5,6 +5,7 @@ import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 
 import android.content.Intent;
+import android.content.res.Configuration;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -50,6 +51,17 @@ public class AuthActivity extends AppCompatActivity implements MessagerRegister 
         tvLoginTab.setOnClickListener(view -> {
             goToLogin();
         });
+    }
+
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+
+        Log.d("AuthActivity", "=== CONFIGURATION CHANGED ===");
+        Log.d("AuthActivity", "Orientation: " + (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE ? "LANDSCAPE" : "PORTRAIT"));
+
+        // No hacer nada especial, solo loguearlo
+        // El estado se mantiene automáticamente
     }
 
     public void goToLogin() {

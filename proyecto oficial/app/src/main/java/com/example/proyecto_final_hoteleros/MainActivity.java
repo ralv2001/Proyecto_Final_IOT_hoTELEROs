@@ -1,6 +1,7 @@
 package com.example.proyecto_final_hoteleros;
 
 import android.content.Intent;
+import android.content.res.Configuration;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -126,6 +127,18 @@ public class MainActivity extends AppCompatActivity {
                 startActivity(intent);
             }
         });
+    }
+
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+
+        Log.d("MainActivity", "=== CONFIGURATION CHANGED ===");
+        Log.d("MainActivity", "Orientation: " + (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE ? "LANDSCAPE" : "PORTRAIT"));
+        Log.d("MainActivity", "Preservando estado de pantalla principal...");
+
+        // El estado se mantiene automáticamente
+        Log.d("MainActivity", "Estado después de rotación preservado");
     }
 
     // Método para navegar a la pantalla de autenticación
