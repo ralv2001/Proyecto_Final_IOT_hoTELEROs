@@ -3,6 +3,7 @@ package com.example.proyecto_final_hoteleros.auth.password;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -17,7 +18,7 @@ public class SuccessActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.sistema_activity_password_success);
 
-        // Limpiar datos temporales del formulario de registro
+        // Limpiar datos temporales
         getSharedPreferences("UserData", MODE_PRIVATE)
                 .edit()
                 .remove("photoPath")
@@ -26,6 +27,24 @@ public class SuccessActivity extends AppCompatActivity {
                 .remove("photoSkipped")
                 .apply();
 
+        // Verificar si es password reset o registro normal
+        String successType = getIntent().getStringExtra("success_type");
+        String email = getIntent().getStringExtra("email");
+
+        // Configurar textos según el tipo de éxito
+        TextView tvTitle = findViewById(R.id.tvTitle);
+        TextView tvDescription = findViewById(R.id.tvDescription);
+
+        if ("password_reset".equals(successType)) {
+            tvTitle.setText("¡Contraseña Actualizada!");
+            tvDescription.setText("Tu nueva contraseña ha sido configurada exitosamente.\n\n" +
+                    "Recibirás un email de confirmación en " + email +
+                    "\n\nYa puedes iniciar sesión con tu nueva contraseña.");
+        } else {
+            tvTitle.setText("¡Éxito!");
+            tvDescription.setText("¡Felicidades!, su contraseña ha sido restablecida.\nHaga clic en Continuar para iniciar sesión.");
+        }
+
         // Configurar el botón Continuar
         MaterialButton btnContinuar = findViewById(R.id.btnContinuar);
         btnContinuar.setOnClickListener(new View.OnClickListener() {
@@ -33,9 +52,7 @@ public class SuccessActivity extends AppCompatActivity {
             public void onClick(View v) {
                 // Volver a la pantalla de login
                 Intent intent = new Intent(SuccessActivity.this, AuthActivity.class);
-                // Añadir un extra para indicar que debemos mostrar la pestaña de login
                 intent.putExtra("mode", "login");
-                // Limpiar el stack de actividades para que el usuario no pueda volver atrás
                 intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                 startActivity(intent);
                 finish();

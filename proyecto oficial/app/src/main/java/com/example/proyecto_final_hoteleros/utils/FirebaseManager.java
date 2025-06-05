@@ -235,6 +235,25 @@ public class FirebaseManager {
         }
     }
 
+    // ========== PASSWORD RESET ==========
+
+    public void sendPasswordResetEmail(String email, DataCallback callback) {
+        Log.d(TAG, "Enviando email de reset de contraseña a: " + email);
+
+        auth.sendPasswordResetEmail(email)
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        Log.d(TAG, "✅ Email de reset de contraseña enviado exitosamente");
+                        callback.onSuccess();
+                    } else {
+                        String error = task.getException() != null ?
+                                task.getException().getMessage() : "Error enviando email";
+                        Log.e(TAG, "❌ Error enviando email de reset: " + error);
+                        callback.onError(error);
+                    }
+                });
+    }
+
     // ========== UTILIDADES ==========
 
     public void testConnection(DataCallback callback) {

@@ -3,54 +3,65 @@ package com.example.proyecto_final_hoteleros.auth.password;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.ImageButton;
-import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
 
 import com.example.proyecto_final_hoteleros.R;
+import com.example.proyecto_final_hoteleros.utils.PasswordResetManager;
 import com.google.android.material.button.MaterialButton;
 
 public class VerifyCodeFragment extends Fragment {
+
+    private static final String TAG = "VerifyCodeFragment";
+    private static final String ARG_EMAIL = "email";
 
     private EditText etCode1, etCode2, etCode3, etCode4, etCode5;
     private MaterialButton btnVerifyCode;
     private TextView tvEmailSent, tvResendCode;
     private String email;
+    private PasswordResetManager resetManager;
 
     public static VerifyCodeFragment newInstance(String email) {
         VerifyCodeFragment fragment = new VerifyCodeFragment();
         Bundle args = new Bundle();
-        args.putString("email", email);
+        args.putString(ARG_EMAIL, email);
         fragment.setArguments(args);
         return fragment;
     }
 
     @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        if (getArguments() != null) {
+            email = getArguments().getString(ARG_EMAIL);
+        }
+    }
+
+    @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-
-        // Asegurarnos de ocultar las pestañas cuando el fragmento es visible
         hideTabLayout();
     }
 
     @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
-                             @Nullable Bundle savedInstanceState) {
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                             Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.sistema_fragment_verify_code, container, false);
 
-        // Obtener el email de los argumentos
-        if (getArguments() != null) {
-            email = getArguments().getString("email", "");
-        }
+        // Inicializar reset manager
+        resetManager = new PasswordResetManager(getActivity());
 
         // Inicializar vistas
         etCode1 = view.findViewById(R.id.etCode1);
@@ -63,31 +74,31 @@ public class VerifyCodeFragment extends Fragment {
         tvResendCode = view.findViewById(R.id.tvResendCode);
         ImageButton btnBack = view.findViewById(R.id.btnBack);
 
-        // Configurar el texto del email enmascarado
-        if (!email.isEmpty()) {
+        // Configurar texto del email
+        if (email != null && !email.isEmpty()) {
             String maskedEmail = maskEmail(email);
             tvEmailSent.setText("Hemos enviado un código a " + maskedEmail);
         }
 
-        // Configurar el focus automático
+        // Configurar focus automático entre campos
         setupCodeInputs();
 
-        // Configurar el botón de verificación
+        // Configurar botón de verificación
         btnVerifyCode.setOnClickListener(v -> {
             String code = getCompleteCode();
             if (code.length() == 5) {
                 verifyCode(code);
             } else {
-                Toast.makeText(getContext(), "Por favor, ingrese el código completo", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getContext(), "Por favor ingrese el código completo", Toast.LENGTH_SHORT).show();
             }
         });
 
-        // Configurar el reenvío de código
+        // Configurar reenvío de código
         tvResendCode.setOnClickListener(v -> {
             resendCode();
         });
 
-        // Configurar el botón de retroceso
+        // Configurar botón de retroceso
         btnBack.setOnClickListener(v -> {
             if (getActivity() != null) {
                 getActivity().getSupportFragmentManager().popBackStack();
@@ -100,7 +111,6 @@ public class VerifyCodeFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
-        // Asegurarnos de que las pestañas estén ocultas cuando el fragmento retoma el foco
         hideTabLayout();
     }
 
@@ -114,7 +124,6 @@ public class VerifyCodeFragment extends Fragment {
                 indicatorLayout = (ViewGroup) viewTabIndicatorLogin.getParent();
             }
 
-            // Ocultar elementos
             if (tabLayout != null) {
                 tabLayout.setVisibility(View.GONE);
             }
@@ -125,15 +134,7 @@ public class VerifyCodeFragment extends Fragment {
         }
     }
 
-    @Override
-    public void onDestroyView() {
-        super.onDestroyView();
-
-        // NO restauramos las pestañas aquí, ya que podríamos estar navegando a otro fragmento sin pestañas
-    }
-
     private void setupCodeInputs() {
-        // Asignar TextWatchers a cada EditText para moverse al siguiente cuando se ingresa un dígito
         EditText[] editTexts = new EditText[]{etCode1, etCode2, etCode3, etCode4, etCode5};
 
         for (int i = 0; i < editTexts.length; i++) {
@@ -147,21 +148,16 @@ public class VerifyCodeFragment extends Fragment {
 
                 @Override
                 public void afterTextChanged(Editable s) {
-                    // Si se ingresó un dígito y no es el último campo, mover al siguiente
                     if (s.length() == 1 && currentIndex < editTexts.length - 1) {
                         editTexts[currentIndex + 1].requestFocus();
                     }
-
-                    // Verificar si todos los campos están llenos para habilitar el botón
                     checkAllFieldsFilled();
                 }
             });
 
-            // Para permitir borrar con tecla de retroceso y moverse al campo anterior
             editTexts[i].setOnKeyListener((v, keyCode, event) -> {
                 if (keyCode == android.view.KeyEvent.KEYCODE_DEL && currentIndex > 0 &&
                         editTexts[currentIndex].getText().toString().isEmpty()) {
-                    // Si el campo actual está vacío y se presiona borrar, ir al campo anterior
                     editTexts[currentIndex - 1].requestFocus();
                     editTexts[currentIndex - 1].setText("");
                     return true;
@@ -170,7 +166,6 @@ public class VerifyCodeFragment extends Fragment {
             });
         }
 
-        // Enfocar el primer campo al iniciar
         etCode1.requestFocus();
     }
 
@@ -193,6 +188,129 @@ public class VerifyCodeFragment extends Fragment {
                 etCode5.getText().toString();
     }
 
+    private void verifyCode(String code) {
+        Log.d(TAG, "=== VERIFICANDO CÓDIGO ===");
+        Log.d(TAG, "Código ingresado: " + code);
+
+        // Deshabilitar botón
+        btnVerifyCode.setEnabled(false);
+        btnVerifyCode.setText("Verificando...");
+
+        resetManager.validateCode(code, new PasswordResetManager.ValidationCallback() {
+            @Override
+            public void onValidCode(String email) {
+                if (getActivity() != null) {
+                    getActivity().runOnUiThread(() -> {
+                        Log.d(TAG, "✅ Código válido, navegando a crear nueva contraseña");
+                        Toast.makeText(getContext(), "Código verificado correctamente", Toast.LENGTH_SHORT).show();
+
+                        // Navegar a crear nueva contraseña
+                        navigateToCreateNewPassword(email);
+                    });
+                }
+            }
+
+            @Override
+            public void onInvalidCode() {
+                if (getActivity() != null) {
+                    getActivity().runOnUiThread(() -> {
+                        btnVerifyCode.setEnabled(true);
+                        btnVerifyCode.setText("Verificar código");
+
+                        Toast.makeText(getContext(), "Código incorrecto. Inténtalo de nuevo.", Toast.LENGTH_SHORT).show();
+                        clearCodeFields();
+                    });
+                }
+            }
+
+            @Override
+            public void onExpiredCode() {
+                if (getActivity() != null) {
+                    getActivity().runOnUiThread(() -> {
+                        btnVerifyCode.setEnabled(true);
+                        btnVerifyCode.setText("Verificar código");
+
+                        Toast.makeText(getContext(), "El código ha expirado. Solicita uno nuevo.", Toast.LENGTH_LONG).show();
+                        clearCodeFields();
+                    });
+                }
+            }
+
+            @Override
+            public void onMaxAttemptsReached() {
+                if (getActivity() != null) {
+                    getActivity().runOnUiThread(() -> {
+                        Toast.makeText(getContext(), "Máximo de intentos alcanzado. Regresando...", Toast.LENGTH_LONG).show();
+
+                        // Regresar a la pantalla anterior
+                        getActivity().getSupportFragmentManager().popBackStack();
+                    });
+                }
+            }
+
+            @Override
+            public void onError(String error) {
+                if (getActivity() != null) {
+                    getActivity().runOnUiThread(() -> {
+                        btnVerifyCode.setEnabled(true);
+                        btnVerifyCode.setText("Verificar código");
+
+                        Toast.makeText(getContext(), "Error: " + error, Toast.LENGTH_SHORT).show();
+                    });
+                }
+            }
+        });
+    }
+
+    private void navigateToCreateNewPassword(String email) {
+        if (getActivity() != null) {
+            CreateNewPasswordFragment newPasswordFragment = CreateNewPasswordFragment.newInstance(email);
+
+            FragmentManager fragmentManager = getActivity().getSupportFragmentManager();
+            FragmentTransaction transaction = fragmentManager.beginTransaction();
+
+            transaction.replace(R.id.fragmentContainer, newPasswordFragment);
+            transaction.addToBackStack(null);
+            transaction.commit();
+        }
+    }
+
+    private void resendCode() {
+        Log.d(TAG, "=== REENVIANDO CÓDIGO ===");
+
+        if (email != null && !email.isEmpty()) {
+            resetManager.startPasswordReset(email, new PasswordResetManager.ResetCallback() {
+                @Override
+                public void onCodeSent(String maskedEmail) {
+                    if (getActivity() != null) {
+                        getActivity().runOnUiThread(() -> {
+                            Toast.makeText(getContext(), "Nuevo código enviado a " + maskedEmail, Toast.LENGTH_SHORT).show();
+                            clearCodeFields();
+                        });
+                    }
+                }
+
+                @Override
+                public void onError(String error) {
+                    if (getActivity() != null) {
+                        getActivity().runOnUiThread(() -> {
+                            Toast.makeText(getContext(), "Error reenviando código: " + error, Toast.LENGTH_SHORT).show();
+                        });
+                    }
+                }
+            });
+        }
+    }
+
+    private void clearCodeFields() {
+        etCode1.setText("");
+        etCode2.setText("");
+        etCode3.setText("");
+        etCode4.setText("");
+        etCode5.setText("");
+        etCode1.requestFocus();
+    }
+
     private String maskEmail(String email) {
         if (email == null || email.isEmpty() || !email.contains("@")) {
             return email;
@@ -202,47 +320,41 @@ public class VerifyCodeFragment extends Fragment {
         String username = email.substring(0, atIndex);
         String domain = email.substring(atIndex);
 
-        // Si el nombre de usuario tiene menos de 3 caracteres, mostrar solo el primer carácter
-        if (username.length() <= 3) {
+        if (username.length() > 0) {
             return username.charAt(0) + "*****" + domain;
-        }
-        // Si tiene más de 3 caracteres, mostrar el primero y el último
-        else {
-            return username.charAt(0) + "*****" + domain;
-        }
-    }
-
-    private void verifyCode(String code) {
-        // Modificado para aceptar cualquier código de 5 dígitos para testing
-        if (code.length() == 5) {
-            Toast.makeText(getContext(), "Código verificado correctamente", Toast.LENGTH_SHORT).show();
-
-            // Navegar a la pantalla de confirmación de código
-            if (getActivity() != null) {
-                ResetPasswordFragment resetPasswordFragment = ResetPasswordFragment.newInstance(email);
-                getActivity().getSupportFragmentManager()
-                        .beginTransaction()
-                        .replace(R.id.fragmentContainer, resetPasswordFragment)
-                        .addToBackStack(null)
-                        .commit();
-            }
         } else {
-            Toast.makeText(getContext(), "Código incorrecto. Por favor, inténtelo de nuevo.", Toast.LENGTH_SHORT).show();
+            return "*****" + domain;
         }
     }
 
-    private void resendCode() {
-        // TODO: Implementar lógica para reenviar el código
-        Toast.makeText(getContext(), "Se ha reenviado el código a tu correo", Toast.LENGTH_SHORT).show();
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        if (resetManager != null) {
+            resetManager.cleanup();
+        }
+    }
 
-        // Limpiar los campos de código
-        etCode1.setText("");
-        etCode2.setText("");
-        etCode3.setText("");
-        etCode4.setText("");
-        etCode5.setText("");
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
 
-        // Volver a poner el foco en el primer campo
-        etCode1.requestFocus();
+        if (getActivity() != null && !getActivity().isFinishing()) {
+            View tabLayout = getActivity().findViewById(R.id.tabLayout);
+            View viewTabIndicatorLogin = getActivity().findViewById(R.id.viewTabIndicatorLogin);
+            ViewGroup indicatorLayout = null;
+
+            if (viewTabIndicatorLogin != null) {
+                indicatorLayout = (ViewGroup) viewTabIndicatorLogin.getParent();
+            }
+
+            if (tabLayout != null) {
+                tabLayout.setVisibility(View.VISIBLE);
+            }
+
+            if (indicatorLayout != null) {
+                indicatorLayout.setVisibility(View.VISIBLE);
+            }
+        }
     }
 }

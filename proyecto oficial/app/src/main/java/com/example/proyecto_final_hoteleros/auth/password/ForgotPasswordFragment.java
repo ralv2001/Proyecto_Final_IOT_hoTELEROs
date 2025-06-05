@@ -3,11 +3,13 @@ package com.example.proyecto_final_hoteleros.auth.password;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -17,6 +19,8 @@ import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 
 import com.example.proyecto_final_hoteleros.R;
+import com.example.proyecto_final_hoteleros.utils.FirebaseManager;
+import com.example.proyecto_final_hoteleros.utils.PasswordResetManager;
 import com.google.android.material.button.MaterialButton;
 
 import java.util.Arrays;
@@ -24,8 +28,12 @@ import java.util.List;
 
 public class ForgotPasswordFragment extends Fragment {
 
+    private static final String TAG = "ForgotPasswordFragment";
+
     private EditText etEmail;
     private MaterialButton btnResetPassword;
+    private PasswordResetManager resetManager;
+    private FirebaseManager firebaseManager;
 
     public static ForgotPasswordFragment newInstance() {
         return new ForgotPasswordFragment();
@@ -34,8 +42,6 @@ public class ForgotPasswordFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-
-        // Asegurarnos de ocultar las pestañas cuando el fragmento es visible
         hideTabLayout();
     }
 
@@ -44,31 +50,28 @@ public class ForgotPasswordFragment extends Fragment {
                              @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.sistema_fragment_forgot_password, container, false);
 
+        // Inicializar servicios
+        resetManager = new PasswordResetManager(getActivity());
+        firebaseManager = FirebaseManager.getInstance();
+
         // Inicializar vistas
         etEmail = view.findViewById(R.id.etEmail);
         btnResetPassword = view.findViewById(R.id.btnResetPassword);
         ImageButton btnBack = view.findViewById(R.id.btnBack);
 
-        // Configurar el botón de retroceso
+        // Configurar botón de retroceso
         btnBack.setOnClickListener(v -> {
-            // Limpiar cualquier error antes de regresar
             etEmail.setError(null);
-
-            // Usar popBackStack directamente sin validaciones adicionales
             if (getActivity() != null) {
                 getActivity().getSupportFragmentManager().popBackStack();
             }
         });
 
-        // Configurar el botón de restablecimiento de contraseña
+        // Configurar botón de reset
         btnResetPassword.setOnClickListener(v -> {
             String email = etEmail.getText().toString().trim();
             if (!email.isEmpty() && etEmail.getError() == null) {
-                // Simulamos envío del código por correo
-                Toast.makeText(getContext(), "Código de verificación enviado a: " + email, Toast.LENGTH_SHORT).show();
-
-                // Navegar a la pantalla de verificación de código
-                navigateToVerifyCode(email);
+                verifyEmailAndSendCode(email);
             } else {
                 if (etEmail.getError() != null) {
                     Toast.makeText(getContext(), "Por favor, ingrese un correo electrónico válido", Toast.LENGTH_SHORT).show();
@@ -78,28 +81,18 @@ public class ForgotPasswordFragment extends Fragment {
             }
         });
 
-        // Configurar el listener para el campo de correo electrónico
+        // Configurar validación de email
         etEmail.addTextChangedListener(new TextWatcher() {
             @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-                // No se necesita implementación
-            }
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
 
             @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
-                // No se necesita implementación
-            }
+            public void onTextChanged(CharSequence s, int start, int before, int count) {}
 
             @Override
             public void afterTextChanged(Editable s) {
-                // Validar el formato del correo electrónico
                 validateEmail(s.toString());
-
-                // Habilitar o deshabilitar el botón según si hay texto y si es válido
-                boolean isNotEmpty = !s.toString().trim().isEmpty();
-                boolean isValid = etEmail.getError() == null;
-                btnResetPassword.setEnabled(isNotEmpty && isValid);
-                btnResetPassword.setAlpha((isNotEmpty && isValid) ? 1.0f : 0.4f);
+                updateButtonState();
             }
         });
 
@@ -109,8 +102,90 @@ public class ForgotPasswordFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
-        // Asegurarnos de que las pestañas estén ocultas cuando el fragmento retoma el foco
         hideTabLayout();
+    }
+
+    private void verifyEmailAndSendCode(String email) {
+        Log.d(TAG, "=== VERIFICANDO EMAIL EN FIREBASE ===");
+
+        // Deshabilitar botón
+        btnResetPassword.setEnabled(false);
+        btnResetPassword.setText("Verificando...");
+
+        // Primero verificar que el email existe en Firebase
+        firebaseManager.sendPasswordResetEmail(email, new FirebaseManager.DataCallback() {
+            @Override
+            public void onSuccess() {
+                // El email existe en Firebase, ahora enviar nuestro código
+                Log.d(TAG, "✅ Email verificado en Firebase, enviando código personalizado");
+                sendCustomCode(email);
+            }
+
+            @Override
+            public void onError(String error) {
+                if (getActivity() != null) {
+                    getActivity().runOnUiThread(() -> {
+                        btnResetPassword.setEnabled(true);
+                        btnResetPassword.setText("Restablecer contraseña");
+
+                        String userFriendlyError = translateFirebaseError(error);
+                        Toast.makeText(getContext(), userFriendlyError, Toast.LENGTH_LONG).show();
+                    });
+                }
+            }
+        });
+    }
+
+    private void sendCustomCode(String email) {
+        Log.d(TAG, "=== ENVIANDO CÓDIGO PERSONALIZADO ===");
+
+        resetManager.startPasswordReset(email, new PasswordResetManager.ResetCallback() {
+            @Override
+            public void onCodeSent(String maskedEmail) {
+                if (getActivity() != null) {
+                    getActivity().runOnUiThread(() -> {
+                        Log.d(TAG, "✅ Código enviado exitosamente");
+                        Toast.makeText(getContext(),
+                                "Código de verificación enviado a " + maskedEmail,
+                                Toast.LENGTH_SHORT).show();
+
+                        // Navegar a pantalla de verificación de código
+                        navigateToVerifyCode(email);
+                    });
+                }
+            }
+
+            @Override
+            public void onError(String error) {
+                if (getActivity() != null) {
+                    getActivity().runOnUiThread(() -> {
+                        btnResetPassword.setEnabled(true);
+                        btnResetPassword.setText("Restablecer contraseña");
+                        Toast.makeText(getContext(), "Error: " + error, Toast.LENGTH_SHORT).show();
+                    });
+                }
+            }
+        });
+    }
+
+    private void navigateToVerifyCode(String email) {
+        if (getActivity() != null) {
+            VerifyCodeFragment verifyCodeFragment = VerifyCodeFragment.newInstance(email);
+
+            FragmentManager fragmentManager = getActivity().getSupportFragmentManager();
+            FragmentTransaction transaction = fragmentManager.beginTransaction();
+
+            transaction.replace(R.id.fragmentContainer, verifyCodeFragment);
+            transaction.addToBackStack(null);
+            transaction.commit();
+        }
+    }
+
+    private void updateButtonState() {
+        boolean isNotEmpty = !etEmail.getText().toString().trim().isEmpty();
+        boolean isValid = etEmail.getError() == null;
+        btnResetPassword.setEnabled(isNotEmpty && isValid);
+        btnResetPassword.setAlpha((isNotEmpty && isValid) ? 1.0f : 0.4f);
     }
 
     private void hideTabLayout() {
@@ -123,7 +198,6 @@ public class ForgotPasswordFragment extends Fragment {
                 indicatorLayout = (ViewGroup) viewTabIndicatorLogin.getParent();
             }
 
-            // Ocultar elementos
             if (tabLayout != null) {
                 tabLayout.setVisibility(View.GONE);
             }
@@ -134,24 +208,45 @@ public class ForgotPasswordFragment extends Fragment {
         }
     }
 
-    private void navigateToVerifyCode(String email) {
-        if (getActivity() != null) {
-            // Limpiar errores antes de navegar
+    private void validateEmail(String email) {
+        if (email.isEmpty()) {
             etEmail.setError(null);
+            return;
+        }
 
-            // Crear instancia del fragmento de verificación con el email como argumento
-            VerifyCodeFragment verifyCodeFragment = VerifyCodeFragment.newInstance(email);
+        if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+            etEmail.setError("Formato de correo electrónico inválido");
+            return;
+        }
 
-            // Iniciar la transacción
-            FragmentManager fragmentManager = getActivity().getSupportFragmentManager();
-            FragmentTransaction transaction = fragmentManager.beginTransaction();
+        List<String> validDomains = Arrays.asList(
+                "gmail.com", "hotmail.com", "yahoo.es", "pucp.edu.pe", "outlook.com",
+                "icloud.com", "yahoo.com", "live.com", "msn.com", "protonmail.com",
+                "yahoo.com.mx", "hotmail.es", "me.com", "aol.com", "mail.com"
+        );
 
-            // Reemplazar el fragmento actual con el de verificación
-            transaction.replace(R.id.fragmentContainer, verifyCodeFragment);
-            transaction.addToBackStack(null);
+        String domain = email.substring(email.lastIndexOf("@") + 1).toLowerCase();
+        if (!validDomains.contains(domain)) {
+            etEmail.setError("Dominio de correo no reconocido");
+            return;
+        }
 
-            // Ejecutar la transacción
-            transaction.commit();
+        etEmail.setError(null);
+    }
+
+    private String translateFirebaseError(String error) {
+        if (error == null) return "Error desconocido";
+
+        if (error.contains("user-not-found")) {
+            return "No hay ninguna cuenta registrada con este correo electrónico.";
+        } else if (error.contains("invalid-email")) {
+            return "El formato del correo electrónico no es válido.";
+        } else if (error.contains("too-many-requests")) {
+            return "Demasiados intentos. Inténtalo más tarde.";
+        } else if (error.contains("network-request-failed")) {
+            return "Error de conexión. Verifica tu internet e inténtalo de nuevo.";
+        } else {
+            return "Error: " + error;
         }
     }
 
@@ -159,9 +254,7 @@ public class ForgotPasswordFragment extends Fragment {
     public void onDestroyView() {
         super.onDestroyView();
 
-        // Restaurar las pestañas cuando el usuario retrocede
         if (getActivity() != null && !getActivity().isFinishing()) {
-            // Mostrar elementos sin verificar el backStackEntryCount
             View tabLayout = getActivity().findViewById(R.id.tabLayout);
             View viewTabIndicatorLogin = getActivity().findViewById(R.id.viewTabIndicatorLogin);
             ViewGroup indicatorLayout = null;
@@ -170,7 +263,6 @@ public class ForgotPasswordFragment extends Fragment {
                 indicatorLayout = (ViewGroup) viewTabIndicatorLogin.getParent();
             }
 
-            // Mostrar elementos
             if (tabLayout != null) {
                 tabLayout.setVisibility(View.VISIBLE);
             }
@@ -181,33 +273,11 @@ public class ForgotPasswordFragment extends Fragment {
         }
     }
 
-    private void validateEmail(String email) {
-        if (email.isEmpty()) {
-            etEmail.setError(null);
-            return;
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        if (resetManager != null) {
+            resetManager.cleanup();
         }
-
-        // Validar formato básico con Patterns de Android
-        if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-            etEmail.setError("Formato de correo electrónico inválido");
-            return;
-        }
-
-        // Lista de dominios válidos
-        List<String> validDomains = Arrays.asList(
-                "gmail.com", "hotmail.com", "yahoo.es", "pucp.edu.pe", "outlook.com",
-                "icloud.com", "yahoo.com", "live.com", "msn.com", "protonmail.com",
-                "yahoo.com.mx", "hotmail.es", "me.com", "aol.com", "mail.com"
-        );
-
-        // Obtener el dominio del correo y validar si está en nuestra lista
-        String domain = email.substring(email.lastIndexOf("@") + 1).toLowerCase();
-        if (!validDomains.contains(domain)) {
-            etEmail.setError("Dominio de correo no reconocido");
-            return;
-        }
-
-        // Si pasa todas las validaciones, eliminar error
-        etEmail.setError(null);
     }
 }
