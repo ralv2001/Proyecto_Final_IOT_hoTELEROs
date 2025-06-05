@@ -218,12 +218,7 @@ public class ChatFragment extends BaseBottomNavigationFragment implements ChatLi
         try {
             Log.d(TAG, "Iniciando click en chat: " + chat.getHotelName());
 
-            if (!isAdded() || getActivity() == null) {
-                Log.e(TAG, "Fragmento no adjunto o actividad nula");
-                return;
-            }
-
-            // USAR NAVIGATIONMANAGER PARA NAVEGACIÓN CENTRALIZADA
+            // ✅ CORRECTO - Usa NavigationManager con animación BOTTOM_TO_TOP automática
             NavigationManager.getInstance().navigateToChatConversation(
                     chat.getId(),
                     chat.getHotelName(),
@@ -234,11 +229,6 @@ public class ChatFragment extends BaseBottomNavigationFragment implements ChatLi
 
         } catch (Exception e) {
             Log.e(TAG, "Error en onChatClick: " + e.getMessage());
-            e.printStackTrace();
-            if (getContext() != null) {
-                Toast.makeText(getContext(), "Error al abrir chat: " + e.getMessage(),
-                        Toast.LENGTH_SHORT).show();
-            }
         }
     }
 

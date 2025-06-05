@@ -22,6 +22,10 @@ public abstract class BaseBottomNavigationFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         setupBottomNavigation(view);
+
+        // ✅ NUEVO: Informar al NavigationManager sobre el tab actual
+        NavigationManager.BottomNavTab currentTab = getCurrentNavigationTab();
+        NavigationManager.getInstance().setCurrentBottomNavTab(currentTab);
     }
 
     private void setupBottomNavigation(View rootView) {
@@ -31,7 +35,6 @@ public abstract class BaseBottomNavigationFragment extends Fragment {
     }
 
     private void initNavigationViews(View rootView) {
-        // Buscar las vistas en el layout
         navHome = rootView.findViewById(R.id.nav_home);
         navExplore = rootView.findViewById(R.id.nav_explore);
         navChat = rootView.findViewById(R.id.nav_chat);
@@ -49,6 +52,7 @@ public abstract class BaseBottomNavigationFragment extends Fragment {
         if (navHome != null) {
             navHome.setOnClickListener(v -> {
                 if (!isCurrentTab(NavigationTab.HOME)) {
+                    // ✅ USA NavigationManager - animación automática LEFT_TO_RIGHT o RIGHT_TO_LEFT
                     NavigationManager.getInstance().navigateToHome(userArgs);
                 }
             });
@@ -57,6 +61,7 @@ public abstract class BaseBottomNavigationFragment extends Fragment {
         if (navExplore != null) {
             navExplore.setOnClickListener(v -> {
                 if (!isCurrentTab(NavigationTab.EXPLORE)) {
+                    // ✅ USA NavigationManager - animación automática según dirección
                     NavigationManager.getInstance().navigateToExplore(userArgs);
                 }
             });
@@ -65,6 +70,7 @@ public abstract class BaseBottomNavigationFragment extends Fragment {
         if (navChat != null) {
             navChat.setOnClickListener(v -> {
                 if (!isCurrentTab(NavigationTab.CHAT)) {
+                    // ✅ USA NavigationManager - animación automática según dirección
                     NavigationManager.getInstance().navigateToChat(userArgs);
                 }
             });
@@ -73,6 +79,7 @@ public abstract class BaseBottomNavigationFragment extends Fragment {
         if (navProfile != null) {
             navProfile.setOnClickListener(v -> {
                 if (!isCurrentTab(NavigationTab.PROFILE)) {
+                    // ✅ USA NavigationManager - animación automática según dirección
                     NavigationManager.getInstance().navigateToProfile(userArgs);
                 }
             });
@@ -80,10 +87,8 @@ public abstract class BaseBottomNavigationFragment extends Fragment {
     }
 
     private void highlightCurrentTab() {
-        // Resetear todos los íconos
         resetAllTabs();
 
-        // Resaltar el tab actual
         NavigationTab currentTab = getCurrentTab();
         switch (currentTab) {
             case HOME:
@@ -116,7 +121,18 @@ public abstract class BaseBottomNavigationFragment extends Fragment {
         icon.setColorFilter(ContextCompat.getColor(requireContext(), android.R.color.white));
     }
 
-    // Métodos abstractos que deben implementar los fragmentos hijos
+    // ✅ NUEVO: Mapear NavigationTab a BottomNavTab
+    private NavigationManager.BottomNavTab getCurrentNavigationTab() {
+        switch (getCurrentTab()) {
+            case HOME: return NavigationManager.BottomNavTab.HOME;
+            case EXPLORE: return NavigationManager.BottomNavTab.EXPLORE;
+            case CHAT: return NavigationManager.BottomNavTab.CHAT;
+            case PROFILE: return NavigationManager.BottomNavTab.PROFILE;
+            default: return NavigationManager.BottomNavTab.HOME;
+        }
+    }
+
+    // Métodos abstractos
     protected abstract NavigationTab getCurrentTab();
 
     private boolean isCurrentTab(NavigationTab tab) {

@@ -53,7 +53,6 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
 
-        <!-- ConstraintLayout para organizar el contenido dentro del ScrollView -->
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
@@ -67,7 +66,6 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintEnd_toEndOf="parent">
 
-                <!-- ViewPager para la galería principal -->
                 <androidx.viewpager2.widget.ViewPager2
                     android:id="@+id/view_pager_hotel_images"
                     android:layout_width="match_parent"
@@ -77,7 +75,6 @@
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintBottom_toBottomOf="parent"/>
 
-                <!-- Overlay gradiente para los botones -->
                 <View
                     android:id="@+id/overlay_gradient"
                     android:layout_width="match_parent"
@@ -87,7 +84,6 @@
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintEnd_toEndOf="parent"/>
 
-                <!-- Botones de navegación -->
                 <ImageButton
                     android:id="@+id/btn_previous_image"
                     android:layout_width="36dp"
@@ -116,7 +112,6 @@
                     app:layout_constraintTop_toTopOf="parent"
                     app:layout_constraintBottom_toBottomOf="parent"/>
 
-                <!-- Contador de imágenes -->
                 <TextView
                     android:id="@+id/tv_image_counter"
                     android:layout_width="wrap_content"
@@ -131,7 +126,6 @@
                     app:layout_constraintTop_toTopOf="parent"
                     app:layout_constraintEnd_toEndOf="parent"/>
 
-                <!-- Botón ver todas las fotos -->
                 <TextView
                     android:id="@+id/btn_see_all_photos"
                     android:layout_width="wrap_content"
@@ -148,7 +142,6 @@
                     app:layout_constraintTop_toTopOf="parent"
                     app:layout_constraintStart_toStartOf="parent"/>
 
-                <!-- RecyclerView para miniaturas -->
                 <androidx.recyclerview.widget.RecyclerView
                     android:id="@+id/rv_image_thumbnails"
                     android:layout_width="match_parent"
@@ -242,14 +235,76 @@
                 </LinearLayout>
 
                 <!-- Servicios del hotel -->
-                <include
-                    android:id="@+id/services_preview_section"
-                    layout="@layout/client_activity_hotel_services_preview"
+                <TextView
+                    android:id="@+id/tv_services_title"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Servicios del hotel"
+                    android:textSize="18sp"
+                    android:textColor="@android:color/black"
+                    android:textStyle="bold"
+                    android:fontFamily="@font/poppins_semibold"
+                    android:layout_marginTop="24dp"
+                    app:layout_constraintTop_toBottomOf="@id/hotel_location_container"
+                    app:layout_constraintStart_toStartOf="parent" />
+
+                <TextView
+                    android:id="@+id/tv_see_all_services"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Ver todo"
+                    android:textSize="14sp"
+                    android:textColor="#FF5722"
+                    android:fontFamily="@font/poppins_regular"
+                    app:layout_constraintTop_toTopOf="@id/tv_services_title"
+                    app:layout_constraintBottom_toBottomOf="@id/tv_services_title"
+                    app:layout_constraintEnd_toEndOf="parent" />
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/rv_services_preview"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="16dp"
-                    app:layout_constraintTop_toBottomOf="@id/hotel_location_container"
+                    app:layout_constraintTop_toBottomOf="@id/tv_services_title"
                     app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent" />
+
+                <!-- ✅ ESTANCIA - MANTENER COMO ESTABA -->
+                <TextView
+                    android:id="@+id/tv_stay_title"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Estancia"
+                    android:textSize="18sp"
+                    android:textColor="@android:color/black"
+                    android:textStyle="bold"
+                    android:fontFamily="@font/poppins_semibold"
+                    android:layout_marginTop="24dp"
+                    app:layout_constraintTop_toBottomOf="@id/rv_services_preview"
+                    app:layout_constraintStart_toStartOf="parent" />
+
+                <!-- Duración de la estancia -->
+                <TextView
+                    android:id="@+id/tv_stay_dates"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="4 noches"
+                    android:textSize="14sp"
+                    android:textColor="@android:color/black"
+                    android:layout_marginTop="8dp"
+                    app:layout_constraintTop_toBottomOf="@id/tv_stay_title"
+                    app:layout_constraintStart_toStartOf="parent" />
+
+                <!-- Fechas de estancia -->
+                <TextView
+                    android:id="@+id/tv_stay_detail"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="3 octubre - 7 octubre | 2 adultos"
+                    android:textSize="14sp"
+                    android:textColor="@android:color/darker_gray"
+                    app:layout_constraintTop_toTopOf="@id/tv_stay_dates"
+                    app:layout_constraintBottom_toBottomOf="@id/tv_stay_dates"
                     app:layout_constraintEnd_toEndOf="parent" />
 
                 <!-- Lugares turísticos cercanos -->
@@ -263,7 +318,7 @@
                     android:textStyle="bold"
                     android:fontFamily="@font/poppins_semibold"
                     android:layout_marginTop="24dp"
-                    app:layout_constraintTop_toBottomOf="@id/services_preview_section"
+                    app:layout_constraintTop_toBottomOf="@id/tv_stay_dates"
                     app:layout_constraintStart_toStartOf="parent" />
 
                 <androidx.recyclerview.widget.RecyclerView
@@ -278,6 +333,178 @@
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintEnd_toEndOf="parent"
                     tools:listitem="@layout/client_item_city_card" />
+
+                <!-- ✅ RESEÑAS - MANTENER COMO ESTABA -->
+                <TextView
+                    android:id="@+id/tv_reviews_title"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Reseñas"
+                    android:textSize="18sp"
+                    android:textColor="@android:color/black"
+                    android:textStyle="bold"
+                    android:fontFamily="@font/poppins_semibold"
+                    android:layout_marginTop="24dp"
+                    app:layout_constraintTop_toBottomOf="@id/rv_nearby_places"
+                    app:layout_constraintStart_toStartOf="parent" />
+
+                <TextView
+                    android:id="@+id/tv_see_all_reviews"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Ver todas"
+                    android:textSize="14sp"
+                    android:textColor="#FF5722"
+                    android:fontFamily="@font/poppins_regular"
+                    app:layout_constraintTop_toTopOf="@id/tv_reviews_title"
+                    app:layout_constraintBottom_toBottomOf="@id/tv_reviews_title"
+                    app:layout_constraintEnd_toEndOf="parent" />
+
+                <!-- ListView para reseñas (limitado en altura) -->
+                <LinearLayout
+                    android:id="@+id/reviews_container"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:layout_marginTop="16dp"
+                    app:layout_constraintTop_toBottomOf="@id/tv_reviews_title"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent">
+
+                    <!-- Reseña 1 -->
+                    <androidx.constraintlayout.widget.ConstraintLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:paddingVertical="8dp">
+
+                        <de.hdodenhof.circleimageview.CircleImageView
+                            android:id="@+id/iv_reviewer_avatar1"
+                            android:layout_width="40dp"
+                            android:layout_height="40dp"
+                            android:src="@drawable/perfil"
+                            app:civ_border_width="1dp"
+                            app:civ_border_color="#E0E0E0"
+                            app:layout_constraintTop_toTopOf="parent"
+                            app:layout_constraintStart_toStartOf="parent" />
+
+                        <TextView
+                            android:id="@+id/tv_reviewer_name1"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:text="Adrián López"
+                            android:textSize="14sp"
+                            android:textColor="@android:color/black"
+                            android:textStyle="bold"
+                            android:layout_marginStart="8dp"
+                            app:layout_constraintTop_toTopOf="@id/iv_reviewer_avatar1"
+                            app:layout_constraintStart_toEndOf="@id/iv_reviewer_avatar1"
+                            app:layout_constraintEnd_toStartOf="@id/rating_review1" />
+
+                        <TextView
+                            android:id="@+id/tv_review_date1"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:text="2 días atrás"
+                            android:textSize="12sp"
+                            android:textColor="@android:color/darker_gray"
+                            android:layout_marginStart="8dp"
+                            app:layout_constraintTop_toBottomOf="@id/tv_reviewer_name1"
+                            app:layout_constraintStart_toEndOf="@id/iv_reviewer_avatar1"
+                            app:layout_constraintEnd_toStartOf="@id/rating_review1" />
+
+                        <LinearLayout
+                            android:id="@+id/rating_review1"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:gravity="center_vertical"
+                            app:layout_constraintTop_toTopOf="@id/iv_reviewer_avatar1"
+                            app:layout_constraintBottom_toBottomOf="@id/tv_review_date1"
+                            app:layout_constraintEnd_toEndOf="parent">
+
+                            <ImageView
+                                android:layout_width="16dp"
+                                android:layout_height="16dp"
+                                android:src="@drawable/ic_star"
+                                app:tint="#FFC107" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="4.8"
+                                android:textSize="14sp"
+                                android:textColor="@android:color/black"
+                                android:layout_marginStart="4dp" />
+                        </LinearLayout>
+                    </androidx.constraintlayout.widget.ConstraintLayout>
+
+                    <!-- Reseña 2 -->
+                    <androidx.constraintlayout.widget.ConstraintLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:paddingVertical="8dp">
+
+                        <de.hdodenhof.circleimageview.CircleImageView
+                            android:id="@+id/iv_reviewer_avatar2"
+                            android:layout_width="40dp"
+                            android:layout_height="40dp"
+                            android:src="@drawable/perfil"
+                            app:civ_border_width="1dp"
+                            app:civ_border_color="#E0E0E0"
+                            app:layout_constraintTop_toTopOf="parent"
+                            app:layout_constraintStart_toStartOf="parent" />
+
+                        <TextView
+                            android:id="@+id/tv_reviewer_name2"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:text="Ximena Sánchez"
+                            android:textSize="14sp"
+                            android:textColor="@android:color/black"
+                            android:textStyle="bold"
+                            android:layout_marginStart="8dp"
+                            app:layout_constraintTop_toTopOf="@id/iv_reviewer_avatar2"
+                            app:layout_constraintStart_toEndOf="@id/iv_reviewer_avatar2"
+                            app:layout_constraintEnd_toStartOf="@id/rating_review2" />
+
+                        <TextView
+                            android:id="@+id/tv_review_date2"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:text="5 días atrás"
+                            android:textSize="12sp"
+                            android:textColor="@android:color/darker_gray"
+                            android:layout_marginStart="8dp"
+                            app:layout_constraintTop_toBottomOf="@id/tv_reviewer_name2"
+                            app:layout_constraintStart_toEndOf="@id/iv_reviewer_avatar2"
+                            app:layout_constraintEnd_toStartOf="@id/rating_review2" />
+
+                        <LinearLayout
+                            android:id="@+id/rating_review2"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:gravity="center_vertical"
+                            app:layout_constraintTop_toTopOf="@id/iv_reviewer_avatar2"
+                            app:layout_constraintBottom_toBottomOf="@id/tv_review_date2"
+                            app:layout_constraintEnd_toEndOf="parent">
+
+                            <ImageView
+                                android:layout_width="16dp"
+                                android:layout_height="16dp"
+                                android:src="@drawable/ic_star"
+                                app:tint="#FFC107" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="4.5"
+                                android:textSize="14sp"
+                                android:textColor="@android:color/black"
+                                android:layout_marginStart="4dp" />
+                        </LinearLayout>
+                    </androidx.constraintlayout.widget.ConstraintLayout>
+                </LinearLayout>
             </androidx.constraintlayout.widget.ConstraintLayout>
         </androidx.constraintlayout.widget.ConstraintLayout>
     </ScrollView>
