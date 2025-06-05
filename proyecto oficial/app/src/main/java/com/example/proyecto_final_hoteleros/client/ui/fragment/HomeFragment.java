@@ -265,6 +265,7 @@ public class HomeFragment extends BaseBottomNavigationFragment {
     private void navigateToHotelDetail(Hotel hotel) {
         Log.d(TAG, "Navegando a detalle del hotel: " + hotel.getName());
 
+        // ✅ CORRECTO - Usa NavigationManager con animación SCALE_UP automática
         NavigationManager.getInstance().navigateToHotelDetail(
                 hotel.getName(),
                 hotel.getLocation(),
@@ -287,6 +288,8 @@ public class HomeFragment extends BaseBottomNavigationFragment {
                 UserDataManager.getInstance().getUserBundle()
         );
     }
+
+
 
     // === MÉTODOS DE NAVEGACIÓN A ACTIVIDADES (se mantienen igual) ===
 

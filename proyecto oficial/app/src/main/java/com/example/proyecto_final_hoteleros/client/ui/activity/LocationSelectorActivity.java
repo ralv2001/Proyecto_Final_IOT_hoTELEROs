@@ -2,10 +2,13 @@ package com.example.proyecto_final_hoteleros.client.ui.activity;
 
 import android.Manifest;
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
+import android.location.LocationManager;
 import android.os.Bundle;
+import android.os.Handler;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
@@ -29,7 +32,14 @@ import com.example.proyecto_final_hoteleros.client.data.model.LocationItem;
 import com.example.proyecto_final_hoteleros.client.utils.LocationPreferences;
 import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationAvailability;
+import com.google.android.gms.location.LocationCallback;
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.location.Priority; // ✅ Import para Priority
+import com.google.android.gms.tasks.CancellationToken;
+import com.google.android.gms.tasks.CancellationTokenSource;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.libraries.places.api.Places;
 import com.google.android.libraries.places.api.model.AutocompletePrediction;
@@ -507,15 +517,26 @@ public class LocationSelectorActivity extends AppCompatActivity implements Locat
     }
 
     private void getCurrentLocation() {
+        Log.d(TAG, "getCurrentLocation() iniciado");
+        verifyLocationSetup();
+        // Verificar si los servicios de ubicación están habilitados
+        LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+        if (!locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER) &&
+                !locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
+            Log.w(TAG, "Servicios de ubicación deshabilitados");
+            Toast.makeText(this, "Por favor activa los servicios de ubicación en tu dispositivo", Toast.LENGTH_LONG).show();
+            return;
+        }
+
         // Verificar permisos de ubicación
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
                 != PackageManager.PERMISSION_GRANTED) {
-            // Solicitar permisos si no están concedidos
+            Log.d(TAG, "Solicitando permisos de ubicación");
             ActivityCompat.requestPermissions(this,
                     new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
                     LOCATION_PERMISSION_REQUEST_CODE);
         } else {
-            // Permisos ya concedidos, obtener ubicación
+            Log.d(TAG, "Permisos concedidos, obteniendo ubicación");
             requestLocation();
         }
     }
@@ -527,53 +548,197 @@ public class LocationSelectorActivity extends AppCompatActivity implements Locat
                 return;
             }
 
-            // Mostrar un indicador de carga
             View progressBar = findViewById(R.id.progressBar);
             progressBar.setVisibility(View.VISIBLE);
 
             Log.d(TAG, "Solicitando ubicación actual");
 
+            // Primero intentar getLastLocation
             fusedLocationClient.getLastLocation()
-                    .addOnSuccessListener(this, new OnSuccessListener<Location>() {
-                        @Override
-                        public void onSuccess(Location location) {
+                    .addOnSuccessListener(this, location -> {
+                        if (location != null) {
+                            Log.d(TAG, "Ubicación obtenida desde caché: " + location.getLatitude() + ", " + location.getLongitude());
                             progressBar.setVisibility(View.GONE);
-
-                            if (location != null) {
-                                Log.d(TAG, "Ubicación obtenida: " + location.getLatitude() + ", " + location.getLongitude());
-                                // Obtener dirección a partir de las coordenadas
-                                getAddressFromLocation(location);
-                            } else {
-                                Log.w(TAG, "No se pudo obtener ubicación actual");
-                                Toast.makeText(LocationSelectorActivity.this,
-                                        "No se pudo obtener la ubicación. Intentando de nuevo...",
-                                        Toast.LENGTH_SHORT).show();
-
-                                // En el emulador a veces falla la primera vez, intentamos con una ubicación fija
-                                if (isEmulator()) {
-                                    Log.d(TAG, "Usando ubicación por defecto para emulador");
-                                    // Coordenadas de Lima como fallback para el emulador
-                                    Location limaLocation = new Location("");
-                                    limaLocation.setLatitude(-12.046374);
-                                    limaLocation.setLongitude(-77.042793);
-                                    getAddressFromLocation(limaLocation);
-                                }
-                            }
+                            getAddressFromLocation(location);
+                        } else {
+                            Log.w(TAG, "No hay ubicación en caché, solicitando ubicación en tiempo real");
+                            requestCurrentLocation(progressBar);
                         }
                     })
                     .addOnFailureListener(this, e -> {
-                        progressBar.setVisibility(View.GONE);
-                        Log.e(TAG, "Error al obtener ubicación: " + e.getMessage());
-                        Toast.makeText(LocationSelectorActivity.this,
-                                "Error al obtener ubicación: " + e.getMessage(),
-                                Toast.LENGTH_SHORT).show();
+                        Log.e(TAG, "Error al obtener ubicación desde caché: " + e.getMessage());
+                        requestCurrentLocation(progressBar);
                     });
+
         } catch (Exception e) {
             Log.e(TAG, "Excepción al solicitar ubicación: " + e.getMessage());
             Toast.makeText(this, "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
         }
     }
 
+    private void requestCurrentLocation(View progressBar) {
+        try {
+            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
+                    ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                progressBar.setVisibility(View.GONE);
+                return;
+            }
+
+            Log.d(TAG, "Usando getCurrentLocation() con CancellationToken");
+
+            // ✅ Crear CancellationToken para getCurrentLocation
+            CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
+            CancellationToken cancellationToken = cancellationTokenSource.getToken();
+
+            // ✅ MÉTODO RECOMENDADO: getCurrentLocation()
+            fusedLocationClient.getCurrentLocation(Priority.PRIORITY_HIGH_ACCURACY, cancellationToken)
+                    .addOnSuccessListener(this, location -> {
+                        Log.d(TAG, "getCurrentLocation() onSuccess llamado");
+                        progressBar.setVisibility(View.GONE);
+
+                        if (location != null) {
+                            Log.d(TAG, "Ubicación obtenida con getCurrentLocation(): " +
+                                    location.getLatitude() + ", " + location.getLongitude());
+                            getAddressFromLocation(location);
+                        } else {
+                            Log.w(TAG, "getCurrentLocation() devolvió null, intentando requestLocationUpdates como fallback");
+                            // Fallback a requestLocationUpdates
+                            requestLocationUpdatesAsFallback(progressBar);
+                        }
+                    })
+                    .addOnFailureListener(this, e -> {
+                        Log.e(TAG, "getCurrentLocation() falló: " + e.getMessage());
+                        progressBar.setVisibility(View.GONE);
+                        // Fallback a requestLocationUpdates
+                        requestLocationUpdatesAsFallback(progressBar);
+                    })
+                    .addOnCompleteListener(this, task -> {
+                        Log.d(TAG, "getCurrentLocation() completado. Success: " + task.isSuccessful());
+                    });
+
+            // Timeout de 20 segundos para getCurrentLocation
+            new Handler().postDelayed(() -> {
+                if (!cancellationToken.isCancellationRequested()) {
+                    Log.d(TAG, "Timeout de getCurrentLocation(), cancelando...");
+                    cancellationTokenSource.cancel();
+                    progressBar.setVisibility(View.GONE);
+                    requestLocationUpdatesAsFallback(progressBar);
+                }
+            }, 20000);
+
+        } catch (Exception e) {
+            progressBar.setVisibility(View.GONE);
+            Log.e(TAG, "Excepción en getCurrentLocation: " + e.getMessage());
+            handleLocationFailure();
+        }
+    }
+    private void verifyLocationSetup() {
+        Log.d(TAG, "=== VERIFICACIÓN DE CONFIGURACIÓN ===");
+
+        // Verificar permisos
+        boolean fineLocationPermission = ContextCompat.checkSelfPermission(this,
+                Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED;
+        boolean coarseLocationPermission = ContextCompat.checkSelfPermission(this,
+                Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED;
+
+        Log.d(TAG, "Permiso ACCESS_FINE_LOCATION: " + fineLocationPermission);
+        Log.d(TAG, "Permiso ACCESS_COARSE_LOCATION: " + coarseLocationPermission);
+
+        // Verificar servicios de ubicación
+        LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+        boolean gpsEnabled = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
+        boolean networkEnabled = locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
+
+        Log.d(TAG, "GPS habilitado: " + gpsEnabled);
+        Log.d(TAG, "Red habilitada: " + networkEnabled);
+
+        // Verificar si es emulador
+        Log.d(TAG, "Es emulador: " + isEmulator());
+        Log.d(TAG, "Build.PRODUCT: " + android.os.Build.PRODUCT);
+        Log.d(TAG, "Build.MODEL: " + android.os.Build.MODEL);
+
+        Log.d(TAG, "=== FIN VERIFICACIÓN ===");
+    }
+
+    // Método de fallback usando requestLocationUpdates
+    private void requestLocationUpdatesAsFallback(View progressBar) {
+        try {
+            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
+                    ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                progressBar.setVisibility(View.GONE);
+                return;
+            }
+
+            Log.d(TAG, "Fallback: usando requestLocationUpdates");
+            progressBar.setVisibility(View.VISIBLE);
+
+            LocationRequest locationRequest = new LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 5000)
+                    .setWaitForAccurateLocation(false)
+                    .setMinUpdateIntervalMillis(1000)
+                    .setMaxUpdateDelayMillis(10000)
+                    .build();
+
+            LocationCallback locationCallback = new LocationCallback() {
+                @Override
+                public void onLocationResult(LocationResult locationResult) {
+                    Log.d(TAG, "Fallback onLocationResult llamado");
+                    progressBar.setVisibility(View.GONE);
+                    if (locationResult != null && !locationResult.getLocations().isEmpty()) {
+                        Location location = locationResult.getLastLocation();
+                        Log.d(TAG, "Ubicación obtenida con fallback: " + location.getLatitude() + ", " + location.getLongitude());
+                        getAddressFromLocation(location);
+                        fusedLocationClient.removeLocationUpdates(this);
+                    } else {
+                        Log.w(TAG, "Fallback no obtuvo ubicación");
+                        handleLocationFailure();
+                    }
+                }
+
+                @Override
+                public void onLocationAvailability(LocationAvailability locationAvailability) {
+                    Log.d(TAG, "Fallback onLocationAvailability: " + locationAvailability.isLocationAvailable());
+                    if (!locationAvailability.isLocationAvailable()) {
+                        progressBar.setVisibility(View.GONE);
+                        handleLocationFailure();
+                    }
+                }
+            };
+
+            fusedLocationClient.requestLocationUpdates(locationRequest, locationCallback, getMainLooper());
+
+            // Timeout para fallback
+            new Handler().postDelayed(() -> {
+                Log.d(TAG, "Timeout de fallback alcanzado");
+                fusedLocationClient.removeLocationUpdates(locationCallback);
+                progressBar.setVisibility(View.GONE);
+                handleLocationFailure();
+            }, 15000);
+
+        } catch (Exception e) {
+            progressBar.setVisibility(View.GONE);
+            Log.e(TAG, "Error en fallback: " + e.getMessage());
+            handleLocationFailure();
+        }
+    }
+
+    private void handleLocationFailure() {
+        runOnUiThread(() -> {
+            if (isEmulator()) {
+                Log.d(TAG, "Usando ubicación por defecto para emulador (Lima)");
+                Location limaLocation = new Location("mock");
+                limaLocation.setLatitude(-12.046374);
+                limaLocation.setLongitude(-77.042793);
+                getAddressFromLocation(limaLocation);
+            } else {
+                Toast.makeText(this,
+                        "No se pudo obtener la ubicación. Verifica que:\n" +
+                                "• El GPS esté activado\n" +
+                                "• Tengas conexión a internet\n" +
+                                "• Los permisos estén concedidos",
+                        Toast.LENGTH_LONG).show();
+            }
+        });
+    }
     private boolean isEmulator() {
         return android.os.Build.PRODUCT.contains("sdk") ||
                 android.os.Build.MODEL.contains("Emulator") ||
@@ -585,25 +750,60 @@ public class LocationSelectorActivity extends AppCompatActivity implements Locat
         View progressBar = findViewById(R.id.progressBar);
         progressBar.setVisibility(View.VISIBLE);
 
-        Log.d(TAG, "Obteniendo dirección para la ubicación: " + location.getLatitude() + ", " + location.getLongitude());
+        Log.d(TAG, "=== INICIANDO GEOCODING ===");
+        Log.d(TAG, "Coordenadas recibidas: " + location.getLatitude() + ", " + location.getLongitude());
 
         // Construir la URL para la API de Geocoding de Google
         String latitude = String.valueOf(location.getLatitude());
         String longitude = String.valueOf(location.getLongitude());
         String apiKey = getString(R.string.google_maps_key);
+
+        Log.d(TAG, "API Key existe: " + (apiKey != null && !apiKey.isEmpty()));
+        Log.d(TAG, "API Key length: " + (apiKey != null ? apiKey.length() : 0));
+
         String url = "https://maps.googleapis.com/maps/api/geocode/json" +
                 "?latlng=" + latitude + "," + longitude +
                 "&key=" + apiKey +
-                "&language=es"; // Para resultados en español
+                "&language=es";
+
+        Log.d(TAG, "URL construida: " + url);
 
         // Usar un thread separado para la petición de red
         new Thread(() -> {
             try {
+                Log.d(TAG, "Iniciando petición HTTP...");
                 URL requestUrl = new URL(url);
                 HttpURLConnection connection = (HttpURLConnection) requestUrl.openConnection();
                 connection.setRequestMethod("GET");
+                connection.setConnectTimeout(10000); // 10 segundos timeout
+                connection.setReadTimeout(10000);
 
-                // Leer la respuesta
+                int responseCode = connection.getResponseCode();
+                Log.d(TAG, "Código de respuesta HTTP: " + responseCode);
+
+                if (responseCode != 200) {
+                    Log.e(TAG, "Error HTTP: " + responseCode);
+                    // Leer el error stream
+                    BufferedReader errorReader = new BufferedReader(
+                            new InputStreamReader(connection.getErrorStream()));
+                    StringBuilder errorResponse = new StringBuilder();
+                    String errorLine;
+                    while ((errorLine = errorReader.readLine()) != null) {
+                        errorResponse.append(errorLine);
+                    }
+                    errorReader.close();
+                    Log.e(TAG, "Error response: " + errorResponse.toString());
+
+                    runOnUiThread(() -> {
+                        progressBar.setVisibility(View.GONE);
+                        Toast.makeText(LocationSelectorActivity.this,
+                                "Error en API de Google Maps (HTTP " + responseCode + ")",
+                                Toast.LENGTH_LONG).show();
+                    });
+                    return;
+                }
+
+                // Leer la respuesta exitosa
                 BufferedReader reader = new BufferedReader(
                         new InputStreamReader(connection.getInputStream()));
                 StringBuilder response = new StringBuilder();
@@ -613,9 +813,34 @@ public class LocationSelectorActivity extends AppCompatActivity implements Locat
                 }
                 reader.close();
 
+                String jsonResponse = response.toString();
+                Log.d(TAG, "Respuesta JSON recibida: " + jsonResponse);
+
                 // Parsear la respuesta JSON
-                JSONObject jsonResponse = new JSONObject(response.toString());
-                JSONArray results = jsonResponse.getJSONArray("results");
+                JSONObject jsonObject = new JSONObject(jsonResponse);
+
+                // Verificar el status de la respuesta
+                String status = jsonObject.getString("status");
+                Log.d(TAG, "Status de Google Geocoding API: " + status);
+
+                if (!status.equals("OK")) {
+                    Log.e(TAG, "Error de Google API: " + status);
+                    if (jsonObject.has("error_message")) {
+                        String errorMessage = jsonObject.getString("error_message");
+                        Log.e(TAG, "Mensaje de error: " + errorMessage);
+                    }
+
+                    runOnUiThread(() -> {
+                        progressBar.setVisibility(View.GONE);
+                        Toast.makeText(LocationSelectorActivity.this,
+                                "Error de Google API: " + status,
+                                Toast.LENGTH_LONG).show();
+                    });
+                    return;
+                }
+
+                JSONArray results = jsonObject.getJSONArray("results");
+                Log.d(TAG, "Número de resultados: " + results.length());
 
                 if (results.length() > 0) {
                     // Obtener el primer resultado
@@ -631,7 +856,6 @@ public class LocationSelectorActivity extends AppCompatActivity implements Locat
                     String locality = ""; // Ciudad/Localidad
                     String administrative_area_level_2 = ""; // Provincia
                     String administrative_area_level_1 = ""; // Departamento
-                    String country = ""; // País
 
                     for (int i = 0; i < addressComponents.length(); i++) {
                         JSONObject component = addressComponents.getJSONObject(i);
@@ -653,12 +877,15 @@ public class LocationSelectorActivity extends AppCompatActivity implements Locat
                                 case "administrative_area_level_1":
                                     administrative_area_level_1 = component.getString("long_name");
                                     break;
-                                case "country":
-                                    country = component.getString("long_name");
-                                    break;
                             }
                         }
                     }
+
+                    Log.d(TAG, "Componentes extraídos:");
+                    Log.d(TAG, "  Sublocality: " + sublocality);
+                    Log.d(TAG, "  Locality: " + locality);
+                    Log.d(TAG, "  Admin Level 2: " + administrative_area_level_2);
+                    Log.d(TAG, "  Admin Level 1: " + administrative_area_level_1);
 
                     // Construir texto de ubicación más amigable
                     final StringBuilder locationBuilder = new StringBuilder();
@@ -688,11 +915,15 @@ public class LocationSelectorActivity extends AppCompatActivity implements Locat
                     } else if (!administrative_area_level_1.isEmpty()) {
                         locationBuilder.append(administrative_area_level_1);
                         description = "Departamento";
+                    } else {
+                        // Si no hay componentes específicos, usar la dirección formateada
+                        locationBuilder.append("Ubicación actual");
+                        description = "Coordenadas: " + latitude + ", " + longitude;
                     }
 
                     final String locationText = locationBuilder.toString();
                     final String locationDescription = description;
-                    Log.d(TAG, "Ubicación procesada: " + locationText + " (" + locationDescription + ")");
+                    Log.d(TAG, "Ubicación final: " + locationText + " (" + locationDescription + ")");
 
                     // Actualizar UI en el thread principal
                     runOnUiThread(() -> {
@@ -719,18 +950,31 @@ public class LocationSelectorActivity extends AppCompatActivity implements Locat
                     Log.w(TAG, "No se obtuvieron resultados del geocoding");
                     runOnUiThread(() -> {
                         progressBar.setVisibility(View.GONE);
-                        Toast.makeText(LocationSelectorActivity.this,
-                                "No se pudo determinar la dirección",
-                                Toast.LENGTH_SHORT).show();
+                        // Crear una ubicación genérica con las coordenadas
+                        String genericLocation = "Ubicación actual (" +
+                                String.format("%.4f", location.getLatitude()) + ", " +
+                                String.format("%.4f", location.getLongitude()) + ")";
+
+                        Intent resultIntent = new Intent();
+                        resultIntent.putExtra("selected_location", genericLocation);
+                        setResult(Activity.RESULT_OK, resultIntent);
+                        finish();
                     });
                 }
             } catch (Exception e) {
-                Log.e(TAG, "Error en geocoding: " + e.getMessage());
+                Log.e(TAG, "Excepción en geocoding: " + e.getMessage());
+                e.printStackTrace();
                 runOnUiThread(() -> {
                     progressBar.setVisibility(View.GONE);
-                    Toast.makeText(LocationSelectorActivity.this,
-                            "Error al obtener dirección: " + e.getMessage(),
-                            Toast.LENGTH_SHORT).show();
+                    // Usar ubicación genérica en caso de error
+                    String genericLocation = "Ubicación actual (" +
+                            String.format("%.4f", location.getLatitude()) + ", " +
+                            String.format("%.4f", location.getLongitude()) + ")";
+
+                    Intent resultIntent = new Intent();
+                    resultIntent.putExtra("selected_location", genericLocation);
+                    setResult(Activity.RESULT_OK, resultIntent);
+                    finish();
                 });
             }
         }).start();
