@@ -154,5 +154,8 @@
 
     <!-- UI Colors -->
     <color name="security_green">#4CAF50</color>
-
+    <!-- res/values/colors.xml - Agregar estos colores -->
+    <color name="star_yellow">#FFC107</color>
+    <color name="rating_bar_progress">#FF5722</color>
+    <color name="rating_bar_background">#E0E0E0</color>
 </resources>

@@ -329,8 +329,7 @@ public class HotelDetailFragment extends Fragment implements ThumbnailAdapter.On
             View tvSeeAllReviews = view.findViewById(R.id.tv_see_all_reviews);
             if (tvSeeAllReviews != null) {
                 tvSeeAllReviews.setOnClickListener(v -> {
-                    // Implementar navegación a la pantalla de todas las reseñas
-                    Toast.makeText(getContext(), "Ver todas las reseñas", Toast.LENGTH_SHORT).show();
+                    navigateToAllReviews();
                 });
                 Log.d("HotelDetailFragment", "tv_see_all_reviews configurado correctamente");
             } else {
@@ -346,6 +345,39 @@ public class HotelDetailFragment extends Fragment implements ThumbnailAdapter.On
             // No lanzar el error, solo registrarlo
             if (getContext() != null) {
                 Toast.makeText(getContext(), "Algunas funciones podrían no estar disponibles", Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
+
+    private void navigateToAllReviews() {
+        try {
+            // Crear el fragmento de todas las reseñas
+            AllReviewsFragment allReviewsFragment = new AllReviewsFragment();
+
+            // Pasar datos del hotel al fragmento
+            Bundle args = new Bundle();
+            args.putString("hotel_name", tvHotelName.getText().toString());
+            allReviewsFragment.setArguments(args);
+
+            // Navegar al fragmento con animación
+            requireActivity().getSupportFragmentManager()
+                    .beginTransaction()
+                    .setCustomAnimations(
+                            R.anim.slide_in_right,
+                            R.anim.slide_out_left,
+                            R.anim.slide_in_left,
+                            R.anim.slide_out_right
+                    )
+                    .replace(R.id.fragment_container, allReviewsFragment)
+                    .addToBackStack(null)
+                    .commit();
+
+            Log.d("HotelDetailFragment", "Navegando a AllReviewsFragment");
+
+        } catch (Exception e) {
+            Log.e("HotelDetailFragment", "Error navegando a reseñas: " + e.getMessage());
+            if (getContext() != null) {
+                Toast.makeText(getContext(), "Error abriendo reseñas", Toast.LENGTH_SHORT).show();
             }
         }
     }
