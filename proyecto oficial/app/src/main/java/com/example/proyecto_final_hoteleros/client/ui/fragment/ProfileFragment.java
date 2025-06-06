@@ -2,34 +2,38 @@ package com.example.proyecto_final_hoteleros.client.ui.fragment;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.transition.TransitionInflater;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.LinearLayout;
-import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.core.view.ViewCompat;
-
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.proyecto_final_hoteleros.MainActivity;
 import com.example.proyecto_final_hoteleros.R;
+import com.example.proyecto_final_hoteleros.client.ui.adapters.ClientProfileAdapter;
+import com.example.proyecto_final_hoteleros.client.data.model.ClientProfile;
+import com.example.proyecto_final_hoteleros.client.data.model.ClientProfileMenuItem;
 import com.example.proyecto_final_hoteleros.client.navigation.NavigationManager;
 import com.example.proyecto_final_hoteleros.client.utils.UserDataManager;
 import com.google.firebase.auth.FirebaseAuth;
 
-public class ProfileFragment extends BaseBottomNavigationFragment {
+import java.util.ArrayList;
+import java.util.List;
+
+public class ProfileFragment extends BaseBottomNavigationFragment implements
+        ClientProfileAdapter.OnClientProfileItemClickListener {
+
     private static final String TAG = "ProfileFragment";
 
-    // Variables para las opciones del perfil
-    private LinearLayout layoutProfileOption, layoutPaymentOption, layoutNotificationOption;
-    private TextView btnLogout;
-
-    // Views para mostrar datos del usuario
-    private TextView tvProfileName;
+    private RecyclerView recyclerProfile;
+    private ClientProfileAdapter adapter;
+    private List<Object> profileItems;
+    private ClientProfile currentClient;
 
     @Override
     protected NavigationTab getCurrentTab() {
@@ -37,8 +41,21 @@ public class ProfileFragment extends BaseBottomNavigationFragment {
     }
 
     @Override
-    public void onCreate(@Nullable Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                             Bundle savedInstanceState) {
+        View view = inflater.inflate(R.layout.client_fragment_profile, container, false);
+
+        recyclerProfile = view.findViewById(R.id.recycler_profile);
+
+        setupRecyclerView();
+        loadProfileData();
+
+        return view;
+    }
+
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
 
         // Obtener datos del usuario y guardarlos en el manager si vienen en argumentos
         if (getArguments() != null) {
@@ -54,89 +71,160 @@ public class ProfileFragment extends BaseBottomNavigationFragment {
             Log.d(TAG, "User ID: " + userId);
             Log.d(TAG, "User Name: " + userName);
         }
+    }
 
-        // Configurar transiciones
-        setSharedElementEnterTransition(
-                TransitionInflater.from(requireContext())
-                        .inflateTransition(android.R.transition.move)
-                        .setDuration(300)
-        );
+    private void setupRecyclerView() {
+        profileItems = new ArrayList<>();
+        adapter = new ClientProfileAdapter(getContext(), profileItems, this);
+        recyclerProfile.setLayoutManager(new LinearLayoutManager(getContext()));
+        recyclerProfile.setAdapter(adapter);
+    }
 
-        setSharedElementReturnTransition(
-                TransitionInflater.from(requireContext())
-                        .inflateTransition(android.R.transition.move)
-                        .setDuration(300)
+    private void loadProfileData() {
+        // Generar datos del cliente
+        currentClient = generateClientProfile();
+
+        // Agregar header (perfil del cliente con estadísticas integradas)
+        profileItems.add(currentClient);
+
+        // Agregar items del menú
+        profileItems.addAll(generateMenuItems());
+
+        // Notificar al adapter
+        adapter.notifyDataSetChanged();
+    }
+
+    private ClientProfile generateClientProfile() {
+        UserDataManager userManager = UserDataManager.getInstance();
+
+        return new ClientProfile(
+                userManager.getUserId() != null ? userManager.getUserId() : "client001",
+                userManager.getUserFullName() != null ? userManager.getUserFullName() : "Cliente Usuario",
+                userManager.getUserEmail() != null ? userManager.getUserEmail() : "cliente@email.com",
+                "+51 987 654 321",
+                "https://via.placeholder.com/150", // URL de imagen por defecto
+                "Av. Lima 123, San Miguel, Lima",
+                true,
+                15, // total reservas
+                12, // estancias completadas
+                4.8f, // rating promedio
+                2580.50 // total gastado
         );
+    }
+
+    private List<ClientProfileMenuItem> generateMenuItems() {
+        List<ClientProfileMenuItem> menuItems = new ArrayList<>();
+
+        menuItems.add(new ClientProfileMenuItem(
+                "Mis Reservas",
+                R.drawable.ic_hotel,
+                "Ver reservas actuales y pasadas",
+                true,
+                ClientProfileMenuItem.ProfileMenuType.MENU_ITEM
+        ));
+
+        menuItems.add(new ClientProfileMenuItem(
+                "Editar Perfil",
+                R.drawable.ic_group,
+                "Actualizar información personal",
+                true,
+                ClientProfileMenuItem.ProfileMenuType.MENU_ITEM
+        ));
+
+        menuItems.add(new ClientProfileMenuItem(
+                "Métodos de Pago",
+                R.drawable.ic_payment,
+                "Gestionar tarjetas y pagos",
+                true,
+                ClientProfileMenuItem.ProfileMenuType.MENU_ITEM
+        ));
+
+        menuItems.add(new ClientProfileMenuItem(
+                "Notificaciones",
+                R.drawable.ic_notification,
+                "Configurar alertas",
+                true,
+                ClientProfileMenuItem.ProfileMenuType.MENU_ITEM
+        ));
+
+        menuItems.add(new ClientProfileMenuItem(
+                "Cerrar Sesión",
+                R.drawable.ic_logout,
+                "",
+                true,
+                ClientProfileMenuItem.ProfileMenuType.MENU_ITEM
+        ));
+
+        return menuItems;
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-        View rootView = inflater.inflate(R.layout.client_fragment_profile, container, false);
+    public void onMenuItemClick(ClientProfileMenuItem item) {
+        Log.d(TAG, "Menu item clicked: " + item.getTitle());
 
-        // Inicializar views
-        initViews(rootView);
-
-        // Configurar datos del usuario
-        setupUserData();
-
-        // Configurar el avatar con transición
-        de.hdodenhof.circleimageview.CircleImageView profileAvatar =
-                rootView.findViewById(R.id.ivProfileAvatar);
-        ViewCompat.setTransitionName(profileAvatar, "avatar_transition");
-
-        // Inicializar las opciones del perfil
-        initializeProfileOptions(rootView);
-
-        return rootView;
-    }
-
-    private void initViews(View view) {
-        tvProfileName = view.findViewById(R.id.tvProfileName);
-    }
-
-    private void setupUserData() {
-        if (tvProfileName != null) {
-            String displayName = UserDataManager.getInstance().getUserFullName();
-            tvProfileName.setText(displayName);
-            Log.d(TAG, "Nombre de perfil configurado: " + displayName);
-        } else {
-            Log.e(TAG, "TextView tvProfileName no encontrado en el layout");
+        switch (item.getTitle()) {
+            case "Mis Reservas":
+                handleMisReservas();
+                break;
+            case "Editar Perfil":
+                handleEditarPerfil();
+                break;
+            case "Métodos de Pago":
+                handleMetodosPago();
+                break;
+            case "Notificaciones":
+                handleNotificaciones();
+                break;
+            case "Cerrar Sesión":
+                handleCerrarSesion();
+                break;
+            default:
+                Toast.makeText(getContext(), "Función no implementada: " + item.getTitle(), Toast.LENGTH_SHORT).show();
         }
     }
 
-    private void initializeProfileOptions(View rootView) {
-        // Referencias a los elementos de las opciones
-        layoutProfileOption = rootView.findViewById(R.id.layoutProfileOption);
-        layoutPaymentOption = rootView.findViewById(R.id.layoutPaymentOption);
-        layoutNotificationOption = rootView.findViewById(R.id.layoutNotificationOption);
-        btnLogout = rootView.findViewById(R.id.btnLogout);
-
-        // Configurar listeners para las opciones
-        layoutProfileOption.setOnClickListener(v -> navigateToEditProfile());
-
-        layoutPaymentOption.setOnClickListener(v -> {
-            Toast.makeText(requireContext(), "Métodos de pago", Toast.LENGTH_SHORT).show();
-        });
-
-        layoutNotificationOption.setOnClickListener(v -> navigateToNotifications());
-
-        btnLogout.setOnClickListener(v -> performLogout());
+    private void handleMisReservas() {
+        Log.d(TAG, "Mis Reservas clicked");
+        Toast.makeText(getContext(), "Mis Reservas (próximamente)", Toast.LENGTH_SHORT).show();
+        // TODO: Implementar navegación a fragmento de reservas
     }
 
-    private void navigateToEditProfile() {
+    private void handleEditarPerfil() {
+        Log.d(TAG, "Editar Perfil clicked");
         Bundle args = UserDataManager.getInstance().getUserBundle();
         String message = "Editar perfil de: " + UserDataManager.getInstance().getUserFullName();
-        Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show();
-
-        // Cuando tengas EditProfileFragment, usar NavigationManager:
-        // NavigationManager.getInstance().navigateToEditProfile(args);
+        Toast.makeText(getContext(), message, Toast.LENGTH_SHORT).show();
+        // TODO: Implementar navegación a fragmento de editar perfil
     }
 
-    private void navigateToNotifications() {
+    private void handleMetodosPago() {
+        Log.d(TAG, "Métodos de Pago clicked");
+        Toast.makeText(getContext(), "Métodos de Pago (próximamente)", Toast.LENGTH_SHORT).show();
+        // TODO: Implementar navegación a fragmento de métodos de pago
+    }
+
+    private void handleNotificaciones() {
+        Log.d(TAG, "Notificaciones clicked");
         NavigationManager.getInstance().navigateToNotificationSettings(
                 UserDataManager.getInstance().getUserBundle()
         );
+    }
+
+    private void handleCerrarSesion() {
+        Log.d(TAG, "Cerrar Sesión clicked");
+
+        // Mostrar diálogo de confirmación
+        new androidx.appcompat.app.AlertDialog.Builder(requireContext())
+                .setTitle("Cerrar Sesión")
+                .setMessage("¿Estás seguro de que deseas cerrar sesión?")
+                .setIcon(R.drawable.ic_logout)
+                .setPositiveButton("Sí, cerrar sesión", (dialog, which) -> {
+                    performLogout();
+                })
+                .setNegativeButton("Cancelar", (dialog, which) -> {
+                    dialog.dismiss();
+                })
+                .show();
     }
 
     private void performLogout() {
@@ -181,5 +269,21 @@ public class ProfileFragment extends BaseBottomNavigationFragment {
 
     public String getUserType() {
         return UserDataManager.getInstance().getUserType();
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        Log.d(TAG, "Fragment resumed - actualizando datos si es necesario");
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        // Limpiar referencias para evitar memory leaks
+        recyclerProfile = null;
+        adapter = null;
+        profileItems = null;
+        Log.d(TAG, "Vista destruida y referencias limpiadas");
     }
 }
