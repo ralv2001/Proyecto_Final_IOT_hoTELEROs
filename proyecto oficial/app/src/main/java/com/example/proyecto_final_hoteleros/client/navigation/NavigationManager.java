@@ -5,6 +5,7 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
 import androidx.fragment.app.FragmentTransaction;
 import com.example.proyecto_final_hoteleros.R;
+import com.example.proyecto_final_hoteleros.client.data.model.ClientProfile;
 import com.example.proyecto_final_hoteleros.client.ui.fragment.*;
 
 public class NavigationManager {
@@ -188,6 +189,15 @@ public class NavigationManager {
         }
 
         transaction.commit();
+    }
+    public void navigateToEditProfile(ClientProfile clientProfile) {
+        EditClientProfileFragment fragment = new EditClientProfileFragment();
+        Bundle args = new Bundle();
+        args.putParcelable("client_profile", clientProfile);
+        fragment.setArguments(args);
+
+        // Usar animación RIGHT_TO_LEFT para edición (proceso hacia adelante)
+        replaceFragment(fragment, true, AnimationDirection.RIGHT_TO_LEFT);
     }
 
     // ============= MÉTODOS PÚBLICOS ADICIONALES =============

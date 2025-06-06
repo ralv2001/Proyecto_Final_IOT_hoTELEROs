@@ -31,6 +31,13 @@ public class UserDataManager {
         args.putString("user_type", userType);
         return args;
     }
+    public void updateUserData(String userId, String userName, String userFullName, String userEmail, String userType) {
+        this.userId = userId;
+        this.userName = userName;
+        this.userFullName = userFullName;
+        this.userEmail = userEmail;
+        this.userType = userType;
+    }
 
     // Getters individuales
     public String getUserId() { return userId; }

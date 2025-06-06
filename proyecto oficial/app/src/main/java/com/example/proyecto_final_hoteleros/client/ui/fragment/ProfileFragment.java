@@ -116,14 +116,6 @@ public class ProfileFragment extends BaseBottomNavigationFragment implements
         List<ClientProfileMenuItem> menuItems = new ArrayList<>();
 
         menuItems.add(new ClientProfileMenuItem(
-                "Mis Reservas",
-                R.drawable.ic_hotel,
-                "Ver reservas actuales y pasadas",
-                true,
-                ClientProfileMenuItem.ProfileMenuType.MENU_ITEM
-        ));
-
-        menuItems.add(new ClientProfileMenuItem(
                 "Editar Perfil",
                 R.drawable.ic_group,
                 "Actualizar información personal",
@@ -163,9 +155,6 @@ public class ProfileFragment extends BaseBottomNavigationFragment implements
         Log.d(TAG, "Menu item clicked: " + item.getTitle());
 
         switch (item.getTitle()) {
-            case "Mis Reservas":
-                handleMisReservas();
-                break;
             case "Editar Perfil":
                 handleEditarPerfil();
                 break;
@@ -191,10 +180,7 @@ public class ProfileFragment extends BaseBottomNavigationFragment implements
 
     private void handleEditarPerfil() {
         Log.d(TAG, "Editar Perfil clicked");
-        Bundle args = UserDataManager.getInstance().getUserBundle();
-        String message = "Editar perfil de: " + UserDataManager.getInstance().getUserFullName();
-        Toast.makeText(getContext(), message, Toast.LENGTH_SHORT).show();
-        // TODO: Implementar navegación a fragmento de editar perfil
+        NavigationManager.getInstance().navigateToEditProfile(currentClient);
     }
 
     private void handleMetodosPago() {
