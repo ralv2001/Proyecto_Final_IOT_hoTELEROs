@@ -20,34 +20,43 @@ import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.example.proyecto_final_hoteleros.R;
-
 import com.example.proyecto_final_hoteleros.client.ui.adapters.NotificationAdapter;
 import com.example.proyecto_final_hoteleros.client.data.model.Notification;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.firestore.DocumentReference;
-import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.Query;
-import com.google.firebase.firestore.QueryDocumentSnapshot;
-import com.google.firebase.firestore.WriteBatch;
+import com.google.firebase.database.ChildEventListener;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 public class NotificationFragment extends Fragment implements NotificationAdapter.OnNotificationListener {
+    private static final String TAG = "NotificationFragment";
+
     private RecyclerView rvNotifications;
     private SwipeRefreshLayout swipeRefresh;
     private LinearLayout emptyState;
     private NotificationAdapter adapter;
     private List<Notification> notificationList;
     private ImageButton btnMarkAllRead;
+    private FloatingActionButton fabCreateNotification;
 
-    // Referencias a Firebase
-    private FirebaseFirestore db;
+    // Firebase Realtime Database
+    private DatabaseReference databaseRef;
+    private DatabaseReference notificationsRef;
     private FirebaseAuth auth;
     private String currentUserId;
+    private ChildEventListener notificationsListener;
 
     @Nullable
     @Override
@@ -55,33 +64,27 @@ public class NotificationFragment extends Fragment implements NotificationAdapte
                              @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.client_notification_fragment, container, false);
 
-        // Inicializar Firebase
-        db = FirebaseFirestore.getInstance();
+        // Inicializar Firebase Realtime Database
+        databaseRef = FirebaseDatabase.getInstance().getReference();
         auth = FirebaseAuth.getInstance();
-        currentUserId = auth.getCurrentUser() != null ? auth.getCurrentUser().getUid() : "";
+        currentUserId = auth.getCurrentUser() != null ? auth.getCurrentUser().getUid() : "user_demo";
+        notificationsRef = databaseRef.child("notifications").child(currentUserId);
 
-        // Inicializar vistas
+        initViews(view);
+        setupRecyclerView();
+        setupSwipeRefresh();
+        setupButtons();
+        loadNotifications();
+
+        return view;
+    }
+
+    private void initViews(View view) {
         rvNotifications = view.findViewById(R.id.rv_notifications);
         swipeRefresh = view.findViewById(R.id.swipe_refresh);
         emptyState = view.findViewById(R.id.empty_state);
         btnMarkAllRead = view.findViewById(R.id.btn_mark_all_read);
-
-        // Configurar RecyclerView con animaciones
-        notificationList = new ArrayList<>();
-        adapter = new NotificationAdapter(getContext(), notificationList);
-        adapter.setOnNotificationListener(this);
-
-        rvNotifications.setLayoutManager(new LinearLayoutManager(getContext()));
-        rvNotifications.setHasFixedSize(true);
-        rvNotifications.setAdapter(adapter);
-
-        // Añadir animación al RecyclerView
-        rvNotifications.setItemAnimator(new DefaultItemAnimator());
-        rvNotifications.addItemDecoration(new DividerItemDecoration(getContext(), DividerItemDecoration.VERTICAL));
-
-        // Configurar SwipeRefreshLayout
-        swipeRefresh.setColorSchemeResources(R.color.colorAccent);
-        swipeRefresh.setOnRefreshListener(this::loadNotifications);
+        fabCreateNotification = view.findViewById(R.id.fab_create_notification);
 
         // Botón de regreso
         view.findViewById(R.id.btn_back).setOnClickListener(v -> {
@@ -89,197 +92,346 @@ public class NotificationFragment extends Fragment implements NotificationAdapte
                 getActivity().onBackPressed();
             }
         });
+    }
 
+    private void setupRecyclerView() {
+        notificationList = new ArrayList<>();
+        adapter = new NotificationAdapter(getContext(), notificationList);
+        adapter.setOnNotificationListener(this);
+
+        rvNotifications.setLayoutManager(new LinearLayoutManager(getContext()));
+        rvNotifications.setHasFixedSize(true);
+        rvNotifications.setAdapter(adapter);
+        rvNotifications.setItemAnimator(new DefaultItemAnimator());
+        rvNotifications.addItemDecoration(new DividerItemDecoration(getContext(), DividerItemDecoration.VERTICAL));
+    }
+
+    private void setupSwipeRefresh() {
+        swipeRefresh.setColorSchemeResources(R.color.orange_primary);
+        swipeRefresh.setOnRefreshListener(this::loadNotifications);
+    }
+
+    private void setupButtons() {
         // Botón para marcar todas como leídas
         btnMarkAllRead.setOnClickListener(v -> markAllAsRead());
 
-        // Cargar notificaciones
-        loadNotifications();
-
-        // Para desarrollo, usar notificaciones de ejemplo
-        // En producción, usa solo loadNotifications()
-        addSampleNotifications();
-
-        return view;
+        // Botón flotante para crear notificaciones de prueba
+        fabCreateNotification.setOnClickListener(v -> showCreateNotificationDialog());
     }
 
     /**
-     * Carga las notificaciones del usuario actual desde Firestore
+     * Cargar notificaciones desde Firebase Realtime Database
      */
     private void loadNotifications() {
         swipeRefresh.setRefreshing(true);
 
-        // Logs para depuración
-        Log.d("NotificationFragment", "Iniciando carga de notificaciones");
+        Log.d(TAG, "Cargando notificaciones para usuario: " + currentUserId);
 
-        // Si no hay usuario autenticado, no podemos cargar notificaciones
-        if (currentUserId.isEmpty()) {
-            Log.d("NotificationFragment", "No hay usuario autenticado");
-            showEmptyState();
-            swipeRefresh.setRefreshing(false);
-            return;
+        // Remover listener anterior si existe
+        if (notificationsListener != null) {
+            notificationsRef.removeEventListener(notificationsListener);
         }
 
-        Log.d("NotificationFragment", "Consultando Firestore para userId: " + currentUserId);
-
-        // Ruta de Firestore: users/{userId}/notifications
-        db.collection("users")
-                .document(currentUserId)
-                .collection("notifications")
-                .orderBy("timestamp", Query.Direction.DESCENDING) // Más recientes primero
-                .get()
-                .addOnSuccessListener(queryDocumentSnapshots -> {
-                    Log.d("NotificationFragment", "Obtenidas " + queryDocumentSnapshots.size() + " notificaciones");
-
-                    notificationList.clear();
-                    for (QueryDocumentSnapshot document : queryDocumentSnapshots) {
-                        Notification notification = document.toObject(Notification.class);
-                        notification.setId(document.getId());
-                        notificationList.add(notification);
+        // Crear nuevo listener
+        notificationsListener = new ChildEventListener() {
+            @Override
+            public void onChildAdded(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
+                try {
+                    Notification notification = parseNotification(snapshot);
+                    if (notification != null) {
+                        notificationList.add(0, notification); // Agregar al inicio
+                        sortNotificationsByTimestamp();
+                        adapter.notifyDataSetChanged();
+                        updateUI();
+                        Log.d(TAG, "Notificación agregada: " + notification.getTitle());
                     }
+                } catch (Exception e) {
+                    Log.e(TAG, "Error agregando notificación: " + e.getMessage());
+                }
+            }
 
-                    // Actualizar UI
-                    adapter.updateData(notificationList);
-                    swipeRefresh.setRefreshing(false);
-
-                    // Mostrar estado vacío si no hay notificaciones
-                    if (notificationList.isEmpty()) {
-                        showEmptyState();
-                    } else {
-                        hideEmptyState();
-                        // Actualizar visibilidad del botón de marcar todas como leídas
-                        updateMarkAllReadButton();
+            @Override
+            public void onChildChanged(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
+                try {
+                    Notification updatedNotification = parseNotification(snapshot);
+                    if (updatedNotification != null) {
+                        // Buscar y actualizar la notificación existente
+                        for (int i = 0; i < notificationList.size(); i++) {
+                            if (notificationList.get(i).getId().equals(updatedNotification.getId())) {
+                                notificationList.set(i, updatedNotification);
+                                adapter.notifyItemChanged(i);
+                                updateMarkAllReadButton();
+                                Log.d(TAG, "Notificación actualizada: " + updatedNotification.getTitle());
+                                break;
+                            }
+                        }
                     }
-                })
-                .addOnFailureListener(e -> {
-                    Log.e("NotificationFragment", "Error al cargar notificaciones", e);
-                    swipeRefresh.setRefreshing(false);
-                    Toast.makeText(getContext(), "Error al cargar notificaciones: " + e.getMessage(),
-                            Toast.LENGTH_SHORT).show();
-                    showEmptyState();
-                });
+                } catch (Exception e) {
+                    Log.e(TAG, "Error actualizando notificación: " + e.getMessage());
+                }
+            }
+
+            @Override
+            public void onChildRemoved(@NonNull DataSnapshot snapshot) {
+                try {
+                    String removedId = snapshot.getKey();
+                    for (int i = 0; i < notificationList.size(); i++) {
+                        if (notificationList.get(i).getId().equals(removedId)) {
+                            notificationList.remove(i);
+                            adapter.notifyItemRemoved(i);
+                            updateUI();
+                            Log.d(TAG, "Notificación eliminada: " + removedId);
+                            break;
+                        }
+                    }
+                } catch (Exception e) {
+                    Log.e(TAG, "Error eliminando notificación: " + e.getMessage());
+                }
+            }
+
+            @Override
+            public void onChildMoved(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
+                // No necesario para este caso
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                Log.e(TAG, "Error al cargar notificaciones: " + error.getMessage());
+                swipeRefresh.setRefreshing(false);
+                Toast.makeText(getContext(), "Error al cargar notificaciones", Toast.LENGTH_SHORT).show();
+            }
+        };
+
+        // Inicializar carga completa
+        notificationsRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                notificationList.clear();
+                for (DataSnapshot child : snapshot.getChildren()) {
+                    try {
+                        Notification notification = parseNotification(child);
+                        if (notification != null) {
+                            notificationList.add(notification);
+                        }
+                    } catch (Exception e) {
+                        Log.e(TAG, "Error parseando notificación: " + e.getMessage());
+                    }
+                }
+                sortNotificationsByTimestamp();
+                adapter.notifyDataSetChanged();
+                updateUI();
+                swipeRefresh.setRefreshing(false);
+
+                // Ahora agregar el listener para cambios en tiempo real
+                notificationsRef.addChildEventListener(notificationsListener);
+
+                Log.d(TAG, "Notificaciones cargadas: " + notificationList.size());
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                Log.e(TAG, "Error inicial: " + error.getMessage());
+                swipeRefresh.setRefreshing(false);
+                showEmptyState();
+            }
+        });
     }
 
     /**
-     * Método para marcar una notificación como leída
+     * Parsear notificación desde DataSnapshot
+     */
+    private Notification parseNotification(DataSnapshot snapshot) {
+        try {
+            String id = snapshot.getKey();
+            String title = snapshot.child("title").getValue(String.class);
+            String message = snapshot.child("message").getValue(String.class);
+            Integer type = snapshot.child("type").getValue(Integer.class);
+            Long timestamp = snapshot.child("timestamp").getValue(Long.class);
+            Boolean read = snapshot.child("read").getValue(Boolean.class);
+            String actionData = snapshot.child("actionData").getValue(String.class);
+
+            if (id != null && title != null && message != null && type != null && timestamp != null) {
+                Date date = new Date(timestamp);
+                boolean isRead = read != null ? read : false;
+                return new Notification(id, title, message, type, date, isRead, actionData);
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "Error parseando notificación: " + e.getMessage());
+        }
+        return null;
+    }
+
+    /**
+     * Ordenar notificaciones por timestamp (más reciente primero)
+     */
+    private void sortNotificationsByTimestamp() {
+        Collections.sort(notificationList, (n1, n2) ->
+                Long.compare(n2.getTimestamp().getTime(), n1.getTimestamp().getTime()));
+    }
+
+    /**
+     * Marcar una notificación como leída
      */
     private void markAsRead(Notification notification) {
         if (notification.isRead()) return;
 
-        // Mostrar indicador de carga
-        if (swipeRefresh != null) {
-            swipeRefresh.setRefreshing(true);
-        }
-
-        db.collection("users")
-                .document(currentUserId)
-                .collection("notifications")
-                .document(notification.getId())
-                .update("read", true)
+        notificationsRef.child(notification.getId()).child("read").setValue(true)
                 .addOnSuccessListener(aVoid -> {
-                    // Actualizar localmente
-                    notification.setRead(true);
-                    adapter.notifyDataSetChanged();
-
-                    // Ocultar indicador de carga
-                    if (swipeRefresh != null) {
-                        swipeRefresh.setRefreshing(false);
-                    }
-
-                    // Actualizar estado del botón de marcar todas como leídas
-                    updateMarkAllReadButton();
-
-                    // Mostrar confirmación
-                    Toast.makeText(getContext(), "Notificación marcada como leída", Toast.LENGTH_SHORT).show();
+                    Log.d(TAG, "Notificación marcada como leída: " + notification.getId());
+                    Toast.makeText(getContext(), "Marcada como leída", Toast.LENGTH_SHORT).show();
                 })
                 .addOnFailureListener(e -> {
-                    // Ocultar indicador de carga
-                    if (swipeRefresh != null) {
-                        swipeRefresh.setRefreshing(false);
-                    }
-
+                    Log.e(TAG, "Error marcando como leída: " + e.getMessage());
                     Toast.makeText(getContext(), "Error al marcar como leída", Toast.LENGTH_SHORT).show();
                 });
     }
 
     /**
-     * Método para marcar todas las notificaciones como leídas
+     * Marcar todas las notificaciones como leídas
      */
     private void markAllAsRead() {
-        // Mostrar indicador de carga
-        if (swipeRefresh != null) {
-            swipeRefresh.setRefreshing(true);
-        }
-
-        // Verificar si hay notificaciones sin leer
+        Map<String, Object> updates = new HashMap<>();
         boolean hasUnread = false;
+
         for (Notification notification : notificationList) {
             if (!notification.isRead()) {
+                updates.put(notification.getId() + "/read", true);
                 hasUnread = true;
-                break;
             }
         }
 
         if (!hasUnread) {
-            swipeRefresh.setRefreshing(false);
             Toast.makeText(getContext(), "No hay notificaciones por leer", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        // Batch para actualizar múltiples documentos
-        WriteBatch batch = db.batch();
-
-        // Agregar cada notificación no leída al batch
-        for (Notification notification : notificationList) {
-            if (!notification.isRead()) {
-                DocumentReference docRef = db.collection("users")
-                        .document(currentUserId)
-                        .collection("notifications")
-                        .document(notification.getId());
-                batch.update(docRef, "read", true);
-            }
-        }
-
-        // Ejecutar el batch
-        batch.commit()
+        notificationsRef.updateChildren(updates)
                 .addOnSuccessListener(aVoid -> {
-                    // Actualizar localmente
-                    for (Notification notification : notificationList) {
-                        notification.setRead(true);
-                    }
-
-                    adapter.notifyDataSetChanged();
-
-                    // Ocultar indicador de carga
-                    if (swipeRefresh != null) {
-                        swipeRefresh.setRefreshing(false);
-                    }
-
-                    // Actualizar estado del botón
-                    updateMarkAllReadButton();
-
-                    // Mostrar confirmación
-                    Toast.makeText(getContext(), "Todas las notificaciones marcadas como leídas",
-                            Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getContext(), "Todas marcadas como leídas", Toast.LENGTH_SHORT).show();
+                    Log.d(TAG, "Todas las notificaciones marcadas como leídas");
                 })
                 .addOnFailureListener(e -> {
-                    // Ocultar indicador de carga
-                    if (swipeRefresh != null) {
-                        swipeRefresh.setRefreshing(false);
-                    }
-
-                    Toast.makeText(getContext(), "Error al marcar todas como leídas",
-                            Toast.LENGTH_SHORT).show();
+                    Log.e(TAG, "Error marcando todas como leídas: " + e.getMessage());
+                    Toast.makeText(getContext(), "Error al marcar todas como leídas", Toast.LENGTH_SHORT).show();
                 });
     }
 
     /**
-     * Actualiza la visibilidad del botón de marcar todas como leídas
+     * Mostrar diálogo para crear notificación de prueba
+     */
+    private void showCreateNotificationDialog() {
+        String[] notificationTypes = {
+                "Reserva Confirmada",
+                "Check-in Disponible",
+                "Check-out Completado",
+                "Oferta Especial",
+                "Recordatorio"
+        };
+
+        new MaterialAlertDialogBuilder(requireContext())
+                .setTitle("Crear Notificación de Prueba")
+                .setItems(notificationTypes, (dialog, which) -> {
+                    createTestNotification(which + 1);
+                })
+                .setNegativeButton("Cancelar", null)
+                .show();
+    }
+
+    /**
+     * Crear notificación de prueba
+     */
+    private void createTestNotification(int type) {
+        String notificationId = UUID.randomUUID().toString();
+        String title, message, actionData;
+
+        switch (type) {
+            case Notification.TYPE_BOOKING:
+                title = "Reserva confirmada";
+                message = "Tu reserva para Hotel Miraflores ha sido confirmada exitosamente. Te esperamos el 15 de Mayo.";
+                actionData = "booking" + System.currentTimeMillis();
+                break;
+            case Notification.TYPE_CHECK_IN:
+                title = "Check-in disponible";
+                message = "Ya puedes realizar tu check-in para tu estadía en Hotel Lima Centro. Te esperamos mañana.";
+                actionData = "booking" + System.currentTimeMillis();
+                break;
+            case Notification.TYPE_CHECK_OUT:
+                title = "Check-out completado";
+                message = "Tu check-out del Hotel San Isidro ha sido procesado. ¡Gracias por tu estadía!";
+                actionData = "booking" + System.currentTimeMillis();
+                break;
+            case Notification.TYPE_PROMO:
+                title = "Oferta especial";
+                message = "¡Obtén un 20% de descuento en tu próxima reserva! Usa el código HOTEL20 al reservar.";
+                actionData = "promo" + System.currentTimeMillis();
+                break;
+            case Notification.TYPE_REMINDER:
+                title = "Recordatorio de reserva";
+                message = "Te recordamos que tienes una reserva en Hotel Barranco para mañana. ¡Te esperamos!";
+                actionData = "booking" + System.currentTimeMillis();
+                break;
+            default:
+                title = "Notificación de prueba";
+                message = "Esta es una notificación de prueba del sistema.";
+                actionData = "test";
+        }
+
+        // Crear el objeto de notificación
+        Map<String, Object> notificationData = new HashMap<>();
+        notificationData.put("id", notificationId);
+        notificationData.put("title", title);
+        notificationData.put("message", message);
+        notificationData.put("type", type);
+        notificationData.put("timestamp", System.currentTimeMillis());
+        notificationData.put("read", false);
+        notificationData.put("actionData", actionData);
+
+        // Guardar en Firebase Realtime Database
+        notificationsRef.child(notificationId).setValue(notificationData)
+                .addOnSuccessListener(aVoid -> {
+                    Toast.makeText(getContext(), "Notificación creada: " + title, Toast.LENGTH_SHORT).show();
+                    Log.d(TAG, "Notificación creada exitosamente: " + notificationId);
+
+                    // Enviar notificación push local
+                    sendLocalPushNotification(title, message, type);
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Error creando notificación: " + e.getMessage());
+                    Toast.makeText(getContext(), "Error al crear notificación", Toast.LENGTH_SHORT).show();
+                });
+    }
+
+    /**
+     * Enviar notificación push local
+     */
+    private void sendLocalPushNotification(String title, String message, int type) {
+        try {
+            com.example.proyecto_final_hoteleros.client.data.service.NotificationService notificationService =
+                    new com.example.proyecto_final_hoteleros.client.data.service.NotificationService(requireContext());
+            notificationService.showNotification(title, message, type, "local_test");
+        } catch (Exception e) {
+            Log.e(TAG, "Error enviando notificación push: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Actualizar UI según el estado de las notificaciones
+     */
+    private void updateUI() {
+        if (notificationList.isEmpty()) {
+            showEmptyState();
+        } else {
+            hideEmptyState();
+            updateMarkAllReadButton();
+        }
+    }
+
+    /**
+     * Actualizar estado del botón de marcar todas como leídas
      */
     private void updateMarkAllReadButton() {
         if (btnMarkAllRead == null) return;
 
-        // Verificar si hay notificaciones sin leer
         boolean hasUnread = false;
         for (Notification notification : notificationList) {
             if (!notification.isRead()) {
@@ -288,13 +440,12 @@ public class NotificationFragment extends Fragment implements NotificationAdapte
             }
         }
 
-        // Actualizar visibilidad del botón
         btnMarkAllRead.setEnabled(hasUnread);
         btnMarkAllRead.setAlpha(hasUnread ? 1.0f : 0.5f);
     }
 
     /**
-     * Mostrar estado vacío cuando no hay notificaciones
+     * Mostrar estado vacío
      */
     private void showEmptyState() {
         if (emptyState != null) {
@@ -303,14 +454,13 @@ public class NotificationFragment extends Fragment implements NotificationAdapte
         if (rvNotifications != null) {
             rvNotifications.setVisibility(View.GONE);
         }
-        // Ocultar botón de marcar todas como leídas
         if (btnMarkAllRead != null) {
             btnMarkAllRead.setVisibility(View.GONE);
         }
     }
 
     /**
-     * Ocultar estado vacío cuando hay notificaciones
+     * Ocultar estado vacío
      */
     private void hideEmptyState() {
         if (emptyState != null) {
@@ -319,19 +469,16 @@ public class NotificationFragment extends Fragment implements NotificationAdapte
         if (rvNotifications != null) {
             rvNotifications.setVisibility(View.VISIBLE);
         }
-        // Mostrar botón de marcar todas como leídas
         if (btnMarkAllRead != null) {
             btnMarkAllRead.setVisibility(View.VISIBLE);
         }
     }
 
-    // Implementación de los métodos de la interfaz OnNotificationListener
+    // Implementación de OnNotificationListener
     @Override
     public void onNotificationClick(Notification notification) {
-        // Marcar como leída
         markAsRead(notification);
 
-        // Manejar el click según el tipo de notificación
         switch (notification.getType()) {
             case Notification.TYPE_BOOKING:
                 navigateToBookingDetails(notification.getActionData());
@@ -340,22 +487,17 @@ public class NotificationFragment extends Fragment implements NotificationAdapte
                 navigateToCheckInDetails(notification.getActionData());
                 break;
             case Notification.TYPE_CHECK_OUT:
-                // Solo mostrar la notificación, no hay acción adicional
+                Toast.makeText(getContext(), "Check-out completado", Toast.LENGTH_SHORT).show();
                 break;
+            default:
+                Toast.makeText(getContext(), "Notificación: " + notification.getTitle(), Toast.LENGTH_SHORT).show();
         }
     }
 
     @Override
     public void onViewDetailsClick(Notification notification) {
-        // Marcar como leída
         markAsRead(notification);
-
-        // Navegar según el tipo
-        if (notification.getType() == Notification.TYPE_BOOKING) {
-            navigateToBookingDetails(notification.getActionData());
-        } else if (notification.getType() == Notification.TYPE_CHECK_IN) {
-            navigateToCheckInDetails(notification.getActionData());
-        }
+        Toast.makeText(getContext(), "Ver detalles: " + notification.getActionData(), Toast.LENGTH_SHORT).show();
     }
 
     @Override
@@ -363,149 +505,20 @@ public class NotificationFragment extends Fragment implements NotificationAdapte
         markAsRead(notification);
     }
 
-    /**
-     * Navegar a la pantalla de detalles de reserva
-     */
     private void navigateToBookingDetails(String bookingId) {
-        // TODO: Implementar navegación a los detalles de la reserva
-        Toast.makeText(getContext(), "Ver detalles de reserva: " + bookingId,
-                Toast.LENGTH_SHORT).show();
-
-        // Ejemplo de navegación con FragmentManager
-        /*
-        BookingDetailFragment fragment = BookingDetailFragment.newInstance(bookingId);
-        getParentFragmentManager().beginTransaction()
-            .replace(R.id.fragment_container, fragment)
-            .addToBackStack(null)
-            .commit();
-        */
+        Toast.makeText(getContext(), "Ver detalles de reserva: " + bookingId, Toast.LENGTH_SHORT).show();
     }
 
-    /**
-     * Navegar a la pantalla de check-in
-     */
     private void navigateToCheckInDetails(String bookingId) {
-        // TODO: Implementar navegación a la pantalla de check-in
-        Toast.makeText(getContext(), "Ver detalles de check-in: " + bookingId,
-                Toast.LENGTH_SHORT).show();
-
-        // Ejemplo de navegación con FragmentManager
-       /*
-       CheckInFragment fragment = CheckInFragment.newInstance(bookingId);
-       getParentFragmentManager().beginTransaction()
-           .replace(R.id.fragment_container, fragment)
-           .addToBackStack(null)
-           .commit();
-       */
+        Toast.makeText(getContext(), "Ver detalles de check-in: " + bookingId, Toast.LENGTH_SHORT).show();
     }
 
-    /**
-     * Método para simular notificaciones (solo para desarrollo)
-     * Quita este método en producción
-     */
-    private void addSampleNotifications() {
-        // Generar notificaciones de ejemplo con mejor diseño de datos
-        List<Notification> sampleNotifications = new ArrayList<>();
-
-        // Añadir más variedad de notificaciones para mejor demostración
-        sampleNotifications.add(new Notification(
-                "1",
-                "Reserva confirmada",
-                "Tu reserva para Hotel Miraflores ha sido confirmada exitosamente. Te esperamos el 15 de Mayo.",
-                Notification.TYPE_BOOKING,
-                new Date(System.currentTimeMillis() - 600000), // 10 minutos atrás
-                false,
-                "booking123"
-        ));
-
-        sampleNotifications.add(new Notification(
-                "2",
-                "Check-in disponible",
-                "Ya puedes realizar tu check-in para tu estadía en Hotel Lima Centro. Te esperamos mañana.",
-                Notification.TYPE_CHECK_IN,
-                new Date(System.currentTimeMillis() - 7200000), // 2 horas atrás
-                false,
-                "booking456"
-        ));
-
-        sampleNotifications.add(new Notification(
-                "3",
-                "Check-out completado",
-                "Tu check-out del Hotel San Isidro ha sido procesado. ¡Gracias por tu estadía!",
-                Notification.TYPE_CHECK_OUT,
-                new Date(System.currentTimeMillis() - 86400000), // 1 día atrás
-                true,
-                "booking789"
-        ));
-
-        // Añadir más notificaciones para una mejor demostración
-        sampleNotifications.add(new Notification(
-                "4",
-                "Oferta especial",
-                "¡Obtén un 20% de descuento en tu próxima reserva! Usa el código HOTEL20 al reservar.",
-                Notification.TYPE_BOOKING,
-                new Date(System.currentTimeMillis() - 259200000), // 3 días atrás
-                false,
-                "promo123"
-        ));
-
-        sampleNotifications.add(new Notification(
-                "5",
-                "Recordatorio de reserva",
-                "Te recordamos que tienes una reserva en Hotel Barranco para mañana. ¡Te esperamos!",
-                Notification.TYPE_BOOKING,
-                new Date(System.currentTimeMillis() - 172800000), // 2 días atrás
-                true,
-                "booking101"
-        ));
-
-        notificationList.clear();
-        notificationList.addAll(sampleNotifications);
-        adapter.notifyDataSetChanged();
-
-        // Actualizar UI
-        if (notificationList.isEmpty()) {
-            showEmptyState();
-        } else {
-            hideEmptyState();
-            // Actualizar estado del botón de marcar todas como leídas
-            updateMarkAllReadButton();
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        // Limpiar listener
+        if (notificationsListener != null && notificationsRef != null) {
+            notificationsRef.removeEventListener(notificationsListener);
         }
-    }
-
-    /**
-     * Implementar un método para guardar notificaciones en Firestore
-     * Este método puede ser usado desde otras partes de la aplicación
-     */
-    public static void saveNotificationToFirestore(Context context, String userId, Notification notification) {
-        // Si no hay usuario, no guardamos nada
-        if (userId.isEmpty()) {
-            Log.e("NotificationFragment", "No se puede guardar: userId vacío");
-            return;
-        }
-
-        // Firebase
-        FirebaseFirestore db = FirebaseFirestore.getInstance();
-
-        // Crear un mapa con los datos de la notificación
-        Map<String, Object> notificationData = new HashMap<>();
-        notificationData.put("title", notification.getTitle());
-        notificationData.put("message", notification.getMessage());
-        notificationData.put("type", notification.getType());
-        notificationData.put("timestamp", notification.getTimestamp());
-        notificationData.put("read", notification.isRead());
-        notificationData.put("actionData", notification.getActionData());
-
-        // Guardar en Firestore
-        db.collection("users")
-                .document(userId)
-                .collection("notifications")
-                .add(notificationData)
-                .addOnSuccessListener(documentReference -> {
-                    Log.d("NotificationManager", "Notificación guardada con ID: " + documentReference.getId());
-                })
-                .addOnFailureListener(e -> {
-                    Log.e("NotificationManager", "Error al guardar notificación", e);
-                });
     }
 }

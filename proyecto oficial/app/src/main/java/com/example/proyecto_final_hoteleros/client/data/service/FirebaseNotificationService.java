@@ -14,14 +14,18 @@ import androidx.core.app.NotificationCompat;
 import com.example.proyecto_final_hoteleros.MainActivity;
 import com.example.proyecto_final_hoteleros.R;
 import com.example.proyecto_final_hoteleros.client.data.model.Notification;
-import com.example.proyecto_final_hoteleros.utils.NotificationManager;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
 
+import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 public class FirebaseNotificationService extends FirebaseMessagingService {
-    private static final String TAG = "FirebaseNotificationSvc";
+    private static final String TAG = "FCMService";
     private static final String CHANNEL_ID = "hotel_notifications";
     private static final int NOTIFICATION_ID = 100;
 
@@ -47,8 +51,8 @@ public class FirebaseNotificationService extends FirebaseMessagingService {
             // Crear notificación Android
             showNotification(title, message);
 
-            // Guardar en Firestore (asumiendo tipo genérico)
-            saveNotificationToFirestore(title, message);
+            // Guardar en Realtime Database
+            saveNotificationToDatabase(title, message, Notification.TYPE_BOOKING, "fcm_message");
         }
     }
 
@@ -57,8 +61,8 @@ public class FirebaseNotificationService extends FirebaseMessagingService {
         super.onNewToken(token);
         Log.d(TAG, "Refreshed token: " + token);
 
-        // Enviar el token al servidor (opcional)
-        sendTokenToServer(token);
+        // Guardar el token en Realtime Database
+        saveTokenToDatabase(token);
     }
 
     /**
@@ -88,8 +92,8 @@ public class FirebaseNotificationService extends FirebaseMessagingService {
         // Mostrar notificación Android
         showNotification(title, message);
 
-        // Guardar en Firestore
-        saveNotificationToFirestore(title, message, notificationType, actionData);
+        // Guardar en Realtime Database
+        saveNotificationToDatabase(title, message, notificationType, actionData);
     }
 
     /**
@@ -113,10 +117,12 @@ public class FirebaseNotificationService extends FirebaseMessagingService {
                 .setContentText(message)
                 .setPriority(NotificationCompat.PRIORITY_HIGH)
                 .setContentIntent(pendingIntent)
-                .setAutoCancel(true);
+                .setAutoCancel(true)
+                .setStyle(new NotificationCompat.BigTextStyle().bigText(message));
 
         // Mostrar notificación
-        android.app.NotificationManager notificationManager = (android.app.NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        android.app.NotificationManager notificationManager =
+                (android.app.NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
         if (notificationManager != null) {
             notificationManager.notify(NOTIFICATION_ID, builder.build());
         }
@@ -135,8 +141,8 @@ public class FirebaseNotificationService extends FirebaseMessagingService {
             channel.setDescription(description);
 
             // Registrar el canal
-            @SuppressLint("ServiceCast") NotificationManager notificationManager =
-                    (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+            android.app.NotificationManager notificationManager =
+                    (android.app.NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
             if (notificationManager != null) {
                 notificationManager.createNotificationChannel(channel);
             }
@@ -144,24 +150,47 @@ public class FirebaseNotificationService extends FirebaseMessagingService {
     }
 
     /**
-     * Guardar notificación en Firestore (versión simple)
+     * Guardar notificación en Realtime Database
      */
-    private void saveNotificationToFirestore(String title, String message) {
-        saveNotificationToFirestore(title, message, Notification.TYPE_BOOKING, null);
+    private void saveNotificationToDatabase(String title, String message, int type, String actionData) {
+        FirebaseAuth auth = FirebaseAuth.getInstance();
+        String userId = auth.getCurrentUser() != null ? auth.getCurrentUser().getUid() : "user_demo";
+
+        DatabaseReference databaseRef = FirebaseDatabase.getInstance().getReference();
+        String notificationId = UUID.randomUUID().toString();
+
+        Map<String, Object> notificationData = new HashMap<>();
+        notificationData.put("id", notificationId);
+        notificationData.put("title", title);
+        notificationData.put("message", message);
+        notificationData.put("type", type);
+        notificationData.put("timestamp", System.currentTimeMillis());
+        notificationData.put("read", false);
+        notificationData.put("actionData", actionData);
+
+        databaseRef.child("notifications").child(userId).child(notificationId).setValue(notificationData)
+                .addOnSuccessListener(aVoid -> {
+                    Log.d(TAG, "Notificación FCM guardada: " + notificationId);
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Error guardando notificación FCM: " + e.getMessage());
+                });
     }
 
     /**
-     * Guardar notificación en Firestore (versión completa)
+     * Guardar token FCM en la base de datos
      */
-    private void saveNotificationToFirestore(String title, String message, int type, String actionData) {
-        com.example.proyecto_final_hoteleros.utils.NotificationManager.getInstance().sendNotification(title, message, type, actionData);
-    }
+    private void saveTokenToDatabase(String token) {
+        FirebaseAuth auth = FirebaseAuth.getInstance();
+        String userId = auth.getCurrentUser() != null ? auth.getCurrentUser().getUid() : "user_demo";
 
-    /**
-     * Enviar token al servidor
-     */
-    private void sendTokenToServer(String token) {
-        // Implementar según necesidades
-        Log.d(TAG, "Token enviado al servidor: " + token);
+        DatabaseReference databaseRef = FirebaseDatabase.getInstance().getReference();
+        databaseRef.child("users").child(userId).child("fcmToken").setValue(token)
+                .addOnSuccessListener(aVoid -> {
+                    Log.d(TAG, "Token FCM guardado para usuario: " + userId);
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Error guardando token FCM: " + e.getMessage());
+                });
     }
 }
