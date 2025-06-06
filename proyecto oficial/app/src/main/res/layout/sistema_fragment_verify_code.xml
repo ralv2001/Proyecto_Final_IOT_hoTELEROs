@@ -164,19 +164,41 @@
                     android:layout_marginHorizontal="5dp"/>
             </LinearLayout>
 
-            <!-- Botón para verificar código -->
+            <!-- Botón de verificar con spinner -->
             <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnVerifyCode"
+                android:id="@+id/btnVerifyEmail"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 app:backgroundTint="@color/colorPrimary"
                 app:cornerRadius="12dp"
-                android:text="Verificar código"
+                android:text="Verificando..."
                 android:paddingVertical="18dp"
-                android:layout_marginBottom="24dp"
-                style="@style/ButtonTextStyle"
+                android:paddingHorizontal="20dp"
+                android:textSize="16sp"
+                android:fontFamily="@font/inter_semibold"
+                android:textColor="@android:color/white"
+                android:layout_marginBottom="16dp"
                 android:enabled="false"
-                android:alpha="0.4"/>
+                android:alpha="0.6"
+                app:icon="@drawable/ic_spinnercargandogozu"
+                app:iconGravity="textStart"
+                app:iconSize="20dp"
+                app:iconTint="@android:color/white" />
+
+<!--            &lt;!&ndash; Botón temporal para debugging - ELIMINAR DESPUÉS &ndash;&gt;-->
+<!--            <com.google.android.material.button.MaterialButton-->
+<!--                android:id="@+id/btnDebugCheck"-->
+<!--                android:layout_width="match_parent"-->
+<!--                android:layout_height="wrap_content"-->
+<!--                app:backgroundTint="#FF9800"-->
+<!--                app:cornerRadius="12dp"-->
+<!--                android:text="Debug: Verificar Estado"-->
+<!--                android:paddingVertical="18dp"-->
+<!--                android:paddingHorizontal="20dp"-->
+<!--                android:textSize="14sp"-->
+<!--                android:fontFamily="@font/inter_semibold"-->
+<!--                android:textColor="@android:color/white"-->
+<!--                android:layout_marginBottom="16dp" />-->
 
             <!-- Opción para reenviar código (ajustado para evitar desbordamiento) -->
             <LinearLayout
@@ -185,22 +207,23 @@
                 android:orientation="horizontal"
                 android:gravity="center">
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="¿No has recibido el código? "
-                    android:textSize="14sp"
-                    android:textColor="#989898"
-                    android:fontFamily="@font/inter_semibold"/>
+<!--                <TextView-->
+<!--                    android:layout_width="wrap_content"-->
+<!--                    android:layout_height="wrap_content"-->
+<!--                    android:text="¿No has recibido el código? "-->
+<!--                    android:textSize="14sp"-->
+<!--                    android:textColor="#989898"-->
+<!--                    android:fontFamily="@font/inter_semibold"/>-->
 
-                <TextView
-                    android:id="@+id/tvResendCode"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Reenviar código"
-                    android:textSize="14sp"
-                    android:textColor="#F35D38"
-                    android:fontFamily="@font/inter_semibold"/>
+<!--                <TextView-->
+<!--                    android:id="@+id/tvResendCode"-->
+<!--                    android:layout_width="wrap_content"-->
+<!--                    android:layout_height="wrap_content"-->
+<!--                    android:text="Reenviar código"-->
+<!--                    android:textSize="14sp"-->
+<!--                    android:textColor="#F35D38"-->
+<!--                    android:fontFamily="@font/inter_semibold"/>-->
+
             </LinearLayout>
         </LinearLayout>
     </ScrollView>

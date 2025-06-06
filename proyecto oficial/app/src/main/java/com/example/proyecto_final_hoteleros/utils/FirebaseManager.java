@@ -136,13 +136,11 @@ public class FirebaseManager {
     public void savePendingDriver(String userId, UserModel userModel, DataCallback callback) {
         Log.d(TAG, "Guardando taxista pendiente: " + userId);
 
-        Map<String, Object> driverData = userModel.toMap();
-        driverData.put("status", "pending");
-        driverData.put("submittedAt", System.currentTimeMillis());
+        Map<String, Object> userData = userModel.toMap();
 
         firestore.collection(PENDING_DRIVERS_COLLECTION)
                 .document(userId)
-                .set(driverData)
+                .set(userData)
                 .addOnSuccessListener(aVoid -> {
                     Log.d(TAG, "✅ Taxista pendiente guardado exitosamente");
                     callback.onSuccess();
@@ -209,19 +207,22 @@ public class FirebaseManager {
     public void checkEmailVerification(FirebaseUser user, AuthCallback callback) {
         Log.d(TAG, "Verificando estado del email: " + user.getEmail());
 
-        user.reload().addOnCompleteListener(task -> {
-            if (task.isSuccessful()) {
-                if (user.isEmailVerified()) {
-                    Log.d(TAG, "✅ Email verificado exitosamente");
-                    callback.onSuccess(user.getUid());
+        // Primero hacer reload del usuario para obtener el estado más reciente
+        user.reload().addOnCompleteListener(reloadTask -> {
+            if (reloadTask.isSuccessful()) {
+                // Después del reload, verificar nuevamente
+                FirebaseUser reloadedUser = auth.getCurrentUser();
+                if (reloadedUser != null && reloadedUser.isEmailVerified()) {
+                    Log.d(TAG, "✅ Email verificado exitosamente después del reload");
+                    callback.onSuccess(reloadedUser.getUid());
                 } else {
-                    Log.d(TAG, "❌ Email aún no verificado");
+                    Log.d(TAG, "❌ Email aún no verificado después del reload");
                     callback.onError("Email no verificado");
                 }
             } else {
-                String error = task.getException() != null ?
-                        task.getException().getMessage() : "Error verificando email";
-                Log.e(TAG, "❌ Error verificando estado del email: " + error);
+                String error = reloadTask.getException() != null ?
+                        reloadTask.getException().getMessage() : "Error recargando usuario";
+                Log.e(TAG, "❌ Error recargando usuario: " + error);
                 callback.onError(error);
             }
         });
@@ -275,6 +276,30 @@ public class FirebaseManager {
                 .addOnFailureListener(e -> {
                     Log.e(TAG, "❌ Error de conexión a Firebase: " + e.getMessage());
                     callback.onError(e.getMessage());
+                });
+    }
+
+
+    public void checkIfEmailExists(String email, AuthCallback callback) {
+        Log.d(TAG, "Verificando si el email existe: " + email);
+
+        auth.fetchSignInMethodsForEmail(email)
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        boolean emailExists = !task.getResult().getSignInMethods().isEmpty();
+                        Log.d(TAG, "Email existe: " + emailExists);
+
+                        if (emailExists) {
+                            callback.onSuccess("EMAIL_EXISTS");
+                        } else {
+                            callback.onError("EMAIL_NOT_EXISTS");
+                        }
+                    } else {
+                        String error = task.getException() != null ?
+                                task.getException().getMessage() : "Error verificando email";
+                        Log.e(TAG, "❌ Error verificando email: " + error);
+                        callback.onError(error);
+                    }
                 });
     }
 

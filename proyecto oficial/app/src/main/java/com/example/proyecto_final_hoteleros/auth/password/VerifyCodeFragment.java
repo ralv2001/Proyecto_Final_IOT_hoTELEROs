@@ -69,9 +69,8 @@ public class VerifyCodeFragment extends Fragment {
         etCode3 = view.findViewById(R.id.etCode3);
         etCode4 = view.findViewById(R.id.etCode4);
         etCode5 = view.findViewById(R.id.etCode5);
-        btnVerifyCode = view.findViewById(R.id.btnVerifyCode);
+        btnVerifyCode = view.findViewById(R.id.btnVerifyEmail);
         tvEmailSent = view.findViewById(R.id.tvEmailSent);
-        tvResendCode = view.findViewById(R.id.tvResendCode);
         ImageButton btnBack = view.findViewById(R.id.btnBack);
 
         // Configurar texto del email

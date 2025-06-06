@@ -56,6 +56,13 @@ public class RegisterVerifyCodeFragment extends Fragment {
     private boolean isCheckingVerification = false;
     private boolean emailVerificationSent = false;
 
+    private boolean emailAlreadySent = false;
+
+    private Handler resendHandler; // Ya está comentado, descoméntalo
+
+    // Variables para cooldown de reenvío
+
+
     public static RegisterVerifyCodeFragment newInstance(String email) {
         RegisterVerifyCodeFragment fragment = new RegisterVerifyCodeFragment();
         Bundle args = new Bundle();
@@ -84,12 +91,11 @@ public class RegisterVerifyCodeFragment extends Fragment {
         etCode3 = view.findViewById(R.id.etCode3);
         etCode4 = view.findViewById(R.id.etCode4);
         etCode5 = view.findViewById(R.id.etCode5);
-        btnVerifyEmail = view.findViewById(R.id.btnVerifyCode);
+        btnVerifyEmail = view.findViewById(R.id.btnVerifyEmail);
         btnVerifyEmail.setText("Verificar Email");
         tvInstructions = view.findViewById(R.id.tvInstructions);
 
         tvEmailSent = view.findViewById(R.id.tvEmailSent);
-        tvResendCode = view.findViewById(R.id.tvResendCode);
         TextView tvTitle = view.findViewById(R.id.tvTitle);
         tvTitle.setText("Verifica tu correo electrónico");
 
@@ -107,65 +113,113 @@ public class RegisterVerifyCodeFragment extends Fragment {
         // Ocultar campos de código y mostrar mensaje de verificación
         hideCodeInputsAndShowEmailMessage();
 
-        // Enviar email de verificación automáticamente
-        sendEmailVerificationToUser();
+        // ❌ ELIMINAR ESTA LÍNEA (está duplicada en hideCodeInputsAndShowEmailMessage)
+        // sendEmailVerificationToUser();  <-- ELIMINAR ESTA LÍNEA
 
         // Inicializar verificación automática
         initializeEmailVerificationCheck();
 
         btnVerifyEmail.setOnClickListener(v -> {
-            checkEmailVerificationManually();
+            Log.d(TAG, "=== BOTÓN VERIFICAR EMAIL PRESIONADO ===");
+
+            // Cambiar estado del botón a "Verificando..." con spinner
+            btnVerifyEmail.setEnabled(false);
+            btnVerifyEmail.setText("Verificando...");
+
+            FirebaseUser currentUser = firebaseManager.getCurrentUser();
+            if (currentUser != null) {
+                Log.d(TAG, "Usuario actual: " + currentUser.getEmail());
+                Log.d(TAG, "Email verificado (estado actual): " + currentUser.isEmailVerified());
+
+                // Forzar reload y luego verificar
+                firebaseManager.checkEmailVerification(currentUser, new FirebaseManager.AuthCallback() {
+                    @Override
+                    public void onSuccess(String userId) {
+                        Log.d(TAG, "✅ Email verificado exitosamente!");
+                        if (getActivity() != null) {
+                            getActivity().runOnUiThread(() -> {
+                                btnVerifyEmail.setText("¡Verificado! Completando...");
+                                Toast.makeText(getContext(), "¡Email verificado exitosamente!", Toast.LENGTH_SHORT).show();
+
+                                // Esperar un poco y luego proceder
+                                new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                                    handleEmailVerificationComplete();
+                                }, 1000);
+                            });
+                        }
+                    }
+
+                    @Override
+                    public void onError(String error) {
+                        Log.d(TAG, "❌ Email no verificado aún: " + error);
+                        if (getActivity() != null) {
+                            getActivity().runOnUiThread(() -> {
+                                btnVerifyEmail.setEnabled(false);
+                                btnVerifyEmail.setText("Verificando...");
+
+                                Toast.makeText(getContext(),
+                                        "Por favor, asegúrate de haber hecho clic en el enlace de tu correo electrónico",
+                                        Toast.LENGTH_LONG).show();
+                            });
+                        }
+                    }
+                });
+            } else {
+                Log.e(TAG, "❌ No hay usuario logueado");
+                Toast.makeText(getContext(), "Error: No hay usuario logueado", Toast.LENGTH_SHORT).show();
+
+                // Resetear botón
+                btnVerifyEmail.setEnabled(false);
+                btnVerifyEmail.setText("Verificando...");
+            }
         });
 
-        tvResendCode.setOnClickListener(v -> {
-            resendCode();
-        });
+//        // Botón temporal para debugging - ELIMINAR DESPUÉS
+//        MaterialButton btnDebugCheck = view.findViewById(R.id.btnDebugCheck);
+//        btnDebugCheck.setOnClickListener(v -> {
+//            FirebaseUser currentUser = firebaseManager.getCurrentUser();
+//            if (currentUser != null) {
+//                Log.d(TAG, "=== DEBUG INFO ===");
+//                Log.d(TAG, "Email: " + currentUser.getEmail());
+//                Log.d(TAG, "Email verificado (antes del reload): " + currentUser.isEmailVerified());
+//                Log.d(TAG, "UID: " + currentUser.getUid());
+//
+//                // Forzar reload
+//                currentUser.reload().addOnCompleteListener(task -> {
+//                    if (task.isSuccessful()) {
+//                        Log.d(TAG, "Email verificado (después del reload): " + currentUser.isEmailVerified());
+//
+//                        if (getActivity() != null) {
+//                            getActivity().runOnUiThread(() -> {
+//                                String status = currentUser.isEmailVerified() ? "VERIFICADO ✅" : "NO VERIFICADO ❌";
+//                                Toast.makeText(getContext(),
+//                                        "Estado: " + status + "\nEmail: " + currentUser.getEmail(),
+//                                        Toast.LENGTH_LONG).show();
+//                            });
+//                        }
+//                    } else {
+//                        Log.e(TAG, "Error en reload: " + task.getException());
+//                        if (getActivity() != null) {
+//                            getActivity().runOnUiThread(() -> {
+//                                Toast.makeText(getContext(), "Error recargando usuario", Toast.LENGTH_SHORT).show();
+//                            });
+//                        }
+//                    }
+//                });
+//            } else {
+//                Log.e(TAG, "No hay usuario logueado");
+//                Toast.makeText(getContext(), "No hay usuario logueado", Toast.LENGTH_SHORT).show();
+//            }
+//        });
 
 
         // Configurar el botón de retroceso
         btnBack.setOnClickListener(v -> {
-            if (getActivity() != null) {
-                // Obtener datos del registro
-                int registrationId = -1;
-                String userType = "client";
-
-                if (getArguments() != null) {
-                    registrationId = getArguments().getInt("registrationId", -1);
-                    userType = getArguments().getString("userType", "client");
-                }
-
-                Log.d(TAG, "Navegando de vuelta a AddProfilePhoto");
-                Log.d(TAG, "RegistrationId: " + registrationId + ", UserType: " + userType);
-
-                // Navegar específicamente a AddProfilePhotoActivity
-                Intent intent = new Intent(getActivity(), AddProfilePhotoActivity.class);
-                intent.putExtra("registrationId", registrationId);
-                intent.putExtra("userType", userType);
-                startActivity(intent);
-
-                // Cerrar la actividad actual
-                getActivity().finish();
-            }
+            // Mostrar diálogo de confirmación en lugar de permitir retroceso directo
+            showExitConfirmationDialog();
         });
 
         return view;
-    }
-
-    @Override
-    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
-        super.onViewCreated(view, savedInstanceState);
-
-        // Obtener el email de los argumentos
-        if (getArguments() != null) {
-            email = getArguments().getString("email", "");
-            Log.d(TAG, "Email recibido: " + email);
-
-            // Actualizar el texto inmediatamente
-            if (tvEmailSent != null && !email.isEmpty()) {
-                String maskedEmail = maskEmail(email);
-                tvEmailSent.setText("Email de verificación enviado a " + maskedEmail + "\n\nHaz clic en el enlace del email y presiona 'Verificar Email'");
-            }
-        }
     }
 
     private void hideCodeInputsAndShowEmailMessage() {
@@ -178,20 +232,27 @@ public class RegisterVerifyCodeFragment extends Fragment {
         etCode4.setVisibility(View.GONE);
         etCode5.setVisibility(View.GONE);
 
-        // Actualizar instrucciones usando el TextView existente
+        // Actualizar instrucciones usando el TextView existente (sin duplicar)
         if (tvEmailSent != null) {
-            tvEmailSent.setText("Email de verificación enviado a " + maskEmail(email) + "\n\nHaz clic en el enlace del email y presiona 'Verificar Email'");
+            tvEmailSent.setText("Email de verificación enviado a " + maskEmail(email));
+        }
+
+        // Actualizar las instrucciones en el TextView correspondiente
+        if (tvInstructions != null) {
+            tvInstructions.setText("Haz clic en el enlace del email de verificación y luego presiona 'Verificar Email'");
         }
 
         // Enviar email de verificación automáticamente
+        // ✅ SOLO UNA LLAMADA AQUÍ
         sendEmailVerificationToUser();
 
         // Inicializar verificación automática
         initializeEmailVerificationCheck();
 
-        // Habilitar botón inmediatamente
-        btnVerifyEmail.setEnabled(true);
-        btnVerifyEmail.setAlpha(1.0f);
+        // Deshabilitar botón inicialmente con estado "Verificando..."
+        btnVerifyEmail.setEnabled(false);
+        btnVerifyEmail.setText("Verificando...");
+        btnVerifyEmail.setAlpha(0.6f);
     }
 
     private String maskEmail(String email) {
@@ -220,71 +281,95 @@ public class RegisterVerifyCodeFragment extends Fragment {
     }
 
     private void sendEmailVerificationToUser() {
-        Log.d(TAG, "=== ENVIANDO EMAIL DE VERIFICACIÓN ===");
+        Log.d(TAG, "=== VERIFICANDO SI NECESITA ENVIAR EMAIL ===");
 
-        // Obtener datos del registro para crear nuevo usuario
-        int registrationId = -1;
-        if (getArguments() != null && getArguments().containsKey("registrationId")) {
-            registrationId = getArguments().getInt("registrationId", -1);
-        }
-
-        if (registrationId == -1) {
-            Log.e(TAG, "No hay registrationId para crear usuario");
-            if (getActivity() != null) {
-                getActivity().runOnUiThread(() -> {
-                    Toast.makeText(getContext(), "Error: No hay datos de registro", Toast.LENGTH_SHORT).show();
-                });
-            }
+        // Verificar si ya se envió el email para evitar spam
+        if (emailAlreadySent) {
+            Log.d(TAG, "Email ya fue enviado, saltando...");
             return;
         }
 
-        // Obtener datos desde Room Database
-        UserRegistrationRepository repository = new UserRegistrationRepository(getActivity());
-        repository.getUserRegistrationById(registrationId, new UserRegistrationRepository.RegistrationCallback() {
-            @Override
-            public void onSuccess(UserRegistrationEntity registration) {
-                if (getActivity() != null) {
-                    getActivity().runOnUiThread(() -> {
-                        createUserAndSendVerification(registration);
-                    });
+        // Obtener datos del registro
+        int registrationId = -1;
+        if (getArguments() != null) {
+            registrationId = getArguments().getInt("registrationId", -1);
+        }
+
+        if (registrationId != -1) {
+            Log.d(TAG, "Obteniendo datos de registro con ID: " + registrationId);
+
+            UserRegistrationRepository repository = new UserRegistrationRepository(getContext());
+            repository.getUserRegistrationById(registrationId, new UserRegistrationRepository.RegistrationCallback() {
+                @Override
+                public void onSuccess(UserRegistrationEntity registration) {
+                    Log.d(TAG, "=== DATOS DE REGISTRO OBTENIDOS ===");
+                    Log.d(TAG, "Email: " + registration.email);
+
+                    // PASO 1: Verificar si el email ya existe
+                    checkEmailAndProceed(registration);
                 }
+
+                @Override
+                public void onError(String error) {
+                    Log.e(TAG, "Error obteniendo registro: " + error);
+                    if (getActivity() != null) {
+                        getActivity().runOnUiThread(() -> {
+                            Toast.makeText(getContext(), "Error: " + error, Toast.LENGTH_SHORT).show();
+                        });
+                    }
+                }
+            });
+        } else {
+            Log.e(TAG, "No hay registrationId válido");
+        }
+    }
+
+    private void checkEmailAndProceed(UserRegistrationEntity registration) {
+        Log.d(TAG, "=== VERIFICANDO SI EMAIL YA EXISTE ===");
+
+        firebaseManager.checkIfEmailExists(registration.email, new FirebaseManager.AuthCallback() {
+            @Override
+            public void onSuccess(String result) {
+                // Email ya existe
+                Log.d(TAG, "✅ Email ya existe, haciendo login...");
+                loginExistingUserAndSendVerification(registration.email, registration.password);
             }
 
             @Override
             public void onError(String error) {
-                Log.e(TAG, "❌ Error obteniendo registro: " + error);
-                if (getActivity() != null) {
-                    getActivity().runOnUiThread(() -> {
-                        Toast.makeText(getContext(), "Error obteniendo datos: " + error, Toast.LENGTH_SHORT).show();
-                    });
+                if ("EMAIL_NOT_EXISTS".equals(error)) {
+                    // Email no existe, crear cuenta nueva
+                    Log.d(TAG, "✅ Email no existe, creando cuenta nueva...");
+                    createNewFirebaseUserAndSendEmail(registration);
+                } else {
+                    // Error real
+                    Log.e(TAG, "❌ Error verificando email: " + error);
+                    if (getActivity() != null) {
+                        getActivity().runOnUiThread(() -> {
+                            Toast.makeText(getContext(), "Error verificando email: " + error, Toast.LENGTH_SHORT).show();
+                        });
+                    }
                 }
             }
         });
     }
 
-    private void createUserAndSendVerification(UserRegistrationEntity registration) {
-        Log.d(TAG, "Creando usuario Firebase para: " + registration.email);
+    private void createNewFirebaseUserAndSendEmail(UserRegistrationEntity registration) {
+        Log.d(TAG, "=== CREANDO NUEVA CUENTA FIREBASE ===");
 
-        // Crear usuario en Firebase Auth
         firebaseManager.registerUser(registration.email, registration.password, new FirebaseManager.AuthCallback() {
             @Override
             public void onSuccess(String userId) {
-                Log.d(TAG, "✅ Usuario creado en Firebase Auth: " + userId);
-                sendVerificationEmail();
+                Log.d(TAG, "✅ Nueva cuenta creada en Firebase: " + userId);
+                sendVerificationEmailToCurrentUser();
             }
 
             @Override
             public void onError(String error) {
-                Log.e(TAG, "❌ Error creando usuario Firebase: " + error);
+                Log.e(TAG, "❌ Error creando nueva cuenta: " + error);
                 if (getActivity() != null) {
                     getActivity().runOnUiThread(() -> {
-                        if (error.contains("email-already-in-use")) {
-                            // Si el email ya existe, intentar hacer login
-                            Log.d(TAG, "Email ya existe, intentando login...");
-                            loginExistingUserAndSendVerification(registration.email, registration.password);
-                        } else {
-                            Toast.makeText(getContext(), translateFirebaseError(error), Toast.LENGTH_LONG).show();
-                        }
+                        Toast.makeText(getContext(), translateFirebaseError(error), Toast.LENGTH_LONG).show();
                     });
                 }
             }
@@ -292,18 +377,36 @@ public class RegisterVerifyCodeFragment extends Fragment {
     }
 
     private void loginExistingUserAndSendVerification(String email, String password) {
-        Log.d(TAG, "=== HACIENDO LOGIN A USUARIO EXISTENTE ===");
+        Log.d(TAG, "=== HACIENDO LOGIN A CUENTA EXISTENTE ===");
 
         firebaseManager.loginUser(email, password, new FirebaseManager.AuthCallback() {
             @Override
             public void onSuccess(String userId) {
-                Log.d(TAG, "✅ Login exitoso a usuario existente: " + userId);
-                sendVerificationEmail();
+                Log.d(TAG, "✅ Login exitoso a cuenta existente: " + userId);
+
+                // Verificar si ya está verificado
+                FirebaseUser currentUser = firebaseManager.getCurrentUser();
+                if (currentUser != null && currentUser.isEmailVerified()) {
+                    Log.d(TAG, "✅ Email ya está verificado!");
+                    if (getActivity() != null) {
+                        getActivity().runOnUiThread(() -> {
+                            Toast.makeText(getContext(), "Email ya verificado", Toast.LENGTH_SHORT).show();
+                            handleEmailVerificationComplete();
+                        });
+                    }
+                } else {
+                    // Solo enviar verificación si no está verificado Y no se ha enviado ya
+                    if (!emailAlreadySent) {
+                        sendVerificationEmailToCurrentUser();
+                    } else {
+                        Log.d(TAG, "Email de verificación ya fue enviado anteriormente");
+                    }
+                }
             }
 
             @Override
             public void onError(String error) {
-                Log.e(TAG, "❌ Error en login a usuario existente: " + error);
+                Log.e(TAG, "❌ Error en login a cuenta existente: " + error);
                 if (getActivity() != null) {
                     getActivity().runOnUiThread(() -> {
                         Toast.makeText(getContext(), "Error: " + translateFirebaseError(error), Toast.LENGTH_LONG).show();
@@ -313,16 +416,20 @@ public class RegisterVerifyCodeFragment extends Fragment {
         });
     }
 
-    private void sendVerificationEmail() {
+    private void sendVerificationEmailToCurrentUser() {
         FirebaseUser currentUser = firebaseManager.getCurrentUser();
-        if (currentUser != null && !emailVerificationSent) {
+        if (currentUser != null && !emailAlreadySent) {
             Log.d(TAG, "Enviando email de verificación a: " + currentUser.getEmail());
 
             firebaseManager.sendEmailVerification(currentUser, new FirebaseManager.DataCallback() {
                 @Override
                 public void onSuccess() {
-                    emailVerificationSent = true;
+                    emailAlreadySent = true;
                     Log.d(TAG, "✅ Email de verificación enviado exitosamente");
+
+                    // Programar limpieza automática
+                    scheduleUnverifiedUserCleanup();
+
                     if (getActivity() != null) {
                         getActivity().runOnUiThread(() -> {
                             Toast.makeText(getContext(), "Email de verificación enviado", Toast.LENGTH_SHORT).show();
@@ -342,23 +449,79 @@ public class RegisterVerifyCodeFragment extends Fragment {
             });
         } else if (currentUser == null) {
             Log.e(TAG, "❌ No hay usuario actual para enviar verificación");
+        } else {
+            Log.d(TAG, "Email ya fue enviado anteriormente");
         }
     }
 
     private void initializeEmailVerificationCheck() {
+        Log.d(TAG, "=== INICIALIZANDO CHECK DE VERIFICACIÓN DE EMAIL ===");
+
+        if (isCheckingVerification) {
+            Log.d(TAG, "Ya hay un check en progreso, saltando...");
+            return;
+        }
+
+        isCheckingVerification = true;
         verificationHandler = new Handler(Looper.getMainLooper());
+
         verificationRunnable = new Runnable() {
             @Override
             public void run() {
-                if (isCheckingVerification && getActivity() != null && !getActivity().isFinishing()) {
-                    checkEmailVerificationSilently();
-                    verificationHandler.postDelayed(this, CHECK_INTERVAL);
+                if (getActivity() == null || !isAdded()) {
+                    Log.d(TAG, "Fragment no está activo, deteniendo verificación");
+                    isCheckingVerification = false;
+                    return;
+                }
+
+                Log.d(TAG, "Verificando estado del email...");
+
+                FirebaseUser currentUser = firebaseManager.getCurrentUser();
+                if (currentUser != null) {
+                    firebaseManager.checkEmailVerification(currentUser, new FirebaseManager.AuthCallback() {
+                        @Override
+                        public void onSuccess(String userId) {
+                            if (getActivity() != null && isAdded()) {
+                                Log.d(TAG, "¡Email verificado! Habilitando botón...");
+
+                                // Mostrar spinner y texto "Verificando..."
+                                getActivity().runOnUiThread(() -> {
+                                    btnVerifyEmail.setEnabled(false);
+                                    btnVerifyEmail.setText("Verificando...");
+                                    // El spinner ya está en el XML
+                                });
+
+                                // Esperar un poco para mostrar el estado de "verificando" y luego proceder
+                                verificationHandler.postDelayed(() -> {
+                                    if (getActivity() != null && isAdded()) {
+                                        // Detener el check periódico
+                                        isCheckingVerification = false;
+                                        // Proceder con la creación del usuario
+                                        handleEmailVerificationComplete();
+                                    }
+                                }, 1500); // 1.5 segundos de delay para mostrar "Verificando..."
+                            }
+                        }
+
+                        @Override
+                        public void onError(String error) {
+                            Log.d(TAG, "Email aún no verificado (check automático)");
+                            if (getActivity() != null && isAdded()) {
+                                // Continuar verificando cada 3 segundos
+                                verificationHandler.postDelayed(verificationRunnable, CHECK_INTERVAL);
+                            }
+                        }
+                    });
+                } else {
+                    Log.e(TAG, "No hay usuario logueado");
+                    // Continuar verificando
+                    verificationHandler.postDelayed(verificationRunnable, CHECK_INTERVAL);
                 }
             }
         };
 
-        isCheckingVerification = true;
-        verificationHandler.postDelayed(verificationRunnable, 2000); // Empezar después de 2 segundos
+        // Iniciar el primer check después de 2 segundos
+        verificationHandler.postDelayed(verificationRunnable, 2000);
     }
 
     private void checkEmailVerificationSilently() {
@@ -865,4 +1028,157 @@ public class RegisterVerifyCodeFragment extends Fragment {
         // Tu lógica existente para completar el registro
         getRegistrationDataAndRegisterInFirebase();
     }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+
+        // Limpiar handlers para evitar memory leaks
+        if (verificationHandler != null && verificationRunnable != null) {
+            verificationHandler.removeCallbacks(verificationRunnable);
+        }
+
+        if (resendHandler != null) {
+            resendHandler.removeCallbacksAndMessages(null);
+        }
+
+        isCheckingVerification = false;
+    }
+
+    private void handleEmailVerificationComplete() {
+        Log.d(TAG, "=== MANEJANDO VERIFICACIÓN COMPLETA ===");
+
+        // Detener el check automático
+        isCheckingVerification = false;
+        if (verificationHandler != null && verificationRunnable != null) {
+            verificationHandler.removeCallbacks(verificationRunnable);
+        }
+
+        // Cambiar estado del botón
+        if (getActivity() != null) {
+            getActivity().runOnUiThread(() -> {
+                btnVerifyEmail.setText("Completando registro...");
+                btnVerifyEmail.setEnabled(false);
+            });
+        }
+
+        // Proceder con el registro
+        proceedToCompleteRegistration();
+    }
+
+    private void showExitConfirmationDialog() {
+        new androidx.appcompat.app.AlertDialog.Builder(getContext())
+                .setTitle("¿Salir del registro?")
+                .setMessage("Si sales ahora, perderás el progreso del registro. ¿Estás seguro?")
+                .setPositiveButton("Sí, salir", (dialog, which) -> {
+                    // Permitir salir y limpiar el usuario no verificado
+                    cleanupUnverifiedUserAndExit();
+                })
+                .setNegativeButton("Cancelar", (dialog, which) -> {
+                    dialog.dismiss();
+                })
+                .setCancelable(false)
+                .show();
+    }
+
+    private void cleanupUnverifiedUserAndExit() {
+        Log.d(TAG, "=== LIMPIANDO USUARIO NO VERIFICADO ===");
+
+        FirebaseUser currentUser = firebaseManager.getCurrentUser();
+        if (currentUser != null && !currentUser.isEmailVerified()) {
+            Log.d(TAG, "Eliminando usuario no verificado: " + currentUser.getEmail());
+
+            currentUser.delete().addOnCompleteListener(task -> {
+                if (task.isSuccessful()) {
+                    Log.d(TAG, "✅ Usuario no verificado eliminado");
+                } else {
+                    Log.e(TAG, "❌ Error eliminando usuario: " + task.getException());
+                }
+
+                // Navegar hacia atrás independientemente del resultado
+                if (getActivity() != null) {
+                    getActivity().runOnUiThread(() -> {
+                        navigateBack();
+                    });
+                }
+            });
+        } else {
+            // Si no hay usuario o ya está verificado, solo navegar
+            navigateBack();
+        }
+    }
+
+    private void navigateBack() {
+        if (getActivity() != null) {
+            // Obtener datos del registro
+            int registrationId = -1;
+            String userType = "client";
+
+            if (getArguments() != null) {
+                registrationId = getArguments().getInt("registrationId", -1);
+                userType = getArguments().getString("userType", "client");
+            }
+
+            Log.d(TAG, "Navegando de vuelta a AddProfilePhoto");
+            Log.d(TAG, "RegistrationId: " + registrationId + ", UserType: " + userType);
+
+            // Navegar específicamente a AddProfilePhotoActivity
+            Intent intent = new Intent(getActivity(), AddProfilePhotoActivity.class);
+            intent.putExtra("registrationId", registrationId);
+            intent.putExtra("userType", userType);
+            startActivity(intent);
+
+            // Cerrar la actividad actual
+            getActivity().finish();
+        }
+    }
+
+    private void scheduleUnverifiedUserCleanup() {
+        Log.d(TAG, "=== PROGRAMANDO LIMPIEZA DE USUARIO NO VERIFICADO ===");
+
+        FirebaseUser currentUser = firebaseManager.getCurrentUser();
+        if (currentUser == null) return;
+
+        // ✅ CAPTURAR EL UID ESPECÍFICO ahora
+        String userIdToClean = currentUser.getUid();
+        String emailToClean = currentUser.getEmail();
+
+        Log.d(TAG, "Programando limpieza para usuario: " + emailToClean + " (UID: " + userIdToClean + ")");
+
+        // Limpiar después de 10 minutos
+        Handler cleanupHandler = new Handler(Looper.getMainLooper());
+        cleanupHandler.postDelayed(() -> {
+            // ✅ Verificar si el usuario específico aún existe y no está verificado
+            cleanupSpecificUser(userIdToClean, emailToClean);
+        }, 10 * 60 * 1000); // 10 minutos
+    }
+
+    private void cleanupSpecificUser(String userIdToCheck, String emailToCheck) {
+        Log.d(TAG, "⏰ Verificando si debe limpiar usuario: " + emailToCheck);
+
+        FirebaseUser currentUser = firebaseManager.getCurrentUser();
+
+        // Solo eliminar si:
+        // 1. Hay un usuario logueado
+        // 2. Es exactamente el mismo usuario (mismo UID)
+        // 3. No está verificado
+        if (currentUser != null &&
+                currentUser.getUid().equals(userIdToCheck) &&
+                !currentUser.isEmailVerified()) {
+
+            Log.d(TAG, "🗑️ Eliminando usuario no verificado: " + emailToCheck);
+
+            currentUser.delete().addOnCompleteListener(task -> {
+                if (task.isSuccessful()) {
+                    Log.d(TAG, "✅ Usuario no verificado eliminado por timeout: " + emailToCheck);
+                } else {
+                    Log.e(TAG, "❌ Error eliminando usuario por timeout: " + task.getException());
+                }
+            });
+        } else {
+            Log.d(TAG, "ℹ️ Usuario ya verificado o cambiado, no se elimina: " + emailToCheck);
+        }
+    }
+
+
 }
