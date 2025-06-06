@@ -74,10 +74,11 @@ public class AuthActivity extends AppCompatActivity implements MessagerRegister 
         viewTabIndicatorLogin.setBackgroundColor(getResources().getColor(R.color.colorAccent));
         viewTabIndicatorRegister.setBackgroundColor(getResources().getColor(android.R.color.white));
         tvRegisterTab.setTextColor(getResources().getColor(android.R.color.darker_gray));
-        FragmentTransaction ft = fm.beginTransaction(); // Crear una transacción de fragmento
-        ft.replace(R.id.fragmentContainer, new LoginFragment()); // Reemplazar el fragmento actual con LoginFragment
-        ft.addToBackStack(null); // Agregar a la pila de retroceso
-        ft.commit(); // Ejecutar la transacción
+
+        FragmentTransaction ft = fm.beginTransaction();
+        ft.replace(R.id.fragmentContainer, new LoginFragment());
+        // NO agregar al back stack para el fragmento principal
+        ft.commit();
     }
 
     public void goToRegister() {
@@ -90,10 +91,11 @@ public class AuthActivity extends AppCompatActivity implements MessagerRegister 
         viewTabIndicatorLogin.setBackgroundColor(getResources().getColor(android.R.color.white));
         viewTabIndicatorRegister.setBackgroundColor(getResources().getColor(R.color.colorAccent));
         tvRegisterTab.setTextColor(getResources().getColor(R.color.colorAccent));
-        FragmentTransaction ft = fm.beginTransaction(); // Crear una transacción de fragmento
-        ft.replace(R.id.fragmentContainer, new SelectUserTypeFragment()); // Reemplazar el fragmento actual con LoginFragment
-        ft.addToBackStack(null); // Agregar a la pila de retroceso
-        ft.commit(); // Ejecutar la transacción
+
+        FragmentTransaction ft = fm.beginTransaction();
+        ft.replace(R.id.fragmentContainer, new SelectUserTypeFragment());
+        // NO agregar al back stack para el fragmento principal
+        ft.commit();
     }
 
     public void goToForgotPassword() {
@@ -187,5 +189,21 @@ public class AuthActivity extends AppCompatActivity implements MessagerRegister 
     @Override
     public void gotoRegisterPasswordDriver() {
         // Implementación pendiente
+    }
+
+    @Override
+    public void onBackPressed() {
+        FragmentManager fm = getSupportFragmentManager();
+
+        // Si estamos en el back stack (no en el fragmento principal)
+        if (fm.getBackStackEntryCount() > 0) {
+            // Si estamos en ForgotPassword o cualquier fragmento secundario, volver al login
+            fm.popBackStack();
+            // Restaurar las pestañas cuando volvemos
+            showTabLayout();
+        } else {
+            // Si estamos en login o registro principal, cerrar la actividad
+            super.onBackPressed();
+        }
     }
 }
