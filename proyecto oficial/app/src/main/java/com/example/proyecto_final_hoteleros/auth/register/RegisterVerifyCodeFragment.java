@@ -16,7 +16,8 @@ import android.widget.Toast;
 import android.os.Handler;
 import android.os.Looper;
 import com.google.firebase.auth.FirebaseUser;
-import com.example.proyecto_final_hoteleros.auth.register.AddProfilePhotoActivity;
+
+import androidx.activity.OnBackPressedCallback;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -99,7 +100,7 @@ public class RegisterVerifyCodeFragment extends Fragment {
         TextView tvTitle = view.findViewById(R.id.tvTitle);
         tvTitle.setText("Verifica tu correo electrónico");
 
-        ImageButton btnBack = view.findViewById(R.id.btnBack);
+//        ImageButton btnBack = view.findViewById(R.id.btnBack);
 
         // Configurar el texto del email enmascarado
         if (!email.isEmpty()) {
@@ -211,13 +212,6 @@ public class RegisterVerifyCodeFragment extends Fragment {
 //                Toast.makeText(getContext(), "No hay usuario logueado", Toast.LENGTH_SHORT).show();
 //            }
 //        });
-
-
-        // Configurar el botón de retroceso
-        btnBack.setOnClickListener(v -> {
-            // Mostrar diálogo de confirmación en lugar de permitir retroceso directo
-            showExitConfirmationDialog();
-        });
 
         return view;
     }
@@ -971,9 +965,19 @@ public class RegisterVerifyCodeFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
+
+        // Inicializar verificación de email si no está en progreso
         if (!isCheckingVerification) {
             initializeEmailVerificationCheck();
         }
+
+        // Bloquear el botón de atrás físico de Android
+        requireActivity().getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+                // No hacer nada - esto bloquea el botón de atrás
+            }
+        });
     }
 
     private void checkEmailVerificationManually() {
