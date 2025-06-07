@@ -13,6 +13,8 @@ import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
+import androidx.core.content.ContextCompat;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -42,7 +44,9 @@ public class AvailableHotelsFragment extends Fragment implements AvailableHotels
     private LinearLayout emptyState;
     private LinearLayout loadingState;
     private TextView tvHotelsCount;
-    private FloatingActionButton btnRefresh;
+    //private FloatingActionButton btnRefresh;
+
+    private SwipeRefreshLayout swipeRefreshLayout;
 
     public AvailableHotelsFragment() {
         // Constructor vacío requerido
@@ -72,9 +76,22 @@ public class AvailableHotelsFragment extends Fragment implements AvailableHotels
         emptyState = view.findViewById(R.id.empty_state);
         loadingState = view.findViewById(R.id.loading_state);
         tvHotelsCount = view.findViewById(R.id.tv_hotels_count);
-        btnRefresh = view.findViewById(R.id.btn_refresh);
 
-        btnRefresh.setOnClickListener(v -> loadAvailableHotels());
+        // NUEVO: SwipeRefreshLayout
+        swipeRefreshLayout = view.findViewById(R.id.swipe_refresh_layout);
+
+        // Configurar colores del SwipeRefresh
+        swipeRefreshLayout.setColorSchemeColors(
+                ContextCompat.getColor(requireContext(), android.R.color.holo_orange_dark),
+                ContextCompat.getColor(requireContext(), android.R.color.holo_blue_dark),
+                ContextCompat.getColor(requireContext(), android.R.color.holo_green_dark)
+        );
+
+        // Configurar el listener para el pull-to-refresh
+        swipeRefreshLayout.setOnRefreshListener(() -> {
+            Log.d(TAG, "Pull-to-refresh activado");
+            loadAvailableHotels();
+        });
     }
 
     private void setupToolbar() {
@@ -95,20 +112,87 @@ public class AvailableHotelsFragment extends Fragment implements AvailableHotels
     }
 
     private void loadAvailableHotels() {
-        showLoadingState();
+        try {
+            // NO mostrar loading state cuando viene de pull-to-refresh
+            if (!swipeRefreshLayout.isRefreshing()) {
+                showLoadingState();
+            }
 
-        // Simular carga de datos (reemplazar con llamada real al API)
-        new Handler().postDelayed(() -> {
-            List<AvailableHotel> newHotels = generateHotelsData();
+            // Simular carga de datos
+            new Handler().postDelayed(() -> {
+                try {
+                    List<AvailableHotel> newHotels = generateHotelsData();
 
-            hotelsList.clear();
-            hotelsList.addAll(newHotels);
-            adapter.notifyDataSetChanged();
+                    hotelsList.clear();
+                    hotelsList.addAll(newHotels);
 
-            updateHotelsCount();
-            updateVisibility();
+                    if (adapter != null) {
+                        adapter.notifyDataSetChanged();
+                    }
 
-        }, 1500);
+                    updateHotelsCount();
+                    updateVisibility();
+
+                    // IMPORTANTE: Detener el SwipeRefresh
+                    if (swipeRefreshLayout.isRefreshing()) {
+                        swipeRefreshLayout.setRefreshing(false);
+                    }
+
+                    // Mostrar mensaje de éxito
+                    if (getContext() != null && isAdded()) {
+                        Toast.makeText(getContext(), "Hoteles actualizados", Toast.LENGTH_SHORT).show();
+                    }
+
+                } catch (Exception e) {
+                    Log.e(TAG, "Error al cargar hoteles: " + e.getMessage(), e);
+                    showErrorState();
+
+                    // Detener SwipeRefresh en caso de error
+                    if (swipeRefreshLayout.isRefreshing()) {
+                        swipeRefreshLayout.setRefreshing(false);
+                    }
+                }
+            }, 1500);
+
+        } catch (Exception e) {
+            Log.e(TAG, "Error en loadAvailableHotels: " + e.getMessage(), e);
+            showErrorState();
+
+            if (swipeRefreshLayout.isRefreshing()) {
+                swipeRefreshLayout.setRefreshing(false);
+            }
+        }
+    }
+    private void showErrorState() {
+        try {
+            // Ocultar otros estados
+            setViewVisibility(recyclerHotels, View.GONE);
+            setViewVisibility(loadingState, View.GONE);
+
+            // Mostrar estado vacío como fallback para errores
+            setViewVisibility(emptyState, View.VISIBLE);
+
+            // Detener SwipeRefresh si está activo
+            if (swipeRefreshLayout != null && swipeRefreshLayout.isRefreshing()) {
+                swipeRefreshLayout.setRefreshing(false);
+            }
+
+            // Mostrar mensaje de error al usuario
+            if (getContext() != null && isAdded()) {
+                Toast.makeText(getContext(), "Error al cargar hoteles. Desliza para reintentar.",
+                        Toast.LENGTH_LONG).show();
+            }
+
+            // Actualizar contador
+            if (tvHotelsCount != null) {
+                tvHotelsCount.setText("Error al cargar hoteles");
+            }
+
+            Log.e(TAG, "showErrorState: Mostrando estado de error");
+
+        } catch (Exception e) {
+            Log.e(TAG, "Error en showErrorState: " + e.getMessage(), e);
+        }
     }
 
     private void updateHotelsCount() {
@@ -294,17 +378,9 @@ public class AvailableHotelsFragment extends Fragment implements AvailableHotels
 
         return hotels;
     }
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-
-        if (requestCode == 100) { // Código de permiso para llamadas
-            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                Toast.makeText(getContext(), "Permiso de llamada concedido. Intenta nuevamente.", Toast.LENGTH_SHORT).show();
-            } else {
-                Toast.makeText(getContext(), "Permiso de llamada denegado", Toast.LENGTH_SHORT).show();
-            }
+    private void setViewVisibility(View view, int visibility) {
+        if (view != null) {
+            view.setVisibility(visibility);
         }
     }
 

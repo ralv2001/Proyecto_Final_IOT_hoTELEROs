@@ -13,7 +13,6 @@ import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
-import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -70,7 +69,7 @@ public class EditClientProfileFragment extends Fragment implements
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_edit_client_profile, container, false);
+        View view = inflater.inflate(R.layout.client_fragment_edit_profile, container, false);
 
         // Recibir el perfil del cliente si fue pasado como argumento
         if (getArguments() != null && getArguments().containsKey("client_profile")) {
