@@ -50,7 +50,7 @@
                 android:layout_width="18dp"
                 android:layout_height="18dp"
                 android:src="@drawable/ic_star"
-                android:contentDescription="@string/star_icon_desc"
+                android:contentDescription="Calificación estrella"
                 app:tint="#FFD700" />
 
             <TextView
@@ -65,7 +65,7 @@
                 android:fontFamily="sans-serif-medium" />
         </LinearLayout>
 
-        <!-- IMAGEN PRINCIPAL (Ahora va justo debajo del nombre) -->
+        <!-- IMAGEN PRINCIPAL -->
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/imageContainer"
             android:layout_width="match_parent"
@@ -106,6 +106,23 @@
                 android:elevation="4dp"
                 android:layout_margin="12dp"
                 android:fontFamily="sans-serif-medium"/>
+
+            <!-- ✅ NÚMERO DE HABITACIÓN (movido a esquina superior derecha) -->
+            <TextView
+                android:id="@+id/tvRoomNumber"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Hab. 2015"
+                android:textSize="12sp"
+                android:textColor="@android:color/white"
+                android:background="@drawable/bg_translucent_pill"
+                android:paddingHorizontal="8dp"
+                android:paddingVertical="4dp"
+                android:layout_gravity="top|end"
+                android:layout_margin="12dp"
+                android:layout_marginTop="50dp"
+                android:fontFamily="@font/inter_medium"
+                android:visibility="gone"/>
 
             <!-- Información de fecha y ubicación sobrepuesta en la imagen (abajo) -->
             <LinearLayout
@@ -319,6 +336,60 @@
             </com.google.android.material.card.MaterialCardView>
         </LinearLayout>
 
+        <!-- ✅ INDICADORES PROFESIONALES (NUEVOS) -->
+        <LinearLayout
+            android:id="@+id/indicatorsContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginTop="12dp"
+            android:gravity="start"
+            app:layout_constraintTop_toBottomOf="@id/detailsRow"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent">
+
+            <TextView
+                android:id="@+id/tvServicesIndicator"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="🍽️ +3 servicios"
+                android:textSize="12sp"
+                android:textColor="#4CAF50"
+                android:background="@drawable/bg_chip_free"
+                android:paddingHorizontal="8dp"
+                android:paddingVertical="4dp"
+                android:layout_marginEnd="6dp"
+                android:fontFamily="@font/inter_medium"
+                android:visibility="gone"/>
+
+            <TextView
+                android:id="@+id/tvTaxiIndicator"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="🚖 Taxi gratis"
+                android:textSize="12sp"
+                android:textColor="#2196F3"
+                android:background="@drawable/bg_chip_free"
+                android:paddingHorizontal="8dp"
+                android:paddingVertical="4dp"
+                android:layout_marginEnd="6dp"
+                android:fontFamily="@font/inter_medium"
+                android:visibility="gone"/>
+
+            <TextView
+                android:id="@+id/tvAdditionalChargesIndicator"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="⚠️ Cargos adicionales"
+                android:textSize="12sp"
+                android:textColor="#FF5722"
+                android:background="@drawable/bg_conditional_badge"
+                android:paddingHorizontal="8dp"
+                android:paddingVertical="4dp"
+                android:fontFamily="@font/inter_medium"
+                android:visibility="gone"/>
+        </LinearLayout>
+
         <!-- SECCIÓN INFORMACIÓN ADICIONAL -->
         <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/additionalInfoContainer"
@@ -327,7 +398,7 @@
             android:layout_marginTop="16dp"
             android:padding="16dp"
             android:background="@drawable/bg_info_container"
-            app:layout_constraintTop_toBottomOf="@id/detailsRow"
+            app:layout_constraintTop_toBottomOf="@id/indicatorsContainer"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent">
 
@@ -403,7 +474,7 @@
                         android:layout_height="16dp"
                         android:src="@drawable/ic_check"
                         android:layout_marginEnd="8dp"
-                        app:tint="#4CAF50"/>
+                        />
 
                     <TextView
                         android:id="@+id/tvDetailTaxi"
@@ -415,5 +486,6 @@
                 </LinearLayout>
             </LinearLayout>
         </androidx.constraintlayout.widget.ConstraintLayout>
+
     </androidx.constraintlayout.widget.ConstraintLayout>
 </androidx.cardview.widget.CardView>

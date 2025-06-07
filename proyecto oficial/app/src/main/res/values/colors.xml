@@ -158,4 +158,15 @@
     <color name="star_yellow">#FFC107</color>
     <color name="rating_bar_progress">#FF5722</color>
     <color name="rating_bar_background">#E0E0E0</color>
+
+    <color name="gray_500">#9E9E9E</color>
+    <color name="amber_600">#FFB300</color>
+    <color name="green_500">#4CAF50</color>
+
+    <!-- Colores para LocationAdapter -->
+    <color name="departamento_color">#FF5722</color>
+    <color name="provincia_color">#2196F3</color>
+    <color name="distrito_color">#4CAF50</color>
+    <color name="popular_color">#9C27B0</color>
+    <color name="location_default_color">#757575</color>
 </resources>

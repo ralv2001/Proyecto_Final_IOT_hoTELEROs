@@ -67,10 +67,5 @@
     <string name="no_notifications_desc" />
     <string name="back_button_desc" />
     <string name="google_maps_key">AIzaSyBdghOu6DZktjZcg0_PJzffH72NC-nR0ok</string>
-    <!-- Colores para tipos de ubicación -->
-    <color name="departamento_color">#4CAF50</color>
-    <color name="provincia_color">#2196F3</color>
-    <color name="distrito_color">#FF9800</color>
-    <color name="popular_color">#E91E63</color>
-    <color name="location_default_color">#FF7043</color>
+
 </resources>

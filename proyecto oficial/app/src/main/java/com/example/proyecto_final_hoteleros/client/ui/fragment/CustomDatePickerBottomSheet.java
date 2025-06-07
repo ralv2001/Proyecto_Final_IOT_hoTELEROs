@@ -30,13 +30,23 @@ import java.util.Locale;
 public class CustomDatePickerBottomSheet extends BottomSheetDialogFragment {
     private static final String TAG = "CustomDatePickerBottomSheet";
 
+    // ✅ INTERFACE ORIGINAL (mantener compatibilidad)
     public interface DateRangeListener {
         void onDateRangeSelected(Date startDate, Date endDate);
     }
 
+    // ✅ NUEVA INTERFACE para ModifySearchDialog
+    public interface OnDatesSelectedListener {
+        void onDatesSelected(String startDate, String endDate);
+    }
+
+    // ✅ Ambos listeners
     private DateRangeListener listener;
+    private OnDatesSelectedListener datesSelectedListener;
+
     private SimpleDateFormat displayFormat = new SimpleDateFormat("dd MMM", new Locale("es", "ES"));
     private SimpleDateFormat monthYearFormat = new SimpleDateFormat("MMMM yyyy", new Locale("es", "ES"));
+    private SimpleDateFormat stringFormat = new SimpleDateFormat("dd MMM yyyy", new Locale("es", "ES")); // ✅ Para formato string
     private Calendar currentMonth = Calendar.getInstance();
     private Calendar selectedStartDate = null;
     private Calendar selectedEndDate = null;
@@ -45,8 +55,13 @@ public class CustomDatePickerBottomSheet extends BottomSheetDialogFragment {
     private TextView tvStartDate;
     private TextView tvEndDate;
 
+    // ✅ Setters para ambos tipos de listener
     public void setListener(DateRangeListener listener) {
         this.listener = listener;
+    }
+
+    public void setOnDatesSelectedListener(OnDatesSelectedListener listener) {
+        this.datesSelectedListener = listener;
     }
 
     // Modificación a realizar en onCreateDialog
@@ -83,6 +98,13 @@ public class CustomDatePickerBottomSheet extends BottomSheetDialogFragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.client_bottom_sheet_custom_date_picker, container, false);
 
+        // ✅ NUEVO: Leer fechas actuales de argumentos si existen
+        Bundle args = getArguments();
+        if (args != null && args.containsKey("current_dates")) {
+            String currentDates = args.getString("current_dates");
+            parseCurrentDates(currentDates);
+        }
+
         tvCurrentMonthYear = view.findViewById(R.id.tvCurrentMonthYear);
         tvStartDate = view.findViewById(R.id.tvStartDate);
         tvEndDate = view.findViewById(R.id.tvEndDate);
@@ -117,13 +139,64 @@ public class CustomDatePickerBottomSheet extends BottomSheetDialogFragment {
         });
 
         btnConfirm.setOnClickListener(v -> {
-            if (selectedStartDate != null && selectedEndDate != null && listener != null) {
-                listener.onDateRangeSelected(selectedStartDate.getTime(), selectedEndDate.getTime());
-                dismiss();
-            }
+            confirmDates(); // ✅ Usar método unificado
         });
 
-        // Configurar fechas iniciales
+        // Configurar fechas iniciales si no se han establecido desde argumentos
+        if (selectedStartDate == null || selectedEndDate == null) {
+            setDefaultDates();
+        }
+
+        updateSelectedDatesDisplay();
+
+        return view;
+    }
+
+    // ✅ NUEVO: Parsear fechas actuales desde string
+    private void parseCurrentDates(String currentDates) {
+        try {
+            if (currentDates != null && currentDates.contains(" - ")) {
+                String[] dates = currentDates.split(" - ");
+                if (dates.length == 2) {
+                    // Intentar diferentes formatos
+                    Calendar today = Calendar.getInstance();
+
+                    if (dates[0].trim().equalsIgnoreCase("Hoy")) {
+                        selectedStartDate = (Calendar) today.clone();
+                    } else {
+                        selectedStartDate = parseStringToCalendar(dates[0].trim());
+                    }
+
+                    if (dates[1].trim().equalsIgnoreCase("Mañana")) {
+                        selectedEndDate = (Calendar) today.clone();
+                        selectedEndDate.add(Calendar.DAY_OF_MONTH, 1);
+                    } else {
+                        selectedEndDate = parseStringToCalendar(dates[1].trim());
+                    }
+                }
+            }
+        } catch (Exception e) {
+            // Si hay error, usar fechas por defecto
+            setDefaultDates();
+        }
+    }
+
+    // ✅ NUEVO: Convertir string a Calendar
+    private Calendar parseStringToCalendar(String dateString) {
+        Calendar cal = Calendar.getInstance();
+        try {
+            Date date = stringFormat.parse(dateString);
+            if (date != null) {
+                cal.setTime(date);
+            }
+        } catch (Exception e) {
+            // Mantener fecha actual si hay error
+        }
+        return cal;
+    }
+
+    // ✅ NUEVO: Establecer fechas por defecto
+    private void setDefaultDates() {
         Calendar today = Calendar.getInstance();
         today.set(Calendar.HOUR_OF_DAY, 0);
         today.set(Calendar.MINUTE, 0);
@@ -133,10 +206,48 @@ public class CustomDatePickerBottomSheet extends BottomSheetDialogFragment {
         selectedStartDate = (Calendar) today.clone();
         selectedEndDate = (Calendar) today.clone();
         selectedEndDate.add(Calendar.DAY_OF_MONTH, 1);
+    }
 
-        updateSelectedDatesDisplay();
+    // ✅ NUEVO: Método unificado para confirmar fechas
+    private void confirmDates() {
+        if (selectedStartDate != null && selectedEndDate != null) {
+            // ✅ Llamar al listener original si existe (Date)
+            if (listener != null) {
+                listener.onDateRangeSelected(selectedStartDate.getTime(), selectedEndDate.getTime());
+            }
 
-        return view;
+            // ✅ Llamar al nuevo listener si existe (String)
+            if (datesSelectedListener != null) {
+                String startDate = formatDateForString(selectedStartDate);
+                String endDate = formatDateForString(selectedEndDate);
+                datesSelectedListener.onDatesSelected(startDate, endDate);
+            }
+
+            dismiss();
+        }
+    }
+
+    // ✅ NUEVO: Formatear fecha para string (más amigable)
+    private String formatDateForString(Calendar calendar) {
+        Calendar today = Calendar.getInstance();
+        Calendar tomorrow = Calendar.getInstance();
+        tomorrow.add(Calendar.DAY_OF_MONTH, 1);
+
+        // Verificar si es hoy o mañana para mostrar texto más amigable
+        if (isSameDay(calendar, today)) {
+            return "Hoy";
+        } else if (isSameDay(calendar, tomorrow)) {
+            return "Mañana";
+        } else {
+            return stringFormat.format(calendar.getTime());
+        }
+    }
+
+    // ✅ MÉTODO AUXILIAR: Verificar si es el mismo día
+    private boolean isSameDay(Calendar cal1, Calendar cal2) {
+        return cal1.get(Calendar.YEAR) == cal2.get(Calendar.YEAR) &&
+                cal1.get(Calendar.MONTH) == cal2.get(Calendar.MONTH) &&
+                cal1.get(Calendar.DAY_OF_MONTH) == cal2.get(Calendar.DAY_OF_MONTH);
     }
 
     private void updateMonthDisplay() {
@@ -183,6 +294,7 @@ public class CustomDatePickerBottomSheet extends BottomSheetDialogFragment {
         }
     }
 
+    // ✅ El resto de clases CalendarDay y CalendarAdapter permanecen igual
     private static class CalendarDay {
         Calendar date;
         boolean isEnabled;

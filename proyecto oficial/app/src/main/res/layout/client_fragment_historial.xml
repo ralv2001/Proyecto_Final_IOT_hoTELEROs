@@ -23,7 +23,7 @@
             android:id="@+id/tvHistorialTitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Historial de reservas"
+            android:text="Mis Reservas"
             android:textSize="28sp"
             android:textStyle="bold"
             android:textColor="@android:color/black"
@@ -36,7 +36,7 @@
             android:id="@+id/tvHistorialSubtitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Gestiona tus reservas próximas, actuales y pasadas"
+            android:text="Gestiona todas tus estadías de manera profesional"
             android:textSize="16sp"
             android:textColor="@android:color/darker_gray"
             android:fontFamily="@font/inter_regular"
@@ -44,7 +44,7 @@
             app:layout_constraintStart_toStartOf="parent"
             android:layout_marginTop="8dp"/>
 
-        <!-- ✅ TABS MEJORADOS - SOLO 3 -->
+        <!-- ✅ TABS CORREGIDOS - 3 ESTADOS (coinciden con el código Java) -->
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/tabsContainer"
             android:layout_width="match_parent"
@@ -106,7 +106,7 @@
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- ✅ VIEWFLIPPER CON SOLO 3 VISTAS -->
+        <!-- ✅ VIEWFLIPPER CON 3 VISTAS (coinciden con el código Java) -->
         <ViewFlipper
             android:id="@+id/viewFlipper"
             android:layout_width="match_parent"

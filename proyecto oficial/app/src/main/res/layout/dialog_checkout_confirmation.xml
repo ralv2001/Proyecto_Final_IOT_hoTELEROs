@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:padding="24dp">
+
+    <ImageView
+        android:id="@+id/icon_checkout"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:src="@drawable/ic_checkout"
+        android:background="@drawable/bg_circle_orange"
+        android:padding="12dp"
+        app:tint="@android:color/white"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <TextView
+        android:id="@+id/tv_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Confirmar Checkout"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        android:textColor="#212121"
+        android:fontFamily="@font/poppins_semibold"
+        android:layout_marginTop="16dp"
+        app:layout_constraintTop_toBottomOf="@id/icon_checkout"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <TextView
+        android:id="@+id/tv_hotel_name_dialog"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Casa Andina Premium"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:textColor="#FF5722"
+        android:gravity="center"
+        android:layout_marginTop="8dp"
+        app:layout_constraintTop_toBottomOf="@id/tv_title" />
+
+    <TextView
+        android:id="@+id/tv_message"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="¿Confirmas que deseas hacer checkout?\n\nEl hotel revisará tu estadía y posibles cargos adicionales antes de procesar el pago final."
+        android:textSize="15sp"
+        android:textColor="#757575"
+        android:gravity="center"
+        android:lineSpacingExtra="4dp"
+        android:layout_marginTop="16dp"
+        app:layout_constraintTop_toBottomOf="@id/tv_hotel_name_dialog" />
+
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/card_total"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        app:cardCornerRadius="8dp"
+        app:cardBackgroundColor="#FFF3E0"
+        app:strokeWidth="1dp"
+        app:strokeColor="#FFB74D"
+        app:layout_constraintTop_toBottomOf="@id/tv_message">
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="16dp">
+
+            <TextView
+                android:id="@+id/tv_total_label"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Total estimado:"
+                android:textSize="16sp"
+                android:textColor="#757575"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintStart_toStartOf="parent" />
+
+            <TextView
+                android:id="@+id/tv_total_amount_dialog"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="S/1,720.00"
+                android:textSize="24sp"
+                android:textStyle="bold"
+                android:textColor="#FF5722"
+                android:fontFamily="@font/poppins_semibold"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintEnd_toEndOf="parent" />
+        </androidx.constraintlayout.widget.ConstraintLayout>
+    </com.google.android.material.card.MaterialCardView>
+
+    <TextView
+        android:id="@+id/tv_breakdown_dialog"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="🏠 Habitación: S/1350.00\n🍽️ Servicios: S/370.00"
+        android:textSize="13sp"
+        android:textColor="#9E9E9E"
+        android:gravity="center"
+        android:background="@drawable/bg_info_container"
+        android:padding="12dp"
+        android:layout_marginTop="12dp"
+        app:layout_constraintTop_toBottomOf="@id/card_total" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

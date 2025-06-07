@@ -16,14 +16,15 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.proyecto_final_hoteleros.R;
 import com.example.proyecto_final_hoteleros.client.ui.adapters.ReservationAdapter;
 import com.example.proyecto_final_hoteleros.client.data.model.Reservation;
+import com.example.proyecto_final_hoteleros.client.navigation.AnimationDirection;
 import com.example.proyecto_final_hoteleros.client.navigation.NavigationManager;
-import com.example.proyecto_final_hoteleros.client.utils.UserDataManager;
+import com.example.proyecto_final_hoteleros.client.ui.fragment.ReservationDetailFragment;
 import java.util.ArrayList;
 import java.util.List;
 
 public class HistorialFragment extends BaseBottomNavigationFragment {
 
-    // ✅ SOLO 3 TABS (sin checkout)
+    // ✅ SOLO 3 TABS (manteniendo diseño original)
     private TextView tabProximas, tabActuales, tabCompletadas;
     private ViewFlipper viewFlipper;
     private RecyclerView recyclerProximas, recyclerActuales, recyclerCompletadas;
@@ -44,22 +45,12 @@ public class HistorialFragment extends BaseBottomNavigationFragment {
         return NavigationTab.EXPLORE;
     }
 
-    // ✅ LISTENER MEJORADO con checkout
+    // ✅ LISTENER SIMPLIFICADO - TODAS LAS ACCIONES VAN AL FRAGMENTO DE DETALLES
     private final ReservationAdapter.ReservationActionListener reservationActionListener =
             new ReservationAdapter.ReservationActionListener() {
                 @Override
                 public void onActionButtonClicked(Reservation reservation, int position) {
-                    switch (reservation.getStatus()) {
-                        case Reservation.STATUS_PROXIMA:
-                            navigateToReservationDetails(reservation);
-                            break;
-                        case Reservation.STATUS_ACTUAL:
-                            navigateToServices(reservation);
-                            break;
-                        case Reservation.STATUS_COMPLETADA:
-                            showInvoice(reservation);
-                            break;
-                    }
+                    navigateToReservationDetails(reservation);
                 }
 
                 @Override
@@ -68,9 +59,29 @@ public class HistorialFragment extends BaseBottomNavigationFragment {
                 }
 
                 @Override
+                public void onModifyReservation(Reservation reservation, int position) {
+                    navigateToReservationDetails(reservation);
+                }
+
+                @Override
                 public void onCheckoutRequested(Reservation reservation, int position) {
-                    // ✅ NUEVO: Manejar solicitud de checkout
-                    showCheckoutConfirmation(reservation, position);
+                    // ✅ CAMBIAR SUB-ESTADO SIN MOVER DE LISTA
+                    performCheckoutRequest(reservation, position);
+                }
+
+                @Override
+                public void onViewBill(Reservation reservation, int position) {
+                    navigateToReservationDetails(reservation);
+                }
+
+                @Override
+                public void onSubmitReview(Reservation reservation, int position) {
+                    navigateToReservationDetails(reservation);
+                }
+
+                @Override
+                public void onViewInvoice(Reservation reservation, int position) {
+                    navigateToReservationDetails(reservation);
                 }
             };
 
@@ -79,18 +90,18 @@ public class HistorialFragment extends BaseBottomNavigationFragment {
         View rootView = inflater.inflate(R.layout.client_fragment_historial, container, false);
         setupViews(rootView);
         setupRecyclerViews();
-        loadMockData();
+        loadProfessionalMockData();
         return rootView;
     }
 
     private void setupViews(View rootView) {
-        // ✅ SOLO 3 TABS
+        // ✅ SOLO 3 TABS (manteniendo nombres originales)
         tabProximas = rootView.findViewById(R.id.tabProximas);
         tabActuales = rootView.findViewById(R.id.tabActuales);
         tabCompletadas = rootView.findViewById(R.id.tabCompletadas);
         viewFlipper = rootView.findViewById(R.id.viewFlipper);
 
-        // ✅ SOLO 3 RECYCLERS
+        // ✅ SOLO 3 RECYCLERS (manteniendo nombres originales)
         recyclerProximas = rootView.findViewById(R.id.recyclerProximas);
         recyclerActuales = rootView.findViewById(R.id.recyclerActuales);
         recyclerCompletadas = rootView.findViewById(R.id.recyclerCompletadas);
@@ -122,7 +133,6 @@ public class HistorialFragment extends BaseBottomNavigationFragment {
         });
     }
 
-    // ✅ ANIMACIÓN MEJORADA para tabs
     private void animateTabClick(View view) {
         view.animate()
                 .scaleX(0.95f)
@@ -137,10 +147,10 @@ public class HistorialFragment extends BaseBottomNavigationFragment {
     }
 
     private void setupRecyclerViews() {
-        // ✅ SOLO 3 RECYCLERS
-        setupRecyclerView(recyclerProximas, proximasReservations, ReservationAdapter.ESTADO_PROXIMA);
-        setupRecyclerView(recyclerActuales, actualesReservations, ReservationAdapter.ESTADO_ACTUAL);
-        setupRecyclerView(recyclerCompletadas, completadasReservations, ReservationAdapter.ESTADO_COMPLETADA);
+        // ✅ SOLO 3 RECYCLERS (usando constantes actualizadas)
+        setupRecyclerView(recyclerProximas, proximasReservations, ReservationAdapter.ESTADO_UPCOMING);
+        setupRecyclerView(recyclerActuales, actualesReservations, ReservationAdapter.ESTADO_ACTIVE);
+        setupRecyclerView(recyclerCompletadas, completadasReservations, ReservationAdapter.ESTADO_COMPLETED);
     }
 
     private void setupRecyclerView(RecyclerView recyclerView, List<Reservation> dataList, int estado) {
@@ -152,23 +162,21 @@ public class HistorialFragment extends BaseBottomNavigationFragment {
 
         // Guardar referencia
         switch (estado) {
-            case ReservationAdapter.ESTADO_PROXIMA:
+            case ReservationAdapter.ESTADO_UPCOMING:
                 adapterProximas = adapter;
                 break;
-            case ReservationAdapter.ESTADO_ACTUAL:
+            case ReservationAdapter.ESTADO_ACTIVE:
                 adapterActuales = adapter;
                 break;
-            case ReservationAdapter.ESTADO_COMPLETADA:
+            case ReservationAdapter.ESTADO_COMPLETED:
                 adapterCompletadas = adapter;
                 break;
         }
     }
 
-    // ✅ ACTUALIZADO: Solo 3 tabs
     private void updateSelectedTab(int selectedIndex) {
         resetTabsStyle();
 
-        // ✅ ANIMACIÓN SUAVE entre pestañas
         Animation fadeOut = AnimationUtils.loadAnimation(requireContext(), R.anim.fade_out);
         Animation fadeIn = AnimationUtils.loadAnimation(requireContext(), R.anim.fade_in);
 
@@ -186,13 +194,13 @@ public class HistorialFragment extends BaseBottomNavigationFragment {
                 break;
             case 1:
                 setSelectedTabStyle(tabActuales, actualesReservations,
-                        "No tienes reservas activas",
-                        "Aquí verás tus reservas cuando inicies tu estadía.",
+                        "No tienes estadías activas",
+                        "Aquí verás tus reservas cuando hagas check-in.",
                         R.drawable.ic_active);
                 break;
             case 2:
                 setSelectedTabStyle(tabCompletadas, completadasReservations,
-                        "No tienes reservas completadas",
+                        "No tienes estadías completadas",
                         "Tu historial de estadías anteriores aparecerá aquí.",
                         R.drawable.ic_completed);
                 break;
@@ -200,8 +208,6 @@ public class HistorialFragment extends BaseBottomNavigationFragment {
 
         if (!isEmptyList(selectedIndex)) {
             viewFlipper.setDisplayedChild(selectedIndex);
-
-            // ✅ ANIMACIÓN SUAVE al cambiar
             fadeIn.setAnimationListener(new Animation.AnimationListener() {
                 @Override
                 public void onAnimationStart(Animation animation) {}
@@ -210,7 +216,6 @@ public class HistorialFragment extends BaseBottomNavigationFragment {
                 @Override
                 public void onAnimationRepeat(Animation animation) {}
             });
-
             viewFlipper.getCurrentView().startAnimation(fadeIn);
         }
     }
@@ -225,7 +230,6 @@ public class HistorialFragment extends BaseBottomNavigationFragment {
     }
 
     private void resetTabsStyle() {
-        // ✅ SOLO 3 TABS
         tabProximas.setBackground(null);
         tabProximas.setTextColor(ContextCompat.getColor(requireContext(), android.R.color.darker_gray));
         tabActuales.setBackground(null);
@@ -270,86 +274,160 @@ public class HistorialFragment extends BaseBottomNavigationFragment {
         emptyStateView.startAnimation(AnimationUtils.loadAnimation(requireContext(), R.anim.fade_in));
     }
 
-    // ✅ DATOS DE PRUEBA ACTUALIZADOS
-    private void loadMockData() {
-        proximasReservations.clear();
-        actualesReservations.clear();
-        completadasReservations.clear();
+    // ✅ DATOS DE PRUEBA PROFESIONALES CON SUB-ESTADOS
+    private void loadProfessionalMockData() {
+        clearAllData();
 
-        // PRÓXIMAS
-        proximasReservations.add(new Reservation(
+        // ✅ PRÓXIMAS
+        Reservation upcoming1 = createUpcomingReservation(
                 "Gocta Lodge",
                 "Chachapoyas, Gocta, Amazonas",
                 "10 May - 15 May, 2025",
                 900.0,
-                4.9f,
-                R.drawable.belmond,
-                Reservation.STATUS_PROXIMA
-        ));
+                4.9f
+        );
+        upcoming1.setSpecialRequests("Vista al bosque, llegada tardía");
+        proximasReservations.add(upcoming1);
 
-        proximasReservations.add(new Reservation(
+        Reservation upcoming2 = createUpcomingReservation(
                 "Casona del Patio",
                 "Chiclayo, Lambayeque",
                 "21 Jun - 25 Jun, 2025",
                 750.0,
-                4.7f,
-                R.drawable.belmond,
-                Reservation.STATUS_PROXIMA
-        ));
+                4.7f
+        );
+        proximasReservations.add(upcoming2);
 
-        // ACTUALES
-        Reservation reservaActual1 = new Reservation(
+        Reservation upcoming3 = createUpcomingReservation(
+                "Hotel Presidente",
+                "Arequipa, Centro Histórico",
+                "05 Jul - 08 Jul, 2025",
+                650.0,
+                4.4f
+        );
+        proximasReservations.add(upcoming3);
+
+        // ✅ ACTUALES CON DIFERENTES SUB-ESTADOS
+
+        // 1. Estadía normal (recién llegado)
+        Reservation active1 = createActiveReservation(
                 "Hotel Costa del Sol",
                 "Chiclayo, Lambayeque",
                 "25 Abr - 02 May, 2025",
                 1200.0,
-                4.8f,
-                R.drawable.belmond,
-                Reservation.STATUS_ACTUAL
+                4.8f
         );
-        reservaActual1.addService("Desayuno buffet", 45.0, 2);
-        reservaActual1.addService("Spa", 120.0, 1);
-        actualesReservations.add(reservaActual1);
+        active1.setSubStatus(Reservation.SUBSTATUS_CHECKED_IN); // Recién llegó
+        active1.addService("Welcome drink", 25.0, 2);
+        actualesReservations.add(active1);
 
-        // ✅ NUEVA: Reserva actual LISTA PARA CHECKOUT
-        Reservation reservaListaCheckout = new Reservation(
+        // 2. Estadía en curso con servicios
+        Reservation active2 = createActiveReservation(
+                "Hotel Libertador",
+                "Cusco, San Blas",
+                "28 Abr - 03 May, 2025",
+                980.0,
+                4.6f
+        );
+        active2.setSubStatus(Reservation.SUBSTATUS_STAYING); // Estadía normal
+        active2.addService("Desayuno buffet", 45.0, 3);
+        active2.addService("Spa relajante", 120.0, 1);
+        active2.addService("Minibar", 35.0, 2);
+        actualesReservations.add(active2);
+
+        // 3. ✅ CHECKOUT PENDIENTE (SUB-ESTADO, NO LISTA SEPARADA)
+        Reservation activePending = createActiveReservation(
                 "Casa Andina Premium",
                 "Miraflores, Lima",
                 "20 Abr - 27 Abr, 2025",
                 1350.0,
-                4.5f,
-                R.drawable.belmond,
-                Reservation.STATUS_ACTUAL
+                4.5f
         );
-        reservaListaCheckout.addService("Minibar", 85.0, 1);
-        reservaListaCheckout.addService("Room service", 120.0, 2);
-        reservaListaCheckout.addService("Lavandería", 45.0, 1);
-        reservaListaCheckout.setReadyForCheckout(true); // ✅ LISTA PARA CHECKOUT
-        actualesReservations.add(reservaListaCheckout);
+        activePending.setSubStatus(Reservation.SUBSTATUS_CHECKOUT_PENDING); // ✅ Checkout solicitado
+        activePending.addService("Room service", 120.0, 2);
+        activePending.addService("Lavandería express", 45.0, 1);
+        activePending.addService("Minibar premium", 85.0, 1);
+        // ✅ SIMULAR CARGO ADICIONAL POR DAÑO
+        activePending.addAdditionalCharge("Reparación menor de mueble", 150.0, "Daño accidental reportado");
+        actualesReservations.add(activePending);
 
-        // COMPLETADAS
-        completadasReservations.add(new Reservation(
+        // ✅ COMPLETADAS (Con y sin reviews)
+        Reservation completed1 = createCompletedReservation(
                 "Belmond Hotel Monasterio",
                 "Cusco, Centro Histórico",
                 "05 Mar - 10 Mar, 2025",
                 1500.0,
-                5.0f,
-                R.drawable.belmond,
-                Reservation.STATUS_COMPLETADA
-        ));
+                5.0f
+        );
+        completed1.setReviewSubmitted(true); // Ya tiene review
+        completadasReservations.add(completed1);
 
-        completadasReservations.add(new Reservation(
+        Reservation completed2 = createCompletedReservation(
                 "Inkaterra Machu Picchu",
                 "Aguas Calientes, Cusco",
                 "10 Feb - 15 Feb, 2025",
                 2000.0,
-                4.9f,
-                R.drawable.belmond,
-                Reservation.STATUS_COMPLETADA
-        ));
+                4.9f
+        );
+        // Esta aún no tiene review
+        completadasReservations.add(completed2);
+
+        Reservation completed3 = createCompletedReservation(
+                "JW Marriott Lima",
+                "Miraflores, Lima",
+                "15 Ene - 20 Ene, 2025",
+                1800.0,
+                4.7f
+        );
+        completed3.setReviewSubmitted(true);
+        completadasReservations.add(completed3);
 
         notifyAllAdapters();
         updateSelectedTab(0);
+    }
+
+    // ✅ MÉTODOS DE CREACIÓN DE RESERVAS PROFESIONALES
+    private Reservation createUpcomingReservation(String name, String location, String date, double price, float rating) {
+        Reservation reservation = new Reservation(name, location, date, price, rating, R.drawable.belmond, Reservation.STATUS_UPCOMING);
+        reservation.setRoomType("Suite Deluxe");
+        reservation.setRoomNumber("20" + (int)(Math.random() * 99));
+
+        // Simular tarjeta de garantía
+        Reservation.PaymentMethod card = new Reservation.PaymentMethod("4589", "Visa", "Juan Pérez");
+        reservation.setGuaranteeCard(card);
+
+        return reservation;
+    }
+
+    private Reservation createActiveReservation(String name, String location, String date, double price, float rating) {
+        Reservation reservation = new Reservation(name, location, date, price, rating, R.drawable.belmond, Reservation.STATUS_ACTIVE);
+        reservation.setRoomType("Suite Junior");
+        reservation.setRoomNumber("15" + (int)(Math.random() * 99));
+        reservation.setActualCheckInTime(new java.util.Date(System.currentTimeMillis() - 86400000)); // Ayer
+
+        // Tarjeta de garantía
+        Reservation.PaymentMethod card = new Reservation.PaymentMethod("7854", "Mastercard", "Juan Pérez");
+        reservation.setGuaranteeCard(card);
+
+        return reservation;
+    }
+
+    private Reservation createCompletedReservation(String name, String location, String date, double price, float rating) {
+        Reservation reservation = new Reservation(name, location, date, price, rating, R.drawable.belmond, Reservation.STATUS_COMPLETED);
+        reservation.setRoomType("Suite Ejecutiva");
+        reservation.setRoomNumber("10" + (int)(Math.random() * 99));
+
+        // Tarjeta usada
+        Reservation.PaymentMethod card = new Reservation.PaymentMethod("2341", "Visa", "Juan Pérez");
+        reservation.setGuaranteeCard(card);
+
+        return reservation;
+    }
+
+    private void clearAllData() {
+        proximasReservations.clear();
+        actualesReservations.clear();
+        completadasReservations.clear();
     }
 
     private void notifyAllAdapters() {
@@ -358,80 +436,104 @@ public class HistorialFragment extends BaseBottomNavigationFragment {
         if (adapterCompletadas != null) adapterCompletadas.notifyDataSetChanged();
     }
 
-    // ✅ NUEVOS MÉTODOS DE NAVEGACIÓN
+    // ✅ MÉTODO PRINCIPAL DE NAVEGACIÓN - TODO VA AQUÍ
     private void navigateToReservationDetails(Reservation reservation) {
-        // Usar BookingSummary reutilizado como base para detalles
-        Bundle args = UserDataManager.getInstance().getUserBundle();
-        args.putString("hotel_name", reservation.getHotelName());
-        args.putString("hotel_address", reservation.getLocation());
-        args.putString("hotel_price", String.valueOf(reservation.getPrice()));
-        args.putString("hotel_rating", String.valueOf(reservation.getRating()));
-        args.putInt("hotel_image", reservation.getImageResource());
-        args.putString("reservation_id", reservation.getReservationId());
-        args.putString("room_type", reservation.getRoomType());
-        args.putBoolean("view_mode", true); // Solo vista, no editable
+        Bundle args = new Bundle();
+        args.putParcelable("reservation", reservation); // ✅ PASAR OBJETO COMPLETO
+        args.putBoolean("view_mode", true);
 
-        NavigationManager.getInstance().navigateToBookingSummary(args);
-    }
+        ReservationDetailFragment fragment = new ReservationDetailFragment();
+        fragment.setArguments(args);
 
-    private void navigateToServices(Reservation reservation) {
-        // Navegar a servicios del hotel
-        NavigationManager.getInstance().navigateToHotelDetail(
-                reservation.getHotelName(),
-                reservation.getLocation(),
-                String.valueOf(reservation.getPrice()),
-                String.valueOf(reservation.getRating()),
-                String.valueOf(reservation.getImageResource()),
-                UserDataManager.getInstance().getUserBundle()
+        // ✅ USAR NAVIGATIONMANAGER CON ANIMACIÓN SCALE_UP (como si fuera modal)
+        NavigationManager.getInstance().navigateWithCustomAnimation(
+                fragment,
+                AnimationDirection.SCALE_UP,
+                true
         );
     }
 
-    private void showInvoice(Reservation reservation) {
-        // Mostrar factura/resumen final
-        Bundle args = UserDataManager.getInstance().getUserBundle();
-        args.putString("hotel_name", reservation.getHotelName());
-        args.putString("total_amount", String.valueOf(reservation.getTotalPrice()));
-        args.putString("services_breakdown", reservation.getServicesBreakdown());
-        args.putString("reservation_id", reservation.getReservationId());
-        args.putBoolean("invoice_mode", true);
+    // ✅ MÉTODO PARA CHECKOUT SIN CAMBIAR DE TAB
+    private void performCheckoutRequest(Reservation reservation, int position) {
+        // ✅ CAMBIAR SUB-ESTADO EN LUGAR DE MOVER DE LISTA
+        reservation.requestCheckout();
 
-        NavigationManager.getInstance().navigateToBookingSummary(args);
-    }
+        // ✅ NOTIFICAR CAMBIO EN LA POSICIÓN ESPECÍFICA
+        adapterActuales.notifyItemChanged(position);
 
-    // ✅ NUEVO: Confirmar checkout
-    private void showCheckoutConfirmation(Reservation reservation, int position) {
-        android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(requireContext());
-        builder.setTitle("Confirmar Checkout")
-                .setMessage("¿Está seguro que desea realizar el checkout de " + reservation.getHotelName() + "?\n\n" +
-                        "Total a cobrar: S/" + reservation.getTotalPrice())
-                .setPositiveButton("Confirmar", (dialog, which) -> {
-                    performCheckout(reservation, position);
-                })
-                .setNegativeButton("Cancelar", null)
-                .show();
-    }
-
-    private void performCheckout(Reservation reservation, int position) {
-        // ✅ Realizar checkout: mover de ACTUAL a COMPLETADA
-        reservation.performCheckout();
-
-        // Remover de actuales
-        actualesReservations.remove(position);
-        adapterActuales.notifyItemRemoved(position);
-
-        // Agregar a completadas
-        completadasReservations.add(0, reservation); // Al inicio
-        if (adapterCompletadas != null) {
-            adapterCompletadas.notifyItemInserted(0);
-        }
-
+        // ✅ MOSTRAR MENSAJE DE CONFIRMACIÓN
         android.widget.Toast.makeText(requireContext(),
-                "Checkout realizado exitosamente",
-                android.widget.Toast.LENGTH_SHORT).show();
+                "Checkout solicitado. El hotel lo revisará pronto y te notificará.",
+                android.widget.Toast.LENGTH_LONG).show();
+    }
 
-        // Si la lista actual queda vacía, mostrar estado vacío
-        if (actualesReservations.isEmpty()) {
-            updateSelectedTab(1); // Refrescar tab actual
+    // ✅ MÉTODO PARA ACTUALIZAR UNA RESERVA ESPECÍFICA (útil para callbacks del fragment de detalles)
+    public void updateReservation(Reservation updatedReservation) {
+        updateReservationInList(proximasReservations, updatedReservation, adapterProximas);
+        updateReservationInList(actualesReservations, updatedReservation, adapterActuales);
+        updateReservationInList(completadasReservations, updatedReservation, adapterCompletadas);
+    }
+
+    private void updateReservationInList(List<Reservation> list, Reservation updatedReservation, ReservationAdapter adapter) {
+        for (int i = 0; i < list.size(); i++) {
+            if (list.get(i).getReservationId().equals(updatedReservation.getReservationId())) {
+                list.set(i, updatedReservation);
+                if (adapter != null) {
+                    adapter.notifyItemChanged(i);
+                }
+                break;
+            }
         }
+    }
+
+    // ✅ MÉTODO PARA MOVER RESERVA ENTRE LISTAS (cuando admin aprueba checkout)
+    public void moveReservationToCompleted(String reservationId) {
+        for (int i = 0; i < actualesReservations.size(); i++) {
+            Reservation reservation = actualesReservations.get(i);
+            if (reservation.getReservationId().equals(reservationId)) {
+                // Remover de actuales
+                actualesReservations.remove(i);
+                adapterActuales.notifyItemRemoved(i);
+
+                // Agregar a completadas
+                reservation.approveCheckout(); // Cambiar estado
+                completadasReservations.add(0, reservation);
+                if (adapterCompletadas != null) {
+                    adapterCompletadas.notifyItemInserted(0);
+                }
+
+                android.widget.Toast.makeText(requireContext(),
+                        "Checkout aprobado. Estadía completada exitosamente.",
+                        android.widget.Toast.LENGTH_LONG).show();
+
+                if (actualesReservations.isEmpty()) {
+                    updateSelectedTab(1);
+                }
+                break;
+            }
+        }
+    }
+
+    public void refreshReservations() {
+        loadProfessionalMockData();
+    }
+
+    public Reservation getReservationById(String reservationId) {
+        for (Reservation reservation : proximasReservations) {
+            if (reservation.getReservationId().equals(reservationId)) {
+                return reservation;
+            }
+        }
+        for (Reservation reservation : actualesReservations) {
+            if (reservation.getReservationId().equals(reservationId)) {
+                return reservation;
+            }
+        }
+        for (Reservation reservation : completadasReservations) {
+            if (reservation.getReservationId().equals(reservationId)) {
+                return reservation;
+            }
+        }
+        return null;
     }
 }

@@ -8,12 +8,18 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.cardview.widget.CardView;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.proyecto_final_hoteleros.R;
-import com.example.proyecto_final_hoteleros.client.ui.adapters.HotelsResultsAdapter;
 import com.example.proyecto_final_hoteleros.client.data.model.Hotel;
+import com.example.proyecto_final_hoteleros.client.data.model.SearchContext;
+import com.example.proyecto_final_hoteleros.client.data.model.CityHeader;
+import com.example.proyecto_final_hoteleros.client.ui.adapters.GroupedHotelsAdapter;
+import com.example.proyecto_final_hoteleros.client.ui.dialog.ModifySearchDialog;
+import com.example.proyecto_final_hoteleros.client.utils.SearchTerminology;
+import com.example.proyecto_final_hoteleros.client.utils.HotelGroupingUtils;
 import com.google.android.material.chip.Chip;
 import com.google.android.material.chip.ChipGroup;
 
@@ -22,25 +28,28 @@ import java.util.List;
 
 public class HotelResultsActivity extends AppCompatActivity {
 
-    // Variables para las vistas
-    private TextView tvSearchSummary;
-    private LinearLayout layoutSearchParams;
-    private TextView tvLocation, tvCheckInDate, tvCheckInDay, tvCheckOutDate, tvCheckOutDay, tvGuests, tvStayDuration;
-    private ChipGroup chipGroupFilters;
-    private RecyclerView recyclerViewResults;
-    private TextView tvResultsCount;
-    private ImageView ivBack, ivFilter;
+    // Views
+    private TextView tvSearchContext;
+    private TextView tvSearchSummaryLine;
+    private TextView tvResultsCountInline;
+    private ImageView ivBack;
+    private ImageView ivExpandDetails;
+    private CardView cardSearchDetails;
+    private ChipGroup chipGroupQuickFilters;
+    private RecyclerView recyclerViewResults; // ✅ ESTA ES LA QUE TE FALTA
 
-    // Datos
+    // Data
     private List<Hotel> allHotels;
-    private List<Hotel> filteredHotels;
-    private HotelsResultsAdapter adapter;
+    private List<Object> groupedItems;
+    private GroupedHotelsAdapter adapter;
 
-    // Parámetros de búsqueda
+    // Search parameters
+    private SearchContext currentContext;
     private String searchLocation;
     private String searchDates;
     private String searchGuests;
-    private String filterType; // "nearby", "popular", "city", "search"
+    private String filterType;
+    private boolean isDetailsExpanded = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,510 +58,673 @@ public class HotelResultsActivity extends AppCompatActivity {
 
         initViews();
         getSearchParameters();
-        setupViews();
-        loadHotels();
-        setupFilters();
+        determineSearchContext();
+        setupIntelligentHeader();
+        loadHotelsIntelligently();
+        setupSmartFilters();
+        setupListeners();
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (requestCode == ModifySearchDialog.REQUEST_CODE_LOCATION && resultCode == RESULT_OK) {
+            if (data != null) {
+                String selectedLocation = data.getStringExtra("selected_location");
+                if (selectedLocation != null) {
+                    // Actualizar la ubicación actual
+                    searchLocation = selectedLocation;
+
+                    // Determinar nuevo contexto según la ubicación seleccionada
+                    updateSearchContextForLocation(selectedLocation);
+
+                    // Recargar header y resultados
+                    setupIntelligentHeader();
+                    loadHotelsIntelligently();
+
+                    // Mostrar feedback
+                    showFilterToast("Ubicación actualizada: " + selectedLocation);
+                }
+            }
+        }
     }
 
     private void initViews() {
-        tvSearchSummary = findViewById(R.id.tv_search_summary);
-        layoutSearchParams = findViewById(R.id.layout_search_params);
-        tvLocation = findViewById(R.id.tv_location);
-        tvCheckInDate = findViewById(R.id.tv_check_in_date);
-        tvCheckInDay = findViewById(R.id.tv_check_in_day);
-        tvCheckOutDate = findViewById(R.id.tv_check_out_date);
-        tvCheckOutDay = findViewById(R.id.tv_check_out_day);
-        tvGuests = findViewById(R.id.tv_guests);
-        tvStayDuration = findViewById(R.id.tv_stay_duration);
-        chipGroupFilters = findViewById(R.id.chip_group_filters);
-        recyclerViewResults = findViewById(R.id.recycler_view_results);
-        tvResultsCount = findViewById(R.id.tv_results_count);
+        tvSearchContext = findViewById(R.id.tv_search_context);
+        tvSearchSummaryLine = findViewById(R.id.tv_search_summary_line);
+        tvResultsCountInline = findViewById(R.id.tv_results_count_inline);
         ivBack = findViewById(R.id.iv_back);
-        ivFilter = findViewById(R.id.iv_filter);
+        ivExpandDetails = findViewById(R.id.iv_expand_details);
+        cardSearchDetails = findViewById(R.id.card_search_details);
+        chipGroupQuickFilters = findViewById(R.id.chip_group_quick_filters);
+        recyclerViewResults = findViewById(R.id.recycler_view_results);
 
-        // Configurar RecyclerView
         recyclerViewResults.setLayoutManager(new LinearLayoutManager(this));
     }
 
+    private void updateSearchContextForLocation(String location) {
+        String locationLower = location.toLowerCase();
+
+        if (locationLower.contains("lima") || locationLower.contains("miraflores") ||
+                locationLower.contains("san isidro") || locationLower.contains("barranco")) {
+            currentContext = SearchContext.NEARBY_HOTELS;
+        } else if (isPopularDestination(locationLower)) {
+            currentContext = SearchContext.POPULAR_DESTINATIONS;
+        } else {
+            currentContext = SearchContext.CITY_SPECIFIC;
+        }
+    }
+
+    private boolean isPopularDestination(String location) {
+        String[] popularDestinations = {"cusco", "machu picchu", "arequipa", "máncora", "paracas", "iquitos"};
+        for (String destination : popularDestinations) {
+            if (location.contains(destination)) {
+                return true;
+            }
+        }
+        return false;
+    }
     private void getSearchParameters() {
         Intent intent = getIntent();
         searchLocation = intent.getStringExtra("location");
         searchDates = intent.getStringExtra("dates");
         searchGuests = intent.getStringExtra("guests");
-        filterType = intent.getStringExtra("filter_type"); // "nearby", "popular", "city", "search"
+        filterType = intent.getStringExtra("filter_type");
     }
 
-    private void setupViews() {
-        // Configurar botón de regreso
-        ivBack.setOnClickListener(v -> finish());
+    private void determineSearchContext() {
+        if (filterType == null || filterType.isEmpty()) {
+            currentContext = SearchContext.ALL_DESTINATIONS;
+        } else {
+            switch (filterType) {
+                case "nearby":
+                    currentContext = SearchContext.NEARBY_HOTELS;
+                    break;
+                case "popular":
+                    currentContext = SearchContext.POPULAR_DESTINATIONS;
+                    break;
+                case "city":
+                    currentContext = SearchContext.CITY_SPECIFIC;
+                    break;
+                case "search":
+                    if (searchLocation == null || searchLocation.trim().isEmpty()) {
+                        currentContext = SearchContext.LOCATION_FREE;
+                    } else {
+                        currentContext = SearchContext.SEARCH_RESULTS;
+                    }
+                    break;
+                default:
+                    currentContext = SearchContext.ALL_DESTINATIONS;
+            }
+        }
+    }
 
-        // Configurar botón de filtro (la flecha hacia abajo) con animación suave
-        ivFilter.setOnClickListener(v -> {
-            if (layoutSearchParams.getVisibility() == View.VISIBLE) {
-                // Ocultar con animación
-                layoutSearchParams.animate()
-                        .alpha(0f)
-                        .translationY(-layoutSearchParams.getHeight())
-                        .setDuration(300)
-                        .withEndAction(() -> layoutSearchParams.setVisibility(View.GONE))
+    // Método mejorado para configurar header inteligente
+    private void setupIntelligentHeader() {
+        // ✅ APLICAR VALORES POR DEFECTO SOLO SI SON NULOS
+        SearchContext.DefaultSearchValues defaults = currentContext.getDefaultValues();
+
+        if (searchLocation == null || searchLocation.trim().isEmpty()) {
+            searchLocation = defaults.location;
+        }
+        if (searchDates == null || searchDates.trim().isEmpty()) {
+            searchDates = defaults.dates;
+        }
+        if (searchGuests == null || searchGuests.trim().isEmpty()) {
+            searchGuests = defaults.guests;
+        }
+
+        // ✅ CONTEXTO INTELIGENTE con modificabilidad
+        String contextTitle = currentContext.getFormattedTitle(getLocationDisplayName());
+
+        // ✅ AGREGAR INDICADOR SI HAY RESTRICCIONES
+        if (!currentContext.isLocationModifiable() || !currentContext.areDatesModifiable() || !currentContext.areGuestsModifiable()) {
+            contextTitle += " 🔒"; // Indicador de opciones fijas
+        }
+
+        tvSearchContext.setText(contextTitle);
+
+        // Resumen en una línea
+        String summaryLine = buildIntelligentSummary();
+        tvSearchSummaryLine.setText(summaryLine);
+    }
+
+    private String buildIntelligentSummary() {
+        StringBuilder summary = new StringBuilder();
+
+        // Ubicación inteligente
+        String locationText = getLocationDisplayName();
+        summary.append(locationText);
+
+        // Fechas (solo si es relevante)
+        if (hasSpecificDates()) {
+            summary.append(" • ").append(getDatesSummary());
+        }
+
+        // Huéspedes (solo si no es default)
+        if (hasNonDefaultGuests()) {
+            summary.append(" • ").append(getGuestsSummary());
+        }
+
+        return summary.toString();
+    }
+
+    private String getLocationDisplayName() {
+        switch (currentContext) {
+            case ALL_DESTINATIONS:
+                return SearchTerminology.ALL_DESTINATIONS;
+            case NEARBY_HOTELS:
+                return SearchTerminology.METROPOLITAN_AREA;
+            case LOCATION_FREE:
+                return SearchTerminology.LOCATION_FREE;
+            case CITY_SPECIFIC:
+                return searchLocation != null ? searchLocation : "Ciudad seleccionada";
+            case POPULAR_DESTINATIONS:
+                return SearchTerminology.CURATED_SELECTION;
+            case SEARCH_RESULTS:
+                return SearchTerminology.getContextualLocationText(searchLocation);
+            default:
+                return SearchTerminology.ALL_DESTINATIONS;
+        }
+    }
+
+    private boolean hasSpecificDates() {
+        return searchDates != null && !searchDates.trim().isEmpty();
+    }
+
+    private boolean hasNonDefaultGuests() {
+        return searchGuests != null && !searchGuests.equals("2 adultos · 0 niños");
+    }
+
+    private String getDatesSummary() {
+        if (searchDates == null) return "Fechas flexibles";
+
+        // Procesar formato de fechas
+        if (searchDates.contains("–")) {
+            String[] dates = searchDates.split("–");
+            if (dates.length == 2) {
+                return dates[0].trim() + " - " + dates[1].trim();
+            }
+        }
+
+        return searchDates;
+    }
+
+    // ✅ Método mejorado para resumen de huéspedes con valores por defecto
+    private String getGuestsSummary() {
+        if (searchGuests == null || searchGuests.trim().isEmpty()) {
+            return "2 adultos"; // Valor por defecto específico
+        }
+        return searchGuests;
+    }
+
+    private void loadHotelsIntelligently() {
+        // Cargar datos base
+        allHotels = loadSampleHotels();
+
+        switch (currentContext) {
+            case ALL_DESTINATIONS:
+                loadAllDestinationsGrouped();
+                break;
+            case NEARBY_HOTELS:
+                loadNearbyHotels();
+                break;
+            case CITY_SPECIFIC:
+                loadCitySpecificHotels();
+                break;
+            case POPULAR_DESTINATIONS:
+                loadPopularDestinations();
+                break;
+            case LOCATION_FREE:
+                loadLocationFreeResults();
+                break;
+            case SEARCH_RESULTS:
+                loadSearchResults();
+                break;
+        }
+
+        setupAdapter();
+        updateResultsCount();
+    }
+
+    private void loadAllDestinationsGrouped() {
+        groupedItems = HotelGroupingUtils.groupHotelsByCity(allHotels);
+    }
+
+
+    private void loadNearbyHotels() {
+        // ✅ CORREGIDO: Filtrar hoteles cercanos y convertir a lista plana
+        List<Hotel> nearbyHotels = HotelGroupingUtils.filterHotelsByProximity(allHotels, "Lima");
+        groupedItems = new ArrayList<>();
+
+        if (!nearbyHotels.isEmpty()) {
+            // Agregar header
+            groupedItems.add(new CityHeader("Hoteles cercanos", nearbyHotels.size()));
+            // Agregar hoteles
+            groupedItems.addAll(nearbyHotels);
+        } else {
+            // Si no hay hoteles cercanos, mostrar algunos de Lima
+            List<Hotel> limaHotels = HotelGroupingUtils.getHotelsForCity(allHotels, "Lima");
+            if (!limaHotels.isEmpty()) {
+                groupedItems.add(new CityHeader("Área metropolitana", limaHotels.size()));
+                groupedItems.addAll(limaHotels);
+            }
+        }
+    }
+
+    private void loadCitySpecificHotels() {
+        List<Hotel> cityHotels = HotelGroupingUtils.getHotelsForCity(allHotels, searchLocation);
+        groupedItems = new ArrayList<>();
+
+        if (!cityHotels.isEmpty()) {
+            groupedItems.add(new CityHeader(searchLocation, cityHotels.size()));
+            groupedItems.addAll(cityHotels);
+        } else {
+            // Si no se encuentra la ciudad específica, mostrar mensaje
+            groupedItems.add(new CityHeader("No se encontraron hoteles en " + searchLocation, 0));
+        }
+    }
+
+    private void loadPopularDestinations() {
+        // ✅ CORREGIDO: Filtrar hoteles populares
+        List<Hotel> popularHotels = HotelGroupingUtils.filterPopularHotels(allHotels);
+        groupedItems = new ArrayList<>();
+
+        if (!popularHotels.isEmpty()) {
+            groupedItems.add(new CityHeader("Destinos populares", popularHotels.size()));
+            groupedItems.addAll(popularHotels);
+        } else {
+            // Fallback: mostrar hoteles con rating >= 4.0
+            List<Hotel> goodHotels = new ArrayList<>();
+            for (Hotel hotel : allHotels) {
+                try {
+                    float rating = Float.parseFloat(hotel.getRating());
+                    if (rating >= 4.0) {
+                        goodHotels.add(hotel);
+                    }
+                } catch (NumberFormatException e) {
+                    // Ignorar
+                }
+            }
+            if (!goodHotels.isEmpty()) {
+                groupedItems.add(new CityHeader("Hoteles recomendados", goodHotels.size()));
+                groupedItems.addAll(goodHotels);
+            }
+        }
+    }
+
+    private void loadLocationFreeResults() {
+        groupedItems = HotelGroupingUtils.groupHotelsByCity(allHotels);
+    }
+
+    private void loadSearchResults() {
+        // ✅ MEJORADO: Búsqueda más inteligente
+        List<Hotel> searchResults = new ArrayList<>();
+
+        if (searchLocation != null && !searchLocation.trim().isEmpty()) {
+            String searchTerm = searchLocation.toLowerCase().trim();
+
+            for (Hotel hotel : allHotels) {
+                String hotelName = hotel.getName().toLowerCase();
+                String hotelLocation = hotel.getLocation().toLowerCase();
+
+                // Buscar en nombre y ubicación
+                if (hotelName.contains(searchTerm) || hotelLocation.contains(searchTerm)) {
+                    searchResults.add(hotel);
+                }
+            }
+        } else {
+            searchResults = allHotels;
+        }
+
+        groupedItems = new ArrayList<>();
+        if (!searchResults.isEmpty()) {
+            groupedItems.add(new CityHeader("Resultados de búsqueda", searchResults.size()));
+            groupedItems.addAll(searchResults);
+        } else {
+            groupedItems.add(new CityHeader("No se encontraron resultados", 0));
+        }
+    }
+
+    private void setupAdapter() {
+        adapter = new GroupedHotelsAdapter(this, groupedItems);
+
+        adapter.setOnHotelClickListener((hotel, position) -> {
+            navigateToHotelDetail(hotel);
+        });
+
+        recyclerViewResults.setAdapter(adapter);
+
+        // ✅ CONFIGURAR ANIMACIONES SUAVES
+        if (recyclerViewResults.getItemAnimator() != null) {
+            recyclerViewResults.getItemAnimator().setChangeDuration(250);
+            recyclerViewResults.getItemAnimator().setMoveDuration(250);
+            recyclerViewResults.getItemAnimator().setAddDuration(300);
+            recyclerViewResults.getItemAnimator().setRemoveDuration(200);
+        }
+
+        // ✅ ANIMACIÓN DE ENTRADA MEJORADA
+        recyclerViewResults.setAlpha(0f);
+        recyclerViewResults.setTranslationY(50f);
+        recyclerViewResults.animate()
+                .alpha(1f)
+                .translationY(0f)
+                .setDuration(400)
+                .setStartDelay(200)
+                .start();
+    }
+    private void setupDetailedViews() {
+        TextView tvLocationDetailed = findViewById(R.id.tv_location_detailed);
+        TextView tvCheckInDetailed = findViewById(R.id.tv_check_in_detailed);
+        TextView tvCheckOutDetailed = findViewById(R.id.tv_check_out_detailed);
+        TextView tvGuestsDetailed = findViewById(R.id.tv_guests_detailed);
+        LinearLayout btnModifySearch = findViewById(R.id.btn_modify_search);
+
+        // Configurar valores con defaults inteligentes
+        tvLocationDetailed.setText(getLocationDisplayName());
+
+        if (hasSpecificDates()) {
+            String[] dates = getDatesSummary().split(" - ");
+            tvCheckInDetailed.setText(dates.length > 0 ? dates[0] : "Hoy");
+            tvCheckOutDetailed.setText(dates.length > 1 ? dates[1] : "Mañana");
+        } else {
+            // ✅ Usar valores por defecto más naturales
+            tvCheckInDetailed.setText("Hoy");
+            tvCheckOutDetailed.setText("Mañana");
+        }
+
+        tvGuestsDetailed.setText(getGuestsSummary());
+
+        // ✅ NUEVO: Verificar si la modificación está disponible según contexto
+        if (currentContext.isLocationModifiable() || currentContext.areDatesModifiable() ||
+                currentContext.areGuestsModifiable()) {
+            btnModifySearch.setVisibility(View.VISIBLE);
+            btnModifySearch.setOnClickListener(v -> {
+                // Animación de feedback
+                v.animate()
+                        .scaleX(0.95f)
+                        .scaleY(0.95f)
+                        .setDuration(100)
+                        .withEndAction(() -> {
+                            v.animate()
+                                    .scaleX(1f)
+                                    .scaleY(1f)
+                                    .setDuration(100)
+                                    .start();
+                        })
                         .start();
 
-                // Rotar flecha hacia abajo
-                ivFilter.animate().rotation(0).setDuration(300).start();
-            } else {
-                // Mostrar con animación
-                layoutSearchParams.setVisibility(View.VISIBLE);
-                layoutSearchParams.setAlpha(0f);
-                layoutSearchParams.setTranslationY(-layoutSearchParams.getHeight());
-                layoutSearchParams.animate()
-                        .alpha(1f)
-                        .translationY(0)
-                        .setDuration(300)
-                        .start();
+                openSearchModification();
+            });
+        } else {
+            btnModifySearch.setVisibility(View.GONE);
+        }
+    }
 
-                // Rotar flecha hacia arriba
-                ivFilter.animate().rotation(180).setDuration(300).start();
+    private void openSearchModification() {
+        ModifySearchDialog dialog = new ModifySearchDialog(this, currentContext,
+                searchLocation, searchDates, searchGuests);
+
+        dialog.setOnSearchModifiedListener(new ModifySearchDialog.OnSearchModifiedListener() {
+            @Override
+            public void onSearchModified(String newLocation, String newDates, String newGuests) {
+                // Actualizar parámetros solo si son modificables
+                if (currentContext.isLocationModifiable()) {
+                    searchLocation = newLocation;
+                }
+                if (currentContext.areDatesModifiable()) {
+                    searchDates = newDates;
+                }
+                if (currentContext.areGuestsModifiable()) {
+                    searchGuests = newGuests;
+                }
+
+                // Recargar resultados
+                setupIntelligentHeader();
+                loadHotelsIntelligently();
+
+                // Mostrar feedback
+                showFilterToast("Búsqueda actualizada");
             }
         });
 
-        // Configurar parámetros de búsqueda según el tipo
-        switch (filterType) {
-            case "search":
-                setupCompleteSearch();
-                break;
-            case "nearby":
-                setupNearbyFilter();
-                break;
-            case "popular":
-                setupPopularFilter();
-                break;
-            case "city":
-                setupCityFilter();
-                break;
+        dialog.show();
+    }
+
+
+
+    private void setupSmartFilters() {
+        chipGroupQuickFilters.removeAllViews();
+
+        // Filtros contextuales inteligentes
+        String[] filterOptions = getContextualFilters();
+
+        for (String filterText : filterOptions) {
+            addFilterChip(filterText);
+        }
+    }
+
+    private String[] getContextualFilters() {
+        switch (currentContext) {
+            case ALL_DESTINATIONS:
+                return new String[]{"🏨 Por ciudad", "⭐ Mejor valorados", "💰 Mejor precio"};
+            case NEARBY_HOTELS:
+                return new String[]{"📍 Más cercanos", "🚗 Con parking", "⭐ Recomendados"};
+            case CITY_SPECIFIC:
+                return new String[]{"🌟 Populares", "💰 Económicos", "🏪 Centro", "🏖️ Costa"};
+            case LOCATION_FREE:
+                return new String[]{"🌎 Por región", "⭐ Destacados", "🎯 Ofertas"};
+            case POPULAR_DESTINATIONS:
+                return new String[]{"⭐ Top rated", "💎 Lujo", "🏆 Premiados"};
+            case SEARCH_RESULTS:
+                return new String[]{"🔍 Relevancia", "📍 Distancia", "💰 Precio"};
             default:
-                setupDefaultView();
-                break;
+                return new String[]{"⭐ Populares", "💰 Precio", "📍 Ubicación"};
         }
     }
 
-    private void setupCompleteSearch() {
-        tvSearchSummary.setText("Resultados de búsqueda");
-        layoutSearchParams.setVisibility(View.VISIBLE);
-
-        // Mostrar todos los parámetros con formato mejorado
-        tvLocation.setText(searchLocation != null ? searchLocation : "Ubicación no especificada");
-
-        // Procesar y mostrar fechas de forma profesional
-        if (searchDates != null && !searchDates.isEmpty()) {
-            String[] dates = searchDates.split("–");
-            if (dates.length == 2) {
-                tvCheckInDate.setText(dates[0].trim());
-                tvCheckOutDate.setText(dates[1].trim());
-                tvCheckInDay.setText("Lunes"); // Podrías calcular el día real
-                tvCheckOutDay.setText("Sábado"); // Podrías calcular el día real
-
-                // Calcular duración
-                tvStayDuration.setText("5 noches"); // Podrías calcular las noches reales
-            }
-        }
-
-        tvGuests.setText(searchGuests != null ? searchGuests : "Huéspedes no especificados");
-
-        // Agregar filtros adicionales
-        addFilterChips(true, true, true); // Todos los filtros disponibles
-    }
-
-    private void setupNearbyFilter() {
-        tvSearchSummary.setText("Hoteles cerca de ti");
-        layoutSearchParams.setVisibility(View.VISIBLE);
-
-        // Configurar valores por defecto para "Ver todo"
-        tvLocation.setText("Todas las ubicaciones");
-        setupDefaultDatesAndGuests();
-
-        // Solo mostrar filtros relevantes (sin "Cerca de ti" ya que está activo)
-        addFilterChips(false, true, true); // Popular, precio, calificación
-
-        // Activar chip "Cerca de ti" por defecto
-        // activateNearbyChip(); // Se activará automáticamente en addFilterChips
-    }
-
-    private void setupPopularFilter() {
-        tvSearchSummary.setText("Hoteles populares");
-        layoutSearchParams.setVisibility(View.VISIBLE);
-
-        // Configurar valores por defecto para "Ver todo"
-        tvLocation.setText("Todas las ubicaciones");
-        setupDefaultDatesAndGuests();
-
-        // Solo mostrar filtros relevantes (sin "Popular" ya que está activo)
-        addFilterChips(true, false, true); // Cerca de ti, precio, calificación
-
-        // Activar chip "Popular" por defecto
-        // activatePopularChip(); // Se activará automáticamente en addFilterChips
-    }
-
-    private void setupDefaultDatesAndGuests() {
-        // Configurar fechas por defecto (hoy + 2 días)
-        java.util.Calendar today = java.util.Calendar.getInstance();
-        java.util.Calendar checkout = java.util.Calendar.getInstance();
-        checkout.add(java.util.Calendar.DAY_OF_MONTH, 2);
-
-        java.text.SimpleDateFormat dayFormat = new java.text.SimpleDateFormat("dd MMM", new java.util.Locale("es", "ES"));
-        java.text.SimpleDateFormat dayNameFormat = new java.text.SimpleDateFormat("EEEE", new java.util.Locale("es", "ES"));
-
-        tvCheckInDate.setText(dayFormat.format(today.getTime()));
-        tvCheckInDay.setText(capitalize(dayNameFormat.format(today.getTime())));
-        tvCheckOutDate.setText(dayFormat.format(checkout.getTime()));
-        tvCheckOutDay.setText(capitalize(dayNameFormat.format(checkout.getTime())));
-
-        // Configurar huéspedes por defecto
-        tvGuests.setText("2 adultos · 0 niños");
-
-        // Duración de estadía
-        tvStayDuration.setText("2 noches");
-    }
-
-    private String capitalize(String str) {
-        if (str == null || str.length() == 0) return str;
-        return str.substring(0, 1).toUpperCase() + str.substring(1).toLowerCase();
-    }
-
-    private void setupCityFilter() {
-        tvSearchSummary.setText("Hoteles en " + searchLocation);
-        layoutSearchParams.setVisibility(View.VISIBLE);
-
-        // Mostrar solo ubicación
-        tvLocation.setText(searchLocation);
-
-        // Ocultar fechas y huéspedes para búsqueda por ciudad
-        findViewById(R.id.layout_dates).setVisibility(View.GONE);
-        findViewById(R.id.layout_guests).setVisibility(View.GONE);
-        tvStayDuration.setVisibility(View.GONE);
-
-        // Mostrar todos los filtros
-        addFilterChips(true, true, true);
-    }
-
-    private void setupDefaultView() {
-        tvSearchSummary.setText("Todos los hoteles");
-        layoutSearchParams.setVisibility(View.GONE);
-        addFilterChips(true, true, true);
-    }
-
-    private void addFilterChips(boolean includeNearby, boolean includePopular, boolean includeOthers) {
-        chipGroupFilters.removeAllViews();
-
-        if (includeNearby) {
-            addChip("🏨 Cerca de ti", "nearby", false);
-        }
-
-        if (includePopular) {
-            addChip("⭐ Popular", "popular", false);
-        }
-
-        if (includeOthers) {
-            addChip("💰 Mejor precio", "price_low", false);
-            addChip("💸 Mayor precio", "price_high", false);
-            addChip("⭐ Mejor calificación", "rating", false);
-            addChip("🏊 Más servicios", "services", false);
-        }
-    }
-
-    private void addChip(String text, String tag, boolean isChecked) {
+    private void addFilterChip(String text) {
         Chip chip = new Chip(this);
         chip.setText(text);
-        chip.setTag(tag);
         chip.setCheckable(true);
-        chip.setChecked(isChecked);
+        chip.setChipBackgroundColorResource(android.R.color.white);
+        chip.setTextColor(getResources().getColor(android.R.color.black));
+        chip.setChipStrokeWidth(2);
+        chip.setChipStrokeColorResource(R.color.light_gray);
 
-        // Mejorar el estilo de los chips con diseño premium
-        if (isChecked) {
-            chip.setChipBackgroundColorResource(R.color.orange);
-            chip.setTextColor(getResources().getColor(android.R.color.white));
-            chip.setChipStrokeWidth(0);
-        } else {
-            chip.setChipBackgroundColor(getResources().getColorStateList(android.R.color.white));
-            chip.setTextColor(getResources().getColor(android.R.color.black));
-            chip.setChipStrokeWidth(2);
-            chip.setChipStrokeColor(getResources().getColorStateList(R.color.light_gray));
-        }
-
-        // Configurar padding y tamaño
-        chip.setChipMinHeight(44);
-        chip.setTextSize(13);
-        chip.setTypeface(null, android.graphics.Typeface.BOLD);
-
-        chip.setOnCheckedChangeListener((buttonView, isCheckedNow) -> {
-            // Actualizar colores cuando cambie el estado
-            if (isCheckedNow) {
+        chip.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            if (isChecked) {
                 chip.setChipBackgroundColorResource(R.color.orange);
                 chip.setTextColor(getResources().getColor(android.R.color.white));
                 chip.setChipStrokeWidth(0);
+                applyFilter(text);
             } else {
-                chip.setChipBackgroundColor(getResources().getColorStateList(android.R.color.white));
+                chip.setChipBackgroundColorResource(android.R.color.white);
                 chip.setTextColor(getResources().getColor(android.R.color.black));
                 chip.setChipStrokeWidth(2);
-                chip.setChipStrokeColor(getResources().getColorStateList(R.color.light_gray));
-            }
-
-            if (isCheckedNow) {
-                applyFilter(tag);
-            } else {
-                removeFilter(tag);
+                removeFilter(text);
             }
         });
-        chipGroupFilters.addView(chip);
+
+        chipGroupQuickFilters.addView(chip);
     }
 
-    private void activateNearbyChip() {
-        for (int i = 0; i < chipGroupFilters.getChildCount(); i++) {
-            Chip chip = (Chip) chipGroupFilters.getChildAt(i);
-            if ("nearby".equals(chip.getTag())) {
-                chip.setChecked(true);
-                break;
-            }
+    private void setupListeners() {
+        ivBack.setOnClickListener(v -> finish());
+
+        ivExpandDetails.setOnClickListener(v -> toggleDetailsVisibility());
+    }
+
+    private void toggleDetailsVisibility() {
+        if (isDetailsExpanded) {
+            // COLAPSAR CON ANIMACIÓN MEJORADA
+            cardSearchDetails.animate()
+                    .alpha(0f)
+                    .scaleY(0.8f)
+                    .translationY(-cardSearchDetails.getHeight() / 2)
+                    .setDuration(250)
+                    .withEndAction(() -> cardSearchDetails.setVisibility(View.GONE))
+                    .start();
+
+            ivExpandDetails.animate()
+                    .rotation(0)
+                    .setDuration(250)
+                    .start();
+
+            isDetailsExpanded = false;
+        } else {
+            // EXPANDIR CON ANIMACIÓN MEJORADA
+            cardSearchDetails.setVisibility(View.VISIBLE);
+            cardSearchDetails.setAlpha(0f);
+            cardSearchDetails.setScaleY(0.8f);
+            cardSearchDetails.setTranslationY(-cardSearchDetails.getHeight() / 2);
+
+            cardSearchDetails.animate()
+                    .alpha(1f)
+                    .scaleY(1f)
+                    .translationY(0)
+                    .setDuration(250)
+                    .start();
+
+            ivExpandDetails.animate()
+                    .rotation(180)
+                    .setDuration(250)
+                    .start();
+
+            // Configurar views detallados
+            setupDetailedViews();
+
+            isDetailsExpanded = true;
         }
-    }
-
-    private void activatePopularChip() {
-        for (int i = 0; i < chipGroupFilters.getChildCount(); i++) {
-            Chip chip = (Chip) chipGroupFilters.getChildAt(i);
-            if ("popular".equals(chip.getTag())) {
-                chip.setChecked(true);
-                break;
-            }
-        }
-    }
-
-    private void loadHotels() {
-        // Aquí cargarías los hoteles desde tu fuente de datos
-        // Por ahora uso datos de ejemplo
-        allHotels = new ArrayList<>();
-
-        // Agregar hoteles de ejemplo (puedes usar los mismos de HomeFragment)
-        allHotels.add(new Hotel("Belmond Miraflores Park", "Miraflores, Lima", "drawable/belmond", "S/290", "4.9"));
-        allHotels.add(new Hotel("Inkaterra Concepción", "Tambopata, Madre de Dios", "drawable/inkaterra", "S/300", "4.6"));
-        allHotels.add(new Hotel("Skylodge", "Valle Sagrado, Cusco", "drawable/gocta", "S/310", "4.8"));
-        allHotels.add(new Hotel("Arennas Máncora", "Máncora, Piura", "drawable/cuzco", "S/275", "4.7"));
-        allHotels.add(new Hotel("Pariwana Lima", "Cercado, Lima", "drawable/arequipa", "S/320", "4.9"));
-        allHotels.add(new Hotel("Gocta Lodge", "Chachapoyas, Amazonas", "drawable/gocta", "S/280", "4.8"));
-
-        // Filtrar según el tipo inicial
-        applyInitialFilter();
-
-        // Configurar adapter
-        adapter = new HotelsResultsAdapter(this, filteredHotels);
-        adapter.setOnHotelClickListener((hotel, position) -> {
-            // Navegar al detalle del hotel
-            navigateToHotelDetail(hotel);
-        });
-        recyclerViewResults.setAdapter(adapter);
-
-        updateResultsCount();
-    }
-
-    private void applyInitialFilter() {
-        filteredHotels = new ArrayList<>();
-
-        switch (filterType) {
-            case "nearby":
-                // Filtrar hoteles cercanos (por ejemplo, los que están en Lima)
-                for (Hotel hotel : allHotels) {
-                    if (hotel.getLocation().contains("Lima")) {
-                        filteredHotels.add(hotel);
-                    }
-                }
-                break;
-
-            case "popular":
-                // Filtrar hoteles populares (por ejemplo, con calificación >= 4.8)
-                for (Hotel hotel : allHotels) {
-                    if (Float.parseFloat(hotel.getRating()) >= 4.8) {
-                        filteredHotels.add(hotel);
-                    }
-                }
-                break;
-
-            case "city":
-                // Filtrar por ciudad seleccionada
-                for (Hotel hotel : allHotels) {
-                    if (hotel.getLocation().contains(searchLocation)) {
-                        filteredHotels.add(hotel);
-                    }
-                }
-                break;
-
-            default:
-                // Mostrar todos los hoteles
-                filteredHotels.addAll(allHotels);
-                break;
-        }
-    }
-
-    private void applyFilter(String filterTag) {
-        // Aquí implementarías la lógica de filtrado
-        // Por ejemplo:
-        switch (filterTag) {
-            case "nearby":
-                filterByProximity();
-                break;
-            case "popular":
-                filterByPopularity();
-                break;
-            case "price_low":
-                filterByPriceLowToHigh();
-                break;
-            case "price_high":
-                filterByPriceHighToLow();
-                break;
-            case "rating":
-                filterByRating();
-                break;
-            case "services":
-                filterByServices();
-                break;
-        }
-
-        adapter.updateHotels(filteredHotels);
-        updateResultsCount();
-    }
-
-    private void removeFilter(String filterTag) {
-        // Recargar la lista base y aplicar filtros activos
-        applyInitialFilter();
-
-        // Reaplicar otros filtros activos
-        for (int i = 0; i < chipGroupFilters.getChildCount(); i++) {
-            Chip chip = (Chip) chipGroupFilters.getChildAt(i);
-            if (chip.isChecked() && !filterTag.equals(chip.getTag())) {
-                applyFilter((String) chip.getTag());
-            }
-        }
-    }
-
-    private void filterByProximity() {
-        // Implementar filtro por proximidad
-        filteredHotels.clear();
-        for (Hotel hotel : allHotels) {
-            if (hotel.getLocation().contains("Lima")) {
-                filteredHotels.add(hotel);
-            }
-        }
-    }
-
-    private void filterByPopularity() {
-        // Implementar filtro por popularidad
-        filteredHotels.clear();
-        for (Hotel hotel : allHotels) {
-            if (Float.parseFloat(hotel.getRating()) >= 4.8) {
-                filteredHotels.add(hotel);
-            }
-        }
-    }
-
-    private void filterByPriceLowToHigh() {
-        // Ordenar por precio de menor a mayor
-        filteredHotels.sort((h1, h2) -> {
-            int price1 = Integer.parseInt(h1.getPrice().replace("S/", ""));
-            int price2 = Integer.parseInt(h2.getPrice().replace("S/", ""));
-            return Integer.compare(price1, price2);
-        });
-    }
-
-    private void filterByPriceHighToLow() {
-        // Ordenar por precio de mayor a menor
-        filteredHotels.sort((h1, h2) -> {
-            int price1 = Integer.parseInt(h1.getPrice().replace("S/", ""));
-            int price2 = Integer.parseInt(h2.getPrice().replace("S/", ""));
-            return Integer.compare(price2, price1);
-        });
-    }
-
-    private void filterByRating() {
-        // Ordenar por calificación de mayor a menor
-        filteredHotels.sort((h1, h2) -> Float.compare(Float.parseFloat(h2.getRating()), Float.parseFloat(h1.getRating())));
-    }
-
-    private void filterByServices() {
-        // Aquí podrías filtrar por cantidad de servicios
-        // Por ahora solo como ejemplo
     }
 
     private void updateResultsCount() {
-        tvResultsCount.setText(filteredHotels.size() + " hoteles encontrados");
+        int totalCount = getTotalItemsCount();
+        tvResultsCountInline.setText(String.valueOf(totalCount));
     }
 
-    private void setupFilters() {
-        // Configurar listener para el botón de ordenar
-        LinearLayout tvSortBy = findViewById(R.id.tv_sort_by);
-        if (tvSortBy != null) {
-            tvSortBy.setOnClickListener(v -> {
-                showSortOptions();
+    private int getTotalItemsCount() {
+        int count = 0;
+        for (Object item : groupedItems) {
+            if (item instanceof Hotel) {
+                count++;
+            }
+        }
+        return count;
+    }
+
+    private void applyFilter(String filterText) {
+        List<Object> filteredItems = new ArrayList<>();
+
+        if (filterText.contains("💰 Mejor precio")) {
+            // Ordenar por precio
+            List<Hotel> hotels = extractHotels(groupedItems);
+            hotels.sort((h1, h2) -> {
+                int price1 = extractPrice(h1.getPrice());
+                int price2 = extractPrice(h2.getPrice());
+                return Integer.compare(price1, price2);
             });
+            filteredItems.addAll(hotels);
+        } else if (filterText.contains("⭐ Mejor valorados")) {
+            // Ordenar por rating
+            List<Hotel> hotels = extractHotels(groupedItems);
+            hotels.sort((h1, h2) -> Float.compare(Float.parseFloat(h2.getRating()), Float.parseFloat(h1.getRating())));
+            filteredItems.addAll(hotels);
+        } else if (filterText.contains("🏨 Por ciudad")) {
+            // Mantener agrupación por ciudad
+            filteredItems = new ArrayList<>(groupedItems);
+        } else {
+            // Filtro por defecto
+            filteredItems = new ArrayList<>(groupedItems);
+        }
+
+        adapter.updateItems(filteredItems);
+        updateResultsCount();
+
+        // Mostrar feedback
+        showFilterToast("Filtro aplicado: " + filterText.substring(2));
+    }
+    private List<Hotel> extractHotels(List<Object> items) {
+        List<Hotel> hotels = new ArrayList<>();
+        for (Object item : items) {
+            if (item instanceof Hotel) {
+                hotels.add((Hotel) item);
+            }
+        }
+        return hotels;
+    }
+
+    private int extractPrice(String priceText) {
+        try {
+            return Integer.parseInt(priceText.replace("S/", "").trim());
+        } catch (NumberFormatException e) {
+            return 0;
         }
     }
 
-    private void showSortOptions() {
-        String[] sortOptions = {
-                "⭐ Mejor calificación",
-                "💰 Precio: menor a mayor",
-                "💸 Precio: mayor a menor",
-                "🔤 Nombre A-Z",
-                "📍 Más cercanos"
-        };
-
-        android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(this);
-        builder.setTitle("Ordenar por")
-                .setItems(sortOptions, (dialog, which) -> {
-                    switch (which) {
-                        case 0: // Mejor calificación
-                            filterByRating();
-                            showToast("Ordenado por mejor calificación");
-                            break;
-                        case 1: // Precio menor a mayor
-                            filterByPriceLowToHigh();
-                            showToast("Ordenado por precio: menor a mayor");
-                            break;
-                        case 2: // Precio mayor a menor
-                            filterByPriceHighToLow();
-                            showToast("Ordenado por precio: mayor a menor");
-                            break;
-                        case 3: // Nombre A-Z
-                            sortByName();
-                            showToast("Ordenado alfabéticamente");
-                            break;
-                        case 4: // Más cercanos
-                            filterByProximity();
-                            showToast("Ordenado por proximidad");
-                            break;
-                    }
-                    adapter.updateHotels(filteredHotels);
-                    updateResultsCount();
-                })
-                .setNegativeButton("Cancelar", null)
-                .show();
-    }
-
-    private void sortByName() {
-        filteredHotels.sort((h1, h2) -> h1.getName().compareToIgnoreCase(h2.getName()));
-    }
-
-    private void showToast(String message) {
+    private void showFilterToast(String message) {
         android.widget.Toast.makeText(this, message, android.widget.Toast.LENGTH_SHORT).show();
+    }
+    private void removeFilter(String filterText) {
+        // Remover filtro aplicado
     }
 
     private void navigateToHotelDetail(Hotel hotel) {
-        // Navegar al HotelDetailFragment (no Activity)
-        android.content.Intent intent = new android.content.Intent();
+        Intent intent = new Intent();
         intent.putExtra("hotel_name", hotel.getName());
         intent.putExtra("hotel_location", hotel.getLocation());
         intent.putExtra("hotel_price", hotel.getPrice());
         intent.putExtra("hotel_rating", hotel.getRating());
         intent.putExtra("hotel_image", hotel.getImageUrl());
-
-        // Devolver resultado para que HomeActivity maneje la navegación al fragment
         setResult(RESULT_OK, intent);
         finish();
+    }
+
+    private List<Hotel> loadSampleHotels() {
+        List<Hotel> hotels = new ArrayList<>();
+
+        // LIMA (8 hoteles)
+        hotels.add(new Hotel("Belmond Miraflores Park", "Miraflores, Lima", "belmond", "S/290", "4.9"));
+        hotels.add(new Hotel("Westin Lima Hotel & Convention Center", "San Isidro, Lima", "belmond", "S/320", "4.7"));
+        hotels.add(new Hotel("JW Marriott Hotel Lima", "Miraflores, Lima", "belmond", "S/380", "4.8"));
+        hotels.add(new Hotel("Country Club Lima Hotel", "San Isidro, Lima", "belmond", "S/450", "4.9"));
+        hotels.add(new Hotel("Hilton Lima Miraflores", "Miraflores, Lima", "belmond", "S/275", "4.6"));
+        hotels.add(new Hotel("Swissotel Lima", "San Isidro, Lima", "belmond", "S/310", "4.7"));
+        hotels.add(new Hotel("Hotel B", "Barranco, Lima", "belmond", "S/240", "4.8"));
+        hotels.add(new Hotel("Costa del Sol Wyndham Lima", "Centro, Lima", "belmond", "S/180", "4.5"));
+
+        // CUSCO (6 hoteles)
+        hotels.add(new Hotel("Belmond Hotel Monasterio", "Centro Histórico, Cusco", "cuzco", "S/650", "4.9"));
+        hotels.add(new Hotel("JW Marriott El Convento Cusco", "Centro Histórico, Cusco", "cuzco", "S/590", "4.8"));
+        hotels.add(new Hotel("Palacio del Inka", "Centro Histórico, Cusco", "cuzco", "S/480", "4.7"));
+        hotels.add(new Hotel("Aranwa Cusco Boutique Hotel", "Centro Histórico, Cusco", "cuzco", "S/420", "4.6"));
+        hotels.add(new Hotel("Novotel Cusco", "Centro, Cusco", "cuzco", "S/280", "4.5"));
+        hotels.add(new Hotel("Costa del Sol Ramada Cusco", "Centro, Cusco", "cuzco", "S/250", "4.4"));
+
+        // AREQUIPA (4 hoteles)
+        hotels.add(new Hotel("Casa Andina Premium Arequipa", "Centro, Arequipa", "arequipa", "S/320", "4.7"));
+        hotels.add(new Hotel("Sonesta Posadas del Inca Arequipa", "Yanahuara, Arequipa", "arequipa", "S/280", "4.6"));
+        hotels.add(new Hotel("Hampton by Hilton Arequipa", "Cayma, Arequipa", "arequipa", "S/240", "4.5"));
+        hotels.add(new Hotel("Hotel Libertador Arequipa", "Centro, Arequipa", "arequipa", "S/200", "4.3"));
+
+        // PIURA (3 hoteles)
+        hotels.add(new Hotel("Arennas Mancora", "Máncora, Piura", "cuzco", "S/350", "4.8"));
+        hotels.add(new Hotel("Casa Andina Select Tumbes", "Tumbes, Piura", "cuzco", "S/220", "4.4"));
+        hotels.add(new Hotel("Costa del Sol Wyndham Tumbes", "Tumbes, Piura", "cuzco", "S/180", "4.2"));
+
+        // AMAZONAS (2 hoteles)
+        hotels.add(new Hotel("Gocta Lodge", "Chachapoyas, Amazonas", "gocta", "S/280", "4.8"));
+        hotels.add(new Hotel("Casa Vieja Lodge", "Leymebamba, Amazonas", "gocta", "S/160", "4.5"));
+
+        // MADRE DE DIOS (2 hoteles)
+        hotels.add(new Hotel("Inkaterra Reserva Amazónica", "Tambopata, Madre de Dios", "inkaterra", "S/480", "4.9"));
+        hotels.add(new Hotel("Corto Maltes Amazonia", "Puerto Maldonado, Madre de Dios", "inkaterra", "S/200", "4.4"));
+
+        // VALLE SAGRADO (2 hoteles)
+        hotels.add(new Hotel("Skylodge Adventure Suites", "Valle Sagrado, Cusco", "gocta", "S/680", "4.9"));
+        hotels.add(new Hotel("Tambo del Inka Resort", "Valle Sagrado, Cusco", "gocta", "S/520", "4.8"));
+
+        return hotels;
     }
 }
