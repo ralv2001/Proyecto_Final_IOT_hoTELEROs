@@ -148,9 +148,22 @@
                 android:textSize="14sp"
                 android:textColor="#9E9E9E"
                 android:layout_marginTop="8dp"/>
+
+            <!-- NUEVO: Instrucción para pull-to-refresh -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Desliza hacia abajo para actualizar"
+                android:textSize="12sp"
+                android:textColor="#FF5722"
+                android:layout_marginTop="12dp"
+                android:drawableTop="@drawable/ic_refresh"
+                android:drawableTint="#FF5722"
+                android:drawablePadding="4dp"
+                android:gravity="center"/>
         </LinearLayout>
 
-        <!-- Estado de carga -->
+        <!-- Estado de carga inicial -->
         <LinearLayout
             android:id="@+id/loading_state"
             android:layout_width="match_parent"
@@ -173,17 +186,26 @@
                 android:layout_marginTop="16dp"/>
         </LinearLayout>
 
-        <!-- Lista de historial -->
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/recycler_historial"
+        <!-- MODIFICADO: SwipeRefreshLayout con RecyclerView -->
+        <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+            android:id="@+id/swipe_refresh_layout"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:clipToPadding="false"
-            android:paddingBottom="80dp"
-            android:visibility="visible"/>
+            android:visibility="visible">
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/recycler_historial"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:clipToPadding="false"
+                android:paddingBottom="16dp"/>
+
+        </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+
     </FrameLayout>
 
-    <!-- Botón para actualizar manualmente -->
+    <!-- ELIMINADO: FloatingActionButton ya no es necesario -->
+    <!--
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/btn_refresh"
         android:layout_width="wrap_content"
@@ -194,5 +216,6 @@
         app:tint="#FFFFFF"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"/>
+    -->
 
 </androidx.constraintlayout.widget.ConstraintLayout>

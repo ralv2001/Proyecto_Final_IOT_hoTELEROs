@@ -15,6 +15,7 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.example.proyecto_final_hoteleros.R;
 import com.example.proyecto_final_hoteleros.taxista.adapters.HistorialAdapter;
@@ -43,7 +44,8 @@ public class DriverHistorialFragment extends Fragment implements HistorialAdapte
     private TextView tvHistorialCount;
     private TextView tvTotalEarnings;
     private TextView tvTotalTrips;
-    private FloatingActionButton btnRefresh;
+    //private FloatingActionButton btnRefresh;
+    private SwipeRefreshLayout swipeRefreshLayout;
 
     public DriverHistorialFragment() {
         // Constructor vacío requerido
@@ -65,7 +67,6 @@ public class DriverHistorialFragment extends Fragment implements HistorialAdapte
             setupRecyclerView();
 
             // Configurar botón de actualizar
-            btnRefresh.setOnClickListener(v -> cargarHistorial());
 
         } catch (Exception e) {
             Log.e(TAG, "Error en onCreateView: " + e.getMessage(), e);
@@ -82,7 +83,10 @@ public class DriverHistorialFragment extends Fragment implements HistorialAdapte
         tvHistorialCount = view.findViewById(R.id.tv_historial_count);
         tvTotalEarnings = view.findViewById(R.id.tv_total_earnings);
         tvTotalTrips = view.findViewById(R.id.tv_total_trips);
-        btnRefresh = view.findViewById(R.id.btn_refresh);
+
+        // NUEVO: Inicializar SwipeRefreshLayout
+        swipeRefreshLayout = view.findViewById(R.id.swipe_refresh_layout);
+        // btnRefresh = view.findViewById(R.id.btn_refresh);
     }
 
     private void setupRecyclerView() {
@@ -95,6 +99,27 @@ public class DriverHistorialFragment extends Fragment implements HistorialAdapte
             recyclerHistorial.setAdapter(adapter);
 
             Log.d(TAG, "✅ RecyclerView configurado con listener: " + this);
+        }
+
+        // NUEVO: Configurar SwipeRefreshLayout
+        setupSwipeRefresh();
+    }
+    private void setupSwipeRefresh() {
+        if (swipeRefreshLayout != null) {
+            // Configurar colores del refresh
+            swipeRefreshLayout.setColorSchemeColors(
+                    getResources().getColor(R.color.colorPrimary, null),
+                    getResources().getColor(R.color.colorAccent, null),
+                    getResources().getColor(android.R.color.holo_orange_light, null)
+            );
+
+            // Configurar listener para el refresh
+            swipeRefreshLayout.setOnRefreshListener(() -> {
+                Log.d(TAG, "🔄 Pull-to-refresh activado");
+                cargarHistorial();
+            });
+
+            Log.d(TAG, "✅ SwipeRefreshLayout configurado");
         }
     }
 
@@ -187,17 +212,33 @@ public class DriverHistorialFragment extends Fragment implements HistorialAdapte
             setViewVisibility(recyclerHistorial, View.GONE);
             setViewVisibility(loadingState, View.GONE);
             setViewVisibility(emptyState, View.VISIBLE);
+            setViewVisibility(swipeRefreshLayout, View.GONE); // NUEVO
         } else {
             setViewVisibility(recyclerHistorial, View.VISIBLE);
             setViewVisibility(loadingState, View.GONE);
             setViewVisibility(emptyState, View.GONE);
+            setViewVisibility(swipeRefreshLayout, View.VISIBLE); // NUEVO
+        }
+
+        // NUEVO: Detener el refresh si está activo
+        if (swipeRefreshLayout != null && swipeRefreshLayout.isRefreshing()) {
+            swipeRefreshLayout.setRefreshing(false);
         }
     }
 
     private void showLoadingState() {
-        setViewVisibility(recyclerHistorial, View.GONE);
-        setViewVisibility(emptyState, View.GONE);
-        setViewVisibility(loadingState, View.VISIBLE);
+        // Solo mostrar loading inicial si no hay datos
+        if (historialList == null || historialList.isEmpty()) {
+            setViewVisibility(recyclerHistorial, View.GONE);
+            setViewVisibility(emptyState, View.GONE);
+            setViewVisibility(loadingState, View.VISIBLE);
+            setViewVisibility(swipeRefreshLayout, View.GONE);
+        } else {
+            // Si ya hay datos, solo mostrar el refresh indicator
+            if (swipeRefreshLayout != null) {
+                swipeRefreshLayout.setRefreshing(true);
+            }
+        }
     }
 
     private void showErrorState() {
@@ -387,6 +428,8 @@ public class DriverHistorialFragment extends Fragment implements HistorialAdapte
         adapter = null;
         historialList = null;
         preferenceManager = null;
+        swipeRefreshLayout = null; // NUEVO
+        // btnRefresh = null; // REMOVER esta línea
         Log.d(TAG, "Vista destruida y referencias limpiadas");
     }
 }
