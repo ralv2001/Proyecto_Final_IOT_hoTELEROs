@@ -8,21 +8,17 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
-
 import androidx.annotation.NonNull;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.recyclerview.widget.RecyclerView;
-
 import com.example.proyecto_final_hoteleros.R;
 import com.example.proyecto_final_hoteleros.client.data.model.Reservation;
-
 import java.util.List;
 
 public class ReservationAdapter extends RecyclerView.Adapter<ReservationAdapter.ReservationViewHolder> {
-    // Constantes para los estados (duplicadas de Reservation para facilidad de uso)
+    // ✅ SOLO 3 ESTADOS (sin checkout)
     public static final int ESTADO_PROXIMA = Reservation.STATUS_PROXIMA;
     public static final int ESTADO_ACTUAL = Reservation.STATUS_ACTUAL;
-    public static final int ESTADO_CHECKOUT = Reservation.STATUS_CHECKOUT;
     public static final int ESTADO_COMPLETADA = Reservation.STATUS_COMPLETADA;
 
     private List<Reservation> reservations;
@@ -32,6 +28,9 @@ public class ReservationAdapter extends RecyclerView.Adapter<ReservationAdapter.
     public interface ReservationActionListener {
         void onActionButtonClicked(Reservation reservation, int position);
         void onReservationCardClicked(Reservation reservation, int position);
+
+        // ✅ NUEVO: Callback específico para checkout
+        void onCheckoutRequested(Reservation reservation, int position);
     }
 
     public ReservationAdapter(List<Reservation> reservations, int currentState) {
@@ -62,7 +61,7 @@ public class ReservationAdapter extends RecyclerView.Adapter<ReservationAdapter.
         Reservation reservation = reservations.get(position);
         Context context = holder.itemView.getContext();
 
-        // Configurar datos básicos de la reserva
+        // Configurar datos básicos
         holder.tvHotelName.setText(reservation.getHotelName());
         holder.tvLocation.setText(reservation.getLocation());
         holder.tvDate.setText(reservation.getDate());
@@ -70,88 +69,128 @@ public class ReservationAdapter extends RecyclerView.Adapter<ReservationAdapter.
         holder.tvRating.setText(String.valueOf(reservation.getRating()));
         holder.ivHotelImage.setImageResource(reservation.getImageResource());
 
-        // Configurar el estado
+        // Configurar estado
         holder.tvStatus.setText(reservation.getStatusText());
         holder.tvStatus.getBackground().setTint(reservation.getStatusBackgroundColor());
 
-        // Configurar el botón de acción principal
-        holder.btnAction.setText(reservation.getActionButtonText());
+        // ✅ NUEVO: Configurar botón según estado y si está listo para checkout
+        setupActionButton(holder, reservation, position, context);
 
-        // Configurar información adicional si es necesario
+        // Configurar información adicional
         String additionalInfo = reservation.getAdditionalInfo();
         if (!additionalInfo.isEmpty()) {
             holder.additionalInfoContainer.setVisibility(View.VISIBLE);
             holder.tvAdditionalInfo.setText(additionalInfo);
-
-            // Establecer título adecuado según el estado
-            switch (reservation.getStatus()) {
-                case ESTADO_PROXIMA:
-                    holder.tvAdditionalInfoTitle.setText("Información de check-in");
-                    break;
-                case ESTADO_ACTUAL:
-                    holder.tvAdditionalInfoTitle.setText("Servicios adquiridos");
-                    break;
-                case ESTADO_CHECKOUT:
-                    holder.tvAdditionalInfoTitle.setText("Información de checkout");
-                    break;
-                case ESTADO_COMPLETADA:
-                    holder.tvAdditionalInfoTitle.setText("Resumen de estadía");
-                    break;
-            }
+            setupAdditionalInfoTitle(holder, reservation);
         } else {
             holder.additionalInfoContainer.setVisibility(View.GONE);
         }
 
-        // Configurar acciones para el botón principal con animación de feedback
-        holder.btnAction.setOnClickListener(v -> {
-            // Efecto visual de feedback
-            v.animate().scaleX(0.95f).scaleY(0.95f).setDuration(100).withEndAction(() -> {
-                v.animate().scaleX(1f).scaleY(1f).setDuration(100);
-
-                // Si hay un listener definido, usarlo
+        // Click en toda la tarjeta
+        holder.cardReservation.setOnClickListener(v -> {
+            animateCardClick(v, () -> {
                 if (actionListener != null) {
-                    actionListener.onActionButtonClicked(reservation, holder.getAdapterPosition());
-                    return;
-                }
-
-                // Comportamiento por defecto si no hay listener
-                switch (reservation.getStatus()) {
-                    case ESTADO_PROXIMA:
-                        // Abrir detalles de la reserva
-                        Toast.makeText(context, "Ver detalles de: " + reservation.getHotelName(), Toast.LENGTH_SHORT).show();
-                        break;
-                    case ESTADO_ACTUAL:
-                        // Abrir servicios adicionales
-                        Toast.makeText(context, "Ver servicios para: " + reservation.getHotelName(), Toast.LENGTH_SHORT).show();
-                        break;
-                    case ESTADO_CHECKOUT:
-                        // Iniciar proceso de checkout
-                        Toast.makeText(context, "Iniciar checkout para: " + reservation.getHotelName(), Toast.LENGTH_SHORT).show();
-                        break;
-                    case ESTADO_COMPLETADA:
-                        // Mostrar factura
-                        Toast.makeText(context, "Ver factura de: " + reservation.getHotelName(), Toast.LENGTH_SHORT).show();
-                        break;
+                    actionListener.onReservationCardClicked(reservation, holder.getAdapterPosition());
+                } else {
+                    Toast.makeText(context, "Ver detalles: " + reservation.getHotelName(), Toast.LENGTH_SHORT).show();
                 }
             });
         });
+    }
 
-        // Configurar acción para toda la tarjeta con animación de feedback
-        holder.cardReservation.setOnClickListener(v -> {
-            // Efecto visual de feedback
-            v.animate().alpha(0.7f).setDuration(100).withEndAction(() -> {
-                v.animate().alpha(1f).setDuration(100);
+    // ✅ NUEVO: Configurar botón de acción inteligente
+    private void setupActionButton(ReservationViewHolder holder, Reservation reservation, int position, Context context) {
+        String buttonText = reservation.getActionButtonText();
+        holder.btnAction.setText(buttonText);
 
-                // Si hay un listener definido, usarlo
+        holder.btnAction.setOnClickListener(v -> {
+            animateButtonClick(v, () -> {
                 if (actionListener != null) {
-                    actionListener.onReservationCardClicked(reservation, holder.getAdapterPosition());
+                    // Si es una reserva actual y está lista para checkout
+                    if (reservation.getStatus() == Reservation.STATUS_ACTUAL && reservation.isReadyForCheckout()) {
+                        actionListener.onCheckoutRequested(reservation, position);
+                    } else {
+                        actionListener.onActionButtonClicked(reservation, position);
+                    }
                     return;
                 }
 
                 // Comportamiento por defecto
-                Toast.makeText(context, "Reserva seleccionada: " + reservation.getHotelName(), Toast.LENGTH_SHORT).show();
+                handleDefaultAction(reservation, context);
             });
         });
+
+        // ✅ Cambiar color del botón si es checkout
+        if (reservation.getStatus() == Reservation.STATUS_ACTUAL && reservation.isReadyForCheckout()) {
+            holder.btnAction.setBackgroundTintList(
+                    context.getResources().getColorStateList(R.color.orange_primary, null));
+        } else {
+            holder.btnAction.setBackgroundTintList(
+                    context.getResources().getColorStateList(R.color.blue_primary, null));
+        }
+    }
+
+    private void setupAdditionalInfoTitle(ReservationViewHolder holder, Reservation reservation) {
+        switch (reservation.getStatus()) {
+            case ESTADO_PROXIMA:
+                holder.tvAdditionalInfoTitle.setText("Información de check-in");
+                break;
+            case ESTADO_ACTUAL:
+                if (reservation.isReadyForCheckout()) {
+                    holder.tvAdditionalInfoTitle.setText("Resumen para checkout");
+                } else {
+                    holder.tvAdditionalInfoTitle.setText("Servicios adquiridos");
+                }
+                break;
+            case ESTADO_COMPLETADA:
+                holder.tvAdditionalInfoTitle.setText("Resumen de estadía");
+                break;
+        }
+    }
+
+    private void handleDefaultAction(Reservation reservation, Context context) {
+        switch (reservation.getStatus()) {
+            case ESTADO_PROXIMA:
+                Toast.makeText(context, "Ver detalles de: " + reservation.getHotelName(), Toast.LENGTH_SHORT).show();
+                break;
+            case ESTADO_ACTUAL:
+                if (reservation.isReadyForCheckout()) {
+                    Toast.makeText(context, "Iniciando checkout: " + reservation.getHotelName(), Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(context, "Ver servicios: " + reservation.getHotelName(), Toast.LENGTH_SHORT).show();
+                }
+                break;
+            case ESTADO_COMPLETADA:
+                Toast.makeText(context, "Ver factura: " + reservation.getHotelName(), Toast.LENGTH_SHORT).show();
+                break;
+        }
+    }
+
+    // ✅ MEJORES ANIMACIONES
+    private void animateButtonClick(View view, Runnable action) {
+        view.animate()
+                .scaleX(0.95f)
+                .scaleY(0.95f)
+                .setDuration(100)
+                .withEndAction(() -> {
+                    view.animate()
+                            .scaleX(1f)
+                            .scaleY(1f)
+                            .setDuration(100)
+                            .withEndAction(action);
+                });
+    }
+
+    private void animateCardClick(View view, Runnable action) {
+        view.animate()
+                .alpha(0.8f)
+                .setDuration(150)
+                .withEndAction(() -> {
+                    view.animate()
+                            .alpha(1f)
+                            .setDuration(150)
+                            .withEndAction(action);
+                });
     }
 
     @Override
@@ -160,13 +199,10 @@ public class ReservationAdapter extends RecyclerView.Adapter<ReservationAdapter.
     }
 
     static class ReservationViewHolder extends RecyclerView.ViewHolder {
-        // Elementos básicos de la tarjeta
         View cardReservation;
         TextView tvHotelName, tvLocation, tvDate, tvPrice, tvRating, tvStatus;
         ImageView ivHotelImage;
         Button btnAction;
-
-        // Elementos para información adicional
         ConstraintLayout additionalInfoContainer;
         TextView tvAdditionalInfoTitle, tvAdditionalInfo;
 

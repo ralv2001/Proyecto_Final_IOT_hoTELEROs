@@ -62,6 +62,7 @@
 
         </androidx.constraintlayout.widget.ConstraintLayout>
     </androidx.appcompat.widget.Toolbar>
+
     <!-- SwipeRefreshLayout para recargar notificaciones -->
     <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
         android:id="@+id/swipe_refresh"
@@ -77,10 +78,23 @@
             android:layout_height="match_parent"
             android:clipToPadding="false"
             android:paddingTop="8dp"
-            android:paddingBottom="16dp"
+            android:paddingBottom="80dp"
             android:scrollbars="vertical" />
 
     </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+
+    <!-- Botón flotante para crear notificaciones de prueba -->
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fab_create_notification"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp"
+        android:contentDescription="Crear notificación de prueba"
+        android:src="@drawable/ic_add"
+        app:backgroundTint="#FF5722"
+        app:tint="@android:color/white"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
 
     <!-- Estado vacío mejorado -->
     <LinearLayout
@@ -116,7 +130,7 @@
             android:layout_marginTop="8dp"
             android:fontFamily="@font/poppins_regular"
             android:gravity="center"
-            android:text="Cuando tengas nuevas notificaciones, aparecerán aquí."
+            android:text="Cuando tengas nuevas notificaciones, aparecerán aquí.\n\nUsa el botón + para crear una de prueba."
             android:textColor="#757575"
             android:textSize="14sp" />
 
