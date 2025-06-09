@@ -30,6 +30,7 @@ import com.example.proyecto_final_hoteleros.R;
 import com.example.proyecto_final_hoteleros.client.ui.adapters.LocationAdapter;
 import com.example.proyecto_final_hoteleros.client.data.model.LocationItem;
 import com.example.proyecto_final_hoteleros.client.utils.LocationPreferences;
+import com.example.proyecto_final_hoteleros.client.utils.UserLocationManager;
 import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationAvailability;
@@ -783,7 +784,6 @@ public class LocationSelectorActivity extends AppCompatActivity implements Locat
 
                 if (responseCode != 200) {
                     Log.e(TAG, "Error HTTP: " + responseCode);
-                    // Leer el error stream
                     BufferedReader errorReader = new BufferedReader(
                             new InputStreamReader(connection.getErrorStream()));
                     StringBuilder errorResponse = new StringBuilder();
@@ -925,6 +925,11 @@ public class LocationSelectorActivity extends AppCompatActivity implements Locat
                     final String locationDescription = description;
                     Log.d(TAG, "Ubicación final: " + locationText + " (" + locationDescription + ")");
 
+                    // ✅ AQUÍ SE USA saveLocationToPreferences
+                    saveLocationToPreferences(locationText, locationDescription,
+                            location.getLatitude(), location.getLongitude(),
+                            sublocality, locality, administrative_area_level_1);
+
                     // Actualizar UI en el thread principal
                     runOnUiThread(() -> {
                         progressBar.setVisibility(View.GONE);
@@ -955,6 +960,10 @@ public class LocationSelectorActivity extends AppCompatActivity implements Locat
                                 String.format("%.4f", location.getLatitude()) + ", " +
                                 String.format("%.4f", location.getLongitude()) + ")";
 
+                        // ✅ TAMBIÉN AQUÍ para ubicación genérica
+                        saveLocationToPreferences(genericLocation, "Coordenadas GPS",
+                                location.getLatitude(), location.getLongitude(), "", "", "");
+
                         Intent resultIntent = new Intent();
                         resultIntent.putExtra("selected_location", genericLocation);
                         setResult(Activity.RESULT_OK, resultIntent);
@@ -970,6 +979,11 @@ public class LocationSelectorActivity extends AppCompatActivity implements Locat
                     String genericLocation = "Ubicación actual (" +
                             String.format("%.4f", location.getLatitude()) + ", " +
                             String.format("%.4f", location.getLongitude()) + ")";
+
+                    // ✅ TAMBIÉN AQUÍ para casos de error
+                    saveLocationToPreferences(genericLocation, "Error de geocoding",
+                            location.getLatitude(), location.getLongitude(),
+                            "", "", "");
 
                     Intent resultIntent = new Intent();
                     resultIntent.putExtra("selected_location", genericLocation);
@@ -995,7 +1009,40 @@ public class LocationSelectorActivity extends AppCompatActivity implements Locat
             }
         }
     }
+// Agregar al final del método getAddressFromLocation en LocationSelectorActivity.java
 
+    // Después de obtener la ubicación exitosamente, guardarla
+    private void saveLocationToPreferences(String locationText, String locationDescription,
+                                           double latitude, double longitude,
+                                           String sublocality, String locality, String administrativeArea) {
+        UserLocationManager locationManager = UserLocationManager.getInstance(this);
+
+        // Determinar ciudad y distrito
+        String city = "Lima"; // Por defecto
+        String district = "Centro"; // Por defecto
+
+        // Extraer ciudad (prioridad: locality > administrative area)
+        if (!locality.isEmpty()) {
+            city = locality;
+        } else if (!administrativeArea.isEmpty()) {
+            city = administrativeArea;
+        }
+
+        // Extraer distrito (solo si hay sublocality)
+        if (!sublocality.isEmpty()) {
+            district = sublocality;
+        } else if (locationDescription.contains("Distrito")) {
+            district = locationText;
+        }
+
+        // Guardar en UserLocationManager
+        locationManager.saveCurrentLocation(city, district, latitude, longitude);
+
+        Log.d(TAG, "Ubicación guardada en preferencias:");
+        Log.d(TAG, "  Ciudad: " + city);
+        Log.d(TAG, "  Distrito: " + district);
+        Log.d(TAG, "  Coordenadas: " + latitude + ", " + longitude);
+    }
     @Override
     public void onLocationClick(LocationItem location) {
         Log.d(TAG, "Ubicación seleccionada: " + location.getName());

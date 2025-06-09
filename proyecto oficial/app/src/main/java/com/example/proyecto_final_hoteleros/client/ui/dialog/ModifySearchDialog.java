@@ -1,52 +1,69 @@
 package com.example.proyecto_final_hoteleros.client.ui.dialog;
 
 import android.app.Dialog;
-import android.content.Context;
-import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.view.Gravity;
 import android.widget.Button;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 
 import com.example.proyecto_final_hoteleros.R;
 import com.example.proyecto_final_hoteleros.client.data.model.SearchContext;
-import com.example.proyecto_final_hoteleros.client.ui.activity.HotelResultsActivity;
-import com.example.proyecto_final_hoteleros.client.ui.activity.LocationSelectorActivity;
 import com.example.proyecto_final_hoteleros.client.ui.fragment.CustomDatePickerBottomSheet;
 import com.example.proyecto_final_hoteleros.client.ui.fragment.GuestCountBottomSheet;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
+
 public class ModifySearchDialog extends Dialog {
 
+    private static final String TAG = "ModifySearchDialog";
+    public static final int REQUEST_CODE_LOCATION = 1001;
+
+    private AppCompatActivity activity;
     private SearchContext searchContext;
     private String currentLocation, currentDates, currentGuests;
     private OnSearchModifiedListener listener;
+    private OnLocationRequestListener locationRequestListener;
 
     // Views
     private LinearLayout layoutLocationModify, layoutDatesModify, layoutGuestsModify;
     private TextView tvLocationModify, tvDatesModify, tvGuestsModify;
     private TextView tvLocationStatus;
-    private Button btnApplyModify;
-    public static final int REQUEST_CODE_LOCATION = 1001;
-
+    private Button btnApplyModify, btnCancelModify;
+    private ImageButton btnClose;
+    private ImageView ivChevronLocation, ivChevronDates, ivChevronGuests;
 
     public interface OnSearchModifiedListener {
         void onSearchModified(String newLocation, String newDates, String newGuests);
     }
 
-    public ModifySearchDialog(@NonNull Context context, SearchContext searchContext,
+    public interface OnLocationRequestListener {
+        void onLocationRequested(String currentLocation);
+    }
+
+    public ModifySearchDialog(@NonNull AppCompatActivity activity, SearchContext searchContext,
                               String location, String dates, String guests) {
-        super(context);
+        super(activity);
+        this.activity = activity;
         this.searchContext = searchContext;
-        this.currentLocation = location;
-        this.currentDates = dates;
-        this.currentGuests = guests;
+        this.currentLocation = location != null ? location : "Todas las ubicaciones";
+        this.currentDates = dates != null ? dates : "Fechas flexibles";
+        this.currentGuests = guests != null ? guests : "2 adultos";
+
+        Log.d(TAG, "Dialog creado con: location=" + this.currentLocation +
+                ", dates=" + this.currentDates + ", guests=" + this.currentGuests);
     }
 
     @Override
@@ -55,17 +72,55 @@ public class ModifySearchDialog extends Dialog {
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.client_dialog_modify_search);
 
-        // Configurar ventana
-        Window window = getWindow();
-        if (window != null) {
-            window.setLayout(WindowManager.LayoutParams.MATCH_PARENT,
-                    WindowManager.LayoutParams.WRAP_CONTENT);
-            window.getAttributes().windowAnimations = R.style.BottomSheetAnimation;
-        }
-
+        setupWindow();
         initViews();
         setupViews();
         setupListeners();
+        setupEntranceAnimation();
+    }
+
+    // ✅ MEJORADO: Ventana al centro con mejor configuración
+    private void setupWindow() {
+        Window window = getWindow();
+        if (window != null) {
+            // ✅ CAMBIAR: Centrar en lugar de abajo
+            WindowManager.LayoutParams params = window.getAttributes();
+            params.gravity = Gravity.CENTER; // ✅ CENTRO en lugar de BOTTOM
+            params.width = (int) (activity.getResources().getDisplayMetrics().widthPixels * 0.9);
+            params.height = WindowManager.LayoutParams.WRAP_CONTENT;
+
+            // ✅ AGREGAR: Animaciones personalizadas
+            window.setAttributes(params);
+            window.setBackgroundDrawableResource(android.R.color.transparent);
+
+            // ✅ NUEVO: Animación de entrada/salida más elegante
+            window.setWindowAnimations(R.style.DialogSlideAnimation);
+
+            // ✅ AGREGAR: Sombra suave alrededor
+            window.setFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND,
+                    WindowManager.LayoutParams.FLAG_DIM_BEHIND);
+            window.setDimAmount(0.6f); // Fondo semi-transparente
+        }
+    }
+
+    // ✅ NUEVO: Animación de entrada personalizada
+    private void setupEntranceAnimation() {
+        View dialogContent = findViewById(R.id.dialog_content);
+        if (dialogContent != null) {
+            // Iniciar invisible y con escala pequeña
+            dialogContent.setScaleX(0.8f);
+            dialogContent.setScaleY(0.8f);
+            dialogContent.setAlpha(0f);
+
+            // Animar entrada
+            dialogContent.animate()
+                    .scaleX(1f)
+                    .scaleY(1f)
+                    .alpha(1f)
+                    .setDuration(300)
+                    .setInterpolator(new android.view.animation.OvershootInterpolator(1.1f))
+                    .start();
+        }
     }
 
     private void initViews() {
@@ -77,176 +132,247 @@ public class ModifySearchDialog extends Dialog {
         tvDatesModify = findViewById(R.id.tv_dates_modify);
         tvGuestsModify = findViewById(R.id.tv_guests_modify);
         tvLocationStatus = findViewById(R.id.tv_location_status);
+
         btnApplyModify = findViewById(R.id.btn_apply_modify);
+        btnCancelModify = findViewById(R.id.btn_cancel_modify);
+        btnClose = findViewById(R.id.btn_close_modify);
+
+        ivChevronLocation = findViewById(R.id.iv_chevron_location);
+        ivChevronDates = findViewById(R.id.iv_chevron_dates);
+        ivChevronGuests = findViewById(R.id.iv_chevron_guests);
     }
 
     private void setupViews() {
-        // Ubicación
-        tvLocationModify.setText(currentLocation != null ? currentLocation : "Todas las ubicaciones");
+        setupColors();
+
+        tvLocationModify.setText(currentLocation);
+        tvDatesModify.setText(currentDates);
+        tvGuestsModify.setText(currentGuests);
 
         if (!searchContext.isLocationModifiable()) {
-            layoutLocationModify.setAlpha(0.6f);
-            layoutLocationModify.setEnabled(false);
-            tvLocationStatus.setVisibility(View.VISIBLE);
-            tvLocationStatus.setText("Fijo para este contexto");
-            findViewById(R.id.iv_chevron_location).setVisibility(View.GONE);
-        } else {
-            layoutLocationModify.setAlpha(1.0f);
-            layoutLocationModify.setEnabled(true);
-            tvLocationStatus.setVisibility(View.GONE);
+            disableSection(layoutLocationModify, ivChevronLocation);
+            if (searchContext == SearchContext.NEARBY_HOTELS) {
+                if (tvLocationStatus != null) {
+                    tvLocationStatus.setVisibility(View.VISIBLE);
+                    tvLocationStatus.setText("📍 Mostrando hoteles cerca de tu ubicación actual");
+                    tvLocationStatus.setTextColor(ContextCompat.getColor(activity, R.color.orange));
+                }
+            }
         }
 
-        // Fechas
-        tvDatesModify.setText(currentDates != null ? currentDates : "Fechas flexibles");
         if (!searchContext.areDatesModifiable()) {
-            layoutDatesModify.setAlpha(0.6f);
-            layoutDatesModify.setEnabled(false);
-            findViewById(R.id.iv_chevron_dates).setVisibility(View.GONE);
+            disableSection(layoutDatesModify, ivChevronDates);
         }
 
-        // Huéspedes
-        tvGuestsModify.setText(currentGuests != null ? currentGuests : "2 adultos");
         if (!searchContext.areGuestsModifiable()) {
-            layoutGuestsModify.setAlpha(0.6f);
-            layoutGuestsModify.setEnabled(false);
-            findViewById(R.id.iv_chevron_guests).setVisibility(View.GONE);
+            disableSection(layoutGuestsModify, ivChevronGuests);
         }
     }
 
+    private void setupColors() {
+        btnApplyModify.setBackgroundTintList(
+                ContextCompat.getColorStateList(activity, R.color.orange));
+        btnApplyModify.setTextColor(ContextCompat.getColor(activity, android.R.color.white));
+
+        btnCancelModify.setBackgroundTintList(
+                ContextCompat.getColorStateList(activity, android.R.color.transparent));
+        btnCancelModify.setTextColor(ContextCompat.getColor(activity, R.color.gray));
+    }
+
+    private void disableSection(LinearLayout layout, ImageView chevron) {
+        layout.setAlpha(0.5f);
+        layout.setEnabled(false);
+        layout.setClickable(false);
+        chevron.setVisibility(View.GONE);
+    }
+
     private void setupListeners() {
-        // Botón cerrar
-        ImageButton btnClose = findViewById(R.id.btn_close_modify);
-        btnClose.setOnClickListener(v -> dismiss());
+        btnClose.setOnClickListener(v -> dismissWithAnimation());
+        btnCancelModify.setOnClickListener(v -> dismissWithAnimation());
 
-        // Botón cancelar
-        findViewById(R.id.btn_cancel_modify).setOnClickListener(v -> dismiss());
-
-        // Botón aplicar
         btnApplyModify.setOnClickListener(v -> {
-            if (listener != null) {
-                listener.onSearchModified(currentLocation, currentDates, currentGuests);
-            }
-            dismiss();
+            Log.d(TAG, "Aplicar cambios presionado. Valores: " +
+                    currentLocation + ", " + currentDates + ", " + currentGuests);
+            confirmChanges();
         });
 
-        // ✅ CLICKS SOLO EN SECCIONES MODIFICABLES
         if (searchContext.isLocationModifiable()) {
             layoutLocationModify.setOnClickListener(v -> {
-                addClickFeedback(v);
-                openLocationSelector();
-                // ✅ MOSTRAR MENSAJE INFORMATIVO (temporalmente)
-                tvLocationStatus.setVisibility(View.VISIBLE);
-                tvLocationStatus.setText("Función en desarrollo");
-                v.postDelayed(() -> tvLocationStatus.setVisibility(View.GONE), 2000);
+                Log.d(TAG, "Ubicación clickeada");
+                requestLocationChange();
             });
         }
 
         if (searchContext.areDatesModifiable()) {
             layoutDatesModify.setOnClickListener(v -> {
-                addClickFeedback(v);
+                Log.d(TAG, "Fechas clickeadas");
                 openDatePicker();
             });
         }
 
         if (searchContext.areGuestsModifiable()) {
             layoutGuestsModify.setOnClickListener(v -> {
-                addClickFeedback(v);
+                Log.d(TAG, "Huéspedes clickeados");
                 openGuestSelector();
             });
         }
     }
 
-    // ✅ IMPLEMENTACIÓN COMPLETA: Abrir selector de fechas
+    // ✅ NUEVO: Animación de salida personalizada
+    private void dismissWithAnimation() {
+        View dialogContent = findViewById(R.id.dialog_content);
+        if (dialogContent != null) {
+            dialogContent.animate()
+                    .scaleX(0.8f)
+                    .scaleY(0.8f)
+                    .alpha(0f)
+                    .setDuration(200)
+                    .withEndAction(() -> {
+                        ModifySearchDialog.super.dismiss();
+                    })
+                    .start();
+        } else {
+            super.dismiss();
+        }
+    }
+
+    @Override
+    public void dismiss() {
+        dismissWithAnimation();
+    }
+
+    // ✅ RESTO DE MÉTODOS SIN CAMBIOS (openDatePicker, openGuestSelector, etc.)
+    private void requestLocationChange() {
+        if (locationRequestListener != null) {
+            showStatusMessage("Abriendo selector...", ContextCompat.getColor(activity, R.color.orange));
+            locationRequestListener.onLocationRequested(currentLocation);
+        } else {
+            Log.e(TAG, "Location listener es null!");
+        }
+    }
+
     private void openDatePicker() {
-        CustomDatePickerBottomSheet datePickerBottomSheet = new CustomDatePickerBottomSheet();
+        try {
+            Log.d(TAG, "Abriendo selector de fechas...");
+            CustomDatePickerBottomSheet datePickerBottomSheet = new CustomDatePickerBottomSheet();
 
-        Bundle args = new Bundle();
-        args.putString("current_dates", currentDates);
-        datePickerBottomSheet.setArguments(args);
+            Bundle args = new Bundle();
+            args.putString("current_dates", currentDates);
+            datePickerBottomSheet.setArguments(args);
 
-        datePickerBottomSheet.setOnDatesSelectedListener(new CustomDatePickerBottomSheet.OnDatesSelectedListener() {
-            @Override
-            public void onDatesSelected(String startDate, String endDate) {
-                currentDates = startDate + " - " + endDate;
-                tvDatesModify.setText(currentDates);
-                updateApplyButtonState();
-            }
-        });
+            datePickerBottomSheet.setListener(new CustomDatePickerBottomSheet.DateRangeListener() {
+                @Override
+                public void onDateRangeSelected(Date startDate, Date endDate) {
+                    Log.d(TAG, "Fechas seleccionadas: " + startDate + " - " + endDate);
 
-        if (getContext() instanceof AppCompatActivity) {
-            AppCompatActivity activity = (AppCompatActivity) getContext();
-            datePickerBottomSheet.show(activity.getSupportFragmentManager(), "date_picker_dialog");
-        }
-    }
+                    SimpleDateFormat format = new SimpleDateFormat("dd MMM", new Locale("es", "ES"));
+                    currentDates = format.format(startDate) + " - " + format.format(endDate);
+                    tvDatesModify.setText(currentDates);
+                    showStatusMessage("✓ Fechas actualizadas", ContextCompat.getColor(activity, R.color.green));
 
-    // ✅ IMPLEMENTACIÓN COMPLETA: Abrir selector de huéspedes
-    private void openGuestSelector() {
-        GuestCountBottomSheet guestBottomSheet = new GuestCountBottomSheet();
-
-        Bundle args = new Bundle();
-        args.putString("current_guests", currentGuests);
-        guestBottomSheet.setArguments(args);
-
-        guestBottomSheet.setOnGuestsSelectedListener(new GuestCountBottomSheet.OnGuestsSelectedListener() {
-            @Override
-            public void onGuestsSelected(int adults, int children) {
-                if (adults == 1 && children == 0) {
-                    currentGuests = "1 huésped";
-                } else if (adults == 2 && children == 0) {
-                    currentGuests = "2 adultos";
-                } else {
-                    StringBuilder guestString = new StringBuilder();
-                    guestString.append(adults).append(" adulto").append(adults > 1 ? "s" : "");
-                    if (children > 0) {
-                        guestString.append(" • ").append(children).append(" niño").append(children > 1 ? "s" : "");
-                    }
-                    currentGuests = guestString.toString();
+                    Log.d(TAG, "Fechas formateadas: " + currentDates);
                 }
+            });
 
-                tvGuestsModify.setText(currentGuests);
-                updateApplyButtonState();
-            }
-        });
+            datePickerBottomSheet.show(activity.getSupportFragmentManager(), "date_picker");
 
-        if (getContext() instanceof AppCompatActivity) {
-            AppCompatActivity activity = (AppCompatActivity) getContext();
-            guestBottomSheet.show(activity.getSupportFragmentManager(), "guest_count_dialog");
+        } catch (Exception e) {
+            Log.e(TAG, "Error al abrir selector de fechas", e);
+            showStatusMessage("Error al abrir fechas", ContextCompat.getColor(activity, R.color.red));
         }
     }
 
-    private void addClickFeedback(View view) {
-        view.animate()
-                .scaleX(0.98f)
-                .scaleY(0.98f)
-                .setDuration(100)
-                .withEndAction(() -> {
-                    view.animate()
-                            .scaleX(1f)
-                            .scaleY(1f)
-                            .setDuration(100)
-                            .start();
-                })
-                .start();
+    private void openGuestSelector() {
+        try {
+            Log.d(TAG, "Abriendo selector de huéspedes...");
+            GuestCountBottomSheet guestBottomSheet = new GuestCountBottomSheet();
+
+            Bundle args = new Bundle();
+            args.putString("current_guests", currentGuests);
+            guestBottomSheet.setArguments(args);
+
+            guestBottomSheet.setListener(new GuestCountBottomSheet.Listener() {
+                @Override
+                public void onGuestCount(int adults, int children) {
+                    Log.d(TAG, "Huéspedes seleccionados: " + adults + " adultos, " + children + " niños");
+
+                    currentGuests = formatGuestsString(adults, children);
+                    tvGuestsModify.setText(currentGuests);
+                    showStatusMessage("✓ Huéspedes actualizados", ContextCompat.getColor(activity, R.color.green));
+
+                    Log.d(TAG, "Huéspedes formateados: " + currentGuests);
+                }
+            });
+
+            guestBottomSheet.show(activity.getSupportFragmentManager(), "guest_count");
+
+        } catch (Exception e) {
+            Log.e(TAG, "Error al abrir selector de huéspedes", e);
+            showStatusMessage("Error al abrir huéspedes", ContextCompat.getColor(activity, R.color.red));
+        }
     }
 
-    private void updateApplyButtonState() {
-        btnApplyModify.setAlpha(1.0f);
-        btnApplyModify.setEnabled(true);
+    private String formatGuestsString(int adults, int children) {
+        if (adults == 1 && children == 0) {
+            return "1 huésped";
+        } else if (adults == 2 && children == 0) {
+            return "2 adultos";
+        } else {
+            StringBuilder guestString = new StringBuilder();
+            guestString.append(adults).append(" adulto").append(adults > 1 ? "s" : "");
+            if (children > 0) {
+                guestString.append(" • ").append(children).append(" niño").append(children > 1 ? "s" : "");
+            }
+            return guestString.toString();
+        }
+    }
+
+    private void confirmChanges() {
+        Log.d(TAG, "Confirmando cambios: " + currentLocation + ", " + currentDates + ", " + currentGuests);
+
+        if (listener != null) {
+            listener.onSearchModified(currentLocation, currentDates, currentGuests);
+            showStatusMessage("✓ Cambios aplicados correctamente", ContextCompat.getColor(activity, R.color.green));
+
+            tvLocationStatus.postDelayed(() -> {
+                Log.d(TAG, "Cerrando diálogo después de aplicar cambios");
+                dismissWithAnimation();
+            }, 1000);
+        } else {
+            Log.e(TAG, "Listener es null!");
+            showStatusMessage("Error: No se pudo aplicar", ContextCompat.getColor(activity, R.color.red));
+            tvLocationStatus.postDelayed(() -> dismissWithAnimation(), 2000);
+        }
+    }
+
+    private void showStatusMessage(String message, int color) {
+        tvLocationStatus.setVisibility(View.VISIBLE);
+        tvLocationStatus.setText(message);
+        tvLocationStatus.setTextColor(color);
+
+        tvLocationStatus.postDelayed(() -> {
+            if (tvLocationStatus != null) {
+                tvLocationStatus.setVisibility(View.GONE);
+            }
+        }, 3000);
+    }
+
+    public void updateLocation(String newLocation) {
+        if (newLocation != null && !newLocation.equals(currentLocation)) {
+            currentLocation = newLocation;
+            tvLocationModify.setText(newLocation);
+            showStatusMessage("✓ Ubicación actualizada", ContextCompat.getColor(activity, R.color.green));
+            Log.d(TAG, "Ubicación actualizada a: " + newLocation);
+        }
     }
 
     public void setOnSearchModifiedListener(OnSearchModifiedListener listener) {
         this.listener = listener;
+        Log.d(TAG, "Listener configurado: " + (listener != null));
     }
-    private void openLocationSelector() {
-        Intent intent = new Intent(getContext(), LocationSelectorActivity.class);
-        intent.putExtra("current_location", currentLocation);
-        intent.putExtra("context_type", searchContext.name());
 
-        if (getContext() instanceof HotelResultsActivity) {
-            HotelResultsActivity activity = (HotelResultsActivity) getContext();
-            activity.startActivityForResult(intent, REQUEST_CODE_LOCATION);
-        }
-
-        dismiss(); // Cerrar el diálogo mientras se abre la actividad
+    public void setOnLocationRequestListener(OnLocationRequestListener listener) {
+        this.locationRequestListener = listener;
+        Log.d(TAG, "Location request listener configurado: " + (listener != null));
     }
 }

@@ -73,7 +73,7 @@ public class CustomDatePickerBottomSheet extends BottomSheetDialogFragment {
         // Configurar el comportamiento del BottomSheet
         dialog.setOnShowListener(dialogInterface -> {
             BottomSheetDialog bottomSheetDialog = (BottomSheetDialog) dialogInterface;
-            View bottomSheet = bottomSheetDialog.findViewById(com.google.android.material.R.id.design_bottom_sheet);
+            View bottomSheet = bottomSheetDialog.findViewById(R.id.design_bottom_sheet);
             if (bottomSheet != null) {
                 BottomSheetBehavior<View> behavior = BottomSheetBehavior.from(bottomSheet);
 

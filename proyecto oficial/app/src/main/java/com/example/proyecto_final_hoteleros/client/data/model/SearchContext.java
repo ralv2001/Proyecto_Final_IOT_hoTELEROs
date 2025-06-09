@@ -2,9 +2,9 @@ package com.example.proyecto_final_hoteleros.client.data.model;
 
 public enum SearchContext {
     ALL_DESTINATIONS("Destinos disponibles", "Todas las ubicaciones", "🌎", true, true, true),
-    NEARBY_HOTELS("Hoteles cercanos", "Área metropolitana", "📍", false, true, true),
+    NEARBY_HOTELS("Hoteles cercanos", "Tu ciudad actual", "📍", false, true, true),
     CITY_SPECIFIC("Hoteles en %s", "%s", "🏙️", false, true, true),
-    POPULAR_DESTINATIONS("Destinos populares", "Recomendados", "⭐", true, true, true),
+    POPULAR_DESTINATIONS("Destinos populares", "Los más buscados", "⭐", true, true, true),
     SEARCH_RESULTS("Resultados de búsqueda", "Búsqueda personalizada", "🔍", true, true, true),
     LOCATION_FREE("Búsqueda amplia", "Sin restricción geográfica", "🌐", true, true, true);
 
@@ -25,12 +25,9 @@ public enum SearchContext {
         this.guestsModifiable = guestsModifiable;
     }
 
-    // Getters existentes
     public String getTitle() { return title; }
     public String getLocationDisplay() { return locationDisplay; }
     public String getIcon() { return icon; }
-
-    // ✅ NUEVOS getters para modificabilidad
     public boolean isLocationModifiable() { return locationModifiable; }
     public boolean areDatesModifiable() { return datesModifiable; }
     public boolean areGuestsModifiable() { return guestsModifiable; }
@@ -49,13 +46,29 @@ public enum SearchContext {
         return locationDisplay;
     }
 
-    // ✅ NUEVO: Método para obtener valores por defecto según contexto
+    public String[] getContextualFilters() {
+        switch (this) {
+            case SEARCH_RESULTS:
+                return new String[]{"📍 Distancia", "💰 Precio", "⭐ Rating"};
+            case NEARBY_HOTELS:
+                return new String[]{"⭐ Mejor rating", "💰 Mejor precio"};
+            case POPULAR_DESTINATIONS:
+                return new String[]{"🏆 Top rated", "💰 Mejor precio", "📍 Más cercanos"};
+            case ALL_DESTINATIONS:
+                return new String[]{"💰 Mejor precio", "⭐ Mejor valorados"};
+            case CITY_SPECIFIC:
+                return new String[]{"⭐ Populares", "💰 Económicos"};
+            default:
+                return new String[]{"⭐ Populares", "💰 Precio", "📍 Ubicación"};
+        }
+    }
+
     public DefaultSearchValues getDefaultValues() {
         switch (this) {
             case NEARBY_HOTELS:
-                return new DefaultSearchValues("Área metropolitana", "Hoy - Mañana", "2 adultos");
+                return new DefaultSearchValues("Tu ciudad actual", "Hoy - Mañana", "2 adultos");
             case POPULAR_DESTINATIONS:
-                return new DefaultSearchValues("Recomendados", "Hoy - Mañana", "2 adultos");
+                return new DefaultSearchValues("Los más buscados", "Hoy - Mañana", "2 adultos");
             case CITY_SPECIFIC:
                 return new DefaultSearchValues("Ciudad seleccionada", "Hoy - Mañana", "2 adultos");
             case ALL_DESTINATIONS:
@@ -69,7 +82,6 @@ public enum SearchContext {
         }
     }
 
-    // ✅ NUEVA clase para valores por defecto
     public static class DefaultSearchValues {
         public final String location;
         public final String dates;
