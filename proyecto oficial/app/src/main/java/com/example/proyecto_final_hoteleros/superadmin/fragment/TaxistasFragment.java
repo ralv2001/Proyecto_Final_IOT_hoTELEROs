@@ -142,8 +142,8 @@ public class TaxistasFragment extends Fragment implements TaxistasAdapter.OnTaxi
             taxista.setBreveteImageUrl(null); // O usar getters correctos cuando los sepamos
             taxista.setStatus("PENDING"); // Todos los de pending_drivers están pendientes
             taxista.setRegistrationDate(formatTimestamp(userModel.getCreatedAt()));
-            taxista.setTipoDocumento("DNI"); // Valor por defecto, puedes agregarlo al UserModel si es necesario
-            taxista.setFechaNacimiento(""); // Valor por defecto, puedes agregarlo al UserModel si es necesario
+            taxista.setTipoDocumento(userModel.getTipoDocumento()); // ✅ CORREGIDO
+            taxista.setFechaNacimiento(userModel.getFechaNacimiento()); // ✅ CORREGIDO
 
             taxistas.add(taxista);
         }
