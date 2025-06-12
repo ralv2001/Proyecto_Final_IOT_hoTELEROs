@@ -511,5 +511,76 @@ public class FirebaseManager {
                 });
     }
 
+    // ========== OBTENER TODOS LOS TAXISTAS (PENDIENTES + APROBADOS) ==========
+    public void getAllDrivers(DriverListCallback callback) {
+        Log.d(TAG, "Obteniendo todos los taxistas (pendientes + aprobados)...");
+
+        List<UserModel> allDrivers = new ArrayList<>();
+        final int[] completedQueries = {0}; // Contador para queries completadas
+        final boolean[] hasErrors = {false};
+        final int totalQueries = 2; // Solo 2 queries
+
+        // Query 1: Obtener taxistas pendientes
+        firestore.collection(PENDING_DRIVERS_COLLECTION)
+                .get()
+                .addOnCompleteListener(task1 -> {
+                    if (task1.isSuccessful() && !hasErrors[0]) {
+                        for (DocumentSnapshot document : task1.getResult()) {
+                            try {
+                                UserModel driver = UserModel.fromMap(document.getData());
+                                driver.setUserId(document.getId());
+                                driver.setActive(false); // false = pendiente
+                                allDrivers.add(driver);
+                            } catch (Exception e) {
+                                Log.e(TAG, "Error parseando taxista pendiente: " + e.getMessage());
+                            }
+                        }
+                        Log.d(TAG, "✅ " + task1.getResult().size() + " taxistas pendientes obtenidos");
+                    } else if (!hasErrors[0]) {
+                        Log.e(TAG, "❌ Error obteniendo taxistas pendientes");
+                        hasErrors[0] = true;
+                        callback.onError("Error obteniendo taxistas pendientes");
+                        return;
+                    }
+
+                    completedQueries[0]++;
+                    if (completedQueries[0] == totalQueries) {
+                        Log.d(TAG, "✅ Total: " + allDrivers.size() + " taxistas obtenidos");
+                        callback.onSuccess(allDrivers);
+                    }
+                });
+
+        // Query 2: Obtener taxistas aprobados
+        firestore.collection(USERS_COLLECTION)
+                .whereEqualTo("userType", "driver")
+                .get()
+                .addOnCompleteListener(task2 -> {
+                    if (task2.isSuccessful() && !hasErrors[0]) {
+                        for (DocumentSnapshot document : task2.getResult()) {
+                            try {
+                                UserModel driver = UserModel.fromMap(document.getData());
+                                driver.setUserId(document.getId());
+                                driver.setActive(true); // true = aprobado
+                                allDrivers.add(driver);
+                            } catch (Exception e) {
+                                Log.e(TAG, "Error parseando taxista aprobado: " + e.getMessage());
+                            }
+                        }
+                        Log.d(TAG, "✅ " + task2.getResult().size() + " taxistas aprobados obtenidos");
+                    } else if (!hasErrors[0]) {
+                        Log.e(TAG, "❌ Error obteniendo taxistas aprobados");
+                        hasErrors[0] = true;
+                        callback.onError("Error obteniendo taxistas aprobados");
+                        return;
+                    }
+
+                    completedQueries[0]++;
+                    if (completedQueries[0] == totalQueries) {
+                        Log.d(TAG, "✅ Total: " + allDrivers.size() + " taxistas obtenidos");
+                        callback.onSuccess(allDrivers);
+                    }
+                });
+    }
+
 
 }

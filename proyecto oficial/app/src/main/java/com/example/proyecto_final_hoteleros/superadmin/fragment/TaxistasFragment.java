@@ -89,19 +89,20 @@ public class TaxistasFragment extends Fragment implements TaxistasAdapter.OnTaxi
     }
 
     // 🔥 NUEVO MÉTODO: Cargar datos reales desde Firebase
+    // 🔥 MÉTODO ACTUALIZADO: Cargar todos los taxistas
     private void loadDataFromFirebase() {
-        android.util.Log.d("TaxistasFragment", "Cargando taxistas pendientes desde Firebase...");
+        android.util.Log.d("TaxistasFragment", "Cargando TODOS los taxistas desde Firebase...");
         showLoading(true);
 
-        firebaseManager.getPendingDrivers(new FirebaseManager.DriverListCallback() {
+        firebaseManager.getAllDrivers(new FirebaseManager.DriverListCallback() {
             @Override
-            public void onSuccess(List<UserModel> pendingDrivers) {
-                android.util.Log.d("TaxistasFragment", "✅ Taxistas obtenidos: " + pendingDrivers.size());
+            public void onSuccess(List<UserModel> allDrivers) {
+                android.util.Log.d("TaxistasFragment", "✅ Todos los taxistas obtenidos: " + allDrivers.size());
 
                 if (getActivity() != null) {
                     getActivity().runOnUiThread(() -> {
                         // Convertir UserModel a TaxistaUser
-                        List<TaxistaUser> taxistas = convertUserModelsToTaxistaUsers(pendingDrivers);
+                        List<TaxistaUser> taxistas = convertUserModelsToTaxistaUsersWithStatus(allDrivers);
                         updateTaxistasList(taxistas);
                         showLoading(false);
                     });
@@ -110,7 +111,7 @@ public class TaxistasFragment extends Fragment implements TaxistasAdapter.OnTaxi
 
             @Override
             public void onError(String error) {
-                android.util.Log.e("TaxistasFragment", "❌ Error obteniendo taxistas: " + error);
+                android.util.Log.e("TaxistasFragment", "❌ Error obteniendo todos los taxistas: " + error);
 
                 if (getActivity() != null) {
                     getActivity().runOnUiThread(() -> {
@@ -352,11 +353,22 @@ public class TaxistasFragment extends Fragment implements TaxistasAdapter.OnTaxi
         userModel.setNumeroDocumento(taxista.getDocumentNumber());
         userModel.setPlacaVehiculo(taxista.getLicensePlate());
 
-        userModel.setUserType("driver");  // ✅ YA ESTÁ CORRECTO
+        // ✅ AGREGAR DATOS FALTANTES
+        userModel.setTipoDocumento(taxista.getTipoDocumento());
+        userModel.setFechaNacimiento(taxista.getFechaNacimiento());
+
+        // ✅ PRESERVAR URLs DE AWS
+        userModel.setPhotoUrl(taxista.getProfileImageUrl());
+        userModel.setDocumentUrl(taxista.getBreveteImageUrl());
+
+        userModel.setUserType("driver");
         userModel.setActive(true);
 
-        return userModel;
+        android.util.Log.d("TaxistasFragment", "💾 Preservando URLs en aprobación:");
+        android.util.Log.d("TaxistasFragment", "📷 PhotoURL: " + taxista.getProfileImageUrl());
+        android.util.Log.d("TaxistasFragment", "📄 DocumentURL: " + taxista.getBreveteImageUrl());
 
+        return userModel;
     }
 
     // MÉTODOS EXISTENTES (sin cambios)
@@ -384,14 +396,62 @@ public class TaxistasFragment extends Fragment implements TaxistasAdapter.OnTaxi
     }
 
     private void showFilterOptions() {
-        String[] options = {"Todos", "Pendientes", "Aprobados", "Rechazados"};
+        String[] options = {"Todos", "Pendientes", "Aprobados"};
         new androidx.appcompat.app.AlertDialog.Builder(getContext())
                 .setTitle("Filtrar por estado")
                 .setItems(options, (dialog, which) -> {
-                    android.widget.Toast.makeText(getContext(), "Filtro: " + options[which], android.widget.Toast.LENGTH_SHORT).show();
-                    // TODO: Implementar filtrado real
+                    switch (which) {
+                        case 0: // Todos
+                            android.util.Log.d("TaxistasFragment", "Filtro: Mostrar todos");
+                            if (taxistasAdapter != null) {
+                                taxistasAdapter.showAllTaxistas(); // ✅ Usar método del adapter
+                            }
+                            android.widget.Toast.makeText(getContext(),
+                                    "Mostrando todos los taxistas", android.widget.Toast.LENGTH_SHORT).show();
+                            break;
+                        case 1: // Pendientes
+                            android.util.Log.d("TaxistasFragment", "Filtro: Solo pendientes");
+                            filterTaxistasByStatus("PENDING");
+                            break;
+                        case 2: // Aprobados
+                            android.util.Log.d("TaxistasFragment", "Filtro: Solo aprobados");
+                            filterTaxistasByStatus("APPROVED");
+                            break;
+                    }
                 })
                 .show();
+    }
+
+    // ✅ NUEVO MÉTODO: Filtrar por estado
+    // ✅ MÉTODO MEJORADO: Filtrar por estado
+    private void filterTaxistasByStatus(String status) {
+        if (taxistasAdapter == null) {
+            android.widget.Toast.makeText(getContext(), "Error: Adapter no inicializado", android.widget.Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        List<TaxistaUser> allTaxistas = taxistasAdapter.getAllTaxistas();
+        if (allTaxistas.isEmpty()) {
+            android.widget.Toast.makeText(getContext(), "No hay taxistas para filtrar", android.widget.Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        List<TaxistaUser> filteredTaxistas = new ArrayList<>();
+
+        for (TaxistaUser taxista : allTaxistas) {
+            if (status.equals(taxista.getStatus())) {
+                filteredTaxistas.add(taxista);
+            }
+        }
+
+        taxistasAdapter.updateList(filteredTaxistas);
+
+        String statusText = status.equals("PENDING") ? "pendientes" : "aprobados";
+        android.widget.Toast.makeText(getContext(),
+                "Mostrando " + filteredTaxistas.size() + " taxistas " + statusText,
+                android.widget.Toast.LENGTH_SHORT).show();
+
+        android.util.Log.d("TaxistasFragment", "Filtro aplicado - " + statusText + ": " + filteredTaxistas.size());
     }
 
     // 🔥 MÉTODO PÚBLICO: Para actualizar desde SuperAdminActivity
@@ -406,4 +466,40 @@ public class TaxistasFragment extends Fragment implements TaxistasAdapter.OnTaxi
     public void refreshData() {
         loadDataFromFirebase();
     }
+
+    // 🔥 NUEVO MÉTODO: Convertir con estados
+    private List<TaxistaUser> convertUserModelsToTaxistaUsersWithStatus(List<UserModel> userModels) {
+        List<TaxistaUser> taxistas = new ArrayList<>();
+
+        for (UserModel userModel : userModels) {
+            TaxistaUser taxista = new TaxistaUser();
+            taxista.setId(userModel.getUserId());
+            taxista.setName(userModel.getNombres());
+            taxista.setApellidos(userModel.getApellidos());
+            taxista.setEmail(userModel.getEmail());
+            taxista.setPhoneNumber(userModel.getTelefono());
+            taxista.setDomicilio(userModel.getDireccion());
+            taxista.setDocumentNumber(userModel.getNumeroDocumento());
+            taxista.setLicensePlate(userModel.getPlacaVehiculo());
+            taxista.setProfileImageUrl(userModel.getPhotoUrl());
+            taxista.setBreveteImageUrl(userModel.getDocumentUrl());
+            taxista.setTipoDocumento(userModel.getTipoDocumento());
+            taxista.setFechaNacimiento(userModel.getFechaNacimiento());
+            taxista.setRegistrationDate(formatTimestamp(userModel.getCreatedAt()));
+
+            // 🎯 DETERMINAR ESTADO BASADO EN isActive
+            if (userModel.isActive()) {
+                taxista.setStatus("APPROVED"); // En users collection = aprobado
+            } else {
+                taxista.setStatus("PENDING");   // En pending_drivers = pendiente
+            }
+
+            taxistas.add(taxista);
+        }
+
+        return taxistas;
+    }
+
+
+
 }

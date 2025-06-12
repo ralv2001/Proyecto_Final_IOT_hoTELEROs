@@ -14,6 +14,7 @@ import com.google.android.material.chip.Chip;
 import com.example.proyecto_final_hoteleros.R;
 import com.example.proyecto_final_hoteleros.superadmin.models.TaxistaUser;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class TaxistasAdapter extends RecyclerView.Adapter<TaxistasAdapter.TaxistaViewHolder> {
@@ -49,12 +50,6 @@ public class TaxistasAdapter extends RecyclerView.Adapter<TaxistasAdapter.Taxist
         return taxistas.size();
     }
 
-    public void updateData(List<TaxistaUser> newTaxistas) {
-        this.taxistas.clear();
-        this.taxistas.addAll(newTaxistas);
-        notifyDataSetChanged();
-    }
-
     static class TaxistaViewHolder extends RecyclerView.ViewHolder {
         private CardView cardTaxista;
         private ImageView ivProfile, ivCar, ivMore;
@@ -84,7 +79,6 @@ public class TaxistasAdapter extends RecyclerView.Adapter<TaxistasAdapter.Taxist
             tvName.setText(taxista.getFullName()); // Usar nombre completo
             tvEmail.setText(taxista.getEmail());
             tvLicensePlate.setText("🚗 " + taxista.getLicensePlate());
-            // REMOVER esta línea: tvCarModel.setText(taxista.getCarModel());
             tvRegistrationDate.setText("Registrado: " + taxista.getRegistrationDate());
 
             // Configurar chip de estado
@@ -150,5 +144,49 @@ public class TaxistasAdapter extends RecyclerView.Adapter<TaxistasAdapter.Taxist
 
             popup.show();
         }
+    }
+
+    // ========== MÉTODOS PARA FILTROS ==========
+
+    // Lista original para restaurar cuando se selecciona "Todos"
+    private List<TaxistaUser> originalTaxistas = new ArrayList<>();
+
+    /**
+     * Actualizar datos y guardar copia original
+     */
+    public void updateData(List<TaxistaUser> newTaxistas) {
+        // Guardar lista original
+        this.originalTaxistas.clear();
+        this.originalTaxistas.addAll(newTaxistas);
+
+        // Actualizar lista actual
+        this.taxistas.clear();
+        this.taxistas.addAll(newTaxistas);
+        notifyDataSetChanged();
+    }
+
+    /**
+     * Obtener todos los taxistas (para filtros)
+     */
+    public List<TaxistaUser> getAllTaxistas() {
+        return new ArrayList<>(originalTaxistas); // Usar lista original
+    }
+
+    /**
+     * Actualizar lista con filtros aplicados
+     */
+    public void updateList(List<TaxistaUser> filteredList) {
+        this.taxistas.clear();
+        this.taxistas.addAll(filteredList);
+        notifyDataSetChanged();
+    }
+
+    /**
+     * Mostrar todos los taxistas (restaurar lista original)
+     */
+    public void showAllTaxistas() {
+        this.taxistas.clear();
+        this.taxistas.addAll(originalTaxistas);
+        notifyDataSetChanged();
     }
 }
