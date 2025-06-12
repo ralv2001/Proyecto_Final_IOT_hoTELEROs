@@ -13,6 +13,7 @@ import androidx.cardview.widget.CardView;
 import com.bumptech.glide.Glide;
 
 import com.example.proyecto_final_hoteleros.R;
+import com.example.proyecto_final_hoteleros.superadmin.activity.SuperAdminActivity;
 import com.example.proyecto_final_hoteleros.superadmin.models.TaxistaUser;
 
 public class TaxistaDocumentsFragment extends Fragment {
@@ -75,23 +76,11 @@ public class TaxistaDocumentsFragment extends Fragment {
         // 🔥 SOLUCION: Configurar botón de back con navegación específica
         if (ivBack != null) {
             ivBack.setOnClickListener(v -> {
-                android.util.Log.d("TaxistaDocuments", "Back button clicked - navegando a TaxistasFragment");
-
-                // Usar FragmentManager para volver al fragment anterior
-                if (getParentFragmentManager().getBackStackEntryCount() > 0) {
-                    getParentFragmentManager().popBackStack();
-                } else {
-                    // Si no hay back stack, navegar específicamente a TaxistasFragment
-                    if (getActivity() instanceof com.example.proyecto_final_hoteleros.superadmin.activity.SuperAdminActivity) {
-                        com.example.proyecto_final_hoteleros.superadmin.activity.SuperAdminActivity activity =
-                                (com.example.proyecto_final_hoteleros.superadmin.activity.SuperAdminActivity) getActivity();
-                        activity.navigateBackToTaxistas(); // Método específico que vamos a crear
-                    }
+                android.util.Log.d("TaxistaDocuments", "Back button clicked");
+                if (getActivity() instanceof SuperAdminActivity) {
+                    ((SuperAdminActivity) getActivity()).navigateBackToTaxistas();
                 }
             });
-            android.util.Log.d("TaxistaDocuments", "ivBack configurado correctamente");
-        } else {
-            android.util.Log.e("TaxistaDocuments", "ivBack es null!");
         }
 
         // Click listeners para las fotos
