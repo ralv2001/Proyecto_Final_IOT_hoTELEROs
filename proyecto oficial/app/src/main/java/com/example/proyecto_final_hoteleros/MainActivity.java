@@ -84,7 +84,7 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void onSuccess() {
                         Toast.makeText(MainActivity.this,
-                                "Usuario superadmin creado. Email: superadmin@sistema.com, Password: SuperAdmin123!",
+                                "Usuario superadmin creado. Email: superadmin@gmail.com, Password: SuperAdmin123!",
                                 Toast.LENGTH_LONG).show();
 
                         // Navegar al login
