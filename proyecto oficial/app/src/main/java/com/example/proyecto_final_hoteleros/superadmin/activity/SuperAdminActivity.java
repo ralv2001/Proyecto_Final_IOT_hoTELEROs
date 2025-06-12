@@ -72,6 +72,32 @@ public class SuperAdminActivity extends AppCompatActivity {
         }
     }
 
+    // 🔥 NUEVO MÉTODO: Navegar específicamente al TaxistasFragment
+    public void navigateBackToTaxistas() {
+        android.util.Log.d("SuperAdminActivity", "Navegando de vuelta al TaxistasFragment");
+
+        // Buscar si ya hay un TaxistasFragment en el back stack
+        FragmentManager fragmentManager = getSupportFragmentManager();
+
+        // Intentar hacer pop hasta encontrar TaxistasFragment
+        boolean found = false;
+        for (int i = 0; i < fragmentManager.getBackStackEntryCount(); i++) {
+            FragmentManager.BackStackEntry entry = fragmentManager.getBackStackEntryAt(i);
+            if ("TAXISTAS".equals(entry.getName())) {
+                // Hacer pop hasta ese fragment
+                fragmentManager.popBackStack("TAXISTAS", 0);
+                found = true;
+                break;
+            }
+        }
+
+        // Si no se encontró en el back stack, crear uno nuevo
+        if (!found) {
+            TaxistasFragment taxistasFragment = new TaxistasFragment();
+            loadFragment(taxistasFragment, "TAXISTAS", true);
+        }
+    }
+
     // 🔥 NUEVO MÉTODO: Establecer datos del usuario (alternativo al Intent)
     public void setUserData(String userId, String userEmail, String userName, String userType) {
         this.userId = userId;
