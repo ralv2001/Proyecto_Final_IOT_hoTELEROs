@@ -16,6 +16,8 @@ public class UserModel {
     private String numeroDocumento;
     private String direccion;
     private String placaVehiculo; // Solo para taxistas
+    private String photoUrl;      // URL de la foto de perfil en AWS
+    private String documentUrl;
     private boolean isActive;
     private long createdAt;
     private long updatedAt;
@@ -60,6 +62,8 @@ public class UserModel {
         map.put("numeroDocumento", numeroDocumento);
         map.put("direccion", direccion);
         map.put("placaVehiculo", placaVehiculo);
+        map.put("photoUrl", photoUrl);
+        map.put("documentUrl", documentUrl);
         map.put("isActive", isActive);
         map.put("createdAt", createdAt);
         map.put("updatedAt", updatedAt);
@@ -80,6 +84,8 @@ public class UserModel {
         user.numeroDocumento = (String) map.get("numeroDocumento");
         user.direccion = (String) map.get("direccion");
         user.placaVehiculo = (String) map.get("placaVehiculo");
+        user.photoUrl = (String) map.get("photoUrl");
+        user.documentUrl = (String) map.get("documentUrl");
         user.isActive = map.get("isActive") != null ? (Boolean) map.get("isActive") : true;
         user.createdAt = map.get("createdAt") != null ? (Long) map.get("createdAt") : System.currentTimeMillis();
         user.updatedAt = map.get("updatedAt") != null ? (Long) map.get("updatedAt") : System.currentTimeMillis();
@@ -119,6 +125,12 @@ public class UserModel {
 
     public String getPlacaVehiculo() { return placaVehiculo; }
     public void setPlacaVehiculo(String placaVehiculo) { this.placaVehiculo = placaVehiculo; }
+
+    public String getPhotoUrl() { return photoUrl; }
+    public void setPhotoUrl(String photoUrl) { this.photoUrl = photoUrl; }
+
+    public String getDocumentUrl() { return documentUrl; }
+    public void setDocumentUrl(String documentUrl) { this.documentUrl = documentUrl; }
 
     public boolean isActive() { return isActive; }
     public void setActive(boolean active) { isActive = active; }
