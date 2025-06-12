@@ -21,6 +21,7 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 import com.example.proyecto_final_hoteleros.adminhotel.activity.AdminHotelActivity;
+import com.example.proyecto_final_hoteleros.utils.FirebaseManager;
 import com.example.proyecto_final_hoteleros.utils.FirebaseTestHelper;
 import com.google.android.material.button.MaterialButton;
 import com.google.firebase.FirebaseApp;
@@ -34,6 +35,9 @@ public class MainActivity extends AppCompatActivity {
         FirebaseApp.initializeApp(this);
         EdgeToEdge.enable(this);
         setContentView(R.layout.sistema_activity_main);
+
+        // En caso se necesite crear de nuevo el SuperAdmin porque se borró:
+        //recreateSuperAdmin();
 
         // Configurar sistema de insets para pantallas con notch
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
@@ -192,6 +196,28 @@ public class MainActivity extends AppCompatActivity {
                         Log.d("AWSTest", "📊 Progreso: " + percentage + "%");
                     }
                 });
+    }
+
+    // ✅ MÉTODO TEMPORAL PARA RECREAR SUPERADMIN
+    private void recreateSuperAdmin() {
+        FirebaseManager firebaseManager = FirebaseManager.getInstance();
+        firebaseManager.createSuperAdminUser(new FirebaseManager.DataCallback() {
+            @Override
+            public void onSuccess() {
+                Log.d("MainActivity", "✅ SuperAdmin recreado automáticamente");
+                Toast.makeText(MainActivity.this, "✅ SuperAdmin restaurado", Toast.LENGTH_LONG).show();
+            }
+
+            @Override
+            public void onError(String error) {
+                Log.e("MainActivity", "❌ Error recreando SuperAdmin: " + error);
+                if (error.contains("email address is already in use")) {
+                    Log.d("MainActivity", "SuperAdmin ya existe, todo OK");
+                } else {
+                    Toast.makeText(MainActivity.this, "❌ Error creando SuperAdmin: " + error, Toast.LENGTH_LONG).show();
+                }
+            }
+        });
     }
 
 
