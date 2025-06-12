@@ -74,6 +74,18 @@ public class DashboardFragment extends Fragment {
     }
 
     private void loadData() {
+        // 🔥 OBTENER DATOS DEL USUARIO LOGUEADO
+        String userEmail = "";
+        String userName = "";
+
+        if (getActivity() instanceof SuperAdminActivity) {
+            SuperAdminActivity activity = (SuperAdminActivity) getActivity();
+            userEmail = activity.getUserEmail();
+            userName = activity.getUserName();
+
+            android.util.Log.d("DashboardFragment", "Usuario logueado: " + userName + " (" + userEmail + ")");
+        }
+
         loadMetrics();
         loadQuickAccess();
         loadRecentActivity();

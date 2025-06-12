@@ -1,5 +1,6 @@
 package com.example.proyecto_final_hoteleros.superadmin.activity;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -11,9 +12,10 @@ import androidx.fragment.app.FragmentTransaction;
 import com.example.proyecto_final_hoteleros.R;
 import com.example.proyecto_final_hoteleros.superadmin.fragment.DashboardFragment;
 import com.example.proyecto_final_hoteleros.superadmin.fragment.AdminsFragment;
-import com.example.proyecto_final_hoteleros.superadmin.fragment.ReportesFragment;
 import com.example.proyecto_final_hoteleros.superadmin.fragment.TaxistasFragment;
 import com.example.proyecto_final_hoteleros.superadmin.fragment.UsuariosFragment;
+import com.example.proyecto_final_hoteleros.superadmin.fragment.ReportesFragment;
+import com.example.proyecto_final_hoteleros.superadmin.fragment.TaxistaDocumentsFragment;
 
 public class SuperAdminActivity extends AppCompatActivity {
 
@@ -21,15 +23,71 @@ public class SuperAdminActivity extends AppCompatActivity {
     private ImageView ivProfile;
     private FragmentManager fragmentManager;
 
+    // 🔥 NUEVOS CAMPOS PARA DATOS DEL USUARIO LOGUEADO
+    private String userId;
+    private String userEmail;
+    private String userName;
+    private String userType;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_super_admin);
 
+        // 🔥 RECIBIR DATOS DEL INTENT
+        receiveUserDataFromIntent();
+
         initViews();
         setupInitialData();
         loadInitialFragment();
     }
+
+    // 🔥 NUEVO MÉTODO: Recibir datos del login desde el Intent
+    private void receiveUserDataFromIntent() {
+        Intent intent = getIntent();
+        if (intent != null) {
+            userId = intent.getStringExtra("userId");
+            userEmail = intent.getStringExtra("userEmail");
+            userName = intent.getStringExtra("userName");
+            userType = intent.getStringExtra("userType");
+
+            android.util.Log.d("SuperAdminActivity", "=== DATOS DEL USUARIO RECIBIDOS ===");
+            android.util.Log.d("SuperAdminActivity", "UserId: " + userId);
+            android.util.Log.d("SuperAdminActivity", "Email: " + userEmail);
+            android.util.Log.d("SuperAdminActivity", "Name: " + userName);
+            android.util.Log.d("SuperAdminActivity", "Type: " + userType);
+        } else {
+            android.util.Log.w("SuperAdminActivity", "No se recibieron datos del usuario");
+            // Valores por defecto para desarrollo/testing
+            userId = "superadmin_default";
+            userEmail = "superadmin@hotel.com";
+            userName = "Super Administrador";
+            userType = "superadmin";
+        }
+    }
+
+    // 🔥 NUEVO MÉTODO: Establecer datos del usuario (alternativo al Intent)
+    public void setUserData(String userId, String userEmail, String userName, String userType) {
+        this.userId = userId;
+        this.userEmail = userEmail;
+        this.userName = userName;
+        this.userType = userType;
+
+        android.util.Log.d("SuperAdminActivity", "=== DATOS DEL USUARIO ESTABLECIDOS ===");
+        android.util.Log.d("SuperAdminActivity", "UserId: " + userId);
+        android.util.Log.d("SuperAdminActivity", "Email: " + userEmail);
+        android.util.Log.d("SuperAdminActivity", "Name: " + userName);
+        android.util.Log.d("SuperAdminActivity", "Type: " + userType);
+
+        // Actualizar la interfaz con los nuevos datos
+        updateUserInterface();
+    }
+
+    // 🔥 GETTERS PARA QUE LOS FRAGMENTS ACCEDAN A LOS DATOS
+    public String getUserId() { return userId; }
+    public String getUserEmail() { return userEmail; }
+    public String getUserName() { return userName; }
+    public String getUserType() { return userType; }
 
     private void initViews() {
         tvAdminName = findViewById(R.id.tv_admin_name);
@@ -44,12 +102,20 @@ public class SuperAdminActivity extends AppCompatActivity {
     }
 
     private void setupInitialData() {
-        String adminName = getAdminName();
-        tvAdminName.setText(adminName);
+        updateUserInterface();
+    }
+
+    // 🔥 NUEVO MÉTODO: Actualizar interfaz con datos del usuario
+    private void updateUserInterface() {
+        if (userName != null && !userName.isEmpty()) {
+            tvAdminName.setText(userName);
+        } else {
+            tvAdminName.setText("Super Administrador");
+        }
     }
 
     private String getAdminName() {
-        return "Superadmin";
+        return userName != null ? userName : "Super Administrador";
     }
 
     private void loadInitialFragment() {
@@ -68,7 +134,7 @@ public class SuperAdminActivity extends AppCompatActivity {
         transaction.commit();
     }
 
-    // Métodos de navegación actualizados
+    // Métodos de navegación existentes...
     public void navigateToAdmins() {
         AdminsFragment adminsFragment = new AdminsFragment();
         loadFragment(adminsFragment, "ADMINS", true);
@@ -90,19 +156,15 @@ public class SuperAdminActivity extends AppCompatActivity {
     }
 
     public void navigateToLogs() {
-        // LogsFragment logsFragment = new LogsFragment();
-        // loadFragment(logsFragment, "LOGS", true);
         showToast("Logs del Sistema - Próximamente");
     }
 
     public void navigateToAddAdmin() {
-        // AddAdminFragment addAdminFragment = new AddAdminFragment();
-        // loadFragment(addAdminFragment, "ADD_ADMIN", true);
         showToast("Registro de Admin - Próximamente");
     }
 
-    // Método para manejar clicks desde DashboardFragment
     public void handleQuickAccessClick(String action) {
+        android.util.Log.d("SuperAdminActivity", "Handling action: " + action);
         switch (action) {
             case "admins":
                 navigateToAdmins();
@@ -125,32 +187,56 @@ public class SuperAdminActivity extends AppCompatActivity {
         }
     }
 
-    // Método para volver al dashboard desde otros fragments
     public void navigateBackToDashboard() {
         DashboardFragment dashboardFragment = new DashboardFragment();
         loadFragment(dashboardFragment, "DASHBOARD", false);
 
-        // Limpiar back stack
         fragmentManager.popBackStack(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
     }
 
     private void showProfileOptions() {
+        String[] options;
+        if (userEmail != null) {
+            options = new String[]{
+                    "Ver perfil (" + userEmail + ")",
+                    "Configuración",
+                    "Cerrar sesión"
+            };
+        } else {
+            options = new String[]{"Ver perfil", "Configuración", "Cerrar sesión"};
+        }
+
         new androidx.appcompat.app.AlertDialog.Builder(this)
                 .setTitle("Opciones de perfil")
-                .setItems(new String[]{"Ver perfil", "Configuración", "Cerrar sesión"},
-                        (dialog, which) -> {
-                            switch (which) {
-                                case 0:
-                                    showToast("Ver perfil");
-                                    break;
-                                case 1:
-                                    showToast("Configuración");
-                                    break;
-                                case 2:
-                                    showLogoutConfirmation();
-                                    break;
-                            }
-                        })
+                .setItems(options, (dialog, which) -> {
+                    switch (which) {
+                        case 0:
+                            showUserProfile();
+                            break;
+                        case 1:
+                            showToast("Configuración");
+                            break;
+                        case 2:
+                            showLogoutConfirmation();
+                            break;
+                    }
+                })
+                .show();
+    }
+
+    // 🔥 NUEVO MÉTODO: Mostrar perfil del usuario
+    private void showUserProfile() {
+        StringBuilder profileInfo = new StringBuilder();
+        profileInfo.append("👤 Información del Usuario\n\n");
+        profileInfo.append("📧 Email: ").append(userEmail != null ? userEmail : "No disponible").append("\n");
+        profileInfo.append("👨‍💼 Nombre: ").append(userName != null ? userName : "No disponible").append("\n");
+        profileInfo.append("🔑 Tipo: ").append(userType != null ? userType : "No disponible").append("\n");
+        profileInfo.append("🆔 ID: ").append(userId != null ? userId : "No disponible");
+
+        new androidx.appcompat.app.AlertDialog.Builder(this)
+                .setTitle("Perfil del Usuario")
+                .setMessage(profileInfo.toString())
+                .setPositiveButton("Cerrar", (dialog, which) -> dialog.dismiss())
                 .show();
     }
 
@@ -159,11 +245,41 @@ public class SuperAdminActivity extends AppCompatActivity {
                 .setTitle("Cerrar sesión")
                 .setMessage("¿Estás seguro que deseas cerrar sesión?")
                 .setPositiveButton("Sí", (dialog, which) -> {
-                    // Volver al MainActivity
-                    finish();
+                    // 🔥 CERRAR SESIÓN Y VOLVER AL LOGIN
+                    logoutUser();
                 })
                 .setNegativeButton("No", (dialog, which) -> dialog.dismiss())
                 .show();
+    }
+
+    // 🔥 NUEVO MÉTODO: Logout del usuario
+    private void logoutUser() {
+        // Limpiar datos del usuario
+        userId = null;
+        userEmail = null;
+        userName = null;
+        userType = null;
+
+        // Volver al MainActivity (pantalla de login)
+        Intent intent = new Intent(this, com.example.proyecto_final_hoteleros.MainActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+        startActivity(intent);
+        finish();
+
+        showToast("Sesión cerrada exitosamente");
+    }
+    // 🔥 MÉTODO ESTÁTICO PARA QUE TU COMPAÑERO INICIE EL SUPERADMIN
+    public static void startWithUserData(android.content.Context context,
+                                         String userId,
+                                         String userEmail,
+                                         String userName,
+                                         String userType) {
+        Intent intent = new Intent(context, SuperAdminActivity.class);
+        intent.putExtra("userId", userId);
+        intent.putExtra("userEmail", userEmail);
+        intent.putExtra("userName", userName);
+        intent.putExtra("userType", userType);
+        context.startActivity(intent);
     }
 
     private void showToast(String message) {
