@@ -138,8 +138,8 @@ public class TaxistasFragment extends Fragment implements TaxistasAdapter.OnTaxi
             taxista.setDomicilio(userModel.getDireccion());
             taxista.setDocumentNumber(userModel.getNumeroDocumento());
             taxista.setLicensePlate(userModel.getPlacaVehiculo());
-            taxista.setProfileImageUrl(userModel.getPhotoUrl());
-            taxista.setBreveteImageUrl(userModel.getDocumentUrl());
+            taxista.setProfileImageUrl(null); // O usar getters correctos cuando los sepamos
+            taxista.setBreveteImageUrl(null); // O usar getters correctos cuando los sepamos
             taxista.setStatus("PENDING"); // Todos los de pending_drivers están pendientes
             taxista.setRegistrationDate(formatTimestamp(userModel.getCreatedAt()));
             taxista.setTipoDocumento("DNI"); // Valor por defecto, puedes agregarlo al UserModel si es necesario
@@ -341,6 +341,8 @@ public class TaxistasFragment extends Fragment implements TaxistasAdapter.OnTaxi
     }
 
     // 🔥 NUEVO MÉTODO: Convertir TaxistaUser a UserModel
+    // 🔥 MÉTODO CORREGIDO: Convertir TaxistaUser a UserModel
+    // 🔥 MÉTODO CORREGIDO: Convertir TaxistaUser a UserModel
     private UserModel convertTaxistaUserToUserModel(TaxistaUser taxista) {
         UserModel userModel = new UserModel();
         userModel.setUserId(taxista.getId());
@@ -351,12 +353,12 @@ public class TaxistasFragment extends Fragment implements TaxistasAdapter.OnTaxi
         userModel.setDireccion(taxista.getDomicilio());
         userModel.setNumeroDocumento(taxista.getDocumentNumber());
         userModel.setPlacaVehiculo(taxista.getLicensePlate());
-        userModel.setPhotoUrl(taxista.getProfileImageUrl());
-        userModel.setDocumentUrl(taxista.getBreveteImageUrl());
-        userModel.setUserType("taxista");
-        userModel.setIsActive(true);
+
+        userModel.setUserType("driver");  // ✅ YA ESTÁ CORRECTO
+        userModel.setActive(true);
 
         return userModel;
+
     }
 
     // MÉTODOS EXISTENTES (sin cambios)

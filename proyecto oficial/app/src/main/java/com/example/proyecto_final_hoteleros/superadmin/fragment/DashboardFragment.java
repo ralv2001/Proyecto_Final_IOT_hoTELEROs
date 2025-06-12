@@ -74,21 +74,36 @@ public class DashboardFragment extends Fragment {
     }
 
     private void loadData() {
-        // 🔥 OBTENER DATOS DEL USUARIO LOGUEADO
-        String userEmail = "";
-        String userName = "";
-
-        if (getActivity() instanceof SuperAdminActivity) {
-            SuperAdminActivity activity = (SuperAdminActivity) getActivity();
-            userEmail = activity.getUserEmail();
-            userName = activity.getUserName();
-
-            android.util.Log.d("DashboardFragment", "Usuario logueado: " + userName + " (" + userEmail + ")");
-        }
-
         loadMetrics();
         loadQuickAccess();
         loadRecentActivity();
+
+        // 🔥 AGREGAR ESTO:
+        loadPendingDriversFromSuperAdmin();
+    }
+
+    // 🔥 NUEVO MÉTODO: Cargar taxistas desde SuperAdminActivity
+    private void loadPendingDriversFromSuperAdmin() {
+        if (getActivity() instanceof SuperAdminActivity) {
+            SuperAdminActivity activity = (SuperAdminActivity) getActivity();
+            activity.loadPendingDrivers();
+        }
+    }
+
+    // 🔥 NUEVO MÉTODO: Actualizar conteo de taxistas pendientes
+    public void updatePendingDriversCount(int count) {
+        android.util.Log.d("DashboardFragment", "Actualizando contador de taxistas: " + count);
+
+        // Actualizar la métrica en el dashboard
+        List<MetricItem> metrics = new ArrayList<>();
+        metrics.add(new MetricItem("Hoteles", "15", R.drawable.ic_hotel));
+        metrics.add(new MetricItem("Taxistas Pendientes", String.valueOf(count), R.drawable.ic_car));
+        metrics.add(new MetricItem("Reservas Hoy", "28", R.drawable.ic_calendar));
+        metrics.add(new MetricItem("Usuarios Activos", "142", R.drawable.ic_people));
+
+        if (metricsAdapter != null) {
+            metricsAdapter.updateData(metrics);
+        }
     }
 
     private void loadMetrics() {

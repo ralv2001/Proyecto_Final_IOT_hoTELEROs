@@ -111,21 +111,26 @@ public class SuperAdminActivity extends AppCompatActivity {
             public void onSuccess(List<UserModel> pendingDrivers) {
                 android.util.Log.d("SuperAdmin", "Taxistas pendientes obtenidos: " + pendingDrivers.size());
 
-                // Actualizar métricas en el dashboard
-                Fragment currentFragment = fragmentManager.findFragmentById(R.id.fragment_container);
-                if (currentFragment instanceof DashboardFragment) {
-                    ((DashboardFragment) currentFragment).updatePendingDriversCount(pendingDrivers.size());
-                }
+                runOnUiThread(() -> {
+                    // Si el TaxistasFragment está activo, actualizarlo
+                    if (taxistasFragment != null) {
+                        taxistasFragment.updatePendingDrivers(pendingDrivers);
+                    }
 
-                // Si el TaxistasFragment está activo, actualizarlo
-                if (taxistasFragment != null) {
-                    taxistasFragment.updatePendingDrivers(pendingDrivers);
-                }
+                    // Actualizar métricas en el dashboard si está visible
+                    Fragment currentFragment = getSupportFragmentManager().findFragmentById(R.id.fragment_container);
+                    if (currentFragment instanceof DashboardFragment) {
+                        ((DashboardFragment) currentFragment).updatePendingDriversCount(pendingDrivers.size());
+                    }
+                });
             }
 
             @Override
             public void onError(String error) {
                 android.util.Log.e("SuperAdmin", "Error obteniendo taxistas: " + error);
+                runOnUiThread(() -> {
+                    showToast("Error cargando taxistas: " + error);
+                });
             }
         });
     }
@@ -321,6 +326,7 @@ public class SuperAdminActivity extends AppCompatActivity {
 
     @Override
     public void onBackPressed() {
+        super.onBackPressed();
         FragmentManager fm = getSupportFragmentManager();
 
         if (fm.getBackStackEntryCount() > 0) {
@@ -343,6 +349,8 @@ public class SuperAdminActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         refreshCurrentFragment();
+        // 🔥 AGREGAR: Recargar datos de taxistas
+        loadPendingDrivers();
     }
 
     private void refreshCurrentFragment() {
