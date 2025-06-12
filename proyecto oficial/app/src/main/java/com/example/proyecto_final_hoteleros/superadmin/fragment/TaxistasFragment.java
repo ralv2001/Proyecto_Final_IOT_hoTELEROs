@@ -136,8 +136,8 @@ public class TaxistasFragment extends Fragment implements TaxistasAdapter.OnTaxi
             taxista.setDomicilio(userModel.getDireccion());
             taxista.setDocumentNumber(userModel.getNumeroDocumento());
             taxista.setLicensePlate(userModel.getPlacaVehiculo());
-            taxista.setProfileImageUrl(null); // O usar getters correctos cuando los sepamos
-            taxista.setBreveteImageUrl(null); // O usar getters correctos cuando los sepamos
+            taxista.setProfileImageUrl(userModel.getPhotoUrl()); // O usar getters correctos cuando los sepamos
+            taxista.setBreveteImageUrl(userModel.getDocumentUrl()); // O usar getters correctos cuando los sepamos
             taxista.setStatus("PENDING"); // Todos los de pending_drivers están pendientes
             taxista.setRegistrationDate(formatTimestamp(userModel.getCreatedAt()));
             taxista.setTipoDocumento(userModel.getTipoDocumento()); // ✅ CORREGIDO
