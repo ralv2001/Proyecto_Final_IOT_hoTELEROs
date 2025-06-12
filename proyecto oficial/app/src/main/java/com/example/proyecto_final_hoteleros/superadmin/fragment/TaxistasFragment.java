@@ -52,12 +52,22 @@ public class TaxistasFragment extends Fragment implements TaxistasAdapter.OnTaxi
         android.util.Log.d("TaxistasFragment", "rvTaxistas: " + (rvTaxistas != null ? "OK" : "NULL"));
         android.util.Log.d("TaxistasFragment", "layoutEmptyState: " + (layoutEmptyState != null ? "OK" : "NULL"));
 
-        // Configurar botón de back
+        // 🔥 SOLUCION: Configurar botón de back con navegación específica
         ImageView ivBack = view.findViewById(R.id.iv_back);
         if (ivBack != null) {
             ivBack.setOnClickListener(v -> {
-                if (getActivity() != null) {
-                    getActivity().onBackPressed();
+                android.util.Log.d("TaxistasFragment", "Back button clicked - navegando a Dashboard");
+
+                // Usar FragmentManager para volver al dashboard
+                if (getParentFragmentManager().getBackStackEntryCount() > 0) {
+                    getParentFragmentManager().popBackStack();
+                } else {
+                    // Si no hay back stack, navegar específicamente al dashboard
+                    if (getActivity() instanceof com.example.proyecto_final_hoteleros.superadmin.activity.SuperAdminActivity) {
+                        com.example.proyecto_final_hoteleros.superadmin.activity.SuperAdminActivity activity =
+                                (com.example.proyecto_final_hoteleros.superadmin.activity.SuperAdminActivity) getActivity();
+                        activity.navigateBackToDashboard();
+                    }
                 }
             });
             android.util.Log.d("TaxistasFragment", "ivBack configurado correctamente");
@@ -372,6 +382,7 @@ public class TaxistasFragment extends Fragment implements TaxistasAdapter.OnTaxi
         // Navegar al fragment de documentos
         if (getActivity() instanceof SuperAdminActivity) {
             TaxistaDocumentsFragment documentsFragment = TaxistaDocumentsFragment.newInstance(taxista);
+            // 🔥 IMPORTANTE: Usar true para agregar al back stack
             ((SuperAdminActivity) getActivity()).loadFragment(documentsFragment, "TAXISTA_DOCUMENTS", true);
         }
     }
