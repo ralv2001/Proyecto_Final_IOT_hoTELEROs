@@ -439,7 +439,7 @@
                                     android:id="@+id/iv_brevete_photo"
                                     android:layout_width="80dp"
                                     android:layout_height="80dp"
-                                    android:src="@drawable/ic_document"
+                                    android:src="@drawable/ic_pdfgozu"
                                     android:scaleType="centerCrop"
                                     android:background="@drawable/circle_primary_light" />
 
