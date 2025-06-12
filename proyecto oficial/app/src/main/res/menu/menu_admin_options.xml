@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/action_edit"
+        android:title="Editar información"
+        android:icon="@drawable/ic_edit" />
+
+    <item
+        android:id="@+id/action_view_hotel"
+        android:title="Ver hotel"
+        android:icon="@drawable/ic_hotel" />
+
+    <item
+        android:id="@+id/action_reset_password"
+        android:title="Restablecer contraseña"
+        android:icon="@drawable/ic_remove" />
+</menu>

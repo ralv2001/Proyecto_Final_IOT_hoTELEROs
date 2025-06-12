@@ -9,6 +9,7 @@ import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import com.example.proyecto_final_hoteleros.client.ui.activity.HomeActivity;
+import com.example.proyecto_final_hoteleros.superadmin.activity.SuperAdminActivity;
 import com.example.proyecto_final_hoteleros.taxista.activity.DriverActivity;
 import com.example.proyecto_final_hoteleros.utils.AwsFileManager;
 import com.example.proyecto_final_hoteleros.utils.DatabaseTestHelper;
@@ -71,36 +72,15 @@ public class MainActivity extends AppCompatActivity {
                 finish(); // Opcional: cerrar MainActivity
             }
         });
-
-        // BOTÓN TEMPORAL PARA TESTING - Eliminar en producción
         LinearLayout layoutContinueAsSuperadmin = findViewById(R.id.layoutContinueAsSuperadmin);
         layoutContinueAsSuperadmin.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // Tests de base de datos (Room)
-                DatabaseTestHelper testHelper = new DatabaseTestHelper(MainActivity.this);
-                testHelper.runDatabaseTests();
-                testHelper.testNotifications(MainActivity.this);
+                Toast.makeText(MainActivity.this, "Continuando como superadmin...", Toast.LENGTH_SHORT).show();
 
-                // ========== NUEVO: TESTS DE FIREBASE ==========
-                FirebaseTestHelper firebaseTestHelper = new FirebaseTestHelper(MainActivity.this);
-                firebaseTestHelper.runAllTests();
-
-                // Test especial para taxistas (después de 8 segundos)
-                new android.os.Handler().postDelayed(() -> {
-                    firebaseTestHelper.testDriverRegistration();
-                }, 8000);
-
-                Toast.makeText(MainActivity.this, "Tests de Room + Firebase ejecutados - Ver logs", Toast.LENGTH_LONG).show();
-            }
-        });
-
-        // LONG PRESS para test de AWS
-        layoutContinueAsSuperadmin.setOnLongClickListener(new View.OnLongClickListener() {
-            @Override
-            public boolean onLongClick(View v) {
-                testAwsUpload();
-                return true;
+                // Navegar a SuperAdminActivity
+                Intent intent = new Intent(MainActivity.this, SuperAdminActivity.class);
+                startActivity(intent);
             }
         });
 

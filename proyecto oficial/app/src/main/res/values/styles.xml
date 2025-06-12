@@ -231,5 +231,28 @@
         <item name="android:textSize">12sp</item>
         <item name="android:letterSpacing">-0.025</item>
     </style>
+    <!-- Tema específico para SuperAdmin -->
+    <style name="SuperAdminTheme" parent="Theme.HotelerApp">
+        <!-- Colores para SuperAdmin usando los que ya tienes -->
+        <item name="colorPrimary">@color/primary_FF6B35</item>
+        <item name="colorPrimaryVariant">@color/primary_dark</item>
+        <item name="colorOnPrimary">@color/white</item>
+
+        <!-- Secondary colors -->
+        <item name="colorSecondary">@color/primary_FF6B35</item>
+        <item name="colorSecondaryVariant">@color/primary_dark</item>
+        <item name="colorOnSecondary">@color/white</item>
+
+        <!-- Surface colors -->
+        <item name="colorSurface">@color/white</item>
+        <item name="colorOnSurface">@color/text_primary</item>
+
+        <!-- Background colors -->
+        <item name="android:colorBackground">@color/background_gray</item>
+
+        <!-- Status bar con el color principal -->
+        <item name="android:statusBarColor">@color/primary_FF6B35</item>
+        <item name="android:windowLightStatusBar">false</item>
+    </style>
 
 </resources>

@@ -12,6 +12,19 @@
     <color name="colorTextTertiary">#989898</color>
     <color name="orange_button">#F35D38</color>
 
+    <!-- Color principal -->
+    <color name="primary_FF6B35">#FF6B35</color>
+
+    <!-- Colores de fondo -->
+    <color name="background_gray">#F5F5F5</color>
+
+    <!-- Colores de texto -->
+
+    <!-- Colores de estado -->
+    <color name="success">#4CAF50</color>
+    <color name="warning">#FF9800</color>
+    <color name="error">#F44336</color>
+
     <color name="orange_primary">#FA5D31</color>
     <color name="divider_gold">#DBA151</color>
     <color name="text_hint">#CCCCCC</color>
