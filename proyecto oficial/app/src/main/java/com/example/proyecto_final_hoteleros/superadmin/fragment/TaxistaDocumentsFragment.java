@@ -10,6 +10,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.cardview.widget.CardView;
+import com.bumptech.glide.Glide;
 
 import com.example.proyecto_final_hoteleros.R;
 import com.example.proyecto_final_hoteleros.superadmin.models.TaxistaUser;
@@ -168,22 +169,48 @@ public class TaxistaDocumentsFragment extends Fragment {
     }
 
     private void loadImages() {
-        // Cargar foto de perfil
+        android.util.Log.d("TaxistaDocuments", "=== CARGANDO IMÁGENES ===");
+        android.util.Log.d("TaxistaDocuments", "PhotoURL: " + taxista.getProfileImageUrl());
+        android.util.Log.d("TaxistaDocuments", "DocumentURL: " + taxista.getBreveteImageUrl());
+
+        // Cargar foto de perfil con Glide
         if (ivProfilePhoto != null) {
             if (taxista.getProfileImageUrl() != null && !taxista.getProfileImageUrl().isEmpty()) {
-                ivProfilePhoto.setImageResource(R.drawable.ic_person);
+                android.util.Log.d("TaxistaDocuments", "📷 Cargando foto de perfil desde: " + taxista.getProfileImageUrl());
+
+                com.bumptech.glide.Glide.with(this)
+                        .load(taxista.getProfileImageUrl())
+                        .placeholder(R.drawable.ic_person) // Placeholder mientras carga
+                        .error(R.drawable.ic_image_placeholder) // Error si falla
+                        .centerCrop()
+                        .into(ivProfilePhoto);
             } else {
+                android.util.Log.w("TaxistaDocuments", "❌ No hay URL de foto de perfil");
                 ivProfilePhoto.setImageResource(R.drawable.ic_image_placeholder);
             }
         } else {
             android.util.Log.e("TaxistaDocuments", "ivProfilePhoto es null!");
         }
 
-        // Cargar foto del brevete
+        // Cargar documento (PDF como icono, no imagen)
         if (ivBrevetePhoto != null) {
             if (taxista.getBreveteImageUrl() != null && !taxista.getBreveteImageUrl().isEmpty()) {
-                ivBrevetePhoto.setImageResource(R.drawable.ic_document);
+                android.util.Log.d("TaxistaDocuments", "📄 Documento PDF disponible: " + taxista.getBreveteImageUrl());
+
+                // Para PDFs, mostrar icono de documento en lugar de intentar cargar como imagen
+                if (taxista.getBreveteImageUrl().toLowerCase().contains(".pdf")) {
+                    ivBrevetePhoto.setImageResource(R.drawable.ic_document);
+                } else {
+                    // Si no es PDF, intentar cargar como imagen
+                    com.bumptech.glide.Glide.with(this)
+                            .load(taxista.getBreveteImageUrl())
+                            .placeholder(R.drawable.ic_document)
+                            .error(R.drawable.ic_image_placeholder)
+                            .centerCrop()
+                            .into(ivBrevetePhoto);
+                }
             } else {
+                android.util.Log.w("TaxistaDocuments", "❌ No hay URL de documento");
                 ivBrevetePhoto.setImageResource(R.drawable.ic_image_placeholder);
             }
         } else {
@@ -192,24 +219,59 @@ public class TaxistaDocumentsFragment extends Fragment {
     }
 
     private void showFullScreenImage(String title, String imageUrl) {
-        // Crear dialog para mostrar imagen en pantalla completa
-        androidx.appcompat.app.AlertDialog.Builder builder = new androidx.appcompat.app.AlertDialog.Builder(getContext());
-
-        View dialogView = LayoutInflater.from(getContext()).inflate(R.layout.dialog_full_image, null);
-        ImageView imageView = dialogView.findViewById(R.id.iv_full_image);
-        TextView titleView = dialogView.findViewById(R.id.tv_image_title);
-
-        titleView.setText(title);
-
-        // Cargar imagen (por ahora placeholder)
-        if (imageUrl != null && !imageUrl.isEmpty()) {
-            // Implementar carga real de imagen
-            imageView.setImageResource(R.drawable.ic_image_placeholder);
-        } else {
-            imageView.setImageResource(R.drawable.ic_no_image);
+        if (imageUrl == null || imageUrl.isEmpty()) {
+            android.widget.Toast.makeText(getContext(), "No hay imagen disponible", android.widget.Toast.LENGTH_SHORT).show();
+            return;
         }
 
-        builder.setView(dialogView)
+        // Si es un PDF, abrir en navegador o visor externo
+        if (imageUrl.toLowerCase().contains(".pdf")) {
+            android.widget.Toast.makeText(getContext(), "Abriendo documento PDF...", android.widget.Toast.LENGTH_SHORT).show();
+
+            try {
+                android.content.Intent intent = new android.content.Intent(android.content.Intent.ACTION_VIEW);
+                intent.setData(android.net.Uri.parse(imageUrl));
+                startActivity(intent);
+            } catch (Exception e) {
+                android.widget.Toast.makeText(getContext(), "No se puede abrir el documento", android.widget.Toast.LENGTH_SHORT).show();
+            }
+            return;
+        }
+
+        // Para imágenes, crear dialog simple sin layout personalizado
+        androidx.appcompat.app.AlertDialog.Builder builder = new androidx.appcompat.app.AlertDialog.Builder(getContext());
+
+        // Crear vista programáticamente
+        android.widget.LinearLayout layout = new android.widget.LinearLayout(getContext());
+        layout.setOrientation(android.widget.LinearLayout.VERTICAL);
+        layout.setPadding(20, 20, 20, 20);
+
+        // Título
+        android.widget.TextView titleView = new android.widget.TextView(getContext());
+        titleView.setText(title);
+        titleView.setTextSize(18);
+        titleView.setGravity(android.view.Gravity.CENTER);
+        titleView.setPadding(0, 0, 0, 20);
+        layout.addView(titleView);
+
+        // ImageView
+        android.widget.ImageView imageView = new android.widget.ImageView(getContext());
+        android.widget.LinearLayout.LayoutParams params = new android.widget.LinearLayout.LayoutParams(
+                android.widget.LinearLayout.LayoutParams.MATCH_PARENT,
+                600 // Altura fija
+        );
+        imageView.setLayoutParams(params);
+        imageView.setScaleType(android.widget.ImageView.ScaleType.CENTER_INSIDE);
+        layout.addView(imageView);
+
+        // Cargar imagen con Glide
+        com.bumptech.glide.Glide.with(this)
+                .load(imageUrl)
+                .placeholder(R.drawable.ic_image_placeholder)
+                .error(R.drawable.ic_no_image)
+                .into(imageView);
+
+        builder.setView(layout)
                 .setPositiveButton("Cerrar", (dialog, which) -> dialog.dismiss())
                 .create()
                 .show();

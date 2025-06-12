@@ -783,34 +783,52 @@ public class RegisterVerifyCodeFragment extends Fragment {
 
         awsManager.uploadFileFromPath(fileEntity.storedPath, fileEntity.originalName,
                 fileEntity.mimeType, userId, awsFolder, new AwsFileManager.UploadCallback() {
-            @Override
-            public void onSuccess(AwsFileManager.AwsFileInfo fileInfo) {
-                Log.d(TAG, "✅ Archivo subido a AWS: " + fileInfo.s3Key);
-
-                // Actualizar el FileStorageEntity con datos de AWS
-                fileEntity.awsS3Key = fileInfo.s3Key;
-                fileEntity.awsStoredName = fileInfo.storedName;
-                fileEntity.awsETag = fileInfo.etag;
-                fileEntity.storedPath = fileInfo.fileUrl; // Actualizar con URL de AWS
-
-                // Guardar cambios en Room Database
-                FileStorageRepository fileRepo = new FileStorageRepository(getActivity());
-                fileRepo.updateFile(fileEntity, new FileStorageRepository.FileOperationCallback() {
                     @Override
-                    public void onSuccess(FileStorageEntity updatedEntity) {
-                        Log.d(TAG, "✅ FileEntity actualizado con datos AWS");
-                        // Continuar con el siguiente archivo
-                        uploadFilesSequentially(files, currentIndex + 1, userModel, registration);
-                    }
+                    public void onSuccess(AwsFileManager.AwsFileInfo fileInfo) {
+                        Log.d(TAG, "✅ Archivo subido a AWS: " + fileInfo.s3Key);
+                        Log.d(TAG, "📸 URL del archivo: " + fileInfo.fileUrl);
 
-                    @Override
-                    public void onError(String error) {
-                        Log.w(TAG, "⚠️ Error actualizando FileEntity: " + error);
-                        // Continuar de todos modos
-                        uploadFilesSequentially(files, currentIndex + 1, userModel, registration);
+                        // Actualizar el FileStorageEntity con datos de AWS
+                        fileEntity.awsS3Key = fileInfo.s3Key;
+                        fileEntity.awsStoredName = fileInfo.storedName;
+                        fileEntity.awsETag = fileInfo.etag;
+                        fileEntity.storedPath = fileInfo.fileUrl; // Actualizar con URL de AWS
+
+                        // 🚀 NUEVO: Actualizar UserModel con URLs de AWS
+                        if (fileEntity.isPdf()) {
+                            // Es un documento PDF
+                            userModel.setDocumentUrl(fileInfo.fileUrl);
+                            Log.d(TAG, "📄 URL de documento PDF guardada: " + fileInfo.fileUrl);
+                        } else {
+                            // Es una foto
+                            userModel.setPhotoUrl(fileInfo.fileUrl);
+                            Log.d(TAG, "📷 URL de foto guardada: " + fileInfo.fileUrl);
+                        }
+
+                        // Guardar cambios en Room Database
+                        FileStorageRepository fileRepo = new FileStorageRepository(getActivity());
+                        fileRepo.updateFile(fileEntity, new FileStorageRepository.FileOperationCallback() {
+                            @Override
+                            public void onSuccess(FileStorageEntity updatedEntity) {
+                                Log.d(TAG, "✅ FileEntity actualizado con datos AWS");
+
+                                // 🚀 NUEVO: Actualizar Firebase con las nuevas URLs
+                                updateFirebaseWithUrls(userModel, () -> {
+                                    // Continuar con el siguiente archivo solo después de actualizar Firebase
+                                    uploadFilesSequentially(files, currentIndex + 1, userModel, registration);
+                                });
+                            }
+
+                            @Override
+                            public void onError(String error) {
+                                Log.w(TAG, "⚠️ Error actualizando FileEntity: " + error);
+                                // Continuar de todos modos, pero actualizar Firebase
+                                updateFirebaseWithUrls(userModel, () -> {
+                                    uploadFilesSequentially(files, currentIndex + 1, userModel, registration);
+                                });
+                            }
+                        });
                     }
-                });
-            }
 
             @Override
             public void onError(String error) {
@@ -1181,6 +1199,52 @@ public class RegisterVerifyCodeFragment extends Fragment {
             });
         } else {
             Log.d(TAG, "ℹ️ Usuario ya verificado o cambiado, no se elimina: " + emailToCheck);
+        }
+    }
+
+
+    /**
+     * Actualizar Firebase Firestore con las URLs de AWS
+     */
+    private void updateFirebaseWithUrls(UserModel userModel, Runnable onComplete) {
+        Log.d(TAG, "🔄 Actualizando Firebase con URLs de AWS...");
+
+        if ("driver".equals(userModel.getUserType())) {
+            // Para taxistas: actualizar en pending_drivers
+            firebaseManager.updatePendingDriverUrls(userModel.getUserId(),
+                    userModel.getPhotoUrl(), userModel.getDocumentUrl(),
+                    new FirebaseManager.DataCallback() {
+                        @Override
+                        public void onSuccess() {
+                            Log.d(TAG, "✅ URLs actualizadas en pending_drivers");
+                            if (onComplete != null) onComplete.run();
+                        }
+
+                        @Override
+                        public void onError(String error) {
+                            Log.e(TAG, "❌ Error actualizando URLs en Firebase: " + error);
+                            // Continuar de todos modos
+                            if (onComplete != null) onComplete.run();
+                        }
+                    });
+        } else {
+            // Para clientes: actualizar en users
+            firebaseManager.updateUserUrls(userModel.getUserId(),
+                    userModel.getPhotoUrl(), userModel.getDocumentUrl(),
+                    new FirebaseManager.DataCallback() {
+                        @Override
+                        public void onSuccess() {
+                            Log.d(TAG, "✅ URLs actualizadas en users");
+                            if (onComplete != null) onComplete.run();
+                        }
+
+                        @Override
+                        public void onError(String error) {
+                            Log.e(TAG, "❌ Error actualizando URLs en Firebase: " + error);
+                            // Continuar de todos modos
+                            if (onComplete != null) onComplete.run();
+                        }
+                    });
         }
     }
 

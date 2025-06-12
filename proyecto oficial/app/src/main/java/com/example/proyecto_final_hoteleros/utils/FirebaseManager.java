@@ -16,6 +16,7 @@ import java.util.ArrayList;
 public class FirebaseManager {
 
     private static final String TAG = "FirebaseManager";
+    private FirebaseFirestore db;
     private static final String USERS_COLLECTION = "users";
     private static final String PENDING_DRIVERS_COLLECTION = "pending_drivers";
 
@@ -35,6 +36,7 @@ public class FirebaseManager {
     private FirebaseManager() {
         auth = FirebaseAuth.getInstance();
         firestore = FirebaseFirestore.getInstance();
+        db = FirebaseFirestore.getInstance();
     }
 
     // Interfaces para callbacks
@@ -434,6 +436,78 @@ public class FirebaseManager {
                 .addOnFailureListener(e -> {
                     Log.e(TAG, "❌ Error rechazando taxista: " + e.getMessage());
                     callback.onError(e.getMessage());
+                });
+    }
+
+    /**
+     * Actualizar URLs de foto y documento para taxistas pendientes
+     */
+    public void updatePendingDriverUrls(String userId, String photoUrl, String documentUrl, DataCallback callback) {
+        Log.d(TAG, "🔄 Actualizando URLs en pending_drivers para userId: " + userId);
+
+        DocumentReference driverRef = db.collection("pending_drivers").document(userId);
+
+        // Crear mapa con solo las URLs a actualizar
+        Map<String, Object> updates = new HashMap<>();
+        if (photoUrl != null && !photoUrl.isEmpty()) {
+            updates.put("photoUrl", photoUrl);
+            Log.d(TAG, "📷 Actualizando photoUrl: " + photoUrl);
+        }
+        if (documentUrl != null && !documentUrl.isEmpty()) {
+            updates.put("documentUrl", documentUrl);
+            Log.d(TAG, "📄 Actualizando documentUrl: " + documentUrl);
+        }
+
+        if (updates.isEmpty()) {
+            Log.d(TAG, "ℹ️ No hay URLs para actualizar");
+            callback.onSuccess();
+            return;
+        }
+
+        driverRef.update(updates)
+                .addOnSuccessListener(aVoid -> {
+                    Log.d(TAG, "✅ URLs actualizadas en pending_drivers");
+                    callback.onSuccess();
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "❌ Error actualizando URLs en pending_drivers: " + e.getMessage());
+                    callback.onError("Error actualizando URLs: " + e.getMessage());
+                });
+    }
+
+    /**
+     * Actualizar URLs de foto y documento para usuarios normales
+     */
+    public void updateUserUrls(String userId, String photoUrl, String documentUrl, DataCallback callback) {
+        Log.d(TAG, "🔄 Actualizando URLs en users para userId: " + userId);
+
+        DocumentReference userRef = db.collection("users").document(userId);
+
+        // Crear mapa con solo las URLs a actualizar
+        Map<String, Object> updates = new HashMap<>();
+        if (photoUrl != null && !photoUrl.isEmpty()) {
+            updates.put("photoUrl", photoUrl);
+            Log.d(TAG, "📷 Actualizando photoUrl: " + photoUrl);
+        }
+        if (documentUrl != null && !documentUrl.isEmpty()) {
+            updates.put("documentUrl", documentUrl);
+            Log.d(TAG, "📄 Actualizando documentUrl: " + documentUrl);
+        }
+
+        if (updates.isEmpty()) {
+            Log.d(TAG, "ℹ️ No hay URLs para actualizar");
+            callback.onSuccess();
+            return;
+        }
+
+        userRef.update(updates)
+                .addOnSuccessListener(aVoid -> {
+                    Log.d(TAG, "✅ URLs actualizadas en users");
+                    callback.onSuccess();
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "❌ Error actualizando URLs en users: " + e.getMessage());
+                    callback.onError("Error actualizando URLs: " + e.getMessage());
                 });
     }
 
