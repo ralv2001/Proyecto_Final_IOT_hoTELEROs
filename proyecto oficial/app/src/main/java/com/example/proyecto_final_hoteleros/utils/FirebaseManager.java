@@ -305,7 +305,7 @@ public class FirebaseManager {
 
     // ========== MÉTODO PARA CREAR SUPERADMIN ==========
     public void createSuperAdminUser(DataCallback callback) {
-        String superAdminEmail = "superadmin@hotel.com";
+        String superAdminEmail = "superadmin@sistema.com";
         String superAdminPassword = "SuperAdmin123!";
 
         Log.d(TAG, "Creando usuario superadmin...");
