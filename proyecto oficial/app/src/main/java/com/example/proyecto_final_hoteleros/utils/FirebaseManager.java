@@ -10,6 +10,8 @@ import com.google.firebase.firestore.DocumentSnapshot;
 import java.util.HashMap;
 import com.example.proyecto_final_hoteleros.models.UserModel;
 import java.util.Map;
+import java.util.List;
+import java.util.ArrayList;
 
 public class FirebaseManager {
 
@@ -347,6 +349,92 @@ public class FirebaseManager {
                 callback.onError(error);
             }
         });
+    }
+
+    // ========== NUEVO INTERFACE PARA LISTA DE DRIVERS ==========
+    public interface DriverListCallback {
+        void onSuccess(List<UserModel> drivers);
+        void onError(String error);
+    }
+
+    // ========== MÉTODO PARA OBTENER TAXISTAS PENDIENTES ==========
+    public void getPendingDrivers(DriverListCallback callback) {
+        Log.d(TAG, "Obteniendo taxistas pendientes...");
+
+        firestore.collection(PENDING_DRIVERS_COLLECTION)
+                .get()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        List<UserModel> drivers = new ArrayList<>();
+
+                        for (DocumentSnapshot document : task.getResult()) {
+                            try {
+                                UserModel driver = UserModel.fromMap(document.getData());
+                                driver.setUserId(document.getId()); // Asegurar que tenga el ID
+                                drivers.add(driver);
+                            } catch (Exception e) {
+                                Log.e(TAG, "Error parseando taxista: " + e.getMessage());
+                            }
+                        }
+
+                        Log.d(TAG, "✅ " + drivers.size() + " taxistas pendientes obtenidos");
+                        callback.onSuccess(drivers);
+
+                    } else {
+                        String error = task.getException() != null ?
+                                task.getException().getMessage() : "Error desconocido";
+                        Log.e(TAG, "❌ Error obteniendo taxistas: " + error);
+                        callback.onError(error);
+                    }
+                });
+    }
+
+    // ========== APROBAR TAXISTA ==========
+    public void approveDriver(String driverId, UserModel driver, DataCallback callback) {
+        Log.d(TAG, "Aprobando taxista: " + driverId);
+
+        // 1. Mover de pending_drivers a users
+        firestore.collection(USERS_COLLECTION)
+                .document(driverId)
+                .set(driver.toMap())
+                .addOnSuccessListener(aVoid -> {
+                    Log.d(TAG, "✅ Taxista movido a users");
+
+                    // 2. Eliminar de pending_drivers
+                    firestore.collection(PENDING_DRIVERS_COLLECTION)
+                            .document(driverId)
+                            .delete()
+                            .addOnSuccessListener(aVoid2 -> {
+                                Log.d(TAG, "✅ Taxista eliminado de pending_drivers");
+                                callback.onSuccess();
+                            })
+                            .addOnFailureListener(e -> {
+                                Log.e(TAG, "❌ Error eliminando de pending: " + e.getMessage());
+                                callback.onError(e.getMessage());
+                            });
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "❌ Error moviendo a users: " + e.getMessage());
+                    callback.onError(e.getMessage());
+                });
+    }
+
+    // ========== RECHAZAR TAXISTA ==========
+    public void rejectDriver(String driverId, UserModel driver, String reason, DataCallback callback) {
+        Log.d(TAG, "Rechazando taxista: " + driverId + " - Motivo: " + reason);
+
+        // Eliminar de pending_drivers
+        firestore.collection(PENDING_DRIVERS_COLLECTION)
+                .document(driverId)
+                .delete()
+                .addOnSuccessListener(aVoid -> {
+                    Log.d(TAG, "✅ Taxista rechazado y eliminado");
+                    callback.onSuccess();
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "❌ Error rechazando taxista: " + e.getMessage());
+                    callback.onError(e.getMessage());
+                });
     }
 
 
