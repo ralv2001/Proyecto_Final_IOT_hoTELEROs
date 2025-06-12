@@ -15,24 +15,30 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.proyecto_final_hoteleros.R;
 import com.example.proyecto_final_hoteleros.superadmin.adapters.TaxistasAdapter;
 import com.example.proyecto_final_hoteleros.superadmin.models.TaxistaUser;
+import com.example.proyecto_final_hoteleros.superadmin.activity.SuperAdminActivity;
+import com.example.proyecto_final_hoteleros.utils.FirebaseManager;
+import com.example.proyecto_final_hoteleros.models.UserModel;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class TaxistasFragment extends Fragment {
+public class TaxistasFragment extends Fragment implements TaxistasAdapter.OnTaxistaActionListener {
 
     private RecyclerView rvTaxistas;
     private TaxistasAdapter taxistasAdapter;
-    private LinearLayout layoutEmptyState;  // Cambiado de tvEmptyState
+    private LinearLayout layoutEmptyState;
+    private FirebaseManager firebaseManager;
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_taxistas, container, false);
 
+        firebaseManager = FirebaseManager.getInstance();
+
         initViews(view);
         setupRecyclerView();
-        loadData();
+        loadDataFromFirebase(); // 🔥 Cambiar a datos reales
 
         return view;
     }
@@ -41,9 +47,8 @@ public class TaxistasFragment extends Fragment {
         android.util.Log.d("TaxistasFragment", "=== INICIO initViews ===");
 
         rvTaxistas = view.findViewById(R.id.rv_taxistas);
-        layoutEmptyState = view.findViewById(R.id.tv_empty_state);  // Cambiado
+        layoutEmptyState = view.findViewById(R.id.tv_empty_state);
 
-        // Debug: verificar que se encontraron las vistas
         android.util.Log.d("TaxistasFragment", "rvTaxistas: " + (rvTaxistas != null ? "OK" : "NULL"));
         android.util.Log.d("TaxistasFragment", "layoutEmptyState: " + (layoutEmptyState != null ? "OK" : "NULL"));
 
@@ -76,7 +81,7 @@ public class TaxistasFragment extends Fragment {
         android.util.Log.d("TaxistasFragment", "Configurando RecyclerView...");
         try {
             rvTaxistas.setLayoutManager(new LinearLayoutManager(getContext()));
-            taxistasAdapter = new TaxistasAdapter(new ArrayList<>(), this::onTaxistaAction);
+            taxistasAdapter = new TaxistasAdapter(new ArrayList<>(), this); // Pasar this como listener
             rvTaxistas.setAdapter(taxistasAdapter);
             android.util.Log.d("TaxistasFragment", "RecyclerView configurado exitosamente");
         } catch (Exception e) {
@@ -85,126 +90,120 @@ public class TaxistasFragment extends Fragment {
         }
     }
 
-    private void loadData() {
-        android.util.Log.d("TaxistasFragment", "Cargando datos...");
-        try {
-            // Datos de prueba - después conectar con Firebase
-            List<TaxistaUser> taxistas = new ArrayList<>();
+    // 🔥 NUEVO MÉTODO: Cargar datos reales desde Firebase
+    private void loadDataFromFirebase() {
+        android.util.Log.d("TaxistasFragment", "Cargando taxistas pendientes desde Firebase...");
+        showLoading(true);
 
-            // Taxista 1 - Pendiente
-            TaxistaUser taxista1 = new TaxistaUser();
-            taxista1.setId("1");
-            taxista1.setName("Carlos");
-            taxista1.setApellidos("Mendoza Silva");
-            taxista1.setEmail("carlos.mendoza@email.com");
-            taxista1.setLicensePlate("ABC-123");
-            taxista1.setStatus("PENDING");
-            taxista1.setRegistrationDate("12/06/2025");
-            taxista1.setTipoDocumento("DNI");
-            taxista1.setDocumentNumber("12345678");
-            taxista1.setFechaNacimiento("15/03/1985");
-            taxista1.setPhoneNumber("+51 987 654 321");
-            taxista1.setDomicilio("Av. Lima 123, San Isidro, Lima");
-            taxista1.setProfileImageUrl("profile_1.jpg");
-            taxista1.setCarImageUrl("car_1.jpg");
-            taxista1.setBreveteImageUrl("brevete_1.jpg");
-            taxistas.add(taxista1);
+        firebaseManager.getPendingDrivers(new FirebaseManager.DriverListCallback() {
+            @Override
+            public void onSuccess(List<UserModel> pendingDrivers) {
+                android.util.Log.d("TaxistasFragment", "✅ Taxistas obtenidos: " + pendingDrivers.size());
 
-            // Taxista 2 - Aprobado
-            TaxistaUser taxista2 = new TaxistaUser();
-            taxista2.setId("2");
-            taxista2.setName("Luis");
-            taxista2.setApellidos("García Pérez");
-            taxista2.setEmail("luis.garcia@email.com");
-            taxista2.setLicensePlate("XYZ-456");
-            taxista2.setStatus("APPROVED");
-            taxista2.setRegistrationDate("10/06/2025");
-            taxista2.setTipoDocumento("DNI");
-            taxista2.setDocumentNumber("87654321");
-            taxista2.setFechaNacimiento("22/08/1980");
-            taxista2.setPhoneNumber("+51 912 345 678");
-            taxista2.setDomicilio("Jr. Bolivar 456, Miraflores, Lima");
-            taxista2.setProfileImageUrl("profile_2.jpg");
-            taxista2.setCarImageUrl("car_2.jpg");
-            taxista2.setBreveteImageUrl("brevete_2.jpg");
-            taxistas.add(taxista2);
-
-            // Taxista 3 - Pendiente
-            TaxistaUser taxista3 = new TaxistaUser();
-            taxista3.setId("3");
-            taxista3.setName("Ana");
-            taxista3.setApellidos("Rodríguez López");
-            taxista3.setEmail("ana.rodriguez@email.com");
-            taxista3.setLicensePlate("DEF-789");
-            taxista3.setStatus("PENDING");
-            taxista3.setRegistrationDate("11/06/2025");
-            taxista3.setTipoDocumento("PASAPORTE");
-            taxista3.setDocumentNumber("PA123456");
-            taxista3.setFechaNacimiento("10/12/1992");
-            taxista3.setPhoneNumber("+51 965 432 187");
-            taxista3.setDomicilio("Av. Arequipa 789, La Victoria, Lima");
-            taxista3.setProfileImageUrl("profile_3.jpg");
-            taxista3.setCarImageUrl("car_3.jpg");
-            taxista3.setBreveteImageUrl("brevete_3.jpg");
-            taxistas.add(taxista3);
-
-            // Taxista 4 - Rechazado
-            TaxistaUser taxista4 = new TaxistaUser();
-            taxista4.setId("4");
-            taxista4.setName("Miguel");
-            taxista4.setApellidos("Torres Vargas");
-            taxista4.setEmail("miguel.torres@email.com");
-            taxista4.setLicensePlate("GHI-012");
-            taxista4.setStatus("REJECTED");
-            taxista4.setRegistrationDate("09/06/2025");
-            taxista4.setTipoDocumento("CARNET_EXTRANJERIA");
-            taxista4.setDocumentNumber("CE789456");
-            taxista4.setFechaNacimiento("05/07/1988");
-            taxista4.setPhoneNumber("+51 934 567 890");
-            taxista4.setDomicilio("Calle Real 321, Surco, Lima");
-            taxista4.setProfileImageUrl("profile_4.jpg");
-            taxista4.setCarImageUrl("car_4.jpg");
-            taxista4.setBreveteImageUrl("brevete_4.jpg");
-            taxistas.add(taxista4);
-
-            android.util.Log.d("TaxistasFragment", "Datos creados: " + taxistas.size() + " taxistas");
-
-            if (taxistasAdapter != null) {
-                taxistasAdapter.updateData(taxistas);
-                android.util.Log.d("TaxistasFragment", "Adapter actualizado");
-            } else {
-                android.util.Log.e("TaxistasFragment", "taxistasAdapter es null!");
-            }
-
-            // Verificar que las vistas no sean null antes de usarlas
-            if (layoutEmptyState != null && rvTaxistas != null) {
-                if (taxistas.isEmpty()) {
-                    layoutEmptyState.setVisibility(View.VISIBLE);
-                    rvTaxistas.setVisibility(View.GONE);
-                    android.util.Log.d("TaxistasFragment", "Mostrando estado vacío");
-                } else {
-                    layoutEmptyState.setVisibility(View.GONE);
-                    rvTaxistas.setVisibility(View.VISIBLE);
-                    android.util.Log.d("TaxistasFragment", "Mostrando lista de taxistas");
+                if (getActivity() != null) {
+                    getActivity().runOnUiThread(() -> {
+                        // Convertir UserModel a TaxistaUser
+                        List<TaxistaUser> taxistas = convertUserModelsToTaxistaUsers(pendingDrivers);
+                        updateTaxistasList(taxistas);
+                        showLoading(false);
+                    });
                 }
             }
 
-            android.util.Log.d("TaxistasFragment", "Datos cargados exitosamente");
-        } catch (Exception e) {
-            android.util.Log.e("TaxistasFragment", "Error cargando datos: " + e.getMessage());
-            e.printStackTrace();
+            @Override
+            public void onError(String error) {
+                android.util.Log.e("TaxistasFragment", "❌ Error obteniendo taxistas: " + error);
+
+                if (getActivity() != null) {
+                    getActivity().runOnUiThread(() -> {
+                        showError("Error cargando taxistas: " + error);
+                        showLoading(false);
+                    });
+                }
+            }
+        });
+    }
+
+    // 🔥 NUEVO MÉTODO: Convertir UserModel a TaxistaUser
+    private List<TaxistaUser> convertUserModelsToTaxistaUsers(List<UserModel> userModels) {
+        List<TaxistaUser> taxistas = new ArrayList<>();
+
+        for (UserModel userModel : userModels) {
+            TaxistaUser taxista = new TaxistaUser();
+            taxista.setId(userModel.getUserId());
+            taxista.setName(userModel.getNombres());
+            taxista.setApellidos(userModel.getApellidos());
+            taxista.setEmail(userModel.getEmail());
+            taxista.setPhoneNumber(userModel.getTelefono());
+            taxista.setDomicilio(userModel.getDireccion());
+            taxista.setDocumentNumber(userModel.getNumeroDocumento());
+            taxista.setLicensePlate(userModel.getPlacaVehiculo());
+            taxista.setProfileImageUrl(userModel.getPhotoUrl());
+            taxista.setBreveteImageUrl(userModel.getDocumentUrl());
+            taxista.setStatus("PENDING"); // Todos los de pending_drivers están pendientes
+            taxista.setRegistrationDate(formatTimestamp(userModel.getCreatedAt()));
+            taxista.setTipoDocumento("DNI"); // Valor por defecto, puedes agregarlo al UserModel si es necesario
+            taxista.setFechaNacimiento(""); // Valor por defecto, puedes agregarlo al UserModel si es necesario
+
+            taxistas.add(taxista);
+        }
+
+        return taxistas;
+    }
+
+    // 🔥 NUEVO MÉTODO: Formatear timestamp
+    private String formatTimestamp(long timestamp) {
+        if (timestamp == 0) return "Fecha no disponible";
+
+        java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("dd/MM/yyyy", java.util.Locale.getDefault());
+        return sdf.format(new java.util.Date(timestamp));
+    }
+
+    // 🔥 NUEVO MÉTODO: Actualizar lista de taxistas
+    private void updateTaxistasList(List<TaxistaUser> taxistas) {
+        if (taxistasAdapter != null) {
+            taxistasAdapter.updateData(taxistas);
+            android.util.Log.d("TaxistasFragment", "Adapter actualizado con " + taxistas.size() + " taxistas");
+        }
+
+        // Mostrar/ocultar estado vacío
+        if (layoutEmptyState != null && rvTaxistas != null) {
+            if (taxistas.isEmpty()) {
+                layoutEmptyState.setVisibility(View.VISIBLE);
+                rvTaxistas.setVisibility(View.GONE);
+                android.util.Log.d("TaxistasFragment", "Mostrando estado vacío");
+            } else {
+                layoutEmptyState.setVisibility(View.GONE);
+                rvTaxistas.setVisibility(View.VISIBLE);
+                android.util.Log.d("TaxistasFragment", "Mostrando lista de taxistas");
+            }
         }
     }
 
-    private void onTaxistaAction(TaxistaUser taxista, String action) {
+    // 🔥 NUEVO MÉTODO: Mostrar/ocultar loading
+    private void showLoading(boolean show) {
+        // Puedes agregar un ProgressBar al layout si quieres
+        android.util.Log.d("TaxistasFragment", "Loading: " + show);
+    }
+
+    // 🔥 NUEVO MÉTODO: Mostrar error
+    private void showError(String message) {
+        if (getContext() != null) {
+            android.widget.Toast.makeText(getContext(), message, android.widget.Toast.LENGTH_LONG).show();
+        }
+    }
+
+    // 🔥 IMPLEMENTAR INTERFACE: Acciones de taxista
+    @Override
+    public void onTaxistaAction(TaxistaUser taxista, String action) {
         android.util.Log.d("TaxistasFragment", "Acción: " + action + " para taxista: " + taxista.getName());
         try {
             switch (action) {
                 case "approve":
-                    approveTaxista(taxista);
+                    showApprovalConfirmation(taxista);
                     break;
                 case "reject":
-                    rejectTaxista(taxista);
+                    showRejectionDialog(taxista);
                     break;
                 case "view_details":
                     viewTaxistaDetails(taxista);
@@ -228,32 +227,139 @@ public class TaxistasFragment extends Fragment {
         }
     }
 
-    private void approveTaxista(TaxistaUser taxista) {
+    // 🔥 NUEVO MÉTODO: Mostrar confirmación de aprobación
+    private void showApprovalConfirmation(TaxistaUser taxista) {
         new androidx.appcompat.app.AlertDialog.Builder(getContext())
-                .setTitle("Aprobar taxista")
-                .setMessage("¿Estás seguro que deseas aprobar a " + taxista.getName() + "?")
-                .setPositiveButton("Aprobar", (dialog, which) -> {
-                    taxista.setStatus("APPROVED");
-                    taxistasAdapter.notifyDataSetChanged();
-                    android.widget.Toast.makeText(getContext(), "Taxista aprobado", android.widget.Toast.LENGTH_SHORT).show();
+                .setTitle("Aprobar Taxista")
+                .setMessage("¿Estás seguro que deseas aprobar a " + taxista.getFullName() + "?\n\n" +
+                        "📧 " + taxista.getEmail() + "\n" +
+                        "🚗 " + taxista.getLicensePlate())
+                .setPositiveButton("✅ APROBAR", (dialog, which) -> {
+                    approveTaxistaInFirebase(taxista);
                 })
                 .setNegativeButton("Cancelar", (dialog, which) -> dialog.dismiss())
                 .show();
     }
 
-    private void rejectTaxista(TaxistaUser taxista) {
+    // 🔥 NUEVO MÉTODO: Mostrar diálogo de rechazo
+    private void showRejectionDialog(TaxistaUser taxista) {
+        android.widget.EditText reasonInput = new android.widget.EditText(getContext());
+        reasonInput.setHint("Motivo del rechazo (opcional)");
+        reasonInput.setMinLines(2);
+
         new androidx.appcompat.app.AlertDialog.Builder(getContext())
-                .setTitle("Rechazar taxista")
-                .setMessage("¿Estás seguro que deseas rechazar a " + taxista.getName() + "?")
-                .setPositiveButton("Rechazar", (dialog, which) -> {
-                    taxista.setStatus("REJECTED");
-                    taxistasAdapter.notifyDataSetChanged();
-                    android.widget.Toast.makeText(getContext(), "Taxista rechazado", android.widget.Toast.LENGTH_SHORT).show();
+                .setTitle("Rechazar Taxista")
+                .setMessage("¿Estás seguro que deseas rechazar a " + taxista.getFullName() + "?")
+                .setView(reasonInput)
+                .setPositiveButton("❌ RECHAZAR", (dialog, which) -> {
+                    String reason = reasonInput.getText().toString().trim();
+                    rejectTaxistaInFirebase(taxista, reason);
                 })
                 .setNegativeButton("Cancelar", (dialog, which) -> dialog.dismiss())
                 .show();
     }
 
+    // 🔥 NUEVO MÉTODO: Aprobar taxista en Firebase
+    private void approveTaxistaInFirebase(TaxistaUser taxista) {
+        android.util.Log.d("TaxistasFragment", "Aprobando taxista: " + taxista.getId());
+        showLoading(true);
+
+        // Convertir TaxistaUser de vuelta a UserModel
+        UserModel userModel = convertTaxistaUserToUserModel(taxista);
+
+        firebaseManager.approveDriver(taxista.getId(), userModel, new FirebaseManager.DataCallback() {
+            @Override
+            public void onSuccess() {
+                android.util.Log.d("TaxistasFragment", "✅ Taxista aprobado exitosamente");
+
+                if (getActivity() != null) {
+                    getActivity().runOnUiThread(() -> {
+                        android.widget.Toast.makeText(getContext(),
+                                "✅ " + taxista.getFullName() + " aprobado exitosamente",
+                                android.widget.Toast.LENGTH_SHORT).show();
+
+                        // Recargar la lista
+                        loadDataFromFirebase();
+                    });
+                }
+            }
+
+            @Override
+            public void onError(String error) {
+                android.util.Log.e("TaxistasFragment", "❌ Error aprobando taxista: " + error);
+
+                if (getActivity() != null) {
+                    getActivity().runOnUiThread(() -> {
+                        android.widget.Toast.makeText(getContext(),
+                                "❌ Error aprobando taxista: " + error,
+                                android.widget.Toast.LENGTH_LONG).show();
+                        showLoading(false);
+                    });
+                }
+            }
+        });
+    }
+
+    // 🔥 NUEVO MÉTODO: Rechazar taxista en Firebase
+    private void rejectTaxistaInFirebase(TaxistaUser taxista, String reason) {
+        android.util.Log.d("TaxistasFragment", "Rechazando taxista: " + taxista.getId() + " - Motivo: " + reason);
+        showLoading(true);
+
+        UserModel userModel = convertTaxistaUserToUserModel(taxista);
+
+        firebaseManager.rejectDriver(taxista.getId(), userModel, reason, new FirebaseManager.DataCallback() {
+            @Override
+            public void onSuccess() {
+                android.util.Log.d("TaxistasFragment", "✅ Taxista rechazado exitosamente");
+
+                if (getActivity() != null) {
+                    getActivity().runOnUiThread(() -> {
+                        android.widget.Toast.makeText(getContext(),
+                                "❌ " + taxista.getFullName() + " rechazado",
+                                android.widget.Toast.LENGTH_SHORT).show();
+
+                        // Recargar la lista
+                        loadDataFromFirebase();
+                    });
+                }
+            }
+
+            @Override
+            public void onError(String error) {
+                android.util.Log.e("TaxistasFragment", "❌ Error rechazando taxista: " + error);
+
+                if (getActivity() != null) {
+                    getActivity().runOnUiThread(() -> {
+                        android.widget.Toast.makeText(getContext(),
+                                "❌ Error rechazando taxista: " + error,
+                                android.widget.Toast.LENGTH_LONG).show();
+                        showLoading(false);
+                    });
+                }
+            }
+        });
+    }
+
+    // 🔥 NUEVO MÉTODO: Convertir TaxistaUser a UserModel
+    private UserModel convertTaxistaUserToUserModel(TaxistaUser taxista) {
+        UserModel userModel = new UserModel();
+        userModel.setUserId(taxista.getId());
+        userModel.setNombres(taxista.getName());
+        userModel.setApellidos(taxista.getApellidos());
+        userModel.setEmail(taxista.getEmail());
+        userModel.setTelefono(taxista.getPhoneNumber());
+        userModel.setDireccion(taxista.getDomicilio());
+        userModel.setNumeroDocumento(taxista.getDocumentNumber());
+        userModel.setPlacaVehiculo(taxista.getLicensePlate());
+        userModel.setPhotoUrl(taxista.getProfileImageUrl());
+        userModel.setDocumentUrl(taxista.getBreveteImageUrl());
+        userModel.setUserType("taxista");
+        userModel.setIsActive(true);
+
+        return userModel;
+    }
+
+    // MÉTODOS EXISTENTES (sin cambios)
     private void viewTaxistaDetails(TaxistaUser taxista) {
         android.widget.Toast.makeText(getContext(), "Ver detalles de " + taxista.getName(), android.widget.Toast.LENGTH_SHORT).show();
     }
@@ -262,10 +368,9 @@ public class TaxistasFragment extends Fragment {
         android.util.Log.d("TaxistasFragment", "Ver documentos de: " + taxista.getName());
 
         // Navegar al fragment de documentos
-        if (getActivity() instanceof com.example.proyecto_final_hoteleros.superadmin.activity.SuperAdminActivity) {
+        if (getActivity() instanceof SuperAdminActivity) {
             TaxistaDocumentsFragment documentsFragment = TaxistaDocumentsFragment.newInstance(taxista);
-            ((com.example.proyecto_final_hoteleros.superadmin.activity.SuperAdminActivity) getActivity())
-                    .loadFragment(documentsFragment, "TAXISTA_DOCUMENTS", true);
+            ((SuperAdminActivity) getActivity()).loadFragment(documentsFragment, "TAXISTA_DOCUMENTS", true);
         }
     }
 
@@ -282,9 +387,22 @@ public class TaxistasFragment extends Fragment {
         new androidx.appcompat.app.AlertDialog.Builder(getContext())
                 .setTitle("Filtrar por estado")
                 .setItems(options, (dialog, which) -> {
-                    // Implementar filtrado
                     android.widget.Toast.makeText(getContext(), "Filtro: " + options[which], android.widget.Toast.LENGTH_SHORT).show();
+                    // TODO: Implementar filtrado real
                 })
                 .show();
+    }
+
+    // 🔥 MÉTODO PÚBLICO: Para actualizar desde SuperAdminActivity
+    public void updatePendingDrivers(List<UserModel> pendingDrivers) {
+        android.util.Log.d("TaxistasFragment", "Actualizando lista desde SuperAdminActivity: " + pendingDrivers.size());
+
+        List<TaxistaUser> taxistas = convertUserModelsToTaxistaUsers(pendingDrivers);
+        updateTaxistasList(taxistas);
+    }
+
+    // 🔥 MÉTODO PÚBLICO: Para refrescar datos
+    public void refreshData() {
+        loadDataFromFirebase();
     }
 }

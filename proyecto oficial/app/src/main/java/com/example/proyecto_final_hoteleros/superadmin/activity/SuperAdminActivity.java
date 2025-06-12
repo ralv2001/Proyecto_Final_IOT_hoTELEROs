@@ -10,12 +10,16 @@ import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 
 import com.example.proyecto_final_hoteleros.R;
+import com.example.proyecto_final_hoteleros.models.UserModel;
 import com.example.proyecto_final_hoteleros.superadmin.fragment.DashboardFragment;
 import com.example.proyecto_final_hoteleros.superadmin.fragment.AdminsFragment;
 import com.example.proyecto_final_hoteleros.superadmin.fragment.TaxistasFragment;
 import com.example.proyecto_final_hoteleros.superadmin.fragment.UsuariosFragment;
 import com.example.proyecto_final_hoteleros.superadmin.fragment.ReportesFragment;
 import com.example.proyecto_final_hoteleros.superadmin.fragment.TaxistaDocumentsFragment;
+import com.example.proyecto_final_hoteleros.utils.FirebaseManager;
+
+import java.util.List;
 
 public class SuperAdminActivity extends AppCompatActivity {
 
@@ -28,6 +32,8 @@ public class SuperAdminActivity extends AppCompatActivity {
     private String userEmail;
     private String userName;
     private String userType;
+
+    private TaxistasFragment taxistasFragment;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -96,6 +102,33 @@ public class SuperAdminActivity extends AppCompatActivity {
 
         setupClickListeners();
     }
+    // Método para cargar taxistas pendientes
+    public void loadPendingDrivers() {
+        FirebaseManager firebaseManager = FirebaseManager.getInstance();
+
+        firebaseManager.getPendingDrivers(new FirebaseManager.DriverListCallback() {
+            @Override
+            public void onSuccess(List<UserModel> pendingDrivers) {
+                android.util.Log.d("SuperAdmin", "Taxistas pendientes obtenidos: " + pendingDrivers.size());
+
+                // Actualizar métricas en el dashboard
+                Fragment currentFragment = fragmentManager.findFragmentById(R.id.fragment_container);
+                if (currentFragment instanceof DashboardFragment) {
+                    ((DashboardFragment) currentFragment).updatePendingDriversCount(pendingDrivers.size());
+                }
+
+                // Si el TaxistasFragment está activo, actualizarlo
+                if (taxistasFragment != null) {
+                    taxistasFragment.updatePendingDrivers(pendingDrivers);
+                }
+            }
+
+            @Override
+            public void onError(String error) {
+                android.util.Log.e("SuperAdmin", "Error obteniendo taxistas: " + error);
+            }
+        });
+    }
 
     private void setupClickListeners() {
         ivProfile.setOnClickListener(v -> showProfileOptions());
@@ -141,7 +174,7 @@ public class SuperAdminActivity extends AppCompatActivity {
     }
 
     public void navigateToTaxistas() {
-        TaxistasFragment taxistasFragment = new TaxistasFragment();
+        taxistasFragment = new TaxistasFragment();
         loadFragment(taxistasFragment, "TAXISTAS", true);
     }
 
