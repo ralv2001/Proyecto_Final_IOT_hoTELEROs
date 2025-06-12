@@ -1,84 +1,22 @@
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="@color/background_light">
 
-    <!-- Encabezado naranja -->
-    <LinearLayout
-        android:id="@+id/header"
-        android:layout_width="0dp"
-        android:layout_height="120dp"
-        android:background="@color/colorPrimary"
-        android:orientation="vertical"
-        android:gravity="center"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
+    <!-- Contenedor de fragmentos -->
+    <FrameLayout
+        android:id="@+id/fragment_container"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_above="@+id/bottom_navigation" />
 
-        <TextView
-            android:id="@+id/title_hotel"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="HOTELEROS"
-            android:textSize="20sp"
-            android:textStyle="bold"
-            android:textColor="@android:color/black" />
-
-        <TextView
-            android:id="@+id/subtitle_admin"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Admin"
-            android:textSize="14sp"
-            android:textColor="@android:color/black" />
-    </LinearLayout>
-
-    <!-- Texto de sección -->
-    <TextView
-        android:id="@+id/label_huespedes"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Huéspedes"
-        android:textColor="@color/gray_text"
-        android:textSize="18sp"
-        android:textStyle="bold"
-        android:layout_marginStart="16dp"
-        android:layout_marginTop="12dp"
-        app:layout_constraintTop_toBottomOf="@id/header"
-        app:layout_constraintStart_toStartOf="parent" />
-
-    <!-- RecyclerView -->
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/recycler_huespedes"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:layout_marginTop="8dp"
-        android:layout_marginBottom="70dp"
-        app:layout_constraintTop_toBottomOf="@id/label_huespedes"
-        app:layout_constraintBottom_toTopOf="@+id/bottom_nav"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
-
-    <!-- BottomNavigation -->
+    <!-- Barra de navegación inferior -->
     <include
-        android:id="@+id/bottom_nav"
+        android:id="@+id/bottom_navigation"
         layout="@layout/admin_hotel_bottom_navigation"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
+        android:layout_alignParentBottom="true" />
 
-    <!-- AÑADIR ESTE FRAMELAYOUT PARA LOS FRAGMENTS -->
-    <FrameLayout
-        android:id="@+id/fragment_container"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:background="@android:color/white"
-        android:visibility="gone"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toTopOf="@id/bottom_nav"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
-
-</androidx.constraintlayout.widget.ConstraintLayout>
+</RelativeLayout>

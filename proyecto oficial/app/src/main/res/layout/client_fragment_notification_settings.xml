@@ -269,7 +269,7 @@
     </ScrollView>
 
     <!-- Save button - FIJO EN LA PARTE INFERIOR -->
-    <Button
+    <androidx.appcompat.widget.AppCompatButton
         android:id="@+id/btnSaveNotifications"
         android:layout_width="0dp"
         android:layout_height="wrap_content"

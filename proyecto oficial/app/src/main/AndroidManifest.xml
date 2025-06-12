@@ -1,19 +1,31 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
+
     <!-- Permisos de ubicación -->
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
-    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" /> <!-- Permisos de red -->
+
+    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
+
+    <!-- Permisos de red -->
     <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" /> <!-- Permisos de notificaciones -->
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
+    <!-- Permisos de notificaciones -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.VIBRATE" />
-    <uses-permission android:name="android.permission.WAKE_LOCK" /> <!-- Permisos para galería e imágenes -->
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+
+    <!-- Permisos para galería e imágenes -->
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
-    <uses-permission android:name="android.permission.CAMERA" /> <!-- Permisos para llamadas telefónicas -->
-    <uses-permission android:name="android.permission.CALL_PHONE" /> <!-- Declarar que la cámara es opcional -->
+    <uses-permission android:name="android.permission.CAMERA" />
+
+    <!-- Permisos para llamadas telefónicas -->
+    <uses-permission android:name="android.permission.CALL_PHONE" />
+
+    <!-- Declarar que la cámara es opcional -->
     <uses-feature
         android:name="android.hardware.camera"
         android:required="false" />
@@ -32,108 +44,160 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Proyecto_Final_hoTELEROs"
         tools:targetApi="31">
+
         <!-- ========== ACTIVIDADES PRINCIPALES ========== -->
         <activity
             android:name=".MainActivity"
-            android:configChanges="orientation|screenSize|keyboardHidden"
-            android:exported="true">
+            android:exported="true"
+            android:configChanges="orientation|screenSize|keyboardHidden">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
         <activity
             android:name=".AuthActivity"
-            android:configChanges="orientation|screenSize|keyboardHidden"
             android:exported="true"
+            android:configChanges="orientation|screenSize|keyboardHidden"
             android:screenOrientation="unspecified" />
+
         <activity
             android:name=".client.ui.activity.HomeActivity"
-            android:exported="false" /> <!-- Actividad del Taxista -->
+            android:exported="false" />
+
+        <!-- Actividad del Taxista -->
         <activity
             android:name=".taxista.activity.DriverActivity"
-            android:exported="false" /> <!-- ========== ACTIVIDADES DE AUTENTICACIÓN (TUS CAMBIOS) ========== -->
+            android:exported="false" />
+
+        <!-- ========== ACTIVIDADES DE AUTENTICACIÓN (TUS CAMBIOS) ========== -->
         <activity
             android:name=".auth.register.UploadDriverDocumentsActivity"
-            android:configChanges="orientation|screenSize|keyboardHidden"
-            android:exported="false" />
+            android:exported="false"
+            android:configChanges="orientation|screenSize|keyboardHidden" />
+
         <activity
             android:name=".auth.register.RegisterVerifyActivity"
-            android:configChanges="orientation|screenSize|keyboardHidden"
-            android:exported="false" />
+            android:exported="false"
+            android:configChanges="orientation|screenSize|keyboardHidden" />
+
         <activity
             android:name=".auth.register.RegisterSuccessActivity"
-            android:configChanges="orientation|screenSize|keyboardHidden"
-            android:exported="false" />
+            android:exported="false"
+            android:configChanges="orientation|screenSize|keyboardHidden" />
+
         <activity
             android:name=".auth.register.AddProfilePhotoActivity"
-            android:configChanges="orientation|screenSize|keyboardHidden"
-            android:exported="false" />
+            android:exported="false"
+            android:configChanges="orientation|screenSize|keyboardHidden" />
+
         <activity
             android:name=".auth.register.RegisterUserActivity"
-            android:configChanges="orientation|screenSize|keyboardHidden"
             android:exported="false"
+            android:configChanges="orientation|screenSize|keyboardHidden"
             android:screenOrientation="unspecified" />
+
         <activity
             android:name=".auth.password.SuccessActivity"
-            android:configChanges="orientation|screenSize|keyboardHidden"
-            android:exported="false" /> <!-- ========== ACTIVIDADES DE CLIENTE ========== -->
+            android:exported="false"
+            android:configChanges="orientation|screenSize|keyboardHidden" />
+
+        <!-- ========== ACTIVIDADES DE CLIENTE ========== -->
         <activity
             android:name=".client.ui.activity.LocationSelectorActivity"
             android:exported="true" />
+
         <!-- ========== ACTIVIDADES DE SUPERADMIN ========== -->
         <activity
-            android:name=".superadmin.activity.SuperAdminActivity"
-            android:theme="@style/SuperAdminTheme"
-            android:exported="false" />
-         <!-- ========== ACTIVIDADES DE ADMIN HOTEL ========== -->
-        <activity android:name=".adminhotel.activity.ChatActivity" />
+            android:name=".superadmin.SuperadminActivity"
+            android:exported="true" />
+
+        <activity
+            android:name=".superadmin.ListaUsuariosActivity"
+            android:exported="true" />
+
+        <activity
+            android:name=".superadmin.ListaSolicitudesActivity"
+            android:exported="true" />
+
+        <activity
+            android:name=".superadmin.SolicitudesTaxistasActivity"
+            android:exported="true" />
+
+        <activity
+            android:name=".superadmin.RegistroAdministradorActivity"
+            android:exported="true" />
+
+        <activity
+            android:name=".superadmin.ReporteReservasActivity"
+            android:exported="true" />
+
+        <activity
+            android:name=".superadmin.LogEventosActivity"
+            android:exported="true" />
+
+        <!-- ========== ACTIVIDADES DE ADMIN HOTEL ========== -->
+        <activity android:name=".adminhotel.activity.ChatActivity"/>
         <activity
             android:name=".adminhotel.activity.AdminHotelActivity"
             android:exported="true" />
+
         <activity
             android:name=".adminhotel.activity.CheckoutActivity"
             android:exported="true" />
+
         <activity
             android:name=".adminhotel.activity.HabitacionesActivity"
             android:exported="true" />
+
         <activity
             android:name=".adminhotel.activity.PerfilHotelActivity"
             android:exported="true" />
+
         <activity
             android:name=".adminhotel.activity.ReporteVentasActivity"
             android:exported="true" />
+
         <activity
             android:name=".adminhotel.activity.ServiciosHotelActivity"
             android:exported="true" />
+
         <activity
             android:name=".adminhotel.activity.TaxistasHotelActivity"
             android:exported="true" />
+
         <activity
             android:name=".adminhotel.activity.NuevoServicioActivity"
             android:exported="false" />
-        <activity
-            android:name=".adminhotel.activity.NuevaHabitacionActivity"
+        <activity android:name=".adminhotel.activity.NuevaHabitacionActivity"
             android:exported="true" />
-        <activity
-            android:name=".adminhotel.activity.DatosHuespedActivity"
-            android:exported="true" /> <!-- ========== ACTIVIDADES DE SERVICIOS ========== -->
+        <activity android:name=".adminhotel.activity.DatosHuespedActivity"
+            android:exported="true"/>
+
+
+
+        <!-- ========== ACTIVIDADES DE SERVICIOS ========== -->
         <activity
             android:name=".client.ui.activity.AllHotelServicesActivity"
             android:exported="true" />
+
         <activity
             android:name=".client.ui.activity.CardDialogActivity"
             android:exported="true" />
+
         <activity
             android:name=".client.ui.activity.HotelServicesPreviewActivity"
             android:exported="true" />
         <activity
             android:name=".client.ui.activity.HotelResultsActivity"
-            android:exported="false" /> <!-- Actividad de prueba de notificaciones -->
+            android:exported="false" />
+        <!-- Actividad de prueba de notificaciones -->
         <activity
             android:name=".client.ui.activity.NotificationTestActivity"
-            android:exported="false" /> <!-- ========== SERVICIOS ========== -->
+            android:exported="false" />
+
+        <!-- ========== SERVICIOS ========== -->
         <!-- Servicio de notificaciones de Firebase -->
         <service
             android:name=".client.data.service.FirebaseNotificationService"
@@ -141,7 +205,9 @@
             <intent-filter>
                 <action android:name="com.google.firebase.MESSAGING_EVENT" />
             </intent-filter>
-        </service> <!-- ========== METADATOS ========== -->
+        </service>
+
+        <!-- ========== METADATOS ========== -->
         <!-- API Key de Google Maps -->
         <meta-data
             android:name="com.google.android.geo.API_KEY"
@@ -155,6 +221,7 @@
         <meta-data
             android:name="com.google.firebase.messaging.default_notification_channel_id"
             android:value="hotel_notifications" />
+
     </application>
 
 </manifest>

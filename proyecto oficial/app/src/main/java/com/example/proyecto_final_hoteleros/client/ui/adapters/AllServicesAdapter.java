@@ -2,17 +2,25 @@ package com.example.proyecto_final_hoteleros.client.ui.adapters;
 
 import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
+import android.app.Dialog;
 import android.content.Context;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
 import android.view.animation.DecelerateInterpolator;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
+
 import androidx.annotation.NonNull;
 import androidx.cardview.widget.CardView;
 import androidx.core.content.ContextCompat;
+import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import com.example.proyecto_final_hoteleros.R;
 import com.example.proyecto_final_hoteleros.client.data.model.HotelService;
@@ -24,48 +32,87 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-
 public class AllServicesAdapter extends RecyclerView.Adapter<AllServicesAdapter.ServiceViewHolder> {
 
-    private static final String TAG = "AllServicesAdapter";
-    private List<HotelService> services;
+    // ✅ AGREGAR estas variables de instancia al inicio de la clase
+    private List<HotelService> allServices;
     private List<HotelService> filteredServices;
-    private double currentTotal;
-    private Set<String> selectedServiceIds = new HashSet<>();
+    private Set<String> selectedServices;
+    private double currentTotal = 0.0;
     private ServiceSelectListener listener;
-    private Context context;
-    private static final double TAXI_MIN_AMOUNT = 350.0;
+    private String currentFilter = "all";
 
+    // ✅ CONSTRUCTOR CORREGIDO
     public AllServicesAdapter(List<HotelService> services, double currentTotal, ServiceSelectListener listener) {
-        this.services = services != null ? services : new ArrayList<>();
-        this.filteredServices = new ArrayList<>(this.services);
+        this.allServices = new ArrayList<>(services);
+        this.filteredServices = new ArrayList<>(services);
         this.currentTotal = currentTotal;
         this.listener = listener;
+        this.selectedServices = new HashSet<>();
+    }
+
+    // ✅ AGREGAR este método
+    public void updateTotalAndRecalculate(double newTotal) {
+        this.currentTotal = newTotal;
         updateServiceEligibility();
-        Log.d(TAG, "Adapter creado con " + this.services.size() + " servicios");
+        notifyDataSetChanged();
     }
 
-    @NonNull
-    @Override
-    public ServiceViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        context = parent.getContext();
-        View view = LayoutInflater.from(context)
-                .inflate(R.layout.client_item_service_detail, parent, false);
-        return new ServiceViewHolder(view);
-    }
-
-    @Override
-    public void onBindViewHolder(@NonNull ServiceViewHolder holder, int position) {
-        if (position < 0 || position >= filteredServices.size()) {
-            Log.e(TAG, "Posición inválida: " + position);
-            return;
+    // ✅ AGREGAR este método
+    private void updateServiceEligibility() {
+        for (HotelService service : filteredServices) {
+            if (service.getId().equals("taxi")) {
+                service.setEligibleForFree(currentTotal >= 350.0);
+            }
         }
+    }
 
-        HotelService service = filteredServices.get(position);
-        boolean isSelected = selectedServiceIds.contains(service.getId());
+    // ✅ AGREGAR otros métodos necesarios
+    public Set<String> getSelectedServiceIds() {
+        return new HashSet<>(selectedServices);
+    }
 
-        holder.bind(service, isSelected, currentTotal);
-        animateItemEntry(holder.itemView, position);
+    public void updateServiceSelection(String serviceId, boolean isSelected) {
+        if (isSelected) {
+            selectedServices.add(serviceId);
+        } else {
+            selectedServices.remove(serviceId);
+        }
+        notifyDataSetChanged();
+    }
+
+    public void clearSelections() {
+        selectedServices.clear();
+        notifyDataSetChanged();
+    }
+
+    public void filterServices(String filterType) {
+        currentFilter = filterType;
+        filteredServices.clear();
+
+        for (HotelService service : allServices) {
+            boolean shouldInclude = false;
+
+            switch (filterType) {
+                case "all":
+                    shouldInclude = true;
+                    break;
+                case "free":
+                    shouldInclude = service.isFree();
+                    break;
+                case "paid":
+                    shouldInclude = !service.isFree() && !service.isConditional();
+                    break;
+                case "conditional":
+                    shouldInclude = service.isConditional();
+                    break;
+            }
+
+            if (shouldInclude) {
+                filteredServices.add(service);
+            }
+        }
+        notifyDataSetChanged();
     }
 
     @Override
@@ -73,292 +120,338 @@ public class AllServicesAdapter extends RecyclerView.Adapter<AllServicesAdapter.
         return filteredServices.size();
     }
 
-    private void animateItemEntry(View view, int position) {
-        view.setAlpha(0f);
-        view.setTranslationY(30f);
-
-        ObjectAnimator alphaAnimator = ObjectAnimator.ofFloat(view, "alpha", 0f, 1f);
-        ObjectAnimator translateAnimator = ObjectAnimator.ofFloat(view, "translationY", 30f, 0f);
-
-        AnimatorSet animatorSet = new AnimatorSet();
-        animatorSet.playTogether(alphaAnimator, translateAnimator);
-        animatorSet.setDuration(400);
-        animatorSet.setStartDelay(position * 50L);
-        animatorSet.setInterpolator(new DecelerateInterpolator());
-        animatorSet.start();
+    @Override
+    public ServiceViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        View view = LayoutInflater.from(parent.getContext())
+                .inflate(R.layout.client_item_service_detail, parent, false);
+        return new ServiceViewHolder(view);
     }
 
-    private void updateServiceEligibility() {
-        for (HotelService service : services) {
-            if (service.getId().equals("taxi")) {
-                service.setEligibleForFree(currentTotal >= TAXI_MIN_AMOUNT);
-                Log.d(TAG, "Taxi eligibility updated: " + service.isEligibleForFree());
-            }
-        }
+    @Override
+    public void onBindViewHolder(@NonNull ServiceViewHolder holder, int position) {
+        HotelService service = filteredServices.get(position);
+        holder.bind(service);
     }
 
-    public void filterServices(String filterType) {
-        filteredServices.clear();
-
-        if ("all".equals(filterType)) {
-            filteredServices.addAll(services);
-        } else {
-            for (HotelService service : services) {
-                if (service.getServiceType().equals(filterType)) {
-                    filteredServices.add(service);
-                }
-            }
-        }
-
-        Log.d(TAG, "Filtro aplicado: " + filterType + ", servicios filtrados: " + filteredServices.size());
-        notifyDataSetChanged();
-    }
-
-    public void updateServiceSelection(String serviceId, boolean isSelected) {
-        if (isSelected) {
-            selectedServiceIds.add(serviceId);
-        } else {
-            selectedServiceIds.remove(serviceId);
-        }
-        Log.d(TAG, "Servicio " + serviceId + " " + (isSelected ? "seleccionado" : "deseleccionado"));
-        notifyDataSetChanged();
-    }
-
-    public Set<String> getSelectedServiceIds() {
-        return selectedServiceIds;
-    }
-
-    public void clearSelections() {
-        selectedServiceIds.clear();
-        notifyDataSetChanged();
-    }
-
+    // ✅ VIEWHOLDER CORREGIDO
     class ServiceViewHolder extends RecyclerView.ViewHolder {
-        private MaterialCardView cardService;
-        private CardView iconContainer;
-        private ImageView ivServiceIcon;
-        private TextView tvServiceName;
-        private TextView tvServiceDescription;
-        private TextView tvServiceFeatures;
-        private TextView tvConditionalBadge;
-        private TextView tvServicePrice;
+        private ImageView ivServiceDetailIcon;
+        private TextView tvServiceDetailName;
+        private TextView tvServiceDetailDescription;
+        private TextView tvServiceDetailPrice; // ✅ AGREGAR esta variable
         private MaterialButton btnAddToCart;
+        private CardView cardTaxiCondition;
+        private TextView tvServiceConditionalHint;
 
         public ServiceViewHolder(@NonNull View itemView) {
             super(itemView);
-            cardService = itemView.findViewById(R.id.card_service);
-            iconContainer = itemView.findViewById(R.id.fl_service_detail_container);
-            ivServiceIcon = itemView.findViewById(R.id.iv_service_detail_icon);
-            tvServiceName = itemView.findViewById(R.id.tv_service_detail_name);
-            tvServiceDescription = itemView.findViewById(R.id.tv_service_detail_description);
-            tvServiceFeatures = itemView.findViewById(R.id.tv_service_features);
-            tvServicePrice = itemView.findViewById(R.id.tv_service_detail_price);
+            ivServiceDetailIcon = itemView.findViewById(R.id.iv_service_detail_icon);
+            tvServiceDetailName = itemView.findViewById(R.id.tv_service_detail_name);
+            tvServiceDetailDescription = itemView.findViewById(R.id.tv_service_detail_description);
+            tvServiceDetailPrice = itemView.findViewById(R.id.tv_service_detail_price); // ✅ INICIALIZAR
             btnAddToCart = itemView.findViewById(R.id.btn_add_to_cart);
-            tvConditionalBadge = itemView.findViewById(R.id.tv_service_conditional_hint);
-
-            Log.d(TAG, "ViewHolder creado - Views encontradas: " +
-                    (cardService != null) + ", " + (btnAddToCart != null));
+            cardTaxiCondition = itemView.findViewById(R.id.card_taxi_condition);
+            tvServiceConditionalHint = itemView.findViewById(R.id.tv_service_conditional_hint);
         }
 
-        public void bind(HotelService service, boolean isSelected, double currentTotal) {
-            if (service == null) {
-                Log.e(TAG, "Servicio null en bind()");
-                return;
-            }
-
+        public void bind(HotelService service) {
             // Configurar información básica
-            tvServiceName.setText(service.getName());
-            tvServiceDescription.setText(service.getDescription());
+            tvServiceDetailName.setText(service.getName());
+            tvServiceDetailDescription.setText(service.getDescription());
 
             // Configurar icono
             setupServiceIcon(service);
 
-            // Configurar tipo de servicio
-            setupServiceType(service, isSelected);
+            // Configurar precio y estado
+            setupPriceAndStatus(service);
 
-            // Configurar badge condicional
-            setupConditionalBadge(service);
+            // Configurar conditional hints
+            setupConditionalHints(service);
 
-            // Configurar características
-            setupFeatures(service);
-
-            // Configurar eventos
-            setupClickListeners(service);
-
-            // Configurar estado de selección
-            updateSelectionState(isSelected);
-
-            Log.d(TAG, "Servicio vinculado: " + service.getName() + ", seleccionado: " + isSelected);
+            // Configurar botón
+            setupButton(service);
         }
 
         private void setupServiceIcon(HotelService service) {
             try {
-                int resourceId = context.getResources().getIdentifier(
-                        service.getIconResourceName(), "drawable", context.getPackageName());
+                // ✅ PRIMERO intentar cargar imagen principal del servicio
+                String mainImage = service.getMainImageUrl();
+                if (mainImage != null && !mainImage.isEmpty()) {
+                    int imageResourceId = itemView.getContext().getResources().getIdentifier(
+                            mainImage, "drawable", itemView.getContext().getPackageName());
+
+                    if (imageResourceId > 0) {
+                        ivServiceDetailIcon.setImageResource(imageResourceId);
+                        return; // ✅ Si encontró imagen, usar esa
+                    }
+                }
+
+                // ✅ FALLBACK: usar icono normal
+                int resourceId = itemView.getContext().getResources().getIdentifier(
+                        service.getIconResourceName(), "drawable",
+                        itemView.getContext().getPackageName());
 
                 if (resourceId > 0) {
-                    ivServiceIcon.setImageResource(resourceId);
+                    ivServiceDetailIcon.setImageResource(resourceId);
                 } else {
-                    ivServiceIcon.setImageResource(R.drawable.ic_hotel_service_default);
-                    Log.w(TAG, "Icono no encontrado para: " + service.getIconResourceName());
+                    ivServiceDetailIcon.setImageResource(R.drawable.ic_hotel_service_default);
                 }
-
-                // Configurar fondo del contenedor según tipo
-                setupIconBackground(service);
             } catch (Exception e) {
-                Log.e(TAG, "Error configurando icono: " + e.getMessage());
-                ivServiceIcon.setImageResource(R.drawable.ic_hotel_service_default);
+                ivServiceDetailIcon.setImageResource(R.drawable.ic_hotel_service_default);
             }
         }
 
-        private void setupIconBackground(HotelService service) {
-            int backgroundRes;
-            switch (service.getServiceType()) {
-                case "free":
-                    backgroundRes = R.color.success_light;
-                    break;
-                case "paid":
-                    backgroundRes = R.color.orange_light;
-                    break;
-                case "conditional":
-                    backgroundRes = R.color.purple_light;
-                    break;
-                default:
-                    backgroundRes = R.color.light_gray;
-                    break;
-            }
-            iconContainer.setCardBackgroundColor(ContextCompat.getColor(context, backgroundRes));
-        }
-
-        private void setupServiceType(HotelService service, boolean isSelected) {
-            String serviceType = service.getServiceType();
-
-            switch (serviceType) {
-                case "free":
-                    tvServicePrice.setText("✓ Incluido");
-                    tvServicePrice.setTextColor(ContextCompat.getColor(context, R.color.success_green));
-                    tvServicePrice.setBackground(ContextCompat.getDrawable(context, R.drawable.bg_price_free));
-                    if (btnAddToCart != null) {
-                        btnAddToCart.setVisibility(View.GONE);
-                    }
-                    break;
-
-                case "paid":
-                    tvServicePrice.setText(service.getPriceDisplay());
-                    tvServicePrice.setTextColor(ContextCompat.getColor(context, R.color.orange_primary));
-                    tvServicePrice.setBackground(ContextCompat.getDrawable(context, R.drawable.bg_price_container));
-                    if (btnAddToCart != null) {
-                        btnAddToCart.setVisibility(View.VISIBLE);
-                        btnAddToCart.setText(isSelected ? "Quitar" : "Añadir");
-                        btnAddToCart.setEnabled(true);
-                        btnAddToCart.setAlpha(1f);
-                    }
-                    break;
-
-                case "conditional":
-                    if (service.isEligibleForFree()) {
-                        tvServicePrice.setText("¡GRATIS!");
-                        tvServicePrice.setTextColor(ContextCompat.getColor(context, R.color.success_green));
-                        tvServicePrice.setBackground(ContextCompat.getDrawable(context, R.drawable.bg_price_free));
-                        if (btnAddToCart != null) {
-                            btnAddToCart.setText("Incluido");
-                            btnAddToCart.setEnabled(false);
-                            btnAddToCart.setAlpha(0.6f);
-                        }
-                    } else {
-                        tvServicePrice.setText(service.getPriceDisplay());
-                        tvServicePrice.setTextColor(ContextCompat.getColor(context, R.color.orange_primary));
-                        tvServicePrice.setBackground(ContextCompat.getDrawable(context, R.drawable.bg_price_container));
-                        if (btnAddToCart != null) {
-                            btnAddToCart.setVisibility(View.VISIBLE);
-                            btnAddToCart.setText(isSelected ? "Quitar" : "Añadir");
-                            btnAddToCart.setEnabled(true);
-                            btnAddToCart.setAlpha(1f);
-                        }
-                    }
-                    break;
+        private void setupPriceAndStatus(HotelService service) {
+            if (service.isIncludedInRoom()) {
+                tvServiceDetailPrice.setText("✓ Incluido en habitación");
+                tvServiceDetailPrice.setBackgroundResource(R.drawable.bg_price_free);
+            } else if (service.isFree()) {
+                configureFreeService();
+            } else if (service.isConditional()) {
+                configureConditionalService(service);
+            } else {
+                configurePaidService(service);
             }
         }
 
-        private void setupConditionalBadge(HotelService service) {
-            if (tvConditionalBadge != null && service.isConditional()) {
-                tvConditionalBadge.setVisibility(View.VISIBLE);
-                tvConditionalBadge.setText(service.getConditionalBadgeText());
-            } else if (tvConditionalBadge != null) {
-                tvConditionalBadge.setVisibility(View.GONE);
+        // ✅ MÉTODOS FALTANTES
+        private void configureFreeService() {
+            btnAddToCart.setVisibility(View.GONE);
+            tvServiceDetailPrice.setText("✓ Incluido");
+            tvServiceDetailPrice.setBackgroundResource(R.drawable.bg_price_free);
+        }
+
+        private void configureConditionalService(HotelService service) {
+            if (service.isEligibleForFree()) {
+                tvServiceDetailPrice.setText("¡GRATIS!");
+                tvServiceDetailPrice.setBackgroundResource(R.drawable.bg_price_free);
+            } else {
+                tvServiceDetailPrice.setText(service.getPriceDisplay());
+                tvServiceDetailPrice.setBackgroundResource(R.drawable.bg_price_conditional_improved);
             }
         }
 
-        private void setupFeatures(HotelService service) {
-            if (tvServiceFeatures != null) {
-                String availability = service.getAvailability();
-                if (availability != null && !availability.isEmpty()) {
-                    tvServiceFeatures.setText("Disponible " + availability);
-                    tvServiceFeatures.setVisibility(View.VISIBLE);
+        private void configurePaidService(HotelService service) {
+            tvServiceDetailPrice.setText(service.getPriceDisplay());
+            tvServiceDetailPrice.setBackgroundResource(R.drawable.bg_price_paid_improved);
+        }
+
+        private void setupConditionalHints(HotelService service) {
+            if (service.isConditional()) {
+                cardTaxiCondition.setVisibility(View.VISIBLE);
+                tvServiceConditionalHint.setText(service.getConditionalBadgeText());
+            } else {
+                cardTaxiCondition.setVisibility(View.GONE);
+            }
+        }
+
+        private void setupButton(HotelService service) {
+            if (service.isIncludedInRoom() || service.isFree()) {
+                btnAddToCart.setVisibility(View.GONE);
+                return;
+            }
+
+            btnAddToCart.setVisibility(View.VISIBLE);
+            boolean isSelected = selectedServices.contains(service.getId());
+            updateButtonState(isSelected);
+
+            btnAddToCart.setOnClickListener(v -> {
+                boolean newSelectionState = !selectedServices.contains(service.getId());
+
+                if (listener != null) {
+                    listener.onServiceSelected(service, newSelectionState);
+                }
+
+                updateButtonState(newSelectionState);
+            });
+
+            // ✅ AGREGAR: Long click para galería (solo si tiene múltiples imágenes)
+            itemView.setOnLongClickListener(v -> {
+                if (service.hasMultipleImages()) {
+                    showServiceGallery(service);
+
+                    // Mostrar hint la primera vez
+                    Toast.makeText(itemView.getContext(),
+                            "Mantén presionado para ver más imágenes",
+                            Toast.LENGTH_SHORT).show();
+                    return true;
+                }
+                return false;
+            });
+
+            // ✅ OPCIONAL: Agregar indicador visual si tiene galería
+            if (service.hasMultipleImages()) {
+                // Agregar pequeño indicador de galería en el layout si quieres
+            }
+
+            // ✅ MOSTRAR indicador de galería si tiene múltiples imágenes
+            View galleryIndicator = itemView.findViewById(R.id.gallery_indicator);
+            if (galleryIndicator != null) {
+                // ✅ MOSTRAR para servicios específicos (por ahora hardcoded para testing)
+                if (service.getId().equals("breakfast") ||
+                        service.getId().equals("spa") ||
+                        service.getId().equals("gym") ||
+                        service.hasMultipleImages()) {
+
+                    galleryIndicator.setVisibility(View.VISIBLE);
+
+                    // ✅ ANIMACIÓN DE ENTRADA
+                    galleryIndicator.setAlpha(0f);
+                    galleryIndicator.setScaleX(0.5f);
+                    galleryIndicator.setScaleY(0.5f);
+
+                    galleryIndicator.animate()
+                            .alpha(1f)
+                            .scaleX(1f)
+                            .scaleY(1f)
+                            .setDuration(300)
+                            .setStartDelay(500)
+                            .start();
+
+                    Log.d("ServiceAdapter", "Badge mostrado para: " + service.getName());
                 } else {
-                    tvServiceFeatures.setVisibility(View.GONE);
+                    galleryIndicator.setVisibility(View.GONE);
                 }
             }
-        }
 
-        private void setupClickListeners(HotelService service) {
-            if (btnAddToCart != null) {
-                btnAddToCart.setOnClickListener(v -> {
-                    try {
-                        if (btnAddToCart.isEnabled()) {
-                            boolean newState = !selectedServiceIds.contains(service.getId());
-
-                            // Animación de botón
-                            animateButtonPress(btnAddToCart);
-
-                            if (listener != null) {
-                                listener.onServiceSelected(service, newState);
-                                Log.d(TAG, "Listener ejecutado para servicio: " + service.getId());
-                            } else {
-                                Log.w(TAG, "Listener es null");
-                            }
-                        }
-                    } catch (Exception e) {
-                        Log.e(TAG, "Error en click listener: " + e.getMessage());
-                    }
-                });
-            }
-        }
-
-        private void updateSelectionState(boolean isSelected) {
-            if (cardService != null) {
-                if (isSelected) {
-                    cardService.setStrokeColor(ContextCompat.getColor(context, R.color.orange_primary));
-                    cardService.setStrokeWidth(3);
-                    cardService.setCardElevation(6f);
-                } else {
-                    cardService.setStrokeColor(ContextCompat.getColor(context, android.R.color.transparent));
-                    cardService.setStrokeWidth(0);
-                    cardService.setCardElevation(3f);
+            // ✅ LONG CLICK PARA GALERÍA
+            itemView.setOnLongClickListener(v -> {
+                if (service.getId().equals("breakfast") || service.hasMultipleImages()) {
+                    showServiceGallery(service);
+                    return true;
                 }
-            }
+                return false;
+            });
         }
 
-        private void animateButtonPress(View button) {
+        private void showServiceGallery(HotelService service) {
             try {
-                ObjectAnimator scaleDown = ObjectAnimator.ofFloat(button, "scaleX", 1f, 0.95f);
-                ObjectAnimator scaleDownY = ObjectAnimator.ofFloat(button, "scaleY", 1f, 0.95f);
-                ObjectAnimator scaleUp = ObjectAnimator.ofFloat(button, "scaleX", 0.95f, 1f);
-                ObjectAnimator scaleUpY = ObjectAnimator.ofFloat(button, "scaleY", 0.95f, 1f);
+                // Crear el diálogo
+                Dialog dialog = new Dialog(itemView.getContext());
+                dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+                dialog.setContentView(R.layout.dialog_service_images);
 
-                AnimatorSet scaleDownSet = new AnimatorSet();
-                scaleDownSet.playTogether(scaleDown, scaleDownY);
-                scaleDownSet.setDuration(100);
+                if (dialog.getWindow() != null) {
+                    dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+                    dialog.getWindow().setLayout(
+                            ViewGroup.LayoutParams.MATCH_PARENT,
+                            ViewGroup.LayoutParams.WRAP_CONTENT
+                    );
+                }
 
-                AnimatorSet scaleUpSet = new AnimatorSet();
-                scaleUpSet.playTogether(scaleUp, scaleUpY);
-                scaleUpSet.setDuration(100);
+                // Configurar vistas del diálogo
+                TextView tvServiceTitle = dialog.findViewById(R.id.tv_service_title);
+                RecyclerView rvServiceImages = dialog.findViewById(R.id.rv_service_images);
+                MaterialButton btnCloseGallery = dialog.findViewById(R.id.btn_close_gallery);
 
-                AnimatorSet fullSet = new AnimatorSet();
-                fullSet.playSequentially(scaleDownSet, scaleUpSet);
-                fullSet.start();
+                if (tvServiceTitle != null) {
+                    tvServiceTitle.setText("Galería: " + service.getName());
+                }
+
+                // Configurar RecyclerView horizontal
+                if (rvServiceImages != null) {
+                    LinearLayoutManager layoutManager = new LinearLayoutManager(
+                            itemView.getContext(), LinearLayoutManager.HORIZONTAL, false);
+                    rvServiceImages.setLayoutManager(layoutManager);
+
+                    // Crear adaptador para la galería
+                    ServiceGalleryAdapter galleryAdapter = new ServiceGalleryAdapter(
+                            service.getImageUrls(),
+                            new ServiceGalleryAdapter.OnImageClickListener() {
+                                @Override
+                                public void onImageClick(String imageName, int position) {
+                                    // Opcional: mostrar imagen en pantalla completa
+                                    showFullscreenImage(imageName, service.getName());
+                                }
+                            }
+                    );
+                    rvServiceImages.setAdapter(galleryAdapter);
+                }
+
+                // Botón cerrar
+                if (btnCloseGallery != null) {
+                    btnCloseGallery.setOnClickListener(v -> dialog.dismiss());
+                }
+
+                // Mostrar diálogo con animación
+                dialog.show();
+
+                // Animación de entrada
+                if (dialog.getWindow() != null) {
+                    View dialogView = dialog.findViewById(android.R.id.content);
+                    if (dialogView != null) {
+                        dialogView.setAlpha(0f);
+                        dialogView.setScaleX(0.8f);
+                        dialogView.setScaleY(0.8f);
+
+                        dialogView.animate()
+                                .alpha(1f)
+                                .scaleX(1f)
+                                .scaleY(1f)
+                                .setDuration(300)
+                                .start();
+                    }
+                }
+
+                Log.d("ServiceGallery", "Galería mostrada para: " + service.getName() +
+                        " con " + service.getImageUrls().size() + " imágenes");
+
             } catch (Exception e) {
-                Log.e(TAG, "Error en animación: " + e.getMessage());
+                Log.e("ServiceGallery", "Error mostrando galería: " + e.getMessage());
+                Toast.makeText(itemView.getContext(),
+                        "Error mostrando galería", Toast.LENGTH_SHORT).show();
+            }
+        }
+
+        private void showFullscreenImage(String imageName, String serviceName) {
+            try {
+                Dialog fullscreenDialog = new Dialog(itemView.getContext(),
+                        android.R.style.Theme_Black_NoTitleBar_Fullscreen);
+                fullscreenDialog.setContentView(R.layout.dialog_fullscreen_image);
+
+                ImageView ivFullscreen = fullscreenDialog.findViewById(R.id.iv_fullscreen_image);
+                TextView tvImageTitle = fullscreenDialog.findViewById(R.id.tv_image_title);
+                ImageButton btnCloseFullscreen = fullscreenDialog.findViewById(R.id.btn_close_fullscreen);
+
+                // Configurar imagen
+                if (ivFullscreen != null) {
+                    int resourceId = itemView.getContext().getResources().getIdentifier(
+                            imageName, "drawable", itemView.getContext().getPackageName());
+                    ivFullscreen.setImageResource(resourceId > 0 ? resourceId : R.drawable.ic_hotel_service_default);
+                }
+
+                // Configurar título
+                if (tvImageTitle != null) {
+                    tvImageTitle.setText(serviceName);
+                }
+
+                // Botón cerrar
+                if (btnCloseFullscreen != null) {
+                    btnCloseFullscreen.setOnClickListener(v -> fullscreenDialog.dismiss());
+                }
+
+                // Cerrar con tap
+                if (ivFullscreen != null) {
+                    ivFullscreen.setOnClickListener(v -> fullscreenDialog.dismiss());
+                }
+
+                fullscreenDialog.show();
+
+            } catch (Exception e) {
+                Log.e("ServiceGallery", "Error mostrando imagen completa: " + e.getMessage());
+            }
+        }
+
+        // ✅ MÉTODO FALTANTE
+        private void updateButtonState(boolean isSelected) {
+            if (isSelected) {
+                btnAddToCart.setText("Añadido");
+                btnAddToCart.setIcon(ContextCompat.getDrawable(itemView.getContext(), R.drawable.ic_check_circle));
+                btnAddToCart.setBackgroundTintList(ContextCompat.getColorStateList(itemView.getContext(), R.color.success_green));
+            } else {
+                btnAddToCart.setText("Añadir");
+                btnAddToCart.setIcon(ContextCompat.getDrawable(itemView.getContext(), R.drawable.ic_add_circle));
+                btnAddToCart.setBackgroundTintList(ContextCompat.getColorStateList(itemView.getContext(), R.color.orange_primary));
             }
         }
     }

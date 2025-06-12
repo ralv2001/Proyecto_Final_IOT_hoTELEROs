@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/iconContainer"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="4dp"
+    android:orientation="vertical"
+    android:gravity="center"
+    android:padding="12dp"
+    android:background="@drawable/bg_service_card"
+    android:clickable="true"
+    android:focusable="true">
+
+    <ImageView
+        android:id="@+id/ivIcon"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        android:src="@drawable/ic_hotel_service_default"
+        app:tint="@color/orange"
+        android:layout_marginBottom="8dp" />
+
+    <TextView
+        android:id="@+id/tvIconName"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Servicio"
+        android:textSize="10sp"
+        android:textColor="@color/text_primary"
+        android:fontFamily="@font/inter_regular"
+        android:gravity="center"
+        android:maxLines="2"
+        android:ellipsize="end" />
+
+</LinearLayout>

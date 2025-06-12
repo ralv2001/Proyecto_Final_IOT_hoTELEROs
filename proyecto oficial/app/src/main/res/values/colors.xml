@@ -183,5 +183,7 @@
     <color name="popular_color">#9C27B0</color>
     <color name="location_default_color">#757575</color>
 
-
+    <color name="taxi_condition_bg">#FFF8E1</color>
+    <color name="purple">#9C27B0</color>
+    <color name="brown">#795548</color>
 </resources>

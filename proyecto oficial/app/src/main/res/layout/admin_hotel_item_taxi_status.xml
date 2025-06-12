@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="12dp"
+    app:cardCornerRadius="12dp"
+    app:cardElevation="4dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="16dp">
+
+        <!-- Status Indicator -->
+        <View
+            android:id="@+id/statusIndicator"
+            android:layout_width="4dp"
+            android:layout_height="match_parent"
+            android:background="@color/orange"
+            android:layout_marginEnd="12dp" />
+
+        <!-- Content -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <!-- Driver Info -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginBottom="8dp">
+
+                <TextView
+                    android:id="@+id/tvDriverName"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Carlos Mendoza"
+                    android:textStyle="bold"
+                    android:textColor="@color/text_primary"
+                    android:textSize="16sp" />
+
+                <TextView
+                    android:id="@+id/tvVehiclePlate"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="ABC-123"
+                    android:textColor="@color/text_secondary"
+                    android:background="@drawable/bg_rounded_pill"
+                    android:paddingHorizontal="8dp"
+                    android:paddingVertical="2dp"
+                    android:textSize="12sp" />
+
+            </LinearLayout>
+
+            <!-- Status -->
+            <TextView
+                android:id="@+id/tvEstado"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="En camino"
+                android:textStyle="bold"
+                android:textColor="@color/orange"
+                android:layout_marginBottom="4dp" />
+
+            <!-- Client Info -->
+            <TextView
+                android:id="@+id/tvClientName"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Cliente: Ana Palacios"
+                android:textColor="@color/text_secondary"
+                android:textSize="14sp"
+                android:layout_marginBottom="4dp" />
+
+            <!-- ETA -->
+            <TextView
+                android:id="@+id/tvETA"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="15 min"
+                android:textColor="@color/text_secondary"
+                android:textSize="12sp" />
+
+        </LinearLayout>
+
+        <!-- Taxi Icon -->
+        <ImageView
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:src="@drawable/ic_taxi"
+            app:tint="@color/orange"
+            android:layout_gravity="center_vertical" />
+
+    </LinearLayout>
+
+</androidx.cardview.widget.CardView>

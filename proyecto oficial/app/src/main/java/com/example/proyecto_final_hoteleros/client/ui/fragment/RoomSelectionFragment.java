@@ -1,5 +1,6 @@
 package com.example.proyecto_final_hoteleros.client.ui.fragment;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -16,6 +17,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.proyecto_final_hoteleros.R;
+import com.example.proyecto_final_hoteleros.client.ui.activity.AllHotelServicesActivity;
 import com.example.proyecto_final_hoteleros.client.ui.adapters.RoomTypeAdapter;
 import com.example.proyecto_final_hoteleros.client.data.model.RoomType;
 
@@ -30,6 +32,7 @@ public class RoomSelectionFragment extends Fragment {
     private ImageButton btnBack;
     private RoomTypeAdapter adapter;
     private String hotelName;
+    private String hotelPrice;
 
     @Nullable
     @Override
@@ -52,6 +55,7 @@ public class RoomSelectionFragment extends Fragment {
         // Obtener datos del hotel desde los argumentos
         if (getArguments() != null) {
             hotelName = getArguments().getString("hotel_name", "Belmond Miraflores Park");
+            hotelPrice = getArguments().getString("hotel_price", "S/290");
             tvHotelName.setText(hotelName);
         }
 
@@ -63,17 +67,79 @@ public class RoomSelectionFragment extends Fragment {
     }
 
     private void setupRoomTypes() {
-        // Crear lista de tipos de habitación
+        // Crear lista de tipos de habitación con servicios incluidos
         List<RoomType> roomTypes = new ArrayList<>();
-        roomTypes.add(new RoomType("Habitación Estándar", 30, "S/290", R.drawable.belmond));
-        roomTypes.add(new RoomType("Habitación Deluxe", 40, "S/350", R.drawable.belmond));
-        roomTypes.add(new RoomType("Suite Junior", 50, "S/450", R.drawable.belmond));
-        roomTypes.add(new RoomType("Suite Presidencial", 70, "S/650", R.drawable.belmond));
+
+        // Habitación Estándar
+        List<String> standardServices = new ArrayList<>();
+        standardServices.add("wifi");
+        standardServices.add("reception");
+        standardServices.add("parking");
+
+        List<String> standardFeatures = new ArrayList<>();
+        standardFeatures.add("TV de 32 pulgadas");
+        standardFeatures.add("Aire acondicionado");
+        standardFeatures.add("Baño privado");
+
+        roomTypes.add(new RoomType("Habitación Estándar", 30, "S/290", R.drawable.belmond,
+                standardServices, "Habitación cómoda con comodidades básicas", standardFeatures));
+
+        // Habitación Deluxe
+        List<String> deluxeServices = new ArrayList<>();
+        deluxeServices.add("wifi");
+        deluxeServices.add("reception");
+        deluxeServices.add("parking");
+        deluxeServices.add("minibar");
+
+        List<String> deluxeFeatures = new ArrayList<>();
+        deluxeFeatures.add("TV de 42 pulgadas");
+        deluxeFeatures.add("Baño con bañera");
+        deluxeFeatures.add("Vista a la ciudad");
+        deluxeFeatures.add("Minibar incluido");
+
+        roomTypes.add(new RoomType("Habitación Deluxe", 40, "S/350", R.drawable.belmond,
+                deluxeServices, "Habitación espaciosa con amenidades premium", deluxeFeatures));
+
+        // Suite Junior
+        List<String> juniorServices = new ArrayList<>();
+        juniorServices.add("wifi");
+        juniorServices.add("reception");
+        juniorServices.add("parking");
+        juniorServices.add("minibar");
+        juniorServices.add("room_service");
+
+        List<String> juniorFeatures = new ArrayList<>();
+        juniorFeatures.add("Sala de estar separada");
+        juniorFeatures.add("Baño con jacuzzi");
+        juniorFeatures.add("Vista panorámica");
+        juniorFeatures.add("Servicio 24/7");
+
+        roomTypes.add(new RoomType("Suite Junior", 50, "S/450", R.drawable.belmond,
+                juniorServices, "Suite elegante con área de estar independiente", juniorFeatures));
+
+        // Suite Presidencial
+        List<String> presServices = new ArrayList<>();
+        presServices.add("wifi");
+        presServices.add("reception");
+        presServices.add("parking");
+        presServices.add("minibar");
+        presServices.add("room_service");
+        presServices.add("laundry");
+
+        List<String> presFeatures = new ArrayList<>();
+        presFeatures.add("Dormitorio principal");
+        presFeatures.add("Sala amplia");
+        presFeatures.add("Balcón privado");
+        presFeatures.add("Servicio de mayordomía");
+
+        roomTypes.add(new RoomType("Suite Presidencial", 70, "S/650", R.drawable.belmond,
+                presServices, "La suite más lujosa con servicios exclusivos", presFeatures));
 
         // Configurar adapter
         adapter = new RoomTypeAdapter(roomTypes, position -> {
             // Callback cuando se selecciona una habitación
-            Toast.makeText(getContext(), "Habitación seleccionada: " + roomTypes.get(position).getName(), Toast.LENGTH_SHORT).show();
+            RoomType selectedRoom = roomTypes.get(position);
+            Toast.makeText(getContext(), "Habitación seleccionada: " + selectedRoom.getName(), Toast.LENGTH_SHORT).show();
         });
 
         rvRoomTypes.setLayoutManager(new LinearLayoutManager(getContext()));
@@ -84,7 +150,7 @@ public class RoomSelectionFragment extends Fragment {
         // Botón de retroceso
         btnBack.setOnClickListener(v -> requireActivity().onBackPressed());
 
-        // Botón de siguiente paso
+        // Botón de siguiente paso - NUEVO FLUJO
         btnNextStep.setOnClickListener(v -> {
             // Verificar si hay una habitación seleccionada
             if (adapter.getSelectedPosition() == -1) {
@@ -92,14 +158,12 @@ public class RoomSelectionFragment extends Fragment {
                 return;
             }
 
-            // Implementar navegación al siguiente paso (reserva)
-            navigateToBooking();
+            // Navegar a la selección de servicios adicionales
+            navigateToServiceSelection();
         });
     }
 
-
-    private void navigateToBooking() {
-        // Obtener la habitación seleccionada
+    private void navigateToServiceSelection() {
         RoomType selectedRoom = adapter.getSelectedPosition() != -1 ?
                 adapter.getRoomTypes().get(adapter.getSelectedPosition()) : null;
 
@@ -108,7 +172,45 @@ public class RoomSelectionFragment extends Fragment {
             return;
         }
 
-        // Crear bundle con los datos
+        Intent intent = new Intent(getActivity(), AllHotelServicesActivity.class);
+        intent.putExtra("hotel_name", hotelName);
+        intent.putExtra("selected_room_name", selectedRoom.getName());
+        intent.putExtra("selected_room_price", selectedRoom.getPrice());
+        intent.putExtra("selected_room_features", selectedRoom.getFeatures().toArray(new String[0]));
+        intent.putExtra("included_service_ids", selectedRoom.getIncludedServiceIds().toArray(new String[0]));
+        intent.putExtra("mode", "service_selection");
+
+        // ✅ AGREGAR precio numérico para cálculos del taxi
+        double roomPriceNumeric = 0.0;
+        try {
+            roomPriceNumeric = Double.parseDouble(selectedRoom.getPrice().replace("S/", "").trim());
+        } catch (NumberFormatException e) {
+            roomPriceNumeric = 290.0; // Fallback
+        }
+        intent.putExtra("room_price_numeric", roomPriceNumeric);
+
+        startActivityForResult(intent, 100);
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (requestCode == 100 && resultCode == getActivity().RESULT_OK) {
+            // El usuario completó la selección de servicios, ir al resumen
+            if (data != null) {
+                String selectedServices = data.getStringExtra("SELECTED_SERVICES");
+                navigateToBookingWithServices(selectedServices);
+            }
+        }
+    }
+
+    private void navigateToBookingWithServices(String selectedServices) {
+        RoomType selectedRoom = adapter.getSelectedPosition() != -1 ?
+                adapter.getRoomTypes().get(adapter.getSelectedPosition()) : null;
+
+        if (selectedRoom == null) return;
+
         Bundle args = new Bundle();
         args.putString("hotel_name", hotelName);
         args.putString("hotel_address", "Miraflores, Lima, Perú");
@@ -117,16 +219,20 @@ public class RoomSelectionFragment extends Fragment {
         args.putString("check_out_date", "9 abril");
         args.putInt("num_adults", 2);
         args.putInt("num_children", 0);
-        args.putString("room_number", "9634448852");
-        args.putBoolean("has_free_transport", false);
-        args.putDouble("additional_services_price", 60.0);
+        args.putString("room_number", generateRandomRoomNumber());
 
-        // Navegar al fragmento de resumen de reserva
-        // Con Navigation Component sería:
-        // NavDirections action = RoomSelectionFragmentDirections.actionRoomSelectionToBookingSummary(args);
-        // Navigation.findNavController(requireView()).navigate(action);
+        // ✅ CALCULAR automáticamente si taxi es gratis
+        double roomPrice = getRoomPriceValue(selectedRoom);
+        boolean isTaxiFree = selectedServices != null && selectedServices.contains("taxi") && roomPrice >= 350.0;
+        args.putBoolean("has_free_transport", isTaxiFree);
 
-        // Sin Navigation Component puedes hacer:
+        // ✅ PASAR servicios seleccionados
+        args.putString("selected_services", selectedServices);
+
+        // ✅ CALCULAR precio de servicios adicionales
+        double additionalPrice = calculateAdditionalServicesPrice(selectedServices, roomPrice);
+        args.putDouble("additional_services_price", additionalPrice);
+
         BookingSummaryFragment bookingSummaryFragment = new BookingSummaryFragment();
         bookingSummaryFragment.setArguments(args);
 
@@ -134,8 +240,34 @@ public class RoomSelectionFragment extends Fragment {
                 .replace(R.id.fragment_container, bookingSummaryFragment)
                 .addToBackStack(null)
                 .commit();
+    }
+    private double getRoomPriceValue(RoomType room) {
+        try {
+            return Double.parseDouble(room.getPrice().replace("S/", "").trim());
+        } catch (NumberFormatException e) {
+            return 290.0;
+        }
+    }
+    private double calculateAdditionalServicesPrice(String selectedServices, double roomPrice) {
+        double total = 0.0;
 
-        Toast.makeText(getContext(), "Continuando con la reserva...", Toast.LENGTH_SHORT).show();
+        if (selectedServices != null && selectedServices.contains("taxi")) {
+            // Solo agregar precio del taxi si no es gratis
+            if (roomPrice < 350.0) {
+                total += 60.0;
+            }
+            // Si roomPrice >= 350.0, el taxi es gratis, no se agrega al total
+        }
+
+        // ✅ AQUÍ puedes agregar lógica para otros servicios en el futuro
+        // if (selectedServices.contains("spa")) total += 120.0;
+        // if (selectedServices.contains("breakfast")) total += 45.0;
+
+        return total;
+    }
+
+    private String generateRandomRoomNumber() {
+        return String.valueOf(System.currentTimeMillis()).substring(7);
     }
 
     // Interface para comunicarse con el adapter

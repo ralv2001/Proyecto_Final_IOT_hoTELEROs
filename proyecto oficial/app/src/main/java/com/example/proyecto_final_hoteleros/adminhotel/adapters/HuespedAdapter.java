@@ -4,6 +4,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -14,54 +15,62 @@ import java.util.List;
 
 public class HuespedAdapter extends RecyclerView.Adapter<HuespedAdapter.HuespedViewHolder> {
 
-    private List<Huesped> listaHuespedes;
+    private List<Huesped> huespedList;
     private OnItemClickListener listener;
 
     public interface OnItemClickListener {
         void onItemClick(Huesped huesped);
     }
 
-    public void setOnItemClickListener(OnItemClickListener listener) {
-        this.listener = listener;
+    public HuespedAdapter(List<Huesped> huespedList) {
+        this.huespedList = huespedList;
     }
 
-    public HuespedAdapter(List<Huesped> listaHuespedes) {
-        this.listaHuespedes = listaHuespedes;
+    public void setOnItemClickListener(OnItemClickListener listener) {
+        this.listener = listener;
     }
 
     @NonNull
     @Override
     public HuespedViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View vista = LayoutInflater.from(parent.getContext())
-                .inflate(R.layout.admin_hotel_item_huesped, parent, false);
-        return new HuespedViewHolder(vista);
+        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.admin_hotel_item_huesped, parent, false);
+        return new HuespedViewHolder(view);
     }
 
     @Override
     public void onBindViewHolder(@NonNull HuespedViewHolder holder, int position) {
-        Huesped h = listaHuespedes.get(position);
-        holder.tvNombre.setText(h.getNombre());
-        holder.tvCheckIn.setText("Check-in: " + h.getCheckIn());
+        Huesped huesped = huespedList.get(position);
+        holder.bind(huesped);
     }
 
     @Override
     public int getItemCount() {
-        return listaHuespedes.size();
+        return huespedList.size();
     }
 
-    public class HuespedViewHolder extends RecyclerView.ViewHolder {
-        TextView tvNombre, tvCheckIn;
+    class HuespedViewHolder extends RecyclerView.ViewHolder {
+        private TextView tvNombre;
+        private TextView tvFechaCheckIn;
+        private TextView tvEstado;
 
         public HuespedViewHolder(@NonNull View itemView) {
             super(itemView);
             tvNombre = itemView.findViewById(R.id.tvNombre);
-            tvCheckIn = itemView.findViewById(R.id.tvCheckIn);
+            tvFechaCheckIn = itemView.findViewById(R.id.tvFechaCheckIn);
+            tvEstado = itemView.findViewById(R.id.tvEstado);
 
             itemView.setOnClickListener(v -> {
-                if (listener != null && getAdapterPosition() != RecyclerView.NO_POSITION) {
-                    listener.onItemClick(listaHuespedes.get(getAdapterPosition()));
+                int position = getAdapterPosition();
+                if (position != RecyclerView.NO_POSITION && listener != null) {
+                    listener.onItemClick(huespedList.get(position));
                 }
             });
+        }
+
+        public void bind(Huesped huesped) {
+            tvNombre.setText(huesped.getNombre());
+            tvFechaCheckIn.setText(huesped.getCheckIn());
+            tvEstado.setText("Pendiente checkout");
         }
     }
 }

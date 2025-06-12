@@ -13,7 +13,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
-        <!-- Imagen de la habitación -->
+        <!-- ✅ TU IMAGEN ORIGINAL se mantiene -->
         <ImageView
             android:id="@+id/iv_room_image"
             android:layout_width="match_parent"
@@ -24,7 +24,7 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"/>
 
-        <!-- Nombre de la habitación -->
+        <!-- ✅ TU NOMBRE ORIGINAL se mantiene -->
         <TextView
             android:id="@+id/tv_room_name"
             android:layout_width="wrap_content"
@@ -37,7 +37,20 @@
             app:layout_constraintTop_toBottomOf="@id/iv_room_image"
             app:layout_constraintStart_toStartOf="parent"/>
 
-        <!-- Área de la habitación -->
+        <!-- ✅ TU PRECIO ORIGINAL se mantiene -->
+        <TextView
+            android:id="@+id/tv_room_price"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="S/290"
+            android:textColor="#FF5722"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:layout_margin="16dp"
+            app:layout_constraintTop_toBottomOf="@id/iv_room_image"
+            app:layout_constraintEnd_toEndOf="parent"/>
+
+        <!-- ✅ TU ÁREA ORIGINAL se mantiene -->
         <LinearLayout
             android:id="@+id/layout_area"
             android:layout_width="wrap_content"
@@ -65,20 +78,45 @@
                 android:layout_marginStart="8dp"/>
         </LinearLayout>
 
-        <!-- Precio de la habitación -->
-        <TextView
-            android:id="@+id/tv_room_price"
-            android:layout_width="wrap_content"
+        <!-- ✅ MEJORAR: Información de servicios incluidos (MODIFICADO para mostrar servicios específicos) -->
+        <LinearLayout
+            android:id="@+id/layout_services_info"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:text="S/290"
-            android:textColor="#FF5722"
-            android:textSize="20sp"
-            android:textStyle="bold"
-            android:layout_margin="16dp"
-            app:layout_constraintTop_toBottomOf="@id/iv_room_image"
-            app:layout_constraintEnd_toEndOf="parent"/>
+            android:orientation="vertical"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="12dp"
+            android:layout_marginEnd="16dp"
+            app:layout_constraintTop_toBottomOf="@id/layout_area"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent">
 
-        <!-- Botón de selección -->
+            <TextView
+                android:id="@+id/tv_included_services_count"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="✓ Incluye: WiFi • Recepción 24h • Piscina • Estacionamiento"
+                android:textColor="@color/success_green"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:fontFamily="@font/poppins_semibold"
+                android:maxLines="2"
+                android:ellipsize="end" />
+
+            <TextView
+                android:id="@+id/tv_exclusive_services"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="+ Minibar Premium"
+                android:textColor="@color/orange_primary"
+                android:textSize="11sp"
+                android:textStyle="bold"
+                android:fontFamily="@font/poppins_medium"
+                android:layout_marginTop="4dp"
+                android:visibility="gone"/>
+        </LinearLayout>
+
+        <!-- ✅ TU BOTÓN ORIGINAL se mantiene -->
         <androidx.appcompat.widget.AppCompatButton
             android:id="@+id/btn_select_room"
             android:layout_width="wrap_content"
@@ -89,7 +127,7 @@
             android:layout_margin="16dp"
             android:background="@drawable/bg_orange_button"
             android:textColor="@color/white"
-            app:layout_constraintTop_toBottomOf="@id/layout_area"
+            app:layout_constraintTop_toBottomOf="@id/layout_services_info"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             android:layout_marginBottom="16dp"/>

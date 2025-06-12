@@ -31,6 +31,7 @@ import com.google.android.material.button.MaterialButton;
 import com.google.android.material.chip.Chip;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
@@ -53,27 +54,160 @@ public class AllHotelServicesActivity extends AppCompatActivity implements Servi
     private double currentReservationTotal = 350.0; // Simulando reserva existente
     private static final double TAXI_MIN_AMOUNT = 350.0;
     private String currentFilter = "all";
+    private String activityMode; // ✅ NUEVO: "service_selection" o "browse_only"
+    private String selectedRoomName;
+    private String[] includedServiceIds;
+    private String[] roomFeatures;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.client_activity_all_hotel_services);
 
-        Log.d(TAG, "Iniciando AllHotelServicesActivity");
+        // Determinar el modo de la actividad
+        activityMode = getIntent().getStringExtra("mode");
+        if (activityMode == null) activityMode = "browse_only";
+
+        Log.d(TAG, "=== FLUJO DE SERVICIOS ===");
+        Log.d(TAG, "Modo de actividad: " + activityMode);
+
+        setContentView(R.layout.client_activity_all_hotel_services);
+        currentReservationTotal = getCurrentRoomPrice();
+
+        Log.d(TAG, "Total inicial de reserva: " + currentReservationTotal);
 
         try {
             initViews();
-            loadServices();
+            getIntentData();
+            loadServices(); // ✅ Ahora carga servicios según el modo
+
+            Log.d(TAG, "Servicios cargados en total: " + allServices.size());
+
             setupAdapter();
             setupFilterChips();
             setupClickListeners();
             updateCartDisplay();
             animateViewsEntry();
 
+            configureUIForMode();
+
             Log.d(TAG, "Actividad inicializada correctamente");
         } catch (Exception e) {
             Log.e(TAG, "Error inicializando actividad: " + e.getMessage());
             Toast.makeText(this, "Error cargando servicios", Toast.LENGTH_SHORT).show();
+        }
+    }
+    private void showRoomInfoCard() {
+        View roomInfoCard = findViewById(R.id.room_info_card);
+        if (roomInfoCard != null && selectedRoomName != null) {
+            roomInfoCard.setVisibility(View.VISIBLE);
+
+            TextView tvRoomName = roomInfoCard.findViewById(R.id.tv_selected_room_name);
+            TextView tvIncludedServices = roomInfoCard.findViewById(R.id.tv_included_services_info);
+
+            if (tvRoomName != null) {
+                tvRoomName.setText(selectedRoomName + " seleccionada");
+            }
+
+            if (tvIncludedServices != null && includedServiceIds != null) {
+                tvIncludedServices.setText(includedServiceIds.length + " servicios ya incluidos en tu habitación");
+            }
+
+            Log.d(TAG, "Room info card shown for: " + selectedRoomName);
+        } else {
+            if (roomInfoCard == null) {
+                Log.w(TAG, "room_info_card not found in layout");
+            }
+            if (selectedRoomName == null) {
+                Log.w(TAG, "selectedRoomName is null");
+            }
+        }
+    }
+    private void filterIncludedServices() {
+        if (includedServiceIds == null || adapter == null) {
+            Log.d(TAG, "No hay servicios incluidos para filtrar");
+            return;
+        }
+
+        Log.d(TAG, "Filtrando servicios incluidos: " + Arrays.toString(includedServiceIds));
+
+        // ✅ MARCAR servicios incluidos Y removerlos de la lista si están
+        List<HotelService> servicesToRemove = new ArrayList<>();
+
+        for (HotelService service : allServices) {
+            if (service != null) {
+                for (String includedId : includedServiceIds) {
+                    if (service.getId() != null && service.getId().equals(includedId)) {
+                        // Si el servicio está incluido en la habitación, marcarlo
+                        service.setIncludedInRoom(true);
+
+                        // ✅ REMOVER de la lista de servicios adicionales
+                        // porque ya viene incluido en la habitación
+                        if (!"taxi".equals(service.getId())) { // Taxi es especial, se mantiene
+                            servicesToRemove.add(service);
+                        }
+
+                        Log.d(TAG, "Servicio incluido encontrado: " + service.getName());
+                        break;
+                    }
+                }
+            }
+        }
+
+        // Remover servicios incluidos de la lista
+        allServices.removeAll(servicesToRemove);
+
+        adapter.notifyDataSetChanged();
+        Log.d(TAG, "Servicios después del filtrado: " + allServices.size());
+    }
+    private void configureUIForMode() {
+        TextView headerTitle = findViewById(R.id.tv_header_title);
+        TextView headerSubtitle = findViewById(R.id.tv_header_subtitle);
+
+        if ("service_selection".equals(activityMode)) {
+            // Modo selección de servicios
+            if (headerTitle != null) {
+                headerTitle.setText("Servicios adicionales");
+            }
+            if (headerSubtitle != null) {
+                headerSubtitle.setText("Añade servicios extra a tu " + (selectedRoomName != null ? selectedRoomName : "habitación"));
+            }
+
+            showRoomInfoCard();
+            filterIncludedServices();
+
+        } else {
+            // Modo navegación solamente
+            if (headerTitle != null) {
+                headerTitle.setText("Todos nuestros servicios");
+            }
+            if (headerSubtitle != null) {
+                headerSubtitle.setText("Conoce todo lo que tenemos disponible");
+            }
+
+            // ✅ OCULTAR carrito en modo browse_only
+            if (cartSummary != null) {
+                cartSummary.setVisibility(View.GONE);
+            }
+        }
+    }
+
+    private void getIntentData() {
+        try {
+            selectedRoomName = getIntent().getStringExtra("selected_room_name");
+            includedServiceIds = getIntent().getStringArrayExtra("included_service_ids");
+            roomFeatures = getIntent().getStringArrayExtra("selected_room_features");
+
+            Log.d(TAG, "Habitación seleccionada: " + selectedRoomName);
+            Log.d(TAG, "Servicios incluidos: " + (includedServiceIds != null ? includedServiceIds.length : 0));
+
+            if (includedServiceIds != null) {
+                Log.d(TAG, "Servicios incluidos: " + Arrays.toString(includedServiceIds));
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "Error getting intent data: " + e.getMessage());
+            selectedRoomName = null;
+            includedServiceIds = null;
+            roomFeatures = null;
         }
     }
 
@@ -105,10 +239,20 @@ public class AllHotelServicesActivity extends AppCompatActivity implements Servi
     private void loadServices() {
         try {
             ServicesRepository repository = ServicesRepository.getInstance();
-            allServices = repository.getAllServices();
+
+            // ✅ CORREGIDO: Cargar solo servicios adicionales, no todos
+            if ("service_selection".equals(activityMode)) {
+                // Modo selección: solo servicios adicionales (no incluidos en habitación)
+                allServices = repository.getAdditionalServices();
+                Log.d(TAG, "Servicios adicionales cargados: " + allServices.size());
+            } else {
+                // Modo navegación: todos los servicios para información
+                allServices = repository.getAllServices();
+                Log.d(TAG, "Todos los servicios cargados: " + allServices.size());
+            }
+
             updateServiceEligibility();
 
-            Log.d(TAG, "Servicios cargados: " + allServices.size());
         } catch (Exception e) {
             Log.e(TAG, "Error cargando servicios: " + e.getMessage());
             allServices = new ArrayList<>();
@@ -116,13 +260,30 @@ public class AllHotelServicesActivity extends AppCompatActivity implements Servi
     }
 
     private void updateServiceEligibility() {
+        // ✅ TU CÓDIGO EXISTENTE se mantiene
         for (HotelService service : allServices) {
             if (service.getId().equals("taxi")) {
                 service.setEligibleForFree(currentReservationTotal >= TAXI_MIN_AMOUNT);
                 Log.d(TAG, "Taxi eligibility: " + service.isEligibleForFree());
+
+                // ✅ AGREGAR mensaje dinámico basado en el total actual
+                updateTaxiConditionalMessage(service, currentReservationTotal);
             }
         }
     }
+
+    private void updateTaxiConditionalMessage(HotelService taxiService, double currentTotal) {
+        if (currentTotal >= 350.0) {
+            taxiService.setConditionalDescription("🎉 ¡INCLUIDO! Total: S/. " + String.format("%.0f", currentTotal) + " (Ahorro: S/. 60)");
+        } else {
+            double needed = 350.0 - currentTotal;
+            taxiService.setConditionalDescription(
+                    String.format("💡 Total actual: S/. %.0f - Agrega S/. %.0f más para GRATIS", currentTotal, needed)
+            );
+        }
+    }
+
+
 
     private void setupAdapter() {
         try {
@@ -231,13 +392,23 @@ public class AllHotelServicesActivity extends AppCompatActivity implements Servi
 
     private void handleCheckout() {
         try {
-            Set<String> selectedServices = adapter != null ? adapter.getSelectedServiceIds() : null;
-            if (selectedServices != null && !selectedServices.isEmpty()) {
-                Log.d(TAG, "Servicios seleccionados: " + selectedServices.size());
-                showSuccessDialog();
+            if ("service_selection".equals(activityMode)) {
+                // Modo selección: procesar servicios y volver con resultado
+                Set<String> selectedServices = adapter != null ? adapter.getSelectedServiceIds() : null;
+                if (selectedServices != null && !selectedServices.isEmpty()) {
+                    Log.d(TAG, "Servicios seleccionados: " + selectedServices.size());
+
+                    Intent result = new Intent();
+                    result.putExtra("SELECTED_SERVICES", selectedServices.toString());
+                    setResult(RESULT_OK, result);
+                    finish();
+                } else {
+                    Log.d(TAG, "No hay servicios seleccionados");
+                    showNoServicesMessage();
+                }
             } else {
-                Log.d(TAG, "No hay servicios seleccionados");
-                showNoServicesMessage();
+                // Modo navegación: solo mostrar información
+                showBrowseOnlyMessage();
             }
         } catch (Exception e) {
             Log.e(TAG, "Error en checkout: " + e.getMessage());
@@ -245,50 +416,93 @@ public class AllHotelServicesActivity extends AppCompatActivity implements Servi
         }
     }
 
+    private void showBrowseOnlyMessage() {
+        Toast.makeText(this, "Para reservar servicios, selecciona primero una habitación", Toast.LENGTH_LONG).show();
+    }
+
     private void updateCartDisplay() {
         try {
             Set<String> selectedServiceIds = adapter != null ? adapter.getSelectedServiceIds() : null;
-            if (selectedServiceIds == null) {
+            if (selectedServiceIds == null || selectedServiceIds.isEmpty()) {
                 hideCartWithAnimation();
                 return;
             }
 
             int count = 0;
-            double total = 0.0;
+            double additionalTotal = 0.0;
+            double currentRoomPrice = getCurrentRoomPrice();
 
-            // Calcular total (solo servicios pagados)
+            // ✅ CALCULAR solo servicios que NO están incluidos en habitación
             for (HotelService service : allServices) {
                 if (selectedServiceIds.contains(service.getId())) {
-                    if (service.getId().equals("taxi") && service.isEligibleForFree()) {
-                        // Taxi gratis, solo contar
-                        count++;
-                    } else if (service.getPrice() != null && service.getPrice() > 0 && !service.isFree()) {
-                        count++;
-                        total += service.getPrice();
-                    } else if (service.isFree()) {
-                        // Servicios gratuitos no se cuentan en el carrito
+
+                    // ✅ SKIP si el servicio ya está incluido en la habitación
+                    if (isServiceIncludedInRoom(service.getId())) {
+                        Log.d(TAG, "Skipping included service: " + service.getName());
                         continue;
+                    }
+
+                    count++;
+
+                    // ✅ LÓGICA ESPECIAL PARA TAXI
+                    if (service.getId().equals("taxi")) {
+                        double totalWithCurrentServices = currentRoomPrice + additionalTotal;
+                        boolean shouldBeFree = totalWithCurrentServices >= 350.0;
+
+                        service.setEligibleForFree(shouldBeFree);
+
+                        if (!shouldBeFree) {
+                            additionalTotal += 60.0;
+                        }
+
+                        updateTaxiConditionalMessage(service, totalWithCurrentServices);
+
+                    } else if (service.getPrice() != null && service.getPrice() > 0) {
+                        additionalTotal += service.getPrice();
                     }
                 }
             }
 
-            Log.d(TAG, "Carrito actualizado - Count: " + count + ", Total: " + total);
+            Log.d(TAG, "Cart - Count: " + count + ", Additional: " + additionalTotal + ", Room: " + currentRoomPrice);
 
-            // Actualizar UI
             if (count > 0) {
                 showCartWithAnimation();
                 if (tvCartCount != null) {
-                    tvCartCount.setText(count + (count == 1 ? " servicio" : " servicios"));
+                    tvCartCount.setText(count + (count == 1 ? " servicio adicional" : " servicios adicionales"));
                 }
                 if (tvCartTotal != null) {
-                    tvCartTotal.setText(String.format("S/. %.2f", total));
+                    tvCartTotal.setText(String.format("S/. %.2f", additionalTotal));
                 }
             } else {
                 hideCartWithAnimation();
             }
+
+            // ✅ ACTUALIZAR total global para otros cálculos
+            currentReservationTotal = currentRoomPrice + additionalTotal;
+
         } catch (Exception e) {
-            Log.e(TAG, "Error actualizando carrito: " + e.getMessage());
+            Log.e(TAG, "Error updating cart: " + e.getMessage());
         }
+    }
+    private boolean isServiceIncludedInRoom(String serviceId) {
+        if (includedServiceIds == null) return false;
+
+        for (String includedId : includedServiceIds) {
+            if (includedId.equals(serviceId)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+
+
+    private double getCurrentRoomPrice() {
+        // ✅ USAR precio numérico directo del intent
+        double roomPrice = getIntent().getDoubleExtra("room_price_numeric", 350.0);
+
+        Log.d(TAG, "Room price from intent: " + roomPrice);
+        return roomPrice;
     }
 
     private void showCartWithAnimation() {

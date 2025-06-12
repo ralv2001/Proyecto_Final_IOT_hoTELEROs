@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_dialog_rounded"
+    android:orientation="vertical"
+    android:padding="24dp">
+
+    <!-- Icono del taxi -->
+    <androidx.cardview.widget.CardView
+        android:layout_width="80dp"
+        android:layout_height="80dp"
+        android:layout_gravity="center"
+        android:layout_marginBottom="20dp"
+        app:cardCornerRadius="40dp"
+        app:cardElevation="0dp"
+        app:cardBackgroundColor="@color/orange_primary">
+
+        <ImageView
+            android:id="@+id/iv_taxi_icon"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_gravity="center"
+            android:src="@drawable/ic_taxi"
+            app:tint="@android:color/white" />
+    </androidx.cardview.widget.CardView>
+
+    <!-- Título -->
+    <TextView
+        android:id="@+id/tv_taxi_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:text="Taxi Premium al Aeropuerto"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        android:textColor="@color/text_primary"
+        android:fontFamily="@font/poppins_bold"
+        android:layout_marginBottom="12dp" />
+
+    <!-- Descripción -->
+    <TextView
+        android:id="@+id/tv_taxi_description"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Traslado ejecutivo en vehículo de lujo con chofer profesional bilingüe."
+        android:textSize="16sp"
+        android:textColor="@color/text_secondary"
+        android:fontFamily="@font/poppins_regular"
+        android:textAlignment="center"
+        android:lineSpacingMultiplier="1.4"
+        android:layout_marginBottom="16dp" />
+
+    <!-- Condición especial -->
+    <TextView
+        android:id="@+id/tv_taxi_condition"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="💡 ¡GRATIS con reservas desde S/. 350!"
+        android:textSize="14sp"
+        android:textColor="@color/orange_primary"
+        android:fontFamily="@font/poppins_semibold"
+        android:textAlignment="center"
+        android:background="@drawable/bg_condition_highlight"
+        android:padding="12dp"
+        android:layout_marginBottom="24dp" />
+
+    <!-- Botones -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:weightSum="2">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_got_it"
+            android:layout_width="0dp"
+            android:layout_height="48dp"
+            android:layout_weight="1"
+            android:layout_marginEnd="8dp"
+            android:text="Entendido"
+            android:textAllCaps="false"
+            android:textSize="14sp"
+            android:fontFamily="@font/poppins_medium"
+            app:backgroundTint="@color/light_gray"
+            android:textColor="@color/text_secondary"
+            app:cornerRadius="12dp"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_see_all_services"
+            android:layout_width="0dp"
+            android:layout_height="48dp"
+            android:layout_weight="1"
+            android:layout_marginStart="8dp"
+            android:text="Ver servicios"
+            android:textAllCaps="false"
+            android:textSize="14sp"
+            android:fontFamily="@font/poppins_semibold"
+            app:backgroundTint="@color/orange_primary"
+            app:cornerRadius="12dp" />
+    </LinearLayout>
+</LinearLayout>

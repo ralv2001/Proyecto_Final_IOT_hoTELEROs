@@ -2,22 +2,28 @@ package com.example.proyecto_final_hoteleros.client.ui.fragment;
 
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
+import android.graphics.Typeface;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.DecelerateInterpolator;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.cardview.widget.CardView;
 import androidx.constraintlayout.widget.ConstraintLayout;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.proyecto_final_hoteleros.R;
 import com.example.proyecto_final_hoteleros.client.data.model.RoomType;
@@ -25,12 +31,17 @@ import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.snackbar.Snackbar;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 import java.util.Random;
 
 public class BookingSummaryFragment extends Fragment implements AddPaymentDialogFragment.PaymentDialogListener {
 
     // UI Components
+    private String selectedServices;
+    private boolean isTaxiIncluded = false;
+    private double taxiOriginalPrice = 60.0;
     private ImageButton btnBack;
     private ImageView imgHotelBanner;
     private TextView tvHotelName, tvHotelAddress, tvRating;
@@ -65,7 +76,10 @@ public class BookingSummaryFragment extends Fragment implements AddPaymentDialog
     private double additionalServicesPrice;
     private double totalPrice;
     private int hotelImageResource;
-
+    // ✅ NUEVAS VISTAS para servicios seleccionados
+    private CardView cardSelectedServices;
+    private View layoutTaxiDetail;
+    private TextView tvTaxiServiceStatus, tvTaxiServiceDescription;
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -79,77 +93,94 @@ public class BookingSummaryFragment extends Fragment implements AddPaymentDialog
         super.onViewCreated(view, savedInstanceState);
         retrieveArguments();
         setupData();
+        setupSelectedServices(); // ✅ AGREGAR esta línea
         setupActions();
         updateConfirmButtonState();
-
-        // Add entrance animation
         animateCardEntrance();
     }
 
     private void initViews(View view) {
-        // AppBar
+        // ✅ TUS VISTAS EXISTENTES se mantienen
         btnBack = view.findViewById(R.id.btn_back);
-
-        // Hotel Info Card
         imgHotelBanner = view.findViewById(R.id.img_hotel_banner);
         tvHotelName = view.findViewById(R.id.tv_hotel_name);
         tvHotelAddress = view.findViewById(R.id.tv_hotel_address);
         tvRating = view.findViewById(R.id.tv_rating);
-
-        // Stay Info Card
         tvCheckInOut = view.findViewById(R.id.tv_check_in_out);
         tvNumberOfGuests = view.findViewById(R.id.tv_number_of_guests);
         tvRoomType = view.findViewById(R.id.tv_room_type);
         tvRoomNumber = view.findViewById(R.id.tv_room_number);
         tvFreeTransport = view.findViewById(R.id.tv_free_transport);
-
-        // Price Details Card
         tvRoomPriceValue = view.findViewById(R.id.tv_room_price_value);
         tvAdditionalServices = view.findViewById(R.id.tv_additional_services);
         tvTotalPrice = view.findViewById(R.id.tv_total_price);
-
-        // Payment Method Card
         btnAddPaymentMethod = view.findViewById(R.id.btn_add_payment_method);
         layoutCardInfo = view.findViewById(R.id.layout_card_info);
         tvCardNumber = view.findViewById(R.id.tv_card_number);
         tvCardName = view.findViewById(R.id.tv_card_name);
         btnChangeCard = view.findViewById(R.id.btn_change_card);
         tvPaymentInfo = view.findViewById(R.id.tv_payment_info);
-
-        // Action Button
         btnConfirmReservation = view.findViewById(R.id.btn_confirm_reservation);
-
-        // Confirmation Dialog Overlay
         confirmationDialogOverlay = view.findViewById(R.id.confirmation_dialog_overlay);
         btnOk = view.findViewById(R.id.btn_ok);
+
+        // ✅ AGREGAR nuevas vistas para servicios seleccionados
+        cardSelectedServices = view.findViewById(R.id.card_selected_services);
+        layoutTaxiDetail = view.findViewById(R.id.layout_taxi_detail);
+        tvTaxiServiceStatus = view.findViewById(R.id.tv_taxi_service_status);
+        tvTaxiServiceDescription = view.findViewById(R.id.tv_taxi_service_description);
     }
 
     private void retrieveArguments() {
         if (getArguments() != null) {
-            // Hotel info
+            // ✅ TUS ARGUMENTOS EXISTENTES se mantienen
             hotelName = getArguments().getString("hotel_name", "Belmond Miraflores Park");
             hotelAddress = getArguments().getString("hotel_address", "Miraflores, Lima, Perú");
             hotelRating = getArguments().getFloat("hotel_rating", 4.9f);
             hotelImageResource = getArguments().getInt("hotel_image", R.drawable.belmond);
-
-            // Room info
             selectedRoom = getArguments().getParcelable("selected_room");
-
-            // Stay info
             checkInDate = getArguments().getString("check_in_date", "8 abril");
             checkOutDate = getArguments().getString("check_out_date", "9 abril");
             numAdults = getArguments().getInt("num_adults", 2);
             numChildren = getArguments().getInt("num_children", 0);
             roomNumber = getArguments().getString("room_number", generateRandomRoomNumber());
-
-            // Additional services
             hasFreeTransport = getArguments().getBoolean("has_free_transport", false);
-            additionalServicesPrice = getArguments().getDouble("additional_services_price", 60.0);
+            additionalServicesPrice = getArguments().getDouble("additional_services_price", 0.0);
+
+            // ✅ NUEVO: Obtener servicios seleccionados
+            selectedServices = getArguments().getString("selected_services", "");
+
+            // ✅ CALCULAR si taxi está incluido
+            calculateTaxiStatus();
+
         } else {
-            // Default values
             setDefaultValues();
         }
     }
+    private void calculateTaxiStatus() {
+        if (selectedServices != null && selectedServices.contains("taxi")) {
+            isTaxiIncluded = true;
+            Log.d("BookingSummary", "Taxi está incluido en servicios seleccionados");
+        } else {
+            isTaxiIncluded = false;
+            Log.d("BookingSummary", "Taxi NO está incluido");
+        }
+    }
+
+
+    private double getRoomPriceValue() {
+        if (selectedRoom != null) {
+            try {
+                String priceStr = selectedRoom.getPrice().replace("S/", "").trim();
+                return Double.parseDouble(priceStr);
+            } catch (NumberFormatException e) {
+
+            }
+        }
+        return 290.0;
+    }
+
+
     /**
      * Genera un número de habitación aleatorio en formato "FXX",
      * donde F es el piso (1–9) y XX es el número de habitación (01–20).
@@ -176,7 +207,7 @@ public class BookingSummaryFragment extends Fragment implements AddPaymentDialog
     }
 
     private void setupData() {
-        // Hotel info
+        // ✅ TU CÓDIGO EXISTENTE se mantiene
         tvHotelName.setText(hotelName);
         tvHotelAddress.setText(hotelAddress);
         tvRating.setText(String.format(Locale.getDefault(), "%.1f", hotelRating));
@@ -185,33 +216,141 @@ public class BookingSummaryFragment extends Fragment implements AddPaymentDialog
             imgHotelBanner.setImageResource(hotelImageResource);
         }
 
-        // Room info and price calculation
+        // ✅ MEJORAR la configuración de precios
         if (selectedRoom != null) {
             tvRoomType.setText(selectedRoom.getName());
-            try {
-                String priceStr = selectedRoom.getPrice().replace("S/", "").trim();
-                roomPrice = Double.parseDouble(priceStr);
-            } catch (NumberFormatException e) {
-                roomPrice = 290.0;
-            }
+            roomPrice = getRoomPriceValue();
         } else {
             tvRoomType.setText("Estándar");
             roomPrice = 290.0;
         }
 
-        // Configure stay details
+        // ✅ ACTUALIZAR información de estancia
         tvCheckInOut.setText(String.format("%s - %s", checkInDate, checkOutDate));
         tvNumberOfGuests.setText(String.format("%d adultos - %d niños", numAdults, numChildren));
         tvRoomNumber.setText(roomNumber);
-        tvFreeTransport.setText(hasFreeTransport ? "Sí" : "No");
 
-        // Configure prices with animation
+        // ✅ MEJORAR la visualización del taxi
+        setupTaxiDisplay();
+
+        // ✅ ACTUALIZAR precios con lógica correcta
         animatePriceUpdate(tvRoomPriceValue, roomPrice);
         animatePriceUpdate(tvAdditionalServices, additionalServicesPrice);
 
         totalPrice = roomPrice + additionalServicesPrice;
         animatePriceUpdate(tvTotalPrice, totalPrice);
     }
+    private void setupTaxiDisplay() {
+        if (isTaxiIncluded) {
+            if (hasFreeTransport) {
+                tvFreeTransport.setText("Sí - ¡GRATIS!");
+                tvFreeTransport.setTextColor(ContextCompat.getColor(requireContext(), R.color.success_green));
+                addTaxiSavingsInfo();
+            } else {
+                tvFreeTransport.setText("Sí - S/. 60.00");
+                tvFreeTransport.setTextColor(ContextCompat.getColor(requireContext(), R.color.orange_primary));
+            }
+        } else {
+            tvFreeTransport.setText("No");
+            tvFreeTransport.setTextColor(ContextCompat.getColor(requireContext(), R.color.text_secondary));
+        }
+    }
+
+    private void addTaxiSavingsInfo() {
+        View taxiContainer = (View) requireView().findViewById(R.id.icon_taxi).getParent();
+        if (taxiContainer instanceof ViewGroup) {
+            ViewGroup parent = (ViewGroup) taxiContainer;
+
+            TextView tvSavings = new TextView(requireContext());
+            tvSavings.setText("(Ahorro: S/. 60.00)");
+            tvSavings.setTextSize(12);
+            tvSavings.setTextColor(ContextCompat.getColor(requireContext(), R.color.success_green));
+            tvSavings.setTypeface(null, Typeface.ITALIC);
+
+            // Agregar debajo del status del taxi
+            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.WRAP_CONTENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+            );
+            params.setMargins(0, 4, 0, 0);
+
+            if (parent instanceof LinearLayout) {
+                ((LinearLayout) parent).addView(tvSavings, params);
+            }
+        }
+    }
+    private void setupSelectedServices() {
+        if (selectedServices == null || selectedServices.isEmpty() || selectedServices.equals("[]")) {
+            if (cardSelectedServices != null) {
+                cardSelectedServices.setVisibility(View.GONE);
+            }
+            return;
+        }
+
+        if (cardSelectedServices != null) {
+            cardSelectedServices.setVisibility(View.VISIBLE);
+        }
+
+        // ✅ MOSTRAR información del taxi si está incluido
+        if (isTaxiIncluded && layoutTaxiDetail != null) {
+            layoutTaxiDetail.setVisibility(View.VISIBLE);
+
+            if (tvTaxiServiceStatus != null) {
+                tvTaxiServiceStatus.setText("🚖 Taxi Premium al Aeropuerto");
+            }
+
+            if (tvTaxiServiceDescription != null) {
+                if (hasFreeTransport) {
+                    tvTaxiServiceDescription.setText("🎉 ¡INCLUIDO GRATIS! Has alcanzado S/. 350+ (Ahorro: S/. 60)");
+                    tvTaxiServiceDescription.setTextColor(ContextCompat.getColor(requireContext(), R.color.success_green));
+                } else {
+                    tvTaxiServiceDescription.setText("💰 Servicio premium - S/. 60.00");
+                    tvTaxiServiceDescription.setTextColor(ContextCompat.getColor(requireContext(), R.color.orange_primary));
+                }
+            }
+        }
+
+        // ✅ AGREGAR información de servicios incluidos en habitación
+        showIncludedServicesInfo();
+    }
+    private void showIncludedServicesInfo() {
+        if (selectedRoom != null) {
+            View roomServicesInfo = requireView().findViewById(R.id.room_services_info);
+            if (roomServicesInfo != null) {
+                roomServicesInfo.setVisibility(View.VISIBLE);
+
+                TextView tvRoomServices = roomServicesInfo.findViewById(R.id.tv_room_services_list);
+                if (tvRoomServices != null) {
+                    List<String> serviceNames = new ArrayList<>();
+                    for (String serviceId : selectedRoom.getIncludedServiceIds()) {
+                        serviceNames.add(getServiceDisplayName(serviceId));
+                    }
+                    tvRoomServices.setText("✓ " + String.join(" • ", serviceNames));
+                }
+            }
+        }
+    }
+
+    private String getServiceDisplayName(String serviceId) {
+        switch (serviceId) {
+            case "wifi": return "WiFi Premium";
+            case "reception": return "Recepción 24/7";
+            case "pool": return "Piscina Infinity";
+            case "parking": return "Estacionamiento";
+            case "minibar": return "Minibar Premium";
+            case "room_service": return "Room Service";
+            case "laundry": return "Lavandería Express";
+            default: return "Servicio";
+        }
+    }
+
+    private void setupOtherSelectedServices() {
+        RecyclerView rvSelectedServices = requireView().findViewById(R.id.rv_selected_services);
+        if (rvSelectedServices != null) {
+            rvSelectedServices.setVisibility(View.GONE);
+        }
+    }
+
 
     private void setupActions() {
         // Back button

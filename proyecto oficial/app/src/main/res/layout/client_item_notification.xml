@@ -89,7 +89,7 @@
                 android:fontFamily="@font/poppins_regular"
                 android:textColor="#9E9E9E"
                 android:textSize="12sp"
-                android:background="@drawable/bg_time_badge"
+                android:background="@drawable/bg_time_badge1"
                 android:paddingHorizontal="8dp"
                 android:paddingVertical="2dp"
                 app:layout_constraintEnd_toEndOf="parent"

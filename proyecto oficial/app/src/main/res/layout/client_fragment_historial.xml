@@ -36,7 +36,7 @@
             android:id="@+id/tvHistorialSubtitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Gestiona todas tus estadías de manera profesional"
+            android:text="Gestiona todas tus estadías de manera precisa"
             android:textSize="16sp"
             android:textColor="@android:color/darker_gray"
             android:fontFamily="@font/inter_regular"

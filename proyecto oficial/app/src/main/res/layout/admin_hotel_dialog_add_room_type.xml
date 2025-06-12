@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_dialog_modern"
+    android:layout_margin="16dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="24dp">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="🏨 Agregar Tipo de Habitación"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:textColor="@color/text_primary"
+            android:fontFamily="@font/poppins_semibold"
+            android:gravity="center"
+            android:layout_marginBottom="20dp" />
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            app:boxStrokeColor="@color/orange"
+            app:hintTextColor="@color/orange">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etRoomName"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Nombre del tipo de habitación"
+                android:inputType="text" />
+
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            app:boxStrokeColor="@color/orange"
+            app:hintTextColor="@color/orange">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etRoomDescription"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Descripción de la habitación"
+                android:inputType="textMultiLine"
+                android:maxLines="3" />
+
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="16dp">
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginEnd="8dp"
+                app:boxStrokeColor="@color/orange"
+                app:hintTextColor="@color/orange"
+                app:suffixText="m²">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etRoomArea"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Área"
+                    android:inputType="numberDecimal" />
+
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginStart="8dp"
+                app:boxStrokeColor="@color/orange"
+                app:hintTextColor="@color/orange">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etAvailableRooms"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Cantidad disponible"
+                    android:inputType="number" />
+
+            </com.google.android.material.textfield.TextInputLayout>
+
+        </LinearLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="20dp"
+            app:boxStrokeColor="@color/orange"
+            app:hintTextColor="@color/orange"
+            app:prefixText="S/ "
+            app:suffixText="/noche">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etRoomPrice"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Precio por noche"
+                android:inputType="numberDecimal" />
+
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="🛎️ Servicios Incluidos"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:textColor="@color/text_primary"
+            android:layout_marginBottom="12dp" />
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvServices"
+            android:layout_width="match_parent"
+            android:layout_height="200dp"
+            android:layout_marginBottom="20dp"
+            android:background="@drawable/bg_info_container"
+            android:padding="8dp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="end">
+
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/btnCancel"
+                android:layout_width="wrap_content"
+                android:layout_height="48dp"
+                android:text="Cancelar"
+                android:textColor="@color/text_secondary"
+                android:background="@drawable/bg_button_outline_modern"
+                android:layout_marginEnd="12dp"
+                android:paddingHorizontal="24dp" />
+
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/btnSave"
+                android:layout_width="wrap_content"
+                android:layout_height="48dp"
+                android:text="💾 Guardar"
+                android:textColor="@android:color/white"
+                android:background="@drawable/bg_button_orange_modern"
+                android:paddingHorizontal="24dp" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+</ScrollView>

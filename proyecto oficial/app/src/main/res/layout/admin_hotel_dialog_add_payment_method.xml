@@ -11,101 +11,84 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Agregar Método de Pago"
-        android:textSize="18sp"
+        android:textSize="20sp"
         android:textStyle="bold"
-        android:textColor="#1A1A1A"
         android:gravity="center"
-        android:layout_marginBottom="20dp" />
+        android:layout_marginBottom="24dp" />
 
-    <!-- Campo nombre -->
     <com.google.android.material.textfield.TextInputLayout
-        android:id="@+id/layout_payment_name"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Nombre del método"
-        app:boxStrokeColor="#FF6B35"
-        app:hintTextColor="#666666"
-        style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
+        android:layout_marginBottom="16dp">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/et_payment_name"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:inputType="text"
-            android:maxLines="1"
-            android:textColor="#1A1A1A"
-            android:textColorHint="#999999" />
+            android:hint="Nombre del método de pago" />
 
     </com.google.android.material.textfield.TextInputLayout>
 
-    <!-- Campo número de cuenta/teléfono -->
-    <com.google.android.material.textfield.TextInputLayout
+    <LinearLayout
         android:id="@+id/layout_account_number"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:hint="Número de cuenta"
-        app:boxStrokeColor="#FF6B35"
-        app:hintTextColor="#666666"
-        style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
+        android:orientation="vertical">
 
-        <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/et_account_number"
+        <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:inputType="text"
-            android:maxLines="1"
-            android:textColor="#1A1A1A"
-            android:textColorHint="#999999" />
+            android:layout_marginBottom="16dp">
 
-    </com.google.android.material.textfield.TextInputLayout>
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/et_account_number"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Número de cuenta" />
 
-    <!-- Campo banco -->
-    <com.google.android.material.textfield.TextInputLayout
+        </com.google.android.material.textfield.TextInputLayout>
+
+    </LinearLayout>
+
+    <LinearLayout
         android:id="@+id/layout_bank_name"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:hint="Banco"
-        app:boxStrokeColor="#FF6B35"
-        app:hintTextColor="#666666"
-        style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
+        android:orientation="vertical">
 
-        <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/et_bank_name"
+        <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:inputType="text"
-            android:maxLines="1"
-            android:textColor="#1A1A1A"
-            android:textColorHint="#999999" />
+            android:layout_marginBottom="24dp">
 
-    </com.google.android.material.textfield.TextInputLayout>
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/et_bank_name"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Nombre del banco" />
 
-    <!-- Información adicional -->
+        </com.google.android.material.textfield.TextInputLayout>
+
+    </LinearLayout>
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:background="@drawable/bg_info_note"
-        android:padding="12dp"
         android:orientation="horizontal"
-        android:gravity="center_vertical">
+        android:gravity="end">
 
-        <TextView
+        <Button
+            android:id="@+id/btn_cancel"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="💡"
-            android:textSize="16sp"
+            android:text="Cancelar"
             android:layout_marginEnd="8dp" />
 
-        <TextView
-            android:layout_width="0dp"
+        <Button
+            android:id="@+id/btn_save"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="Esta información será utilizada para mostrar tus métodos de pago disponibles a los clientes."
-            android:textSize="12sp"
-            android:textColor="#666666" />
+            android:text="Guardar" />
 
     </LinearLayout>
 

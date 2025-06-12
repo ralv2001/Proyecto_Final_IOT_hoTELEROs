@@ -36,7 +36,7 @@
             android:id="@+id/tvChatSubtitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Comunícate con nuestro servicio al cliente"
+            android:text="Comunícate con nuestros administradores de hotel"
             android:textSize="16sp"
             android:textColor="@android:color/darker_gray"
             android:fontFamily="@font/inter_regular"
