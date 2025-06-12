@@ -268,40 +268,56 @@ public class LoginFragment extends Fragment {
                             getActivity().runOnUiThread(() -> {
                                 Log.d("LoginFragment", "✅ Datos del usuario obtenidos: " + user.getFullName());
 
-                                Toast.makeText(getContext(),
-                                        "¡Bienvenido " + user.getNombres() + "!", Toast.LENGTH_SHORT).show();
+                                // Verificar si es superadmin
+                                if ("superadmin".equals(user.getUserType())) {
+                                    Toast.makeText(getContext(),
+                                            "¡Bienvenido Superadmin " + user.getNombres() + "!",
+                                            Toast.LENGTH_SHORT).show();
 
-                                tvErrorMessage.setVisibility(View.INVISIBLE);
+                                    // Navegar a SuperAdminActivity
+                                    Intent intent = new Intent(getActivity(), com.example.proyecto_final_hoteleros.superadmin.activity.SuperAdminActivity.class);
 
-                                // Navegar según el tipo de usuario
-                                if (user.isDriver()) {
-                                    // Navegar a pantalla de taxista
-                                    Toast.makeText(getContext(), "Navegando a pantalla de taxista...", Toast.LENGTH_SHORT).show();
-                                    // TODO: Implementar navegación a DriverActivity cuando esté listo
-                                } else if (user.isClient()) {
-                                    // Navegar a pantalla de cliente (HomeActivity)
-                                    Intent intent = new Intent(getActivity(), com.example.proyecto_final_hoteleros.client.ui.activity.HomeActivity.class);
-
-                                    // Pasar datos del usuario a HomeActivity
-                                    intent.putExtra("user_id", user.getUserId());
-                                    intent.putExtra("user_name", user.getNombres());
-                                    intent.putExtra("user_full_name", user.getFullName());
-                                    intent.putExtra("user_email", user.getEmail());
-                                    intent.putExtra("user_type", user.getUserType());
+                                    // Pasar datos del usuario
+                                    intent.putExtra("userId", userId);
+                                    intent.putExtra("userEmail", user.getEmail());
+                                    intent.putExtra("userName", user.getFullName());
+                                    intent.putExtra("userType", user.getUserType());
 
                                     startActivity(intent);
-
-                                    // Cerrar AuthActivity para que el usuario no pueda volver atrás
-                                    if (getActivity() != null) {
-                                        getActivity().finish();
-                                    }
-                                } else {
-                                    // Tipo de usuario no reconocido
-                                    Toast.makeText(getContext(), "Tipo de usuario no reconocido", Toast.LENGTH_SHORT).show();
+                                    getActivity().finish();
+                                    return;
                                 }
 
-                                // Restaurar botón
-                                resetLoginButton();
+                                // Para otros tipos de usuario (código existente)
+                                Toast.makeText(getContext(),
+                                        "¡Bienvenido " + user.getNombres() + "!",
+                                        Toast.LENGTH_SHORT).show();
+
+                                // Navegar según el tipo de usuario
+                                Intent intent;
+                                switch (user.getUserType()) {
+                                    case "client":
+                                        intent = new Intent(getActivity(), com.example.proyecto_final_hoteleros.client.ui.activity.HomeActivity.class);
+                                        break;
+                                    case "driver":
+                                        intent = new Intent(getActivity(), com.example.proyecto_final_hoteleros.taxista.activity.DriverActivity.class);
+                                        break;
+                                    case "admin_hotel":
+                                        intent = new Intent(getActivity(), com.example.proyecto_final_hoteleros.adminhotel.activity.AdminHotelActivity.class);
+                                        break;
+                                    default:
+                                        Log.w("LoginFragment", "Tipo de usuario desconocido: " + user.getUserType());
+                                        return;
+                                }
+
+                                // Pasar datos del usuario
+                                intent.putExtra("userId", userId);
+                                intent.putExtra("userEmail", user.getEmail());
+                                intent.putExtra("userName", user.getFullName());
+                                intent.putExtra("userType", user.getUserType());
+
+                                startActivity(intent);
+                                getActivity().finish();
                             });
                         }
                     }

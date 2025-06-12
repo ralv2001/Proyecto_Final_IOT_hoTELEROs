@@ -303,5 +303,51 @@ public class FirebaseManager {
                 });
     }
 
+    // ========== MÉTODO PARA CREAR SUPERADMIN ==========
+    public void createSuperAdminUser(DataCallback callback) {
+        String superAdminEmail = "superadmin@hotel.com";
+        String superAdminPassword = "SuperAdmin123!";
+
+        Log.d(TAG, "Creando usuario superadmin...");
+
+        // Primero registrar en Firebase Auth
+        registerUser(superAdminEmail, superAdminPassword, new AuthCallback() {
+            @Override
+            public void onSuccess(String userId) {
+                // Crear el modelo de usuario para superadmin
+                UserModel superAdminUser = new UserModel();
+                superAdminUser.setEmail(superAdminEmail);
+                superAdminUser.setNombres("Super");
+                superAdminUser.setApellidos("Admin");
+                superAdminUser.setUserType("superadmin");
+                superAdminUser.setTelefono("999999999");
+                superAdminUser.setDireccion("Oficina Central");
+                superAdminUser.setNumeroDocumento("00000000");
+                superAdminUser.setActive(true);
+
+                // Guardar en Firestore
+                saveUserData(userId, superAdminUser, new DataCallback() {
+                    @Override
+                    public void onSuccess() {
+                        Log.d(TAG, "✅ Usuario superadmin creado exitosamente");
+                        callback.onSuccess();
+                    }
+
+                    @Override
+                    public void onError(String error) {
+                        Log.e(TAG, "❌ Error guardando datos superadmin: " + error);
+                        callback.onError(error);
+                    }
+                });
+            }
+
+            @Override
+            public void onError(String error) {
+                Log.e(TAG, "❌ Error creando superadmin: " + error);
+                callback.onError(error);
+            }
+        });
+    }
+
 
 }

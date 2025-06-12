@@ -76,11 +76,35 @@ public class MainActivity extends AppCompatActivity {
         layoutContinueAsSuperadmin.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Toast.makeText(MainActivity.this, "Continuando como superadmin...", Toast.LENGTH_SHORT).show();
+                // Crear usuario superadmin si no existe
+                com.example.proyecto_final_hoteleros.utils.FirebaseManager firebaseManager =
+                        com.example.proyecto_final_hoteleros.utils.FirebaseManager.getInstance();
 
-                // Navegar a SuperAdminActivity
-                Intent intent = new Intent(MainActivity.this, SuperAdminActivity.class);
-                startActivity(intent);
+                firebaseManager.createSuperAdminUser(new com.example.proyecto_final_hoteleros.utils.FirebaseManager.DataCallback() {
+                    @Override
+                    public void onSuccess() {
+                        Toast.makeText(MainActivity.this,
+                                "Usuario superadmin creado. Email: superadmin@hotel.com, Password: SuperAdmin123!",
+                                Toast.LENGTH_LONG).show();
+
+                        // Navegar al login
+                        goToAuth("login");
+                    }
+
+                    @Override
+                    public void onError(String error) {
+                        if (error.contains("email address is already in use")) {
+                            Toast.makeText(MainActivity.this,
+                                    "Superadmin ya existe. Ir a login",
+                                    Toast.LENGTH_SHORT).show();
+                            goToAuth("login");
+                        } else {
+                            Toast.makeText(MainActivity.this,
+                                    "Error: " + error,
+                                    Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                });
             }
         });
 
