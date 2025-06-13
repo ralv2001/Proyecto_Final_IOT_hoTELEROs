@@ -101,7 +101,7 @@ public class TaxistaDocumentsFragment extends Fragment {
         if (cardBrevetePhoto != null) {
             cardBrevetePhoto.setOnClickListener(v -> {
                 // Ampliar foto del brevete
-                showFullScreenImage("Brevete", taxista != null ? taxista.getBreveteImageUrl() : null);
+                showFullScreenImage("Brevete", taxista != null ? taxista.getDocumentUrl() : null);
             });
         } else {
             android.util.Log.e("TaxistaDocuments", "cardBrevetePhoto es null!");
@@ -159,7 +159,7 @@ public class TaxistaDocumentsFragment extends Fragment {
     private void loadImages() {
         android.util.Log.d("TaxistaDocuments", "=== CARGANDO IMÁGENES ===");
         android.util.Log.d("TaxistaDocuments", "PhotoURL: " + taxista.getProfileImageUrl());
-        android.util.Log.d("TaxistaDocuments", "DocumentURL: " + taxista.getBreveteImageUrl());
+        android.util.Log.d("TaxistaDocuments", "DocumentURL: " + taxista.getDocumentUrl());
 
         // Cargar foto de perfil con Glide
         if (ivProfilePhoto != null) {
@@ -182,16 +182,16 @@ public class TaxistaDocumentsFragment extends Fragment {
 
         // Cargar documento (PDF como icono, no imagen)
         if (ivBrevetePhoto != null) {
-            if (taxista.getBreveteImageUrl() != null && !taxista.getBreveteImageUrl().isEmpty()) {
-                android.util.Log.d("TaxistaDocuments", "📄 Documento PDF disponible: " + taxista.getBreveteImageUrl());
+            if (taxista.getDocumentUrl() != null && !taxista.getDocumentUrl().isEmpty()) {
+                android.util.Log.d("TaxistaDocuments", "📄 Documento PDF disponible: " + taxista.getDocumentUrl());
 
                 // Para PDFs, mostrar icono de documento en lugar de intentar cargar como imagen
-                if (taxista.getBreveteImageUrl().toLowerCase().contains(".pdf")) {
+                if (taxista.getDocumentUrl().toLowerCase().contains(".pdf")) {
                     ivBrevetePhoto.setImageResource(R.drawable.ic_document);
                 } else {
                     // Si no es PDF, intentar cargar como imagen
                     com.bumptech.glide.Glide.with(this)
-                            .load(taxista.getBreveteImageUrl())
+                            .load(taxista.getDocumentUrl())
                             .placeholder(R.drawable.ic_document)
                             .error(R.drawable.ic_image_placeholder)
                             .centerCrop()

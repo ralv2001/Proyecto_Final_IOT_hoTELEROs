@@ -103,6 +103,16 @@ public class TaxistaUser implements Serializable {
     public void setDomicilio(String domicilio) { this.domicilio = domicilio; }
 
     public String getBreveteImageUrl() { return breveteImageUrl; }
+
+    // Método para compatibilidad con UserModel
+    public String getDocumentUrl() {
+        return breveteImageUrl;
+    }
+
+    public void setDocumentUrl(String documentUrl) {
+        this.breveteImageUrl = documentUrl;
+    }
+
     public void setBreveteImageUrl(String breveteImageUrl) { this.breveteImageUrl = breveteImageUrl; }
 
     // Métodos de utilidad existentes
