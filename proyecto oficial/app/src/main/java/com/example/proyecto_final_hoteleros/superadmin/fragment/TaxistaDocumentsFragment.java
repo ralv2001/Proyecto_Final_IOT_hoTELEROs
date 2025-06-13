@@ -10,7 +10,6 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.cardview.widget.CardView;
-import com.bumptech.glide.Glide;
 
 import com.example.proyecto_final_hoteleros.R;
 import com.example.proyecto_final_hoteleros.superadmin.activity.SuperAdminActivity;
@@ -37,7 +36,7 @@ public class TaxistaDocumentsFragment extends Fragment {
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_taxista_documents, container, false);
+        View view = inflater.inflate(R.layout.superadmin_fragment_taxista_documents, container, false);
 
         initViews(view);
         loadTaxistaData();

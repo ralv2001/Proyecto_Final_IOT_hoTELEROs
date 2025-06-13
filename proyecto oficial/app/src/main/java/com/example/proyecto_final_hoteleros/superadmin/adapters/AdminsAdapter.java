@@ -34,7 +34,7 @@ public class AdminsAdapter extends RecyclerView.Adapter<AdminsAdapter.AdminViewH
     @Override
     public AdminViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext())
-                .inflate(R.layout.item_admin_user, parent, false);
+                .inflate(R.layout.superadmin_item_admin_user, parent, false);
         return new AdminViewHolder(view);
     }
 
