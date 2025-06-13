@@ -110,70 +110,15 @@
 
         <!-- ========== ACTIVIDADES DE SUPERADMIN ========== -->
         <activity
-            android:name=".superadmin.SuperadminActivity"
+            android:name=".superadmin.activity.SuperAdminActivity"
             android:exported="true" />
 
-        <activity
-            android:name=".superadmin.ListaUsuariosActivity"
-            android:exported="true" />
-
-        <activity
-            android:name=".superadmin.ListaSolicitudesActivity"
-            android:exported="true" />
-
-        <activity
-            android:name=".superadmin.SolicitudesTaxistasActivity"
-            android:exported="true" />
-
-        <activity
-            android:name=".superadmin.RegistroAdministradorActivity"
-            android:exported="true" />
-
-        <activity
-            android:name=".superadmin.ReporteReservasActivity"
-            android:exported="true" />
-
-        <activity
-            android:name=".superadmin.LogEventosActivity"
-            android:exported="true" />
-
-        <!-- ========== ACTIVIDADES DE ADMIN HOTEL ========== -->
-        <activity android:name=".adminhotel.activity.ChatActivity"/>
         <activity
             android:name=".adminhotel.activity.AdminHotelActivity"
             android:exported="true" />
 
-        <activity
-            android:name=".adminhotel.activity.CheckoutActivity"
-            android:exported="true" />
+        <!-- ========== ACTIVIDADES DE ADMIN HOTEL ========== -->
 
-        <activity
-            android:name=".adminhotel.activity.HabitacionesActivity"
-            android:exported="true" />
-
-        <activity
-            android:name=".adminhotel.activity.PerfilHotelActivity"
-            android:exported="true" />
-
-        <activity
-            android:name=".adminhotel.activity.ReporteVentasActivity"
-            android:exported="true" />
-
-        <activity
-            android:name=".adminhotel.activity.ServiciosHotelActivity"
-            android:exported="true" />
-
-        <activity
-            android:name=".adminhotel.activity.TaxistasHotelActivity"
-            android:exported="true" />
-
-        <activity
-            android:name=".adminhotel.activity.NuevoServicioActivity"
-            android:exported="false" />
-        <activity android:name=".adminhotel.activity.NuevaHabitacionActivity"
-            android:exported="true" />
-        <activity android:name=".adminhotel.activity.DatosHuespedActivity"
-            android:exported="true"/>
 
 
 
