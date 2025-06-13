@@ -33,7 +33,7 @@ public class UsuariosAdapter extends RecyclerView.Adapter<UsuariosAdapter.Usuari
     @Override
     public UsuarioViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext())
-                .inflate(R.layout.item_usuario, parent, false);
+                .inflate(R.layout.superadmin_item_usuario, parent, false);
         return new UsuarioViewHolder(view);
     }
 
