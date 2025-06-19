@@ -9,6 +9,7 @@ import android.view.ViewGroup;
 import android.view.Window;
 import android.widget.Toast;
 
+import androidx.appcompat.widget.AppCompatButton;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -32,7 +33,7 @@ public class AddRoomTypeDialog extends Dialog {
     private OnRoomTypeAddedListener listener;
     private TextInputEditText etRoomName, etRoomDescription, etRoomArea, etRoomPrice, etAvailableRooms;
     private RecyclerView rvServices;
-    private MaterialButton btnSave, btnCancel;
+    private AppCompatButton btnSave, btnCancel;
     private List<String> selectedServices;
 
     public AddRoomTypeDialog(Context context, OnRoomTypeAddedListener listener) {
@@ -65,8 +66,8 @@ public class AddRoomTypeDialog extends Dialog {
         etRoomPrice = findViewById(R.id.etRoomPrice);
         etAvailableRooms = findViewById(R.id.etAvailableRooms);
         rvServices = findViewById(R.id.rvServices);
-        btnSave = findViewById(R.id.btnSave);
-        btnCancel = findViewById(R.id.btnCancel);
+        btnSave = findViewById(R.id.btnSave);  // Ya no hace cast a MaterialButton
+        btnCancel = findViewById(R.id.btnCancel);  // Ya no hace cast a MaterialButton
     }
 
     private void setupServicesList() {

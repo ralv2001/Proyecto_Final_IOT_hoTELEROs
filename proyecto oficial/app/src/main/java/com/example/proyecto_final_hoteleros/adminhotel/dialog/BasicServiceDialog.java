@@ -1,4 +1,3 @@
-/*
 package com.example.proyecto_final_hoteleros.adminhotel.dialog;
 
 import android.app.Dialog;
@@ -8,6 +7,8 @@ import android.graphics.drawable.ColorDrawable;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.widget.Toast;
+
+import androidx.appcompat.widget.AppCompatButton;
 
 import com.example.proyecto_final_hoteleros.R;
 import com.example.proyecto_final_hoteleros.adminhotel.model.BasicService;
@@ -24,7 +25,7 @@ public class BasicServiceDialog extends Dialog {
     private Context context;
     private OnServiceAddedListener listener;
     private TextInputEditText etServiceName, etServiceDescription;
-    private MaterialButton btnSelectIcon, btnSave, btnCancel;
+    private AppCompatButton btnSelectIcon, btnSave, btnCancel;
     private String selectedIconKey = "wifi";
 
     public BasicServiceDialog(Context context, OnServiceAddedListener listener) {
@@ -100,5 +101,3 @@ public class BasicServiceDialog extends Dialog {
         dismiss();
     }
 }
-
- */

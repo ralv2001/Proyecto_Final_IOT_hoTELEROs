@@ -1,4 +1,3 @@
-/*
 package com.example.proyecto_final_hoteleros.adminhotel.fragment;
 
 import android.os.Bundle;
@@ -52,7 +51,21 @@ public class RoomManagementFragment extends Fragment {
 
     private void setupRecyclerView() {
         roomTypes = new ArrayList<>();
-        roomAdapter = new RoomTypeAdapter(roomTypes, this::editRoomType, this::deleteRoomType);
+
+        // Crear los listeners por separado en lugar de usar method references
+        RoomTypeAdapter.OnRoomActionListener editListener = new RoomTypeAdapter.OnRoomActionListener() {
+            @Override
+            public void onEditRoom(RoomType roomType, int position) {
+                editRoomType(roomType, position);
+            }
+
+            @Override
+            public void onDeleteRoom(RoomType roomType, int position) {
+                deleteRoomType(roomType, position);
+            }
+        };
+
+        roomAdapter = new RoomTypeAdapter(roomTypes, editListener, editListener);
         rvRoomTypes.setLayoutManager(new LinearLayoutManager(getContext()));
         rvRoomTypes.setAdapter(roomAdapter);
     }
@@ -138,4 +151,3 @@ public class RoomManagementFragment extends Fragment {
     }
 }
 
- */

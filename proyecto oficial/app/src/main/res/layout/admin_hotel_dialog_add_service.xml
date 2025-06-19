@@ -15,7 +15,7 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="🏨 Agregar Tipo de Habitación"
+            android:text="🎯 Agregar Servicio"
             android:textSize="20sp"
             android:textStyle="bold"
             android:textColor="@color/text_primary"
@@ -23,6 +23,7 @@
             android:gravity="center"
             android:layout_marginBottom="20dp" />
 
+        <!-- Nombre del servicio -->
         <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -31,14 +32,15 @@
             app:hintTextColor="@color/orange">
 
             <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/etRoomName"
+                android:id="@+id/etServiceName"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="Nombre del tipo de habitación"
+                android:hint="Nombre del servicio"
                 android:inputType="text" />
 
         </com.google.android.material.textfield.TextInputLayout>
 
+        <!-- Descripción -->
         <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -47,117 +49,114 @@
             app:hintTextColor="@color/orange">
 
             <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/etRoomDescription"
+                android:id="@+id/etServiceDescription"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="Descripción de la habitación"
+                android:hint="Descripción"
                 android:inputType="textMultiLine"
                 android:maxLines="3" />
 
         </com.google.android.material.textfield.TextInputLayout>
 
+        <!-- Tipo de servicio -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            app:boxStrokeColor="@color/orange"
+            app:hintTextColor="@color/orange"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu">
+
+            <AutoCompleteTextView
+                android:id="@+id/etServiceType"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Tipo de servicio"
+                android:inputType="none" />
+
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- Precio -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            app:boxStrokeColor="@color/orange"
+            app:hintTextColor="@color/orange">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etServicePrice"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Precio (S/)"
+                android:inputType="numberDecimal" />
+
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- Botones para icono y fotos -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:layout_marginBottom="16dp">
 
-            <com.google.android.material.textfield.TextInputLayout
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnSelectIcon"
                 android:layout_width="0dp"
-                android:layout_height="wrap_content"
+                android:layout_height="48dp"
                 android:layout_weight="1"
-                android:layout_marginEnd="8dp"
-                app:boxStrokeColor="@color/orange"
-                app:hintTextColor="@color/orange"
-                app:suffixText="m²">
+                android:text="🎨 Icono"
+                android:textSize="14sp"
+                app:backgroundTint="@color/blue"
+                android:textColor="@android:color/white"
+                android:layout_marginEnd="8dp" />
 
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/etRoomArea"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:hint="Área"
-                    android:inputType="numberDecimal" />
-
-            </com.google.android.material.textfield.TextInputLayout>
-
-            <com.google.android.material.textfield.TextInputLayout
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnAddPhoto"
                 android:layout_width="0dp"
-                android:layout_height="wrap_content"
+                android:layout_height="48dp"
                 android:layout_weight="1"
-                android:layout_marginStart="8dp"
-                app:boxStrokeColor="@color/orange"
-                app:hintTextColor="@color/orange">
-
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/etAvailableRooms"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:hint="Cantidad disponible"
-                    android:inputType="number" />
-
-            </com.google.android.material.textfield.TextInputLayout>
+                android:text="📷 Fotos"
+                android:textSize="14sp"
+                app:backgroundTint="@color/green"
+                android:textColor="@android:color/white"
+                android:layout_marginStart="8dp" />
 
         </LinearLayout>
 
-        <com.google.android.material.textfield.TextInputLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="20dp"
-            app:boxStrokeColor="@color/orange"
-            app:hintTextColor="@color/orange"
-            app:prefixText="S/ "
-            app:suffixText="/noche">
-
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/etRoomPrice"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:hint="Precio por noche"
-                android:inputType="numberDecimal" />
-
-        </com.google.android.material.textfield.TextInputLayout>
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="🛎️ Servicios Incluidos"
-            android:textSize="16sp"
-            android:textStyle="bold"
-            android:textColor="@color/text_primary"
-            android:layout_marginBottom="12dp" />
-
+        <!-- RecyclerView para fotos -->
         <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/rvServices"
+            android:id="@+id/rvServicePhotos"
             android:layout_width="match_parent"
-            android:layout_height="200dp"
-            android:layout_marginBottom="20dp"
-            android:background="@drawable/bg_info_container"
-            android:padding="8dp" />
+            android:layout_height="100dp"
+            android:layout_marginBottom="24dp"
+            android:visibility="gone" />
 
+        <!-- Botones de acción -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="end">
+            android:orientation="horizontal">
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnCancel"
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="48dp"
+                android:layout_weight="1"
                 android:text="Cancelar"
                 android:textColor="@color/text_secondary"
                 style="@style/Widget.MaterialComponents.Button.TextButton"
-                android:layout_marginEnd="12dp"
-                android:paddingHorizontal="24dp" />
+                android:layout_marginEnd="8dp" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnSave"
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="48dp"
+                android:layout_weight="1"
                 android:text="💾 Guardar"
                 app:backgroundTint="@color/orange"
                 android:textColor="@android:color/white"
-                android:paddingHorizontal="24dp" />
+                android:layout_marginStart="8dp" />
 
         </LinearLayout>
 

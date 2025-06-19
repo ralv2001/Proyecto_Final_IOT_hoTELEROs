@@ -1,4 +1,3 @@
-/*
 package com.example.proyecto_final_hoteleros.adminhotel.dialog;
 
 import android.app.Dialog;
@@ -165,5 +164,3 @@ public class IconSelectorDialog extends Dialog {
         }
     }
 }
-
- */
