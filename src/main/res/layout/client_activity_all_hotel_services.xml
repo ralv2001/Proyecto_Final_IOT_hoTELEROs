@@ -1,0 +1,397 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@color/background_light">
+
+    <!-- Header fijo existente... se mantiene igual -->
+    <LinearLayout
+        android:id="@+id/header_container"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/orange_primary"
+        android:orientation="vertical"
+        android:paddingHorizontal="20dp"
+        android:paddingTop="44dp"
+        android:paddingBottom="24dp"
+        android:elevation="8dp">
+
+        <!-- Barra superior -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <ImageButton
+                android:id="@+id/btn_back"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:src="@drawable/ic_back"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="Regresar"
+                app:tint="@android:color/white" />
+
+            <View
+                android:layout_width="0dp"
+                android:layout_height="1dp"
+                android:layout_weight="1" />
+        </LinearLayout>
+
+        <!-- Título y subtítulo -->
+        <TextView
+            android:id="@+id/tv_header_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Servicios del Hotel"
+            android:textSize="26sp"
+            android:textColor="@android:color/white"
+            android:textStyle="bold"
+            android:fontFamily="@font/poppins_bold"
+            android:layout_marginTop="16dp" />
+
+        <TextView
+            android:id="@+id/tv_header_subtitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Personaliza tu experiencia de hospedaje"
+            android:textSize="16sp"
+            android:textColor="@android:color/white"
+            android:alpha="0.9"
+            android:fontFamily="@font/poppins_regular"
+            android:layout_marginTop="6dp" />
+    </LinearLayout>
+
+    <!-- Contenido scrolleable -->
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:fillViewport="true"
+        android:paddingBottom="120dp"
+        android:clipToPadding="false">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingTop="20dp">
+
+            <!-- ✅ NUEVA: Tarjeta de información de habitación seleccionada -->
+            <androidx.cardview.widget.CardView
+                android:id="@+id/room_info_card"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="20dp"
+                android:visibility="gone"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="4dp"
+                app:cardBackgroundColor="@color/success_light">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:padding="20dp"
+                    android:gravity="center_vertical">
+
+                    <ImageView
+                        android:layout_width="32dp"
+                        android:layout_height="32dp"
+                        android:src="@drawable/ic_room"
+                        app:tint="@color/success_green"
+                        android:layout_marginEnd="16dp" />
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:id="@+id/tv_selected_room_name"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="Habitación Deluxe seleccionada"
+                            android:textSize="16sp"
+                            android:textColor="@color/success_green"
+                            android:textStyle="bold"
+                            android:fontFamily="@font/poppins_semibold" />
+
+                        <TextView
+                            android:id="@+id/tv_included_services_info"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="4 servicios ya incluidos en tu habitación"
+                            android:textSize="14sp"
+                            android:textColor="@color/success_green"
+                            android:fontFamily="@font/poppins_regular"
+                            android:layout_marginTop="4dp" />
+                    </LinearLayout>
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
+
+            <!-- Tarjeta informativa mejorada existente... se mantiene igual -->
+            <androidx.cardview.widget.CardView
+                android:id="@+id/card_info_improved"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="20dp"
+                app:cardCornerRadius="20dp"
+                app:cardElevation="6dp"
+                app:cardBackgroundColor="@color/orange_primary">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:padding="24dp"
+                    android:gravity="center_vertical">
+
+                    <ImageView
+                        android:layout_width="32dp"
+                        android:layout_height="32dp"
+                        android:src="@drawable/ic_info"
+                        app:tint="@android:color/white"
+                        android:layout_marginEnd="16dp" />
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="¿Cómo funciona?"
+                            android:textSize="18sp"
+                            android:textColor="@android:color/white"
+                            android:textStyle="bold"
+                            android:fontFamily="@font/poppins_semibold"
+                            android:layout_marginBottom="8dp" />
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="Los servicios incluidos ya son parte de tu reserva. Los servicios de pago tienen costo adicional. ¡Algunos servicios pueden ser gratuitos según tu reserva!"
+                            android:textSize="14sp"
+                            android:textColor="@android:color/white"
+                            android:alpha="0.9"
+                            android:fontFamily="@font/poppins_regular"
+                            android:lineSpacingMultiplier="1.4" />
+                    </LinearLayout>
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
+
+            <!-- Filtros de categoría mejorados -->
+            <HorizontalScrollView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingHorizontal="20dp"
+                android:paddingBottom="24dp"
+                android:scrollbars="none">
+
+                <LinearLayout
+                    android:id="@+id/filter_container"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+
+                    <com.google.android.material.chip.Chip
+                        android:id="@+id/chip_all"
+                        android:layout_width="wrap_content"
+                        android:layout_height="48dp"
+                        android:text="Todos"
+                        android:textSize="15sp"
+                        android:layout_marginEnd="12dp"
+                        android:fontFamily="@font/poppins_medium"
+                        app:chipBackgroundColor="@color/orange_primary"
+                        app:chipStrokeWidth="0dp"
+                        android:textColor="@android:color/white"
+                        app:chipCornerRadius="24dp" />
+
+                    <com.google.android.material.chip.Chip
+                        android:id="@+id/chip_free"
+                        android:layout_width="wrap_content"
+                        android:layout_height="48dp"
+                        android:text="Incluidos"
+                        android:textSize="15sp"
+                        android:layout_marginEnd="12dp"
+                        android:fontFamily="@font/poppins_medium"
+                        app:chipBackgroundColor="@android:color/white"
+                        app:chipStrokeColor="@color/gray_border"
+                        app:chipStrokeWidth="2dp"
+                        android:textColor="@color/text_secondary"
+                        app:chipCornerRadius="24dp" />
+
+                    <com.google.android.material.chip.Chip
+                        android:id="@+id/chip_paid"
+                        android:layout_width="wrap_content"
+                        android:layout_height="48dp"
+                        android:text="De Pago"
+                        android:textSize="15sp"
+                        android:layout_marginEnd="12dp"
+                        android:fontFamily="@font/poppins_medium"
+                        app:chipBackgroundColor="@android:color/white"
+                        app:chipStrokeColor="@color/gray_border"
+                        app:chipStrokeWidth="2dp"
+                        android:textColor="@color/text_secondary"
+                        app:chipCornerRadius="24dp" />
+
+                    <com.google.android.material.chip.Chip
+                        android:id="@+id/chip_conditional"
+                        android:layout_width="wrap_content"
+                        android:layout_height="48dp"
+                        android:text="Especiales"
+                        android:textSize="15sp"
+                        android:fontFamily="@font/poppins_medium"
+                        app:chipBackgroundColor="@android:color/white"
+                        app:chipStrokeColor="@color/gray_border"
+                        app:chipStrokeWidth="2dp"
+                        android:textColor="@color/text_secondary"
+                        app:chipCornerRadius="24dp" />
+                </LinearLayout>
+            </HorizontalScrollView>
+
+            <!-- Lista de servicios -->
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rv_services_list"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="20dp"
+                android:paddingBottom="20dp"
+                android:clipToPadding="false"
+                app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+                tools:listitem="@layout/client_item_service_detail"
+                tools:itemCount="5" />
+
+            <!-- Estado vacío mejorado -->
+            <LinearLayout
+                android:id="@+id/empty_state"
+                android:layout_width="match_parent"
+                android:layout_height="240dp"
+                android:orientation="vertical"
+                android:gravity="center"
+                android:padding="32dp"
+                android:visibility="gone">
+
+                <ImageView
+                    android:layout_width="96dp"
+                    android:layout_height="96dp"
+                    android:src="@drawable/ic_info"
+                    android:alpha="0.4"
+                    app:tint="@color/text_secondary" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="No hay servicios disponibles"
+                    android:textSize="18sp"
+                    android:textColor="@color/text_primary"
+                    android:fontFamily="@font/poppins_semibold"
+                    android:layout_marginTop="20dp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Prueba con otro filtro"
+                    android:textSize="14sp"
+                    android:textColor="@color/text_secondary"
+                    android:fontFamily="@font/poppins_regular"
+                    android:layout_marginTop="8dp" />
+            </LinearLayout>
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+
+    <!-- Carrito flotante mejorado -->
+    <androidx.cardview.widget.CardView
+        android:id="@+id/cart_summary_improved"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        app:cardElevation="12dp"
+        app:cardCornerRadius="24dp"
+        android:layout_margin="20dp"
+        app:cardBackgroundColor="@color/orange_primary"
+        android:visibility="gone">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="24dp">
+
+            <!-- Info del carrito -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="20dp">
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/tv_cart_count_improved"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="0 servicios"
+                        android:textSize="14sp"
+                        android:textColor="@android:color/white"
+                        android:fontFamily="@font/poppins_medium"
+                        android:background="#33FFFFFF"
+                        android:paddingHorizontal="16dp"
+                        android:paddingVertical="6dp"
+                        android:layout_marginBottom="8dp" />
+
+                    <TextView
+                        android:id="@+id/tv_cart_total_improved"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="S/. 0.00"
+                        android:textSize="28sp"
+                        android:textColor="@android:color/white"
+                        android:textStyle="bold"
+                        android:fontFamily="@font/poppins_bold" />
+                </LinearLayout>
+
+                <ImageButton
+                    android:id="@+id/btn_clear_cart"
+                    android:layout_width="52dp"
+                    android:layout_height="52dp"
+                    android:src="@drawable/ic_remove"
+                    android:background="#33FFFFFF"
+                    android:contentDescription="Limpiar carrito"
+                    app:tint="@android:color/white" />
+            </LinearLayout>
+
+            <!-- Botón de checkout -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_add_service"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:text="Añadir servicios a mi reserva"
+                android:textAllCaps="false"
+                android:textSize="16sp"
+                android:fontFamily="@font/poppins_semibold"
+                app:backgroundTint="@android:color/white"
+                android:textColor="@color/orange_primary"
+                app:cornerRadius="20dp"
+                app:icon="@drawable/ic_add_shopping_cart"
+                app:iconTint="@color/orange_primary"
+                app:iconGravity="textStart" />
+        </LinearLayout>
+    </androidx.cardview.widget.CardView>
+
+</LinearLayout>

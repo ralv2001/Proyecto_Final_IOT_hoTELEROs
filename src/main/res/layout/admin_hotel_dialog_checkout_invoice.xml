@@ -1,0 +1,425 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_dialog_modern"
+    android:padding="0dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <!-- Header -->
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="120dp"
+            android:background="@drawable/bg_header_gradient_modern"
+            android:padding="24dp">
+
+            <ImageView
+                android:id="@+id/ivClose"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:src="@drawable/ic_close"
+                android:background="@drawable/bg_circle_white_translucent"
+                android:padding="6dp"
+                app:tint="@color/orange"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                android:clickable="true"
+                android:focusable="true" />
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toStartOf="@id/ivClose">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="🧾 FACTURA"
+                    android:textSize="24sp"
+                    android:textStyle="bold"
+                    android:textColor="@android:color/white"
+                    android:fontFamily="@font/poppins_semibold" />
+
+                <TextView
+                    android:id="@+id/tvInvoiceNumber"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="FACT-001"
+                    android:textSize="14sp"
+                    android:textColor="#E8EAED"
+                    android:fontFamily="@font/inter_regular" />
+
+                <TextView
+                    android:id="@+id/tvInvoiceDate"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="12/06/2024 15:30"
+                    android:textSize="12sp"
+                    android:textColor="#E8EAED"
+                    android:fontFamily="@font/inter_regular" />
+
+            </LinearLayout>
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <!-- Content -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="24dp">
+
+            <!-- Guest Info -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="4dp"
+                app:cardBackgroundColor="#E8F5E8">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="✅ CHECKOUT COMPLETADO"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/green"
+                        android:fontFamily="@font/poppins_medium"
+                        android:layout_marginBottom="12dp" />
+
+                    <TextView
+                        android:id="@+id/tvGuestName"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="María González"
+                        android:textSize="18sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/text_primary"
+                        android:fontFamily="@font/poppins_semibold"
+                        android:layout_marginBottom="4dp" />
+
+                    <TextView
+                        android:id="@+id/tvRoomNumber"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Habitación 301 • Suite Ejecutiva"
+                        android:textSize="14sp"
+                        android:textColor="@color/text_secondary"
+                        android:fontFamily="@font/inter_regular"
+                        android:layout_marginBottom="4dp" />
+
+                    <TextView
+                        android:id="@+id/tvDates"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="15/06/2024 - 18/06/2024 (3 noches)"
+                        android:textSize="14sp"
+                        android:textColor="@color/text_secondary"
+                        android:fontFamily="@font/inter_regular" />
+
+                </LinearLayout>
+
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Payment Status -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="4dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:padding="16dp"
+                    android:gravity="center_vertical">
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="💳 Estado del Pago"
+                            android:textSize="16sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/text_primary"
+                            android:fontFamily="@font/poppins_medium" />
+
+                        <TextView
+                            android:id="@+id/tvPaymentMethod"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Efectivo"
+                            android:textSize="14sp"
+                            android:textColor="@color/text_secondary"
+                            android:fontFamily="@font/inter_regular" />
+
+                    </LinearLayout>
+
+                    <TextView
+                        android:id="@+id/tvPaymentStatus"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="✅ PAGADO"
+                        android:textSize="14sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/green"
+                        android:background="@drawable/bg_status_pill"
+                        android:paddingHorizontal="12dp"
+                        android:paddingVertical="6dp" />
+
+                </LinearLayout>
+
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Cost Breakdown -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="4dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="💰 Desglose de Costos"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/text_primary"
+                        android:fontFamily="@font/poppins_medium"
+                        android:layout_marginBottom="12dp" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="Habitación:"
+                            android:textSize="14sp"
+                            android:textColor="@color/text_secondary" />
+
+                        <TextView
+                            android:id="@+id/tvRoomCost"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="S/ 750.00"
+                            android:textSize="14sp"
+                            android:textColor="@color/text_primary"
+                            android:fontFamily="@font/inter_medium" />
+
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:layout_marginTop="8dp">
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="Servicios:"
+                            android:textSize="14sp"
+                            android:textColor="@color/text_secondary" />
+
+                        <TextView
+                            android:id="@+id/tvServicesCost"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="S/ 385.00"
+                            android:textSize="14sp"
+                            android:textColor="@color/blue"
+                            android:fontFamily="@font/inter_medium" />
+
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:layout_marginTop="8dp">
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="Daños:"
+                            android:textSize="14sp"
+                            android:textColor="@color/text_secondary" />
+
+                        <TextView
+                            android:id="@+id/tvDamagesCost"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="S/ 0.00"
+                            android:textSize="14sp"
+                            android:textColor="@color/red"
+                            android:fontFamily="@font/inter_medium" />
+
+                    </LinearLayout>
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="2dp"
+                        android:background="@color/orange"
+                        android:layout_marginVertical="12dp" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="TOTAL:"
+                            android:textSize="18sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/text_primary"
+                            android:fontFamily="@font/poppins_semibold" />
+
+                        <TextView
+                            android:id="@+id/tvTotalCost"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="S/ 1,135.00"
+                            android:textSize="20sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/green"
+                            android:fontFamily="@font/poppins_bold" />
+
+                    </LinearLayout>
+
+                </LinearLayout>
+
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Services Used -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="4dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="🎯 Servicios Utilizados"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/text_primary"
+                        android:fontFamily="@font/poppins_medium"
+                        android:layout_marginBottom="12dp" />
+
+                    <androidx.recyclerview.widget.RecyclerView
+                        android:id="@+id/rvServices"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:nestedScrollingEnabled="false" />
+
+                    <TextView
+                        android:id="@+id/tvNoServices"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="ℹ️ No se utilizaron servicios adicionales"
+                        android:textSize="14sp"
+                        android:textColor="@color/text_secondary"
+                        android:gravity="center"
+                        android:padding="16dp"
+                        android:visibility="gone" />
+
+                </LinearLayout>
+
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Damages -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="4dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="⚠️ Daños Reportados"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/text_primary"
+                        android:fontFamily="@font/poppins_medium"
+                        android:layout_marginBottom="12dp" />
+
+                    <androidx.recyclerview.widget.RecyclerView
+                        android:id="@+id/rvDamages"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:nestedScrollingEnabled="false" />
+
+                    <TextView
+                        android:id="@+id/tvNoDamages"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="✅ No se reportaron daños"
+                        android:textSize="14sp"
+                        android:textColor="@color/green"
+                        android:gravity="center"
+                        android:padding="16dp"
+                        android:visibility="gone" />
+
+                </LinearLayout>
+
+            </com.google.android.material.card.MaterialCardView>
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+</ScrollView>

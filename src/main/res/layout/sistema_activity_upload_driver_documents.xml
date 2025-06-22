@@ -1,0 +1,343 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="#FFFFFF"
+    tools:context=".auth.register.UploadDriverDocumentsActivity">
+
+    <!-- Botón de retroceso FIJO -->
+    <ImageButton
+        android:id="@+id/btnBack"
+        android:layout_width="42dp"
+        android:layout_height="42dp"
+        android:src="@drawable/custom_back_button"
+        android:background="@null"
+        android:layout_marginStart="25dp"
+        android:layout_marginTop="30dp"
+        android:layout_marginBottom="20dp"
+        android:contentDescription="Volver" />
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:fillViewport="true">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingHorizontal="25dp"
+            android:paddingBottom="20dp">
+
+            <!-- Título -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Adjuntar placa y brevete"
+                android:textSize="24sp"
+                android:textColor="#1E1E1E"
+                android:fontFamily="@font/poppins_semibold"
+                android:letterSpacing="-0.025"
+                android:layout_marginBottom="16dp"/>
+
+            <!-- Descripción -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Para continuar con su registro, será necesario que adjunte su placa de auto y su licencia de conducir en formato pdf. Ingresar a "
+                android:textSize="16sp"
+                android:textColor="#989898"
+                android:fontFamily="@font/inter_semibold"
+                android:letterSpacing="-0.025"
+                android:lineSpacingExtra="4sp"
+                android:layout_marginBottom="4dp"/>
+
+            <!-- Link a SUNARP -->
+            <TextView
+                android:id="@+id/tvSunarpLink"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="https://consultavehicular.sunarp.gob.pe/consulta-vehicular/inicio"
+                android:textSize="16sp"
+                android:textColor="#F35D38"
+                android:fontFamily="@font/inter_semibold"
+                android:letterSpacing="-0.025"
+                android:lineSpacingExtra="4sp"
+                android:layout_marginBottom="12dp"
+                android:autoLink="web"/>
+
+            <!-- Continuación de la descripción -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="para obtener el certificado vehicular."
+                android:textSize="16sp"
+                android:textColor="#989898"
+                android:fontFamily="@font/inter_semibold"
+                android:letterSpacing="-0.025"
+                android:lineSpacingExtra="4sp"
+                android:layout_marginBottom="32dp"/>
+
+            <!-- Upload Files Section - Contenedor Grande -->
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="51dp"
+                android:layout_marginBottom="20dp"
+                android:paddingVertical="4dp">
+
+                <!-- Ícono izquierdo - MISMA altura que el contenedor grande -->
+                <ImageView
+                    android:id="@+id/ivCloudIcon"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:layout_alignParentStart="true"
+                    android:layout_alignParentTop="true"
+                    android:layout_alignParentBottom="true"
+                    android:adjustViewBounds="true"
+                    android:scaleType="fitCenter"
+                    android:src="@drawable/ic_nubecitapdf" />
+
+                <!-- Ícono derecho - esquina superior derecha -->
+                <ImageView
+                    android:id="@+id/ivHelp"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:layout_alignParentTop="true"
+                    android:layout_alignParentEnd="true"
+                    android:layout_marginTop="2dp"
+                    android:contentDescription="Ayuda"
+                    android:src="@drawable/ic_uploadpdfgozu" />
+
+                <!-- Contenedor pequeño - centrado verticalmente -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_centerVertical="true"
+                    android:layout_marginStart="12dp"
+                    android:layout_marginEnd="12dp"
+                    android:layout_toStartOf="@id/ivHelp"
+                    android:layout_toEndOf="@id/ivCloudIcon"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="0dp"
+                        android:fontFamily="@font/poppins_medium"
+                        android:text="Subir archivos"
+                        android:textColor="#1E1E1E"
+                        android:textSize="16sp" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="@font/inter_semibold"
+                        android:text="Selecciona y sube el archivo de tu elección"
+                        android:textColor="#989898"
+                        android:textSize="11sp" />
+                </LinearLayout>
+
+            </RelativeLayout>
+
+            <!-- Línea separadora -->
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="#CBD0DC"
+                android:layout_marginBottom="20dp" />
+
+            <!-- Drop zone -->
+            <FrameLayout
+                android:id="@+id/dropZone"
+                android:layout_width="match_parent"
+                android:layout_height="200dp"
+                android:background="@drawable/dashed_border"
+                android:layout_marginBottom="20dp">
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:gravity="center"
+                    android:layout_gravity="center">
+
+                    <ImageView
+                        android:layout_width="25dp"
+                        android:layout_height="25dp"
+                        android:src="@drawable/ic_nubecitasincirculo"
+                        android:layout_marginBottom="16dp"/>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Sube un archivo o haz clic &amp; súbelo aquí"
+                        android:textSize="16sp"
+                        android:textColor="#1E1E1E"
+                        android:fontFamily="@font/inter_semibold"
+                        android:layout_marginBottom="8dp"
+                        android:gravity="center"/>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Solo formato PDF, hasta 5MB"
+                        android:textSize="14sp"
+                        android:textColor="#989898"
+                        android:fontFamily="@font/inter_regular"
+                        android:layout_marginBottom="16dp"/>
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnBrowseFile"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Buscar Archivo"
+                        android:textAllCaps="false"
+                        android:textColor="#333333"
+                        app:backgroundTint="@android:color/white"
+                        app:strokeColor="#E0E0E0"
+                        app:strokeWidth="1dp"
+                        app:cornerRadius="8dp"
+                        android:paddingHorizontal="16dp"
+                        android:paddingVertical="8dp"
+                        style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
+
+                </LinearLayout>
+            </FrameLayout>
+
+            <!-- Archivo seleccionado MEJORADO (visible solo cuando se ha seleccionado un archivo) -->
+            <LinearLayout
+                android:id="@+id/layoutSelectedFile"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:background="@drawable/sistema_file_background"
+                android:padding="16dp"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="30dp"
+                android:visibility="gone">
+
+                <!-- Icono PDF mejorado -->
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:gravity="center"
+                    android:layout_marginEnd="16dp">
+
+                    <ImageView
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:src="@drawable/ic_pdfgozu"
+                        android:layout_marginBottom="4dp"/>
+
+                </LinearLayout>
+
+                <!-- Información del archivo -->
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <!-- Nombre del archivo -->
+                    <!-- Header con nombre y botón eliminar -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:layout_marginBottom="8dp">
+
+                        <TextView
+                            android:id="@+id/tvFileName"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="Google-certificate.pdf"
+                            android:textSize="16sp"
+                            android:textColor="#292D32"
+                            android:fontFamily="@font/inter_semibold"
+                            android:maxLines="1"
+                            android:ellipsize="middle"/>
+
+                        <ImageButton
+                            android:id="@+id/btnDeleteFile"
+                            android:layout_width="19dp"
+                            android:layout_height="19dp"
+                            android:src="@drawable/ic_eliminarpdf"
+                            android:background="@null"
+                            android:scaleType="fitCenter"
+                            android:contentDescription="Eliminar archivo"/>
+                    </LinearLayout>
+
+                    <!-- Información de progreso -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical">
+
+                        <!-- Tamaño del archivo con bullet point -->
+                        <TextView
+                            android:id="@+id/tvFileSize"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="94 KB of 94 KB •"
+                            android:textSize="12sp"
+                            android:textColor="#A9ACB4"
+                            android:fontFamily="@font/inter_regular"
+                            android:layout_marginEnd="8dp"/>
+
+                        <!-- Icono de check y status -->
+                        <ImageView
+                            android:layout_width="16dp"
+                            android:layout_height="16dp"
+                            android:src="@drawable/ic_check"
+                            android:layout_marginEnd="4dp" />
+
+                        <TextView
+                            android:id="@+id/tvUploadStatus"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Completado"
+                            android:textSize="12sp"
+                            android:textColor="#292D32"
+                            android:fontFamily="@font/inter_regular"/>
+                    </LinearLayout>
+                </LinearLayout>
+
+            </LinearLayout>
+        </LinearLayout>
+    </ScrollView>
+
+    <!-- Área fija en la parte inferior con fondo blanco sólido -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:background="#FFFFFF">
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="#E1E1E1" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnContinuar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:backgroundTint="@color/colorPrimary"
+            app:cornerRadius="12dp"
+            android:text="Continuar"
+            android:paddingVertical="18dp"
+            style="@style/ButtonTextStyle"
+            android:layout_marginHorizontal="25dp"
+            android:layout_marginVertical="16dp"
+            android:enabled="false"
+            android:alpha="0.4" />
+    </LinearLayout>
+</LinearLayout>

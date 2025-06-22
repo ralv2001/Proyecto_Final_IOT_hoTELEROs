@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="@drawable/bg_dialog_modern"
+    android:layout_margin="16dp"
+    android:padding="24dp">
+
+    <TextView
+        android:id="@+id/tvDialogTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="⚠️ Reportar Daño"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        android:textColor="@color/text_primary"
+        android:fontFamily="@font/poppins_semibold"
+        android:gravity="center"
+        android:layout_marginBottom="20dp" />
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        app:boxStrokeColor="@color/orange"
+        app:hintTextColor="@color/orange">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/etDamageDescription"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Descripción del daño"
+            android:inputType="textMultiLine"
+            android:maxLines="3"
+            android:minLines="2" />
+
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        app:boxStrokeColor="@color/orange"
+        app:hintTextColor="@color/orange"
+        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu">
+
+        <AutoCompleteTextView
+            android:id="@+id/etDamageSeverity"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Gravedad del daño"
+            android:inputType="none" />
+
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="20dp"
+        app:boxStrokeColor="@color/orange"
+        app:hintTextColor="@color/orange"
+        app:prefixText="S/ ">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/etDamageCost"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Costo de reparación"
+            android:inputType="numberDecimal" />
+
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="end">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnCancelDamage"
+            android:layout_width="wrap_content"
+            android:layout_height="48dp"
+            android:text="Cancelar"
+            android:textColor="@color/text_secondary"
+            style="@style/Widget.MaterialComponents.Button.TextButton"
+            android:layout_marginEnd="12dp"
+            android:paddingHorizontal="24dp" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnSaveDamage"
+            android:layout_width="wrap_content"
+            android:layout_height="48dp"
+            android:text="💾 Guardar"
+            app:backgroundTint="@color/red"
+            android:textColor="@android:color/white"
+            android:paddingHorizontal="24dp" />
+
+    </LinearLayout>
+
+</LinearLayout>

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Estado enfocado -->
+    <item android:state_focused="true" android:color="#FF6B35" />
+    <!-- Estado activado -->
+    <item android:state_activated="true" android:color="#FF6B35" />
+    <!-- Estado normal -->
+    <item android:color="#CCCCCC" />
+</selector>

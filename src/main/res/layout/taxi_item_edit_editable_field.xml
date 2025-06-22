@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginHorizontal="16dp"
+    android:layout_marginVertical="6dp"
+    app:cardCornerRadius="16dp"
+    app:cardElevation="2dp"
+    app:strokeWidth="0dp"
+    app:cardBackgroundColor="@android:color/white">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="20dp">
+
+        <!-- TextInputLayout para el campo editable -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/text_input_layout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Campo editable"
+            app:startIconTint="#FF6B35"
+            app:hintTextColor="#666666"
+            app:boxStrokeColor="#FF6B35"
+            app:boxCornerRadiusTopStart="12dp"
+            app:boxCornerRadiusTopEnd="12dp"
+            app:boxCornerRadiusBottomStart="12dp"
+            app:boxCornerRadiusBottomEnd="12dp"
+            app:boxBackgroundColor="#F8F9FA"
+            style="@style/Widget.Material3.TextInputLayout.FilledBox">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/et_field_value"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textColor="#1A1A1A"
+                android:textColorHint="#999999"
+                android:textSize="16sp"
+                android:fontFamily="sans-serif"
+                android:inputType="text"
+                android:maxLines="1"
+                android:imeOptions="actionNext" />
+
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- Texto de ayuda (opcional) -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="Si desea editar este campo, escriba aquí. "
+            android:textColor="#FF6B35"
+            android:textSize="12sp"
+            android:fontFamily="sans-serif-medium"
+            android:drawableStart="@drawable/ic_edit"
+            android:drawableTint="#FF6B35"
+            android:drawablePadding="6dp"
+            android:gravity="center_vertical" />
+
+    </LinearLayout>
+
+</com.google.android.material.card.MaterialCardView>

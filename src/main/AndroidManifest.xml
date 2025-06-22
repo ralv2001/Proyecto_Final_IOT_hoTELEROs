@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <!-- Permisos de ubicación -->
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+
+    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
+
+    <!-- Permisos de red -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
+    <!-- Permisos de notificaciones -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.VIBRATE" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+
+    <!-- Permisos para galería e imágenes -->
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
+    <uses-permission android:name="android.permission.CAMERA" />
+
+    <!-- Permisos para llamadas telefónicas -->
+    <uses-permission android:name="android.permission.CALL_PHONE" />
+
+    <!-- Declarar que la cámara es opcional -->
+    <uses-feature
+        android:name="android.hardware.camera"
+        android:required="false" />
+    <uses-feature
+        android:name="android.hardware.telephony"
+        android:required="false" />
+
+    <application
+        android:name=".HotelerosApplication"
+        android:allowBackup="true"
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        android:fullBackupContent="@xml/backup_rules"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.Proyecto_Final_hoTELEROs"
+        tools:targetApi="31">
+
+        <!-- ========== ACTIVIDADES PRINCIPALES ========== -->
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:configChanges="orientation|screenSize|keyboardHidden">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <activity
+            android:name=".AuthActivity"
+            android:exported="true"
+            android:configChanges="orientation|screenSize|keyboardHidden"
+            android:screenOrientation="unspecified" />
+
+        <activity
+            android:name=".client.ui.activity.HomeActivity"
+            android:exported="false" />
+
+        <!-- Actividad del Taxista -->
+        <activity
+            android:name=".taxista.activity.DriverActivity"
+            android:exported="false" />
+
+        <!-- ========== ACTIVIDADES DE AUTENTICACIÓN (TUS CAMBIOS) ========== -->
+        <activity
+            android:name=".auth.register.UploadDriverDocumentsActivity"
+            android:exported="false"
+            android:configChanges="orientation|screenSize|keyboardHidden" />
+
+        <activity
+            android:name=".auth.register.RegisterVerifyActivity"
+            android:exported="false"
+            android:configChanges="orientation|screenSize|keyboardHidden" />
+
+
+
+        <activity
+            android:name=".auth.register.RegisterSuccessActivity"
+            android:exported="false"
+            android:configChanges="orientation|screenSize|keyboardHidden" />
+
+        <activity
+            android:name=".auth.register.AddProfilePhotoActivity"
+            android:exported="false"
+            android:configChanges="orientation|screenSize|keyboardHidden" />
+
+        <activity
+            android:name=".auth.register.RegisterUserActivity"
+            android:exported="false"
+            android:configChanges="orientation|screenSize|keyboardHidden"
+            android:screenOrientation="unspecified" />
+
+        <activity
+            android:name=".auth.password.SuccessActivity"
+            android:exported="false"
+            android:configChanges="orientation|screenSize|keyboardHidden" />
+
+        <!-- ========== ACTIVIDADES DE CLIENTE ========== -->
+        <activity
+            android:name=".client.ui.activity.LocationSelectorActivity"
+            android:exported="true" />
+
+        <!-- ========== ACTIVIDADES DE SUPERADMIN ========== -->
+        <activity
+            android:name=".superadmin.activity.SuperAdminActivity"
+            android:exported="true" />
+
+        <activity
+            android:name=".adminhotel.activity.AdminHotelActivity"
+            android:exported="true" />
+
+        <!-- ========== ACTIVIDADES DE ADMIN HOTEL ========== -->
+
+
+
+
+        <!-- ========== ACTIVIDADES DE SERVICIOS ========== -->
+        <activity
+            android:name=".client.ui.activity.AllHotelServicesActivity"
+            android:exported="true" />
+
+        <activity
+            android:name=".client.ui.activity.CardDialogActivity"
+            android:exported="true" />
+
+        <activity
+            android:name=".client.ui.activity.HotelServicesPreviewActivity"
+            android:exported="true" />
+        <activity
+            android:name=".client.ui.activity.HotelResultsActivity"
+            android:exported="false" />
+        <!-- Actividad de prueba de notificaciones -->
+        <activity
+            android:name=".client.ui.activity.NotificationTestActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".client.ui.activity.ViewAllServicesActivity"
+            android:exported="false" />
+
+        <!-- ========== SERVICIOS ========== -->
+        <!-- Servicio de notificaciones de Firebase -->
+        <service
+            android:name=".client.data.service.FirebaseNotificationService"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT" />
+            </intent-filter>
+        </service>
+
+        <!-- ========== METADATOS ========== -->
+        <!-- API Key de Google Maps -->
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="AIzaSyBdghOu6DZktjZcg0_PJzffH72NC-nR0ok" />
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_icon"
+            android:resource="@drawable/ic_notification" />
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_color"
+            android:resource="@color/orange_primary" />
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_channel_id"
+            android:value="hotel_notifications" />
+
+    </application>
+
+</manifest>

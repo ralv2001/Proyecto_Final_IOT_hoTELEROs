@@ -1,0 +1,176 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="8dp"
+    app:cardCornerRadius="12dp"
+    app:cardElevation="3dp"
+    app:cardBackgroundColor="@android:color/white">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="16dp">
+
+        <!-- Type Indicator -->
+        <View
+            android:id="@+id/typeIndicator"
+            android:layout_width="4dp"
+            android:layout_height="0dp"
+            android:background="@color/orange"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent" />
+
+        <!-- Service Icon -->
+        <ImageView
+            android:id="@+id/ivServiceIcon"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:src="@drawable/ic_spa"
+            android:background="@drawable/bg_circle_orange_light"
+            android:padding="8dp"
+            app:tint="@color/orange"
+            app:layout_constraintStart_toEndOf="@id/typeIndicator"
+            app:layout_constraintTop_toTopOf="parent"
+            android:layout_marginStart="12dp" />
+
+        <!-- Service Name -->
+        <TextView
+            android:id="@+id/tvServiceName"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="Spa y Wellness"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:textColor="@color/text_primary"
+            app:layout_constraintStart_toEndOf="@id/ivServiceIcon"
+            app:layout_constraintTop_toTopOf="@id/ivServiceIcon"
+            app:layout_constraintEnd_toStartOf="@id/tvType"
+            android:layout_marginStart="12dp"
+            android:layout_marginEnd="8dp" />
+
+        <!-- Service Rating -->
+        <TextView
+            android:id="@+id/tvRating"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="4.8 ⭐"
+            android:textSize="14sp"
+            android:textColor="@color/text_secondary"
+            app:layout_constraintStart_toEndOf="@id/ivServiceIcon"
+            app:layout_constraintTop_toBottomOf="@id/tvServiceName"
+            app:layout_constraintEnd_toStartOf="@id/tvType"
+            android:layout_marginStart="12dp"
+            android:layout_marginTop="4dp"
+            android:layout_marginEnd="8dp" />
+
+        <!-- Service Type -->
+        <TextView
+            android:id="@+id/tvType"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="PAGADO"
+            android:textSize="12sp"
+            android:textStyle="bold"
+            android:textColor="@color/orange"
+            android:background="@drawable/bg_included_badge"
+            android:paddingHorizontal="8dp"
+            android:paddingVertical="4dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <!-- Stats Container -->
+        <LinearLayout
+            android:id="@+id/statsContainer"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginTop="12dp"
+            app:layout_constraintStart_toEndOf="@id/typeIndicator"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/ivServiceIcon"
+            android:layout_marginStart="12dp">
+
+            <!-- Requests -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:gravity="center">
+
+                <TextView
+                    android:id="@+id/tvRequests"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="45 solicitudes"
+                    android:textSize="12sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/blue" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Solicitudes"
+                    android:textSize="10sp"
+                    android:textColor="@color/text_secondary" />
+
+            </LinearLayout>
+
+            <!-- Revenue -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:gravity="center">
+
+                <TextView
+                    android:id="@+id/tvRevenue"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="S/ 5,400"
+                    android:textSize="12sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/green" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Ingresos"
+                    android:textSize="10sp"
+                    android:textColor="@color/text_secondary" />
+
+            </LinearLayout>
+
+            <!-- Performance Indicator -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:gravity="center">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="📈"
+                    android:textSize="16sp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Tendencia"
+                    android:textSize="10sp"
+                    android:textColor="@color/text_secondary" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</com.google.android.material.card.MaterialCardView>

@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/searchPanel"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="16dp"
+    android:elevation="2dp">
+
+
+    <!-- Panel superior con fondo blanco y esquinas redondeadas arriba -->
+    <LinearLayout
+        android:id="@+id/topPanel"
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/bg_search_panel_top">
+
+
+        <!-- Fila: Ubicación -->
+        <LinearLayout
+            android:id="@+id/rowLocation"
+            android:layout_width="match_parent"
+            android:layout_height="44dp"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            android:gravity="center_vertical">
+
+
+            <ImageView
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:src="@drawable/ic_search"
+                app:tint="#999999" />
+
+
+            <TextView
+                android:id="@+id/tvLocation"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="12dp"
+                android:layout_weight="1"
+                android:text="Ubicación"
+                android:textColor="#999999"
+                android:fontFamily="@font/poppins_regular"
+                android:textSize="16sp" />
+        </LinearLayout>
+
+
+        <!-- Divider dorado/amarillo -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="#F9CB5F" />
+
+
+        <!-- Fila: Fechas -->
+        <LinearLayout
+            android:id="@+id/rowDates"
+            android:layout_width="match_parent"
+            android:layout_height="44dp"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            android:gravity="center_vertical">
+
+
+            <ImageView
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:src="@drawable/ic_calendar"
+                app:tint="#999999" />
+
+
+            <TextView
+                android:id="@+id/tvDates"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="12dp"
+                android:layout_weight="1"
+                android:text="Abril 04 – Abril 05"
+                android:textColor="#999999"
+                android:fontFamily="@font/poppins_regular"
+                android:textSize="16sp" />
+        </LinearLayout>
+
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="#F9CB5F" />
+
+
+        <!-- Fila: Huéspedes -->
+        <LinearLayout
+            android:id="@+id/rowGuests"
+            android:layout_width="match_parent"
+            android:layout_height="44dp"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            android:gravity="center_vertical">
+
+
+            <ImageView
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:src="@drawable/ic_group"
+                app:tint="#999999" />
+
+
+            <TextView
+                android:id="@+id/tvGuests"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="12dp"
+                android:layout_weight="1"
+                android:text="2 Adultos – 0 niños"
+                android:textColor="#999999"
+                android:fontFamily="@font/poppins_regular"
+                android:textSize="16sp"/>
+        </LinearLayout>
+    </LinearLayout>
+
+
+    <!-- Botón inferior: color naranja y esquinas inferiores redondeadas -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnSearch"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:background="@drawable/bg_search_button"
+        app:backgroundTint="#FF7043"
+        android:text="Buscar"
+        android:textAllCaps="false"
+        android:textSize="16sp"
+        android:textColor="@android:color/white"
+        android:fontFamily="@font/poppins_medium"/>
+
+
+</LinearLayout>

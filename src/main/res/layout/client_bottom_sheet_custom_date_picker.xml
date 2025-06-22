@@ -1,0 +1,222 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_bottom_sheet_rounded"
+    android:padding="16dp">
+
+    <!-- Título del selector -->
+    <TextView
+        android:id="@+id/tvDatePickerTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Seleccionar fechas"
+        android:textColor="@color/black"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:fontFamily="@font/poppins_semibold"
+        android:gravity="center"
+        android:layout_marginBottom="16dp"/>
+
+    <!-- Selector de mes y año -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginBottom="8dp">
+
+        <ImageButton
+            android:id="@+id/btnPrevMonth"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:src="@drawable/ic_chevron_left"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Mes anterior"
+            app:tint="#FA5D31"/>
+
+        <TextView
+            android:id="@+id/tvCurrentMonthYear"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Abril 2023"
+            android:textSize="16sp"
+            android:textColor="@color/black"
+            android:fontFamily="@font/poppins_medium"
+            android:gravity="center"/>
+
+        <ImageButton
+            android:id="@+id/btnNextMonth"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:src="@drawable/ic_chevron_right"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Mes siguiente"
+            app:tint="#FA5D31"/>
+    </LinearLayout>
+
+    <!-- Días de la semana -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="8dp">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Dom"
+            android:textSize="14sp"
+            android:textColor="#999999"
+            android:fontFamily="@font/poppins_medium"
+            android:gravity="center"/>
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Lun"
+            android:textSize="14sp"
+            android:textColor="#999999"
+            android:fontFamily="@font/poppins_medium"
+            android:gravity="center"/>
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Mar"
+            android:textSize="14sp"
+            android:textColor="#999999"
+            android:fontFamily="@font/poppins_medium"
+            android:gravity="center"/>
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Mié"
+            android:textSize="14sp"
+            android:textColor="#999999"
+            android:fontFamily="@font/poppins_medium"
+            android:gravity="center"/>
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Jue"
+            android:textSize="14sp"
+            android:textColor="#999999"
+            android:fontFamily="@font/poppins_medium"
+            android:gravity="center"/>
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Vie"
+            android:textSize="14sp"
+            android:textColor="#999999"
+            android:fontFamily="@font/poppins_medium"
+            android:gravity="center"/>
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Sáb"
+            android:textSize="14sp"
+            android:textColor="#999999"
+            android:fontFamily="@font/poppins_medium"
+            android:gravity="center"/>
+    </LinearLayout>
+
+    <!-- Calendario (GridView) -->
+    <GridView
+        android:id="@+id/calendarGridView"
+        android:layout_width="match_parent"
+        android:layout_height="240dp"
+        android:numColumns="7"
+        android:verticalSpacing="0dp"
+        android:horizontalSpacing="0dp"
+        android:layout_marginBottom="16dp"/>
+
+    <!-- Resumen de selección -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="12dp"
+        android:background="@drawable/bg_card_rounded"
+        android:layout_marginBottom="16dp">
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:layout_marginEnd="8dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Entrada"
+                android:textSize="14sp"
+                android:textColor="#999999"
+                android:fontFamily="@font/poppins_regular"/>
+
+            <TextView
+                android:id="@+id/tvStartDate"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="04 Abr 2023"
+                android:textSize="16sp"
+                android:textColor="@color/black"
+                android:fontFamily="@font/poppins_medium"/>
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:layout_marginStart="8dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Salida"
+                android:textSize="14sp"
+                android:textColor="#999999"
+                android:fontFamily="@font/poppins_regular"/>
+
+            <TextView
+                android:id="@+id/tvEndDate"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="05 Abr 2023"
+                android:textSize="16sp"
+                android:textColor="@color/black"
+                android:fontFamily="@font/poppins_medium"/>
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- Botón de confirmación -->
+    <Button
+        android:id="@+id/btnConfirmDates"
+        android:layout_width="match_parent"
+        android:layout_height="54dp"
+        android:text="Confirmar"
+        android:textColor="#FFFFFF"
+        android:textSize="16sp"
+        android:fontFamily="@font/poppins_medium"
+        android:backgroundTint="#FA5D31"
+        app:cornerRadius="8dp"/>
+</LinearLayout>

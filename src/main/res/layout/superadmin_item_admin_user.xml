@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/card_admin"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="8dp"
+    app:cardCornerRadius="12dp"
+    app:cardElevation="3dp"
+    android:foreground="?android:attr/selectableItemBackground">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <!-- Header con info principal -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <ImageView
+                android:id="@+id/iv_profile"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:background="@drawable/circle_primary_light"
+                android:padding="12dp"
+                android:src="@drawable/ic_person"
+                app:tint="@color/primary_FF6B35" />
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:layout_marginStart="12dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical">
+
+                    <TextView
+                        android:id="@+id/tv_name"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="María García"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/text_primary" />
+
+                    <com.google.android.material.chip.Chip
+                        android:id="@+id/chip_status"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Activo"
+                        android:textSize="11sp"
+                        android:textColor="@android:color/white"
+                        app:chipMinHeight="24dp" />
+
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/tv_email"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="maria.garcia@email.com"
+                    android:textSize="13sp"
+                    android:textColor="@color/text_secondary"
+                    android:layout_marginTop="2dp" />
+
+                <TextView
+                    android:id="@+id/tv_hotel"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="🏨 Hotel Plaza"
+                    android:textSize="13sp"
+                    android:textColor="@color/primary_FF6B35"
+                    android:layout_marginTop="2dp" />
+
+            </LinearLayout>
+
+            <ImageView
+                android:id="@+id/iv_more"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:src="@drawable/ic_more_vert"
+                android:background="?android:attr/selectableItemBackgroundBorderless"
+                android:padding="8dp"
+                app:tint="@color/text_secondary" />
+
+        </LinearLayout>
+
+        <!-- Footer con fecha y botón -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginTop="12dp">
+
+            <TextView
+                android:id="@+id/tv_registration_date"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Registrado: 15/03/2025"
+                android:textSize="11sp"
+                android:textColor="@color/text_secondary" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_toggle_status"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Desactivar"
+                android:textSize="12sp"
+                android:backgroundTint="@color/error"
+                app:cornerRadius="20dp"
+                android:minHeight="36dp"
+                style="@style/Widget.MaterialComponents.Button" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+</androidx.cardview.widget.CardView>

@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/cardHotel"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:layout_margin="8dp"
+    app:cardCornerRadius="16dp"
+    app:cardUseCompatPadding="true"
+    android:elevation="4dp"
+    android:foreground="?android:attr/selectableItemBackground">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="300dp"
+        android:layout_height="wrap_content">
+
+        <!-- Imagen principal del hotel -->
+        <ImageView
+            android:id="@+id/ivHotelImage"
+            android:layout_width="0dp"
+            android:layout_height="200dp"
+            android:adjustViewBounds="true"
+            android:scaleType="centerCrop"
+            android:src="@drawable/belmond"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
+
+        <!-- Calificación (estrella + número) sobre la imagen -->
+        <LinearLayout
+            android:id="@+id/layoutRating"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:padding="8dp"
+            android:background="@drawable/bg_rounded_white"
+            android:layout_margin="8dp"
+            app:layout_constraintTop_toTopOf="@id/ivHotelImage"
+            app:layout_constraintStart_toStartOf="@id/ivHotelImage">
+
+            <ImageView
+                android:id="@+id/ivStarIcon"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:src="@drawable/ic_star"
+                android:contentDescription="@string/star_icon_desc" />
+
+            <TextView
+                android:id="@+id/tvRating"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="4dp"
+                android:text="4.9"
+                android:textColor="@android:color/white"
+                android:textSize="14sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <!-- Contenedor de la información del hotel -->
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/layoutHotelInfo"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:layout_marginHorizontal="8dp"
+            app:layout_constraintTop_toBottomOf="@id/ivHotelImage"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent">
+
+            <!-- Nombre y Ubicación agrupados en el lado izquierdo -->
+            <LinearLayout
+                android:id="@+id/layoutHotelLeft"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toStartOf="@+id/layoutPrice"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent">
+
+                <TextView
+                    android:id="@+id/tvHotelName"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Belmond Miraflores Park"
+                    android:textStyle="bold"
+                    android:textColor="@android:color/black"
+                    android:textSize="15sp" />
+
+                <LinearLayout
+                    android:id="@+id/layoutLocation"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginTop="4dp">
+
+                    <ImageView
+                        android:id="@+id/ivLocationIcon"
+                        android:layout_width="16dp"
+                        android:layout_height="16dp"
+                        android:src="@drawable/ic_location" />
+
+                    <TextView
+                        android:id="@+id/tvLocation"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="4dp"
+                        android:text="Miraflores, frente al malecón, Lima"
+                        android:textColor="@android:color/darker_gray"
+                        android:textSize="14sp" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- Grupo derecho: Precio y "Por noche" -->
+            <LinearLayout
+                android:id="@+id/layoutPrice"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent">
+
+                <TextView
+                    android:id="@+id/tvPrice"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="S/290"
+                    android:textColor="@android:color/holo_red_dark"
+                    android:textSize="20sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/tvPriceDescription"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text="Por noche"
+                    android:textColor="@android:color/darker_gray"
+                    android:textSize="14sp" />
+            </LinearLayout>
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</androidx.cardview.widget.CardView>

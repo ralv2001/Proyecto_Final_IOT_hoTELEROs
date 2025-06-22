@@ -1,0 +1,491 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/cardReservation"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginVertical="12dp"
+    android:layout_marginHorizontal="16dp"
+    app:cardCornerRadius="20dp"
+    app:cardElevation="6dp"
+    android:foreground="?android:attr/selectableItemBackground">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="16dp">
+
+        <!-- ENCABEZADO: Nombre hotel y calificación -->
+        <TextView
+            android:id="@+id/tvHotelName"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="Gocta Lodge"
+            android:textStyle="bold"
+            android:textColor="#1A1A1A"
+            android:textSize="20sp"
+            android:maxLines="1"
+            android:ellipsize="end"
+            android:fontFamily="sans-serif-medium"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/layoutRating" />
+
+        <!-- Calificación con estrella -->
+        <LinearLayout
+            android:id="@+id/layoutRating"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingHorizontal="10dp"
+            android:paddingVertical="5dp"
+            app:layout_constraintTop_toTopOf="@id/tvHotelName"
+            app:layout_constraintBottom_toBottomOf="@id/tvHotelName"
+            app:layout_constraintEnd_toEndOf="parent">
+
+            <ImageView
+                android:id="@+id/ivStarIcon"
+                android:layout_width="18dp"
+                android:layout_height="18dp"
+                android:src="@drawable/ic_star"
+                android:contentDescription="Calificación estrella"
+                app:tint="#FFD700" />
+
+            <TextView
+                android:id="@+id/tvRating"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="4dp"
+                android:text="4.9"
+                android:textColor="#1A1A1A"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:fontFamily="sans-serif-medium" />
+        </LinearLayout>
+
+        <!-- IMAGEN PRINCIPAL -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/imageContainer"
+            android:layout_width="match_parent"
+            android:layout_height="180dp"
+            app:cardCornerRadius="16dp"
+            app:cardElevation="0dp"
+            android:layout_marginTop="16dp"
+            app:layout_constraintTop_toBottomOf="@id/tvHotelName"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent">
+
+            <com.google.android.material.imageview.ShapeableImageView
+                android:id="@+id/ivHotelImage"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:adjustViewBounds="true"
+                android:scaleType="centerCrop"
+                android:src="@drawable/belmond"/>
+
+            <!-- Gradiente que respeta las esquinas redondeadas -->
+            <View
+                android:id="@+id/gradientOverlay"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@drawable/hotel_image_gradient"/>
+
+            <!-- Estado de la reserva (sobrepuesto en la imagen) -->
+            <TextView
+                android:id="@+id/tvStatus"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Próxima"
+                android:textSize="12sp"
+                android:textColor="@android:color/white"
+                android:background="@drawable/bg_status_pill"
+                android:paddingHorizontal="12dp"
+                android:paddingVertical="6dp"
+                android:elevation="4dp"
+                android:layout_margin="12dp"
+                android:fontFamily="sans-serif-medium"/>
+
+            <!-- ✅ NÚMERO DE HABITACIÓN (movido a esquina superior derecha) -->
+            <TextView
+                android:id="@+id/tvRoomNumber"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Hab. 2015"
+                android:textSize="12sp"
+                android:textColor="@android:color/white"
+                android:background="@drawable/bg_translucent_pill"
+                android:paddingHorizontal="8dp"
+                android:paddingVertical="4dp"
+                android:layout_gravity="top|end"
+                android:layout_margin="12dp"
+                android:layout_marginTop="50dp"
+                android:fontFamily="@font/inter_medium"
+                android:visibility="gone"/>
+
+            <!-- Información de fecha y ubicación sobrepuesta en la imagen (abajo) -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_gravity="bottom"
+                android:padding="12dp"
+                android:gravity="center_vertical">
+
+                <!-- Fecha con iconografía -->
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:background="@drawable/bg_translucent_pill"
+                    android:gravity="center_vertical"
+                    android:paddingVertical="6dp"
+                    android:paddingHorizontal="10dp"
+                    android:layout_marginEnd="8dp">
+
+                    <ImageView
+                        android:id="@+id/ivCalendarIcon"
+                        android:layout_width="18dp"
+                        android:layout_height="18dp"
+                        android:layout_gravity="center"
+                        android:src="@drawable/ic_calendar"
+                        app:tint="#FFFFFF" />
+
+                    <TextView
+                        android:id="@+id/tvDate"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="6dp"
+                        android:text="15 - 18 Mar"
+                        android:textColor="#FFFFFF"
+                        android:textSize="13sp"
+                        android:fontFamily="sans-serif" />
+                </LinearLayout>
+
+                <!-- Ubicación con iconografía -->
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:background="@drawable/bg_translucent_pill"
+                    android:gravity="center_vertical"
+                    android:paddingVertical="6dp"
+                    android:paddingHorizontal="10dp">
+
+                    <ImageView
+                        android:id="@+id/ivLocationIcon"
+                        android:layout_width="18dp"
+                        android:layout_height="18dp"
+                        android:layout_gravity="center"
+                        android:src="@drawable/ic_location"
+                        app:tint="#FFFFFF" />
+
+                    <TextView
+                        android:id="@+id/tvLocation"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="6dp"
+                        android:text="Chachapoyas"
+                        android:textColor="#FFFFFF"
+                        android:textSize="13sp"
+                        android:fontFamily="sans-serif" />
+                </LinearLayout>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- SECCIÓN PRECIO Y CTA -->
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/priceActionContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            app:layout_constraintTop_toBottomOf="@id/imageContainer"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent">
+
+            <!-- Etiqueta de precio total -->
+            <TextView
+                android:id="@+id/tvPriceLabel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Precio total"
+                android:textColor="#757575"
+                android:textSize="14sp"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintStart_toStartOf="parent" />
+
+            <!-- Precio -->
+            <TextView
+                android:id="@+id/tvPrice"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="S/900.0"
+                android:textColor="#FF5722"
+                android:textSize="24sp"
+                android:textStyle="bold"
+                android:fontFamily="sans-serif-medium"
+                app:layout_constraintTop_toBottomOf="@id/tvPriceLabel"
+                app:layout_constraintStart_toStartOf="parent" />
+
+            <!-- Botón de acción -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnAction"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Ver detalles"
+                android:textColor="#FFFFFF"
+                android:textSize="14sp"
+                android:paddingHorizontal="20dp"
+                android:paddingVertical="10dp"
+                app:cornerRadius="24dp"
+                app:backgroundTint="#FF5722"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent" />
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <!-- SECCIÓN DETALLES (Información adicional) -->
+        <LinearLayout
+            android:id="@+id/detailsRow"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginTop="16dp"
+            app:layout_constraintTop_toBottomOf="@id/priceActionContainer"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent">
+
+            <!-- Fecha detallada (con año) -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cardDateDetailed"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginEnd="8dp"
+                app:cardCornerRadius="12dp"
+                app:cardBackgroundColor="#F5F5F5"
+                app:cardElevation="0dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:gravity="center"
+                    android:paddingVertical="12dp"
+                    android:paddingHorizontal="12dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Estadía"
+                        android:textColor="#1A1A1A"
+                        android:textSize="14sp"
+                        android:textStyle="bold"
+                        android:fontFamily="sans-serif-medium" />
+
+                    <TextView
+                        android:id="@+id/tvDateFull"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:text="15 Mar - 18 Mar, 2025"
+                        android:textColor="#666666"
+                        android:textSize="13sp"
+                        android:fontFamily="sans-serif" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Ubicación detallada -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cardLocationDetailed"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                app:cardCornerRadius="12dp"
+                app:cardBackgroundColor="#F5F5F5"
+                app:cardElevation="0dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:gravity="center"
+                    android:paddingVertical="12dp"
+                    android:paddingHorizontal="12dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Ubicación"
+                        android:textColor="#1A1A1A"
+                        android:textSize="14sp"
+                        android:textStyle="bold"
+                        android:fontFamily="sans-serif-medium" />
+
+                    <TextView
+                        android:id="@+id/tvLocationFull"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:text="Gocta, Amazonas"
+                        android:textColor="#666666"
+                        android:textSize="13sp"
+                        android:fontFamily="sans-serif" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+        </LinearLayout>
+
+        <!-- ✅ INDICADORES PROFESIONALES (NUEVOS) -->
+        <LinearLayout
+            android:id="@+id/indicatorsContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginTop="12dp"
+            android:gravity="start"
+            app:layout_constraintTop_toBottomOf="@id/detailsRow"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent">
+
+            <TextView
+                android:id="@+id/tvServicesIndicator"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="🍽️ +3 servicios"
+                android:textSize="12sp"
+                android:textColor="#4CAF50"
+                android:background="@drawable/bg_chip_free"
+                android:paddingHorizontal="8dp"
+                android:paddingVertical="4dp"
+                android:layout_marginEnd="6dp"
+                android:fontFamily="@font/inter_medium"
+                android:visibility="gone"/>
+
+            <TextView
+                android:id="@+id/tvTaxiIndicator"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="🚖 Taxi gratis"
+                android:textSize="12sp"
+                android:textColor="#2196F3"
+                android:background="@drawable/bg_chip_free"
+                android:paddingHorizontal="8dp"
+                android:paddingVertical="4dp"
+                android:layout_marginEnd="6dp"
+                android:fontFamily="@font/inter_medium"
+                android:visibility="gone"/>
+
+            <TextView
+                android:id="@+id/tvAdditionalChargesIndicator"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="⚠️ Cargos adicionales"
+                android:textSize="12sp"
+                android:textColor="#FF5722"
+                android:background="@drawable/bg_conditional_badge"
+                android:paddingHorizontal="8dp"
+                android:paddingVertical="4dp"
+                android:fontFamily="@font/inter_medium"
+                android:visibility="gone"/>
+        </LinearLayout>
+
+        <!-- SECCIÓN INFORMACIÓN ADICIONAL -->
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/additionalInfoContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:padding="16dp"
+            android:background="@drawable/bg_info_container"
+            app:layout_constraintTop_toBottomOf="@id/indicatorsContainer"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent">
+
+            <TextView
+                android:id="@+id/tvAdditionalInfoTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Información de check-in"
+                android:textColor="#1A1A1A"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintStart_toStartOf="parent" />
+
+            <TextView
+                android:id="@+id/tvAdditionalInfo"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="Reserva confirmada. Se requiere presentar identificación al check-in."
+                android:textColor="#666666"
+                android:textSize="14sp"
+                app:layout_constraintTop_toBottomOf="@id/tvAdditionalInfoTitle"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent" />
+
+            <!-- Lista de detalles -->
+            <LinearLayout
+                android:id="@+id/detailsContainer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginTop="12dp"
+                app:layout_constraintTop_toBottomOf="@id/tvAdditionalInfo"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent">
+
+                <TextView
+                    android:id="@+id/tvDetailTotal"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Total estimado: S/1720.00"
+                    android:textColor="#666666"
+                    android:textSize="14sp"
+                    android:layout_marginBottom="4dp"/>
+
+                <TextView
+                    android:id="@+id/tvDetailRoom"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="• Habitación: S/1350.00"
+                    android:textColor="#666666"
+                    android:textSize="14sp"
+                    android:layout_marginBottom="4dp"/>
+
+                <TextView
+                    android:id="@+id/tvDetailServices"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="• Servicios: S/370.00"
+                    android:textColor="#666666"
+                    android:textSize="14sp"
+                    android:layout_marginBottom="4dp"/>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical">
+
+                    <ImageView
+                        android:layout_width="16dp"
+                        android:layout_height="16dp"
+                        android:src="@drawable/ic_check"
+                        android:layout_marginEnd="8dp"
+                        />
+
+                    <TextView
+                        android:id="@+id/tvDetailTaxi"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Califica para servicio de taxi gratuito."
+                        android:textColor="#4CAF50"
+                        android:textSize="14sp"/>
+                </LinearLayout>
+            </LinearLayout>
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</androidx.cardview.widget.CardView>

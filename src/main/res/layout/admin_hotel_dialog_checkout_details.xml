@@ -1,0 +1,465 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/bg_dialog_modern">
+
+    <!-- Header con gradiente -->
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/headerContainer"
+        android:layout_width="0dp"
+        android:layout_height="80dp"
+        android:background="@drawable/bg_header_gradient_modern"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <ImageView
+            android:id="@+id/ivClose"
+            android:layout_width="28dp"
+            android:layout_height="28dp"
+            android:src="@drawable/ic_close"
+            android:background="@drawable/bg_circle_white_translucent"
+            android:padding="4dp"
+            android:layout_margin="12dp"
+            app:tint="@color/orange"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:clickable="true"
+            android:focusable="true" />
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_margin="16dp"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/ivClose">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="💳 Detalles del Checkout"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:textColor="@android:color/white"
+                android:fontFamily="@font/poppins_semibold" />
+
+            <TextView
+                android:id="@+id/tvGuestName"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Juan Pérez García"
+                android:textSize="14sp"
+                android:textColor="#E8EAED"
+                android:fontFamily="@font/inter_regular"
+                android:layout_marginTop="2dp" />
+
+        </LinearLayout>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <!-- Contenido principal con ScrollView -->
+    <ScrollView
+        android:id="@+id/scrollView"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:fillViewport="true"
+        app:layout_constraintTop_toBottomOf="@id/headerContainer"
+        app:layout_constraintBottom_toTopOf="@id/actionButtonsContainer"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <!-- Información básica -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="12dp"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="2dp"
+                app:cardBackgroundColor="#F8F9FA">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="12dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="🏨 Información de Estadía"
+                        android:textSize="14sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/text_primary"
+                        android:layout_marginBottom="8dp" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:layout_marginBottom="4dp">
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="Habitación:"
+                            android:textSize="12sp"
+                            android:textColor="@color/text_secondary" />
+
+                        <TextView
+                            android:id="@+id/tvRoomNumber"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="205 - Suite Premium"
+                            android:textSize="12sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/text_primary" />
+
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:layout_marginBottom="4dp">
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="Fechas:"
+                            android:textSize="12sp"
+                            android:textColor="@color/text_secondary" />
+
+                        <TextView
+                            android:id="@+id/tvDates"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="20-25 Dic (5 noches)"
+                            android:textSize="12sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/text_primary" />
+
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="Estado:"
+                            android:textSize="12sp"
+                            android:textColor="@color/text_secondary" />
+
+                        <TextView
+                            android:id="@+id/tvStatus"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Pendiente"
+                            android:textSize="10sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/orange"
+                            android:background="@drawable/bg_status_pill"
+                            android:paddingHorizontal="8dp"
+                            android:paddingVertical="2dp" />
+
+                    </LinearLayout>
+
+                </LinearLayout>
+
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Costos -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="12dp"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="2dp"
+                app:cardBackgroundColor="#F8F9FA">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="12dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="💰 Desglose de Costos"
+                        android:textSize="14sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/text_primary"
+                        android:layout_marginBottom="8dp" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:layout_marginBottom="4dp">
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="🏨 Habitación:"
+                            android:textSize="12sp"
+                            android:textColor="@color/text_secondary" />
+
+                        <TextView
+                            android:id="@+id/tvRoomCost"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="S/ 1,250.00"
+                            android:textSize="12sp"
+                            android:textColor="@color/text_primary" />
+
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:layout_marginBottom="4dp">
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="🎯 Servicios:"
+                            android:textSize="12sp"
+                            android:textColor="@color/text_secondary" />
+
+                        <TextView
+                            android:id="@+id/tvServicesCost"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="S/ 280.00"
+                            android:textSize="12sp"
+                            android:textColor="@color/blue" />
+
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:layout_marginBottom="8dp">
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="⚠️ Daños:"
+                            android:textSize="12sp"
+                            android:textColor="@color/text_secondary" />
+
+                        <TextView
+                            android:id="@+id/tvDamagesCost"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="S/ 80.00"
+                            android:textSize="12sp"
+                            android:textColor="@color/red" />
+
+                    </LinearLayout>
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:background="@color/orange"
+                        android:layout_marginVertical="4dp" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="💳 TOTAL:"
+                            android:textSize="14sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/text_primary" />
+
+                        <TextView
+                            android:id="@+id/tvTotalCost"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="S/ 1,610.00"
+                            android:textSize="16sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/green" />
+
+                    </LinearLayout>
+
+                </LinearLayout>
+
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Servicios -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="12dp"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="2dp"
+                app:cardBackgroundColor="#F0F7FF">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="12dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="🎯 Servicios Utilizados"
+                        android:textSize="14sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/text_primary"
+                        android:layout_marginBottom="8dp" />
+
+                    <androidx.recyclerview.widget.RecyclerView
+                        android:id="@+id/rvServices"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:nestedScrollingEnabled="false" />
+
+                    <TextView
+                        android:id="@+id/tvNoServices"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="ℹ️ No se utilizaron servicios adicionales"
+                        android:textSize="12sp"
+                        android:textColor="@color/text_secondary"
+                        android:gravity="center"
+                        android:padding="8dp"
+                        android:visibility="gone" />
+
+                </LinearLayout>
+
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Daños -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="12dp"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="2dp"
+                app:cardBackgroundColor="#FFF5F5">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="12dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:layout_marginBottom="8dp">
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="⚠️ Daños Reportados"
+                            android:textSize="14sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/text_primary" />
+
+                        <androidx.appcompat.widget.AppCompatButton
+                            android:id="@+id/btnAddDamage"
+                            android:layout_width="wrap_content"
+                            android:layout_height="32dp"
+                            android:text="➕ Agregar"
+                            android:textSize="10sp"
+                            android:textColor="@android:color/white"
+                            android:background="@drawable/bg_button_red_rounded"
+                            android:paddingHorizontal="12dp" />
+
+                    </LinearLayout>
+
+                    <androidx.recyclerview.widget.RecyclerView
+                        android:id="@+id/rvDamages"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:nestedScrollingEnabled="false" />
+
+                    <TextView
+                        android:id="@+id/tvNoDamages"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="✅ No se reportaron daños"
+                        android:textSize="12sp"
+                        android:textColor="@color/green"
+                        android:gravity="center"
+                        android:padding="8dp" />
+
+                </LinearLayout>
+
+            </com.google.android.material.card.MaterialCardView>
+
+        </LinearLayout>
+
+    </ScrollView>
+
+    <!-- Botones de acción -->
+    <LinearLayout
+        android:id="@+id/actionButtonsContainer"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="16dp"
+        android:background="@android:color/white"
+        android:elevation="4dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/btnCancel"
+            android:layout_width="0dp"
+            android:layout_height="48dp"
+            android:layout_weight="1"
+            android:layout_marginEnd="8dp"
+            android:text="❌ CANCELAR"
+            android:textColor="@color/text_secondary"
+            android:background="@drawable/bg_button_outline_modern" />
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/btnProcessCheckout"
+            android:layout_width="0dp"
+            android:layout_height="48dp"
+            android:layout_weight="1"
+            android:text="💳 PROCESAR CHECKOUT"
+            android:textColor="@android:color/white"
+            android:background="@drawable/bg_button_orange_modern" />
+
+    </LinearLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

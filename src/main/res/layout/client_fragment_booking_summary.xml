@@ -1,0 +1,930 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@android:color/white">
+
+    <!-- AppBar con elevación sutil y diseño mejorado -->
+    <com.google.android.material.appbar.AppBarLayout
+        android:id="@+id/appbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@android:color/white"
+        app:elevation="2dp">
+
+        <androidx.appcompat.widget.Toolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            app:contentInsetStartWithNavigation="0dp">
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+
+                <ImageButton
+                    android:id="@+id/btn_back"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:src="@drawable/ic_back"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="Regresar"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:tint="#333333" />
+
+                <TextView
+                    android:id="@+id/toolbar_title"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="sans-serif-medium"
+                    android:gravity="center_horizontal"
+                    android:text="Resumen de Reserva"
+                    android:textColor="#212121"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toEndOf="@id/btn_back"
+                    app:layout_constraintTop_toTopOf="parent"
+                    android:layout_marginEnd="48dp" />
+            </androidx.constraintlayout.widget.ConstraintLayout>
+        </androidx.appcompat.widget.Toolbar>
+    </com.google.android.material.appbar.AppBarLayout>
+
+    <!-- Contenido principal (scrollable) con fondo blanco -->
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:fillViewport="true"
+        android:background="@android:color/white"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingBottom="90dp">
+
+            <!-- Tarjeta de Hotel con fondo blanco y borde sutil -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/card_hotel_info"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="16dp"
+                android:layout_marginEnd="16dp"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="2dp"
+                app:strokeWidth="1dp"
+                app:strokeColor="#E0E0E0"
+                app:cardBackgroundColor="@android:color/white"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent">
+
+                <androidx.constraintlayout.widget.ConstraintLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+
+                    <ImageView
+                        android:id="@+id/img_hotel_banner"
+                        android:layout_width="match_parent"
+                        android:layout_height="180dp"
+                        android:scaleType="centerCrop"
+                        android:src="@drawable/belmond"
+                        app:layout_constraintTop_toTopOf="parent" />
+
+                    <androidx.constraintlayout.widget.ConstraintLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:padding="20dp"
+                        app:layout_constraintTop_toBottomOf="@id/img_hotel_banner">
+
+                        <TextView
+                            android:id="@+id/tv_hotel_name"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:text="Belmond Miraflores Park"
+                            android:textSize="20sp"
+                            android:textStyle="bold"
+                            android:fontFamily="sans-serif-medium"
+                            android:textColor="#212121"
+                            app:layout_constraintTop_toTopOf="parent"
+                            app:layout_constraintStart_toStartOf="parent"
+                            app:layout_constraintEnd_toStartOf="@id/tv_rating" />
+
+                        <TextView
+                            android:id="@+id/tv_hotel_address"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:text="Miraflores, Lima, Perú"
+                            android:textSize="15sp"
+                            android:textColor="#757575"
+                            android:fontFamily="sans-serif"
+                            android:layout_marginTop="6dp"
+                            app:layout_constraintTop_toBottomOf="@id/tv_hotel_name"
+                            app:layout_constraintStart_toStartOf="parent"
+                            app:layout_constraintEnd_toEndOf="parent" />
+
+                        <TextView
+                            android:id="@+id/tv_rating"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="4.9"
+                            android:textSize="16sp"
+                            android:textStyle="bold"
+                            android:fontFamily="sans-serif-medium"
+                            android:textColor="#1D1D1D"
+                            android:background="@drawable/bg_rating_badge"
+                            android:paddingStart="10dp"
+                            android:paddingEnd="10dp"
+                            android:paddingTop="5dp"
+                            android:paddingBottom="5dp"
+                            android:drawableStart="@drawable/ic_star"
+                            android:drawablePadding="4dp"
+                            app:layout_constraintTop_toTopOf="@id/tv_hotel_name"
+                            app:layout_constraintEnd_toEndOf="parent" />
+                    </androidx.constraintlayout.widget.ConstraintLayout>
+                </androidx.constraintlayout.widget.ConstraintLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Tarjeta de Información de la estancia con fondo blanco y borde sutil -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/card_stay_info"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="20dp"
+                android:layout_marginEnd="16dp"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="2dp"
+                app:strokeWidth="1dp"
+                app:strokeColor="#E0E0E0"
+                app:cardBackgroundColor="@android:color/white"
+                app:layout_constraintTop_toBottomOf="@id/card_hotel_info"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent">
+
+                <androidx.constraintlayout.widget.ConstraintLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="20dp">
+
+                    <TextView
+                        android:id="@+id/tv_stay_info_title"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Información de Estancia"
+                        android:textSize="18sp"
+                        android:textColor="#212121"
+                        android:fontFamily="sans-serif-medium"
+                        android:textStyle="bold"
+                        app:layout_constraintTop_toTopOf="parent" />
+
+                    <!-- Fecha Check-in/out -->
+                    <ImageView
+                        android:id="@+id/icon_calendar"
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:src="@drawable/ic_calenda"
+                        android:layout_marginTop="20dp"
+                        app:layout_constraintTop_toBottomOf="@id/tv_stay_info_title"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:tint="#F44336" />
+
+                    <TextView
+                        android:id="@+id/label_check"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:text="Fechas"
+                        android:textSize="15sp"
+                        android:fontFamily="sans-serif"
+                        android:textColor="#757575"
+                        android:layout_marginStart="16dp"
+                        app:layout_constraintTop_toTopOf="@id/icon_calendar"
+                        app:layout_constraintBottom_toBottomOf="@id/icon_calendar"
+                        app:layout_constraintStart_toEndOf="@id/icon_calendar"
+                        app:layout_constraintEnd_toStartOf="@id/tv_check_in_out" />
+
+                    <TextView
+                        android:id="@+id/tv_check_in_out"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="8 abril - 9 abril"
+                        android:textSize="15sp"
+                        android:fontFamily="sans-serif-medium"
+                        android:textStyle="bold"
+                        android:textColor="#212121"
+                        app:layout_constraintTop_toTopOf="@id/icon_calendar"
+                        app:layout_constraintBottom_toBottomOf="@id/icon_calendar"
+                        app:layout_constraintEnd_toEndOf="parent" />
+
+                    <!-- Huéspedes -->
+                    <ImageView
+                        android:id="@+id/icon_guests"
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:src="@drawable/ic_person"
+                        android:layout_marginTop="20dp"
+                        app:layout_constraintTop_toBottomOf="@id/icon_calendar"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:tint="#F44336" />
+
+                    <TextView
+                        android:id="@+id/label_guests"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:text="Huéspedes"
+                        android:textSize="15sp"
+                        android:fontFamily="sans-serif"
+                        android:textColor="#757575"
+                        android:layout_marginStart="16dp"
+                        app:layout_constraintTop_toTopOf="@id/icon_guests"
+                        app:layout_constraintBottom_toBottomOf="@id/icon_guests"
+                        app:layout_constraintStart_toEndOf="@id/icon_guests"
+                        app:layout_constraintEnd_toStartOf="@id/tv_number_of_guests" />
+
+                    <TextView
+                        android:id="@+id/tv_number_of_guests"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="2 adultos - 0 niños"
+                        android:textSize="15sp"
+                        android:fontFamily="sans-serif-medium"
+                        android:textStyle="bold"
+                        android:textColor="#212121"
+                        app:layout_constraintTop_toTopOf="@id/icon_guests"
+                        app:layout_constraintBottom_toBottomOf="@id/icon_guests"
+                        app:layout_constraintEnd_toEndOf="parent" />
+
+                    <!-- Tipo de habitación -->
+                    <ImageView
+                        android:id="@+id/icon_room"
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:src="@drawable/ic_room"
+                        android:layout_marginTop="20dp"
+                        app:layout_constraintTop_toBottomOf="@id/icon_guests"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:tint="#F44336" />
+
+                    <TextView
+                        android:id="@+id/label_room_type"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:text="Tipo de habitación"
+                        android:textSize="15sp"
+                        android:fontFamily="sans-serif"
+                        android:textColor="#757575"
+                        android:layout_marginStart="16dp"
+                        app:layout_constraintTop_toTopOf="@id/icon_room"
+                        app:layout_constraintBottom_toBottomOf="@id/icon_room"
+                        app:layout_constraintStart_toEndOf="@id/icon_room"
+                        app:layout_constraintEnd_toStartOf="@id/tv_room_type" />
+
+                    <TextView
+                        android:id="@+id/tv_room_type"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Estándar"
+                        android:textSize="15sp"
+                        android:fontFamily="sans-serif-medium"
+                        android:textStyle="bold"
+                        android:textColor="#212121"
+                        app:layout_constraintTop_toTopOf="@id/icon_room"
+                        app:layout_constraintBottom_toBottomOf="@id/icon_room"
+                        app:layout_constraintEnd_toEndOf="parent" />
+
+                    <!-- Número de habitación -->
+                    <ImageView
+                        android:id="@+id/icon_number"
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:src="@drawable/ic_number"
+                        android:layout_marginTop="20dp"
+                        app:layout_constraintTop_toBottomOf="@id/icon_room"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:tint="#F44336" />
+
+                    <TextView
+                        android:id="@+id/label_room_number"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:text="Número de habitación"
+                        android:textSize="15sp"
+                        android:fontFamily="sans-serif"
+                        android:textColor="#757575"
+                        android:layout_marginStart="16dp"
+                        app:layout_constraintTop_toTopOf="@id/icon_number"
+                        app:layout_constraintBottom_toBottomOf="@id/icon_number"
+                        app:layout_constraintStart_toEndOf="@id/icon_number"
+                        app:layout_constraintEnd_toStartOf="@id/tv_room_number" />
+
+                    <TextView
+                        android:id="@+id/tv_room_number"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="9634448852"
+                        android:textSize="15sp"
+                        android:fontFamily="sans-serif-medium"
+                        android:textStyle="bold"
+                        android:textColor="#212121"
+                        app:layout_constraintTop_toTopOf="@id/icon_number"
+                        app:layout_constraintBottom_toBottomOf="@id/icon_number"
+                        app:layout_constraintEnd_toEndOf="parent" />
+
+                    <!-- Taxi gratuito -->
+                    <ImageView
+                        android:id="@+id/icon_taxi"
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:src="@drawable/ic_taxi"
+                        android:layout_marginTop="20dp"
+                        app:layout_constraintTop_toBottomOf="@id/icon_number"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:tint="#F44336" />
+
+                    <TextView
+                        android:id="@+id/label_transport"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:text="Servicio de taxi gratuito"
+                        android:textSize="15sp"
+                        android:fontFamily="sans-serif"
+                        android:textColor="#757575"
+                        android:layout_marginStart="16dp"
+                        app:layout_constraintTop_toTopOf="@id/icon_taxi"
+                        app:layout_constraintBottom_toBottomOf="@id/icon_taxi"
+                        app:layout_constraintStart_toEndOf="@id/icon_taxi"
+                        app:layout_constraintEnd_toStartOf="@id/tv_free_transport" />
+
+                    <TextView
+                        android:id="@+id/tv_free_transport"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="No"
+                        android:textSize="15sp"
+                        android:fontFamily="sans-serif-medium"
+                        android:textStyle="bold"
+                        android:textColor="#212121"
+                        app:layout_constraintTop_toTopOf="@id/icon_taxi"
+                        app:layout_constraintBottom_toBottomOf="@id/icon_taxi"
+                        app:layout_constraintEnd_toEndOf="parent" />
+                </androidx.constraintlayout.widget.ConstraintLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Tarjeta de Precio con fondo blanco y borde sutil -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/card_price_details"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="20dp"
+                android:layout_marginEnd="16dp"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="2dp"
+                app:strokeWidth="1dp"
+                app:strokeColor="#E0E0E0"
+                app:cardBackgroundColor="@android:color/white"
+                app:layout_constraintTop_toBottomOf="@id/card_stay_info"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent">
+
+                <androidx.constraintlayout.widget.ConstraintLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="20dp">
+
+                    <TextView
+                        android:id="@+id/tv_price_details_title"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Detalle de precios"
+                        android:textSize="18sp"
+                        android:textColor="#212121"
+                        android:fontFamily="sans-serif-medium"
+                        android:textStyle="bold"
+                        app:layout_constraintTop_toTopOf="parent" />
+
+                    <!-- Precio habitación -->
+                    <TextView
+                        android:id="@+id/label_room_price"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:text="Habitación (1 noche)"
+                        android:textSize="15sp"
+                        android:fontFamily="sans-serif"
+                        android:textColor="#212121"
+                        android:layout_marginTop="20dp"
+                        app:layout_constraintTop_toBottomOf="@id/tv_price_details_title"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintEnd_toStartOf="@id/tv_room_price_value" />
+
+                    <TextView
+                        android:id="@+id/tv_room_price_value"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="S/ 290.00"
+                        android:textSize="15sp"
+                        android:fontFamily="sans-serif-medium"
+                        android:textColor="#212121"
+                        app:layout_constraintTop_toTopOf="@id/label_room_price"
+                        app:layout_constraintBottom_toBottomOf="@id/label_room_price"
+                        app:layout_constraintEnd_toEndOf="parent" />
+
+                    <!-- Servicios adicionales -->
+                    <TextView
+                        android:id="@+id/label_additional_services"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:text="Servicios adicionales"
+                        android:textSize="15sp"
+                        android:fontFamily="sans-serif"
+                        android:textColor="#212121"
+                        android:layout_marginTop="16dp"
+                        app:layout_constraintTop_toBottomOf="@id/label_room_price"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintEnd_toStartOf="@id/tv_additional_services" />
+
+                    <TextView
+                        android:id="@+id/tv_additional_services"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="S/ 60.00"
+                        android:textSize="15sp"
+                        android:fontFamily="sans-serif-medium"
+                        android:textColor="#212121"
+                        app:layout_constraintTop_toTopOf="@id/label_additional_services"
+                        app:layout_constraintBottom_toBottomOf="@id/label_additional_services"
+                        app:layout_constraintEnd_toEndOf="parent" />
+
+                    <!-- Línea divisoria -->
+                    <View
+                        android:id="@+id/divider_price"
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:background="#E0E0E0"
+                        android:layout_marginTop="16dp"
+                        app:layout_constraintTop_toBottomOf="@id/label_additional_services"/>
+
+                    <!-- Total -->
+                    <TextView
+                        android:id="@+id/label_total_price"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:text="Total"
+                        android:textSize="18sp"
+                        android:fontFamily="sans-serif-medium"
+                        android:textStyle="bold"
+                        android:textColor="#212121"
+                        android:layout_marginTop="16dp"
+                        app:layout_constraintTop_toBottomOf="@id/divider_price"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintEnd_toStartOf="@id/tv_total_price" />
+
+                    <TextView
+                        android:id="@+id/tv_total_price"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="S/ 350.00"
+                        android:textSize="18sp"
+                        android:fontFamily="sans-serif-medium"
+                        android:textStyle="bold"
+                        android:textColor="#FF5722"
+                        app:layout_constraintTop_toTopOf="@id/label_total_price"
+                        app:layout_constraintBottom_toBottomOf="@id/label_total_price"
+                        app:layout_constraintEnd_toEndOf="parent" />
+                </androidx.constraintlayout.widget.ConstraintLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/card_selected_services"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="20dp"
+                android:layout_marginEnd="16dp"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="2dp"
+                app:strokeWidth="1dp"
+                app:strokeColor="#E0E0E0"
+                app:cardBackgroundColor="@android:color/white"
+                app:layout_constraintTop_toBottomOf="@id/card_stay_info"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent">
+
+                <androidx.constraintlayout.widget.ConstraintLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="20dp">
+
+                    <TextView
+                        android:id="@+id/tv_selected_services_title"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Servicios adicionales"
+                        android:textSize="18sp"
+                        android:textColor="#212121"
+                        android:fontFamily="sans-serif-medium"
+                        android:textStyle="bold"
+                        app:layout_constraintTop_toTopOf="parent" />
+
+                    <LinearLayout
+                        android:id="@+id/room_services_info"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:layout_marginTop="12dp"
+                        android:padding="12dp"
+                        android:background="@drawable/bg_info_note"
+                        android:visibility="gone"
+                        app:layout_constraintTop_toBottomOf="@id/tv_selected_services_title">
+
+                        <ImageView
+                            android:layout_width="20dp"
+                            android:layout_height="20dp"
+                            android:src="@drawable/ic_room"
+                            app:tint="@color/success_green" />
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:layout_marginStart="8dp"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:text="Incluidos en tu habitación:"
+                                android:textSize="12sp"
+                                android:textColor="@color/success_green"
+                                android:fontFamily="@font/poppins_medium" />
+
+                            <TextView
+                                android:id="@+id/tv_room_services_list"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:text="✓ WiFi • Recepción 24/7 • Piscina • Estacionamiento"
+                                android:textSize="11sp"
+                                android:textColor="@color/success_green"
+                                android:fontFamily="@font/poppins_regular"
+                                android:layout_marginTop="2dp" />
+                        </LinearLayout>
+                    </LinearLayout>
+
+                    <!-- Taxi status especial -->
+                    <LinearLayout
+                        android:id="@+id/layout_taxi_detail"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:layout_marginTop="16dp"
+                        android:padding="12dp"
+                        android:background="@drawable/bg_info_container"
+                        android:visibility="gone"
+                        app:layout_constraintTop_toBottomOf="@id/tv_selected_services_title">
+
+                        <ImageView
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:src="@drawable/ic_taxi"
+                            app:tint="@color/orange_primary" />
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:layout_marginStart="12dp"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:id="@+id/tv_taxi_service_status"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:text="Taxi Premium al Aeropuerto"
+                                android:textSize="16sp"
+                                android:textColor="#212121"
+                                android:fontFamily="sans-serif-medium" />
+
+                            <TextView
+                                android:id="@+id/tv_taxi_service_description"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:text="🎉 ¡GRATIS! - Has alcanzado el mínimo de S/. 350"
+                                android:textSize="14sp"
+                                android:textColor="@color/success_green"
+                                android:fontFamily="sans-serif"
+                                android:layout_marginTop="4dp" />
+                        </LinearLayout>
+                    </LinearLayout>
+
+                    <!-- Otros servicios adicionales -->
+                    <androidx.recyclerview.widget.RecyclerView
+                        android:id="@+id/rv_selected_services"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        app:layout_constraintTop_toBottomOf="@id/layout_taxi_detail" />
+                </androidx.constraintlayout.widget.ConstraintLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- NUEVA Tarjeta para agregar método de pago -->
+            <!-- REEMPLAZA SOLAMENTE LA SECCIÓN DE LA TARJETA DE MÉTODO DE PAGO -->
+
+            <!-- NUEVA Tarjeta para agregar método de pago - CORREGIDA -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/card_payment_method"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="20dp"
+                android:layout_marginEnd="16dp"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="2dp"
+                app:strokeWidth="1dp"
+                app:strokeColor="#E0E0E0"
+                app:cardBackgroundColor="@android:color/white"
+                app:layout_constraintTop_toBottomOf="@id/card_selected_services"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent">
+
+                <androidx.constraintlayout.widget.ConstraintLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="20dp">
+
+                    <TextView
+                        android:id="@+id/tv_payment_method_title"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Método de pago"
+                        android:textSize="18sp"
+                        android:textColor="#212121"
+                        android:fontFamily="sans-serif-medium"
+                        android:textStyle="bold"
+                        app:layout_constraintTop_toTopOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintEnd_toEndOf="parent" />
+
+                    <!-- Estado de la tarjeta - LAYOUT CORREGIDO -->
+                    <androidx.constraintlayout.widget.ConstraintLayout
+                        android:id="@+id/layout_card_info"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="16dp"
+                        android:visibility="gone"
+                        android:background="@drawable/bg_card_border"
+                        android:padding="16dp"
+                        app:layout_constraintTop_toBottomOf="@id/tv_payment_method_title">
+
+                        <ImageView
+                            android:id="@+id/icon_card"
+                            android:layout_width="40dp"
+                            android:layout_height="40dp"
+                            android:src="@drawable/ic_card_visa"
+                            android:background="@drawable/bg_circle_light_orange"
+                            android:padding="8dp"
+                            app:layout_constraintTop_toTopOf="parent"
+                            app:layout_constraintStart_toStartOf="parent"
+                            app:tint="#1565C0" />
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="16dp"
+                            android:layout_marginEnd="16dp"
+                            android:orientation="vertical"
+                            app:layout_constraintTop_toTopOf="@id/icon_card"
+                            app:layout_constraintBottom_toBottomOf="@id/icon_card"
+                            app:layout_constraintStart_toEndOf="@id/icon_card"
+                            app:layout_constraintEnd_toStartOf="@id/btn_change_card">
+
+                            <TextView
+                                android:id="@+id/tv_card_number"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:text="**** **** **** 1234"
+                                android:textSize="16sp"
+                                android:fontFamily="sans-serif-medium"
+                                android:textColor="#212121"
+                                android:maxLines="1"
+                                android:ellipsize="end" />
+
+                            <TextView
+                                android:id="@+id/tv_card_name"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:text="JUAN PEREZ"
+                                android:textSize="14sp"
+                                android:fontFamily="sans-serif"
+                                android:textColor="#757575"
+                                android:layout_marginTop="4dp"
+                                android:maxLines="1"
+                                android:ellipsize="end" />
+                        </LinearLayout>
+
+                        <!-- Botón para cambiar la tarjeta -->
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btn_change_card"
+                            style="@style/Widget.MaterialComponents.Button.TextButton"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Cambiar"
+                            android:textAllCaps="false"
+                            android:textSize="14sp"
+                            android:textColor="#FF5722"
+                            android:minWidth="0dp"
+                            android:paddingStart="12dp"
+                            android:paddingEnd="12dp"
+                            app:layout_constraintTop_toTopOf="@id/icon_card"
+                            app:layout_constraintBottom_toBottomOf="@id/icon_card"
+                            app:layout_constraintEnd_toEndOf="parent" />
+                    </androidx.constraintlayout.widget.ConstraintLayout>
+
+                    <!-- Botón para agregar tarjeta -->
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btn_add_payment_method"
+                        android:layout_width="match_parent"
+                        android:layout_height="56dp"
+                        android:text="Agregar tarjeta como garantía"
+                        android:textAllCaps="false"
+                        android:textSize="15sp"
+                        android:fontFamily="sans-serif-medium"
+                        android:layout_marginTop="16dp"
+                        app:cornerRadius="28dp"
+                        app:backgroundTint="#FF5722"
+                        app:layout_constraintTop_toBottomOf="@id/tv_payment_method_title" />
+
+                    <!-- Texto informativo sobre tarjeta -->
+                    <TextView
+                        android:id="@+id/tv_payment_info"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:textSize="13sp"
+                        android:fontFamily="sans-serif"
+                        android:textColor="#757575"
+                        android:layout_marginTop="12dp"
+                        app:layout_constraintTop_toBottomOf="@id/btn_add_payment_method" />
+                </androidx.constraintlayout.widget.ConstraintLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Información de política de cancelación con fondo blanco y borde sutil -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/card_cancellation_policy"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="20dp"
+                android:layout_marginEnd="16dp"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="2dp"
+                app:strokeWidth="1dp"
+                app:strokeColor="#E0E0E0"
+                app:cardBackgroundColor="@android:color/white"
+                app:layout_constraintTop_toBottomOf="@id/card_payment_method"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent">
+                <androidx.constraintlayout.widget.ConstraintLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="20dp">
+                    <ImageView
+                        android:id="@+id/icon_info_policy"
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:src="@drawable/ic_info"
+                        app:layout_constraintTop_toTopOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:tint="#536DFE" />
+                    <TextView
+                        android:id="@+id/tv_cancellation_policy"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:text="Política de cancelación: Puede cancelar sin cargo hasta 24 horas antes de la fecha de check-in."
+                        android:textSize="15sp"
+                        android:fontFamily="sans-serif"
+                        android:textColor="#757575"
+                        android:layout_marginStart="16dp"
+                        app:layout_constraintTop_toTopOf="@id/icon_info_policy"
+                        app:layout_constraintStart_toEndOf="@id/icon_info_policy"
+                        app:layout_constraintEnd_toEndOf="parent" />
+                </androidx.constraintlayout.widget.ConstraintLayout>
+            </com.google.android.material.card.MaterialCardView>
+        </androidx.constraintlayout.widget.ConstraintLayout>
+    </androidx.core.widget.NestedScrollView>
+
+    <!-- Botón de confirmar reserva (fijo abajo) con diseño mejorado -->
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/bottom_action_bar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        app:cardElevation="8dp"
+        app:cardBackgroundColor="@android:color/white">
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="16dp">
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_confirm_reservation"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:text="Confirmar Reserva"
+                android:textAllCaps="false"
+                android:textSize="16sp"
+                android:fontFamily="sans-serif-medium"
+                app:backgroundTint="#FF5722"
+                app:cornerRadius="28dp"
+                android:elevation="4dp"
+                android:enabled="false"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent" />
+        </androidx.constraintlayout.widget.ConstraintLayout>
+    </com.google.android.material.card.MaterialCardView>
+
+    <!-- Overlay para dialogo de confirmación (inicialmente invisible) -->
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/confirmation_dialog_overlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#99000000"
+        android:visibility="gone"
+        android:clickable="true"
+        android:focusable="true">
+
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/confirmation_dialog"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="32dp"
+            android:layout_marginEnd="32dp"
+            app:cardCornerRadius="16dp"
+            app:cardElevation="8dp"
+            app:layout_constraintWidth_max="340dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="24dp">
+
+                <ImageView
+                    android:id="@+id/icon_success"
+                    android:layout_width="64dp"
+                    android:layout_height="64dp"
+                    android:src="@drawable/ic_check_circle"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:tint="#4CAF50" />
+
+                <TextView
+                    android:id="@+id/tv_success_title"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:fontFamily="sans-serif-medium"
+                    android:gravity="center"
+                    android:text="¡Reserva Confirmada!"
+                    android:textColor="#212121"
+                    android:textSize="20sp"
+                    android:textStyle="bold"
+                    app:layout_constraintTop_toBottomOf="@id/icon_success" />
+
+                <TextView
+                    android:id="@+id/tv_success_message"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:fontFamily="sans-serif"
+                    android:gravity="center"
+                    android:text="Tu reserva en Belmond Miraflores Park ha sido confirmada exitosamente. Recibirás un correo con los detalles de tu reserva."
+                    android:textColor="#757575"
+                    android:textSize="15sp"
+                    app:layout_constraintTop_toBottomOf="@id/tv_success_title" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_ok"
+                    android:layout_width="match_parent"
+                    android:layout_height="56dp"
+                    android:layout_marginTop="24dp"
+                    android:fontFamily="sans-serif-medium"
+                    android:text="Aceptar"
+                    android:textAllCaps="false"
+                    android:textSize="16sp"
+                    app:backgroundTint="#FF5722"
+                    app:cornerRadius="28dp"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/tv_success_message" />
+            </androidx.constraintlayout.widget.ConstraintLayout>
+        </com.google.android.material.card.MaterialCardView>
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

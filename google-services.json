@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "366577529035",
+    "firebase_url": "https://hoteleros-d5725-default-rtdb.firebaseio.com",
+    "project_id": "hoteleros-d5725",
+    "storage_bucket": "hoteleros-d5725.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:366577529035:android:f3b127fb8cfb6eaf73eb4e",
+        "android_client_info": {
+          "package_name": "com.example.proyecto_final_hoteleros"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "366577529035-sigus0kabes8kaprf924vkcnfn7ol9k9.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.proyecto_final_hoteleros",
+            "certificate_hash": "4a69c4ace94158c6e46b50c74da3f39c4b5102f8"
+          }
+        },
+        {
+          "client_id": "366577529035-drve6pgt7ap8kgs757ek48qf4ud49093.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCl8osCeZIi9P9qgSf3-isU6f_UsFHTW2c"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "366577529035-drve6pgt7ap8kgs757ek48qf4ud49093.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

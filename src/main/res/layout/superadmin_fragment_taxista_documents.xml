@@ -1,0 +1,482 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/background_gray">
+
+    <!-- Header -->
+    <LinearLayout
+        android:id="@+id/header_layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@android:color/white"
+        android:elevation="4dp"
+        android:orientation="horizontal"
+        android:padding="16dp"
+        android:gravity="center_vertical"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <ImageView
+            android:id="@+id/iv_back"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:src="@drawable/ic_arrow_back"
+            android:background="?android:attr/selectableItemBackgroundBorderless"
+            android:padding="4dp"
+            android:contentDescription="Volver"
+            app:tint="@color/text_primary" />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Documentos del Taxista"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:textColor="@color/text_primary"
+            android:layout_marginStart="16dp" />
+
+    </LinearLayout>
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:fillViewport="true"
+        app:layout_constraintTop_toBottomOf="@id/header_layout"
+        app:layout_constraintBottom_toBottomOf="parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <!-- Sección: Datos Personales -->
+            <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="3dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="👤 Datos Personales"
+                        android:textSize="18sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/primary_FF6B35"
+                        android:layout_marginBottom="16dp" />
+
+                    <!-- Nombre Completo -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:layout_marginBottom="12dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Nombre Completo"
+                            android:textSize="12sp"
+                            android:textColor="@color/text_secondary"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/tv_nombre_completo"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Carlos Mendoza Silva"
+                            android:textSize="16sp"
+                            android:textColor="@color/text_primary"
+                            android:layout_marginTop="4dp" />
+
+                    </LinearLayout>
+
+                    <!-- Tipo de Documento -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:layout_marginBottom="12dp">
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical"
+                            android:layout_marginEnd="8dp">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Tipo de Documento"
+                                android:textSize="12sp"
+                                android:textColor="@color/text_secondary"
+                                android:textStyle="bold" />
+
+                            <TextView
+                                android:id="@+id/tv_tipo_documento"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="DNI"
+                                android:textSize="16sp"
+                                android:textColor="@color/text_primary"
+                                android:layout_marginTop="4dp" />
+
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical"
+                            android:layout_marginStart="8dp">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Número"
+                                android:textSize="12sp"
+                                android:textColor="@color/text_secondary"
+                                android:textStyle="bold" />
+
+                            <TextView
+                                android:id="@+id/tv_numero_documento"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="12345678"
+                                android:textSize="16sp"
+                                android:textColor="@color/text_primary"
+                                android:layout_marginTop="4dp" />
+
+                        </LinearLayout>
+
+                    </LinearLayout>
+
+                    <!-- Fecha de Nacimiento -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:layout_marginBottom="12dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Fecha de Nacimiento"
+                            android:textSize="12sp"
+                            android:textColor="@color/text_secondary"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/tv_fecha_nacimiento"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="15/03/1985"
+                            android:textSize="16sp"
+                            android:textColor="@color/text_primary"
+                            android:layout_marginTop="4dp" />
+
+                    </LinearLayout>
+
+                </LinearLayout>
+
+            </androidx.cardview.widget.CardView>
+
+            <!-- Sección: Datos de Contacto -->
+            <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="3dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="📞 Datos de Contacto"
+                        android:textSize="18sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/primary_FF6B35"
+                        android:layout_marginBottom="16dp" />
+
+                    <!-- Email -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:layout_marginBottom="12dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Correo Electrónico"
+                            android:textSize="12sp"
+                            android:textColor="@color/text_secondary"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/tv_email"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="carlos.mendoza@email.com"
+                            android:textSize="16sp"
+                            android:textColor="@color/text_primary"
+                            android:layout_marginTop="4dp" />
+
+                    </LinearLayout>
+
+                    <!-- Teléfono -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:layout_marginBottom="12dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Teléfono"
+                            android:textSize="12sp"
+                            android:textColor="@color/text_secondary"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/tv_telefono"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="+51 987 654 321"
+                            android:textSize="16sp"
+                            android:textColor="@color/text_primary"
+                            android:layout_marginTop="4dp" />
+
+                    </LinearLayout>
+
+                    <!-- Domicilio -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Domicilio"
+                            android:textSize="12sp"
+                            android:textColor="@color/text_secondary"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/tv_domicilio"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Av. Lima 123, San Isidro, Lima"
+                            android:textSize="16sp"
+                            android:textColor="@color/text_primary"
+                            android:layout_marginTop="4dp" />
+
+                    </LinearLayout>
+
+                </LinearLayout>
+
+            </androidx.cardview.widget.CardView>
+
+            <!-- Sección: Datos del Vehículo -->
+            <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="3dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="🚗 Datos del Vehículo"
+                        android:textSize="18sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/primary_FF6B35"
+                        android:layout_marginBottom="16dp" />
+
+                    <!-- Placa -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Placa del Vehículo"
+                            android:textSize="12sp"
+                            android:textColor="@color/text_secondary"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/tv_license_plate"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="ABC-123"
+                            android:textSize="18sp"
+                            android:textColor="@color/primary_FF6B35"
+                            android:textStyle="bold"
+                            android:layout_marginTop="4dp" />
+
+                    </LinearLayout>
+
+                </LinearLayout>
+
+            </androidx.cardview.widget.CardView>
+
+            <!-- Sección: Fotografías y Documentos -->
+            <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="3dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="📋 Fotografías y Documentos"
+                        android:textSize="18sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/primary_FF6B35"
+                        android:layout_marginBottom="16dp" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center">
+
+                        <!-- Foto de Perfil -->
+                        <androidx.cardview.widget.CardView
+                            android:id="@+id/card_profile_photo"
+                            android:layout_width="0dp"
+                            android:layout_height="140dp"
+                            android:layout_weight="1"
+                            android:layout_margin="8dp"
+                            app:cardCornerRadius="12dp"
+                            app:cardElevation="3dp"
+                            android:foreground="?android:attr/selectableItemBackground">
+
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                android:orientation="vertical"
+                                android:gravity="center"
+                                android:padding="16dp">
+
+                                <ImageView
+                                    android:id="@+id/iv_profile_photo"
+                                    android:layout_width="80dp"
+                                    android:layout_height="80dp"
+                                    android:src="@drawable/ic_person"
+                                    android:scaleType="centerCrop"
+                                    android:background="@drawable/circle_primary_light" />
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="Foto de Perfil"
+                                    android:textSize="13sp"
+                                    android:textColor="@color/text_primary"
+                                    android:textStyle="bold"
+                                    android:textAlignment="center"
+                                    android:layout_marginTop="12dp" />
+
+                            </LinearLayout>
+
+                        </androidx.cardview.widget.CardView>
+
+                        <!-- Foto del Brevete -->
+                        <androidx.cardview.widget.CardView
+                            android:id="@+id/card_brevete_photo"
+                            android:layout_width="0dp"
+                            android:layout_height="140dp"
+                            android:layout_weight="1"
+                            android:layout_margin="8dp"
+                            app:cardCornerRadius="12dp"
+                            app:cardElevation="3dp"
+                            android:foreground="?android:attr/selectableItemBackground">
+
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                android:orientation="vertical"
+                                android:gravity="center"
+                                android:padding="16dp">
+
+                                <ImageView
+                                    android:id="@+id/iv_brevete_photo"
+                                    android:layout_width="80dp"
+                                    android:layout_height="80dp"
+                                    android:src="@drawable/ic_pdfgozu"
+                                    android:scaleType="centerCrop"
+                                    android:background="@drawable/circle_primary_light" />
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="Documentos"
+                                    android:textSize="13sp"
+                                    android:textColor="@color/text_primary"
+                                    android:textStyle="bold"
+                                    android:textAlignment="center"
+                                    android:layout_marginTop="12dp" />
+
+                            </LinearLayout>
+
+                        </androidx.cardview.widget.CardView>
+
+                    </LinearLayout>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="💡 Toca cualquier imagen para verla en pantalla completa"
+                        android:textSize="12sp"
+                        android:textColor="@color/text_secondary"
+                        android:textStyle="italic"
+                        android:layout_marginTop="16dp"
+                        android:gravity="center"
+                        android:layout_gravity="center" />
+
+                </LinearLayout>
+
+            </androidx.cardview.widget.CardView>
+
+
+        </LinearLayout>
+
+    </ScrollView>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:gravity="center_vertical"
+    android:background="?attr/selectableItemBackground"
+    android:clickable="true"
+    android:focusable="true"
+    android:paddingHorizontal="20dp"
+    android:paddingVertical="16dp"
+    android:layout_marginTop="8dp">
+
+    <ImageView
+        android:id="@+id/iv_city_icon"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        android:src="@drawable/ic_location"
+        android:background="@drawable/bg_circle_orange"
+        android:padding="6dp"
+        app:tint="@android:color/white" />
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:layout_marginStart="16dp"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/tv_city_name"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Lima"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:textColor="@android:color/black"
+            android:fontFamily="@font/poppins_bold" />
+
+        <TextView
+            android:id="@+id/tv_hotel_count"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="5 hoteles disponibles"
+            android:textSize="13sp"
+            android:textColor="#666666"
+            android:fontFamily="@font/poppins_regular"
+            android:layout_marginTop="2dp" />
+
+    </LinearLayout>
+
+    <ImageView
+        android:id="@+id/iv_expand_collapse"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:src="@drawable/ic_expand_more"
+        app:tint="#999999" />
+
+</LinearLayout>

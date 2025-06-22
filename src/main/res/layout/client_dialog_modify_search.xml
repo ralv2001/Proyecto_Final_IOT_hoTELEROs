@@ -1,0 +1,349 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/dialog_content"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="@drawable/bg_dialog_modern">
+
+    <!-- ✅ HEADER MEJORADO con gradiente y mejor spacing -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="24dp"
+        android:gravity="center_vertical"
+        android:background="@drawable/bg_header_gradient_modern">
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Modificar búsqueda"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:textColor="@android:color/white"
+                android:fontFamily="@font/poppins_bold" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Ajusta los parámetros de tu búsqueda"
+                android:textSize="14sp"
+                android:textColor="@color/white_80"
+                android:fontFamily="@font/poppins_regular"
+                android:layout_marginTop="4dp" />
+
+        </LinearLayout>
+
+        <ImageButton
+            android:id="@+id/btn_close_modify"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:background="@drawable/bg_circle_white_translucent"
+            android:src="@drawable/ic_close"
+            android:padding="8dp"
+            app:tint="@android:color/white" />
+
+    </LinearLayout>
+
+    <!-- ✅ CONTENIDO CON MEJOR SPACING Y DISEÑO -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="24dp"
+        android:background="@android:color/white">
+
+        <!-- ✅ MENSAJE DE ESTADO CON MEJOR DISEÑO -->
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="20dp"
+            android:visibility="gone"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="2dp">
+
+            <TextView
+                android:id="@+id/tv_location_status"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Estado"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:gravity="center"
+                android:padding="16dp"
+                android:background="@color/light_gray"
+                android:textColor="@color/green" />
+
+        </androidx.cardview.widget.CardView>
+
+        <!-- ✅ SECCIÓN UBICACIÓN MEJORADA -->
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            app:cardCornerRadius="16dp"
+            app:cardElevation="3dp"
+            app:cardBackgroundColor="@android:color/white">
+
+            <LinearLayout
+                android:id="@+id/layout_location_modify"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:padding="20dp"
+                android:gravity="center_vertical"
+                android:background="?attr/selectableItemBackground"
+                android:clickable="true"
+                android:focusable="true">
+
+                <LinearLayout
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:background="@drawable/bg_circle_orange_light"
+                    android:gravity="center">
+
+                    <ImageView
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:src="@drawable/ic_location"
+                        app:tint="@color/orange" />
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="16dp"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="UBICACIÓN"
+                        android:textSize="12sp"
+                        android:textColor="@color/gray"
+                        android:textStyle="bold"
+                        android:fontFamily="@font/poppins_medium"
+                        android:letterSpacing="0.1" />
+
+                    <TextView
+                        android:id="@+id/tv_location_modify"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Todas las ubicaciones"
+                        android:textSize="16sp"
+                        android:textColor="@color/black"
+                        android:textStyle="bold"
+                        android:fontFamily="@font/poppins_semibold"
+                        android:layout_marginTop="4dp" />
+
+                </LinearLayout>
+
+                <ImageView
+                    android:id="@+id/iv_chevron_location"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/ic_chevron_right"
+                    app:tint="@color/orange" />
+
+            </LinearLayout>
+
+        </androidx.cardview.widget.CardView>
+
+        <!-- ✅ SECCIÓN FECHAS MEJORADA -->
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            app:cardCornerRadius="16dp"
+            app:cardElevation="3dp"
+            app:cardBackgroundColor="@android:color/white">
+
+            <LinearLayout
+                android:id="@+id/layout_dates_modify"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:padding="20dp"
+                android:gravity="center_vertical"
+                android:background="?attr/selectableItemBackground"
+                android:clickable="true"
+                android:focusable="true">
+
+                <LinearLayout
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:background="@drawable/bg_circle_orange_light"
+                    android:gravity="center">
+
+                    <ImageView
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:src="@drawable/ic_calendar"
+                        app:tint="@color/orange" />
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="16dp"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="FECHAS"
+                        android:textSize="12sp"
+                        android:textColor="@color/gray"
+                        android:textStyle="bold"
+                        android:fontFamily="@font/poppins_medium"
+                        android:letterSpacing="0.1" />
+
+                    <TextView
+                        android:id="@+id/tv_dates_modify"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Fechas flexibles"
+                        android:textSize="16sp"
+                        android:textColor="@color/black"
+                        android:textStyle="bold"
+                        android:fontFamily="@font/poppins_semibold"
+                        android:layout_marginTop="4dp" />
+
+                </LinearLayout>
+
+                <ImageView
+                    android:id="@+id/iv_chevron_dates"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/ic_chevron_right"
+                    app:tint="@color/orange" />
+
+            </LinearLayout>
+
+        </androidx.cardview.widget.CardView>
+
+        <!-- ✅ SECCIÓN HUÉSPEDES MEJORADA -->
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="24dp"
+            app:cardCornerRadius="16dp"
+            app:cardElevation="3dp"
+            app:cardBackgroundColor="@android:color/white">
+
+            <LinearLayout
+                android:id="@+id/layout_guests_modify"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:padding="20dp"
+                android:gravity="center_vertical"
+                android:background="?attr/selectableItemBackground"
+                android:clickable="true"
+                android:focusable="true">
+
+                <LinearLayout
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:background="@drawable/bg_circle_orange_light"
+                    android:gravity="center">
+
+                    <ImageView
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:src="@drawable/ic_group"
+                        app:tint="@color/orange" />
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="16dp"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="HUÉSPEDES"
+                        android:textSize="12sp"
+                        android:textColor="@color/gray"
+                        android:textStyle="bold"
+                        android:fontFamily="@font/poppins_medium"
+                        android:letterSpacing="0.1" />
+
+                    <TextView
+                        android:id="@+id/tv_guests_modify"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="2 adultos"
+                        android:textSize="16sp"
+                        android:textColor="@color/black"
+                        android:textStyle="bold"
+                        android:fontFamily="@font/poppins_semibold"
+                        android:layout_marginTop="4dp" />
+
+                </LinearLayout>
+
+                <ImageView
+                    android:id="@+id/iv_chevron_guests"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/ic_chevron_right"
+                    app:tint="@color/orange" />
+
+            </LinearLayout>
+
+        </androidx.cardview.widget.CardView>
+
+        <!-- ✅ BOTONES CON MEJOR DISEÑO -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center">
+
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/btn_cancel_modify"
+                android:layout_width="0dp"
+                android:layout_height="54dp"
+                android:layout_weight="1"
+                android:text="Cancelar"
+                android:textSize="16sp"
+                android:textColor="@color/gray"
+                android:textStyle="bold"
+                android:fontFamily="@font/poppins_semibold"
+                android:background="@drawable/bg_button_outline_modern"
+                android:layout_marginEnd="12dp" />
+
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/btn_apply_modify"
+                android:layout_width="0dp"
+                android:layout_height="54dp"
+                android:layout_weight="1"
+                android:text="Aplicar cambios"
+                android:textSize="16sp"
+                android:textColor="@android:color/white"
+                android:textStyle="bold"
+                android:fontFamily="@font/poppins_semibold"
+                android:background="@drawable/bg_button_orange_modern"
+                android:layout_marginStart="12dp" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+</LinearLayout>

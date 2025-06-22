@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/action_view_documents"
+        android:title="Ver documentos"
+        android:icon="@drawable/ic_document" />
+
+    <item
+        android:id="@+id/action_contact"
+        android:title="Contactar"
+        android:icon="@drawable/ic_phone" />
+
+    <item
+        android:id="@+id/action_view_trips"
+        android:title="Ver viajes"
+        android:icon="@drawable/ic_map" />
+</menu>

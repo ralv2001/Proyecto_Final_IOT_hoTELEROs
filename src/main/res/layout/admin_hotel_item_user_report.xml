@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="8dp"
+    app:cardCornerRadius="12dp"
+    app:cardElevation="3dp"
+    app:cardBackgroundColor="@android:color/white">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="16dp">
+
+        <!-- Status Indicator -->
+        <View
+            android:id="@+id/statusIndicator"
+            android:layout_width="4dp"
+            android:layout_height="0dp"
+            android:background="@color/green"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent" />
+
+        <!-- User Avatar -->
+        <ImageView
+            android:id="@+id/ivUserAvatar"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:src="@drawable/ic_profile_placeholder"
+            android:background="@drawable/bg_circle_orange_light"
+            android:padding="8dp"
+            app:tint="@color/orange"
+            app:layout_constraintStart_toEndOf="@id/statusIndicator"
+            app:layout_constraintTop_toTopOf="parent"
+            android:layout_marginStart="12dp" />
+
+        <!-- User Name -->
+        <TextView
+            android:id="@+id/tvUserName"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="María García"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:textColor="@color/text_primary"
+            app:layout_constraintStart_toEndOf="@id/ivUserAvatar"
+            app:layout_constraintTop_toTopOf="@id/ivUserAvatar"
+            app:layout_constraintEnd_toStartOf="@id/ivStatus"
+            android:layout_marginStart="12dp"
+            android:layout_marginEnd="8dp" />
+
+        <!-- User Email -->
+        <TextView
+            android:id="@+id/tvUserEmail"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="maria.garcia@email.com"
+            android:textSize="14sp"
+            android:textColor="@color/text_secondary"
+            app:layout_constraintStart_toEndOf="@id/ivUserAvatar"
+            app:layout_constraintTop_toBottomOf="@id/tvUserName"
+            app:layout_constraintEnd_toStartOf="@id/ivStatus"
+            android:layout_marginStart="12dp"
+            android:layout_marginTop="4dp"
+            android:layout_marginEnd="8dp" />
+
+        <!-- Status Icon -->
+        <ImageView
+            android:id="@+id/ivStatus"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:src="@drawable/ic_check_circle"
+            app:tint="@color/green"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <!-- Stats Container -->
+        <LinearLayout
+            android:id="@+id/statsContainer"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginTop="12dp"
+            app:layout_constraintStart_toEndOf="@id/statusIndicator"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/ivUserAvatar"
+            android:layout_marginStart="12dp">
+
+            <!-- Reservations -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:gravity="center">
+
+                <TextView
+                    android:id="@+id/tvReservations"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="5 reservas"
+                    android:textSize="12sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/blue" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Reservas"
+                    android:textSize="10sp"
+                    android:textColor="@color/text_secondary" />
+
+            </LinearLayout>
+
+            <!-- Total Spent -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:gravity="center">
+
+                <TextView
+                    android:id="@+id/tvTotalSpent"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="S/ 2,450"
+                    android:textSize="12sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/green" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Total Gastado"
+                    android:textSize="10sp"
+                    android:textColor="@color/text_secondary" />
+
+            </LinearLayout>
+
+            <!-- Category -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:gravity="center">
+
+                <TextView
+                    android:id="@+id/tvCategory"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="VIP"
+                    android:textSize="12sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/gold" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Categoría"
+                    android:textSize="10sp"
+                    android:textColor="@color/text_secondary" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</com.google.android.material.card.MaterialCardView>

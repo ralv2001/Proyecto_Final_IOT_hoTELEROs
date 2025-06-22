@@ -1,0 +1,215 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/card_service"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginVertical="8dp"
+    android:layout_marginHorizontal="6dp"
+    app:cardCornerRadius="16dp"
+    app:cardElevation="3dp"
+    app:strokeWidth="0dp"
+    app:strokeColor="@android:color/transparent"
+    android:background="@android:color/white">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="24dp">
+
+        <!-- Contenedor del icono con más espacio -->
+        <androidx.cardview.widget.CardView
+            android:id="@+id/fl_service_detail_container"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            app:cardCornerRadius="18dp"
+            app:cardElevation="2dp"
+            app:cardBackgroundColor="@color/orange_light"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent">
+
+            <ImageView
+                android:id="@+id/iv_service_detail_icon"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:layout_gravity="center"
+                android:src="@drawable/ic_wifi"
+                android:contentDescription="Icono de servicio"
+                app:tint="@color/orange_primary" />
+        </androidx.cardview.widget.CardView>
+
+        <!-- ✅ BADGE CORREGIDO - Posicionado correctamente -->
+        <androidx.cardview.widget.CardView
+            android:id="@+id/gallery_indicator"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:visibility="gone"
+            app:cardCornerRadius="10dp"
+            app:cardBackgroundColor="#8B5CF6"
+            app:cardElevation="4dp"
+            app:layout_constraintTop_toTopOf="@id/fl_service_detail_container"
+            app:layout_constraintEnd_toEndOf="@id/fl_service_detail_container"
+            android:layout_marginTop="4dp"
+            android:layout_marginEnd="4dp">
+
+            <!-- ✅ USAR EMOJI - Siempre funciona -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:text="📸"
+                android:textSize="10sp"
+                android:gravity="center"
+                android:textColor="@android:color/white" />
+        </androidx.cardview.widget.CardView>
+
+        <!-- ✅ INFORMACIÓN CON MÁS ESPACIO -->
+        <TextView
+            android:id="@+id/tv_service_detail_name"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="WiFi Premium"
+            android:textSize="18sp"
+            android:textColor="@color/text_primary"
+            android:textStyle="bold"
+            android:fontFamily="@font/poppins_semibold"
+            android:layout_marginStart="20dp"
+            android:layout_marginEnd="12dp"
+            android:layout_marginTop="4dp"
+            app:layout_constraintTop_toTopOf="@id/fl_service_detail_container"
+            app:layout_constraintStart_toEndOf="@id/fl_service_detail_container"
+            app:layout_constraintEnd_toStartOf="@id/tv_service_detail_price" />
+
+        <!-- Precio con mejor posicionamiento -->
+        <TextView
+            android:id="@+id/tv_service_detail_price"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="✓ Incluido"
+            android:textSize="13sp"
+            android:textColor="@color/success_green"
+            android:textStyle="bold"
+            android:fontFamily="@font/poppins_semibold"
+            android:background="@drawable/bg_price_free"
+            android:paddingHorizontal="12dp"
+            android:paddingVertical="8dp"
+            app:layout_constraintTop_toTopOf="@id/fl_service_detail_container"
+            app:layout_constraintEnd_toEndOf="parent" />
+
+        <!-- ✅ DESCRIPCIÓN CON MÁS ESPACIO -->
+        <TextView
+            android:id="@+id/tv_service_detail_description"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="Conexión de alta velocidad en todas las áreas del hotel"
+            android:textSize="14sp"
+            android:textColor="@color/text_secondary"
+            android:fontFamily="@font/poppins_regular"
+            android:layout_marginStart="20dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginEnd="4dp"
+            android:maxLines="2"
+            android:ellipsize="end"
+            android:lineSpacingExtra="2dp"
+            app:layout_constraintTop_toBottomOf="@id/tv_service_detail_name"
+            app:layout_constraintStart_toEndOf="@id/fl_service_detail_container"
+            app:layout_constraintEnd_toEndOf="parent" />
+
+        <!-- Badge condicional con más espacio -->
+        <androidx.cardview.widget.CardView
+            android:id="@+id/card_taxi_condition"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:visibility="gone"
+            app:cardCornerRadius="12dp"
+            app:cardBackgroundColor="#FFF3E0"
+            app:cardElevation="2dp"
+            app:layout_constraintTop_toBottomOf="@id/tv_service_detail_description"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:padding="16dp"
+                android:gravity="center_vertical">
+
+                <ImageView
+                    android:id="@+id/iv_taxi_status_icon"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/ic_info"
+                    app:tint="@color/orange_primary" />
+
+                <TextView
+                    android:id="@+id/tv_service_conditional_hint"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="💡 ¡GRATIS con reservas desde S/. 350!"
+                    android:textSize="12sp"
+                    android:textColor="@color/orange_primary"
+                    android:fontFamily="@font/poppins_medium"
+                    android:layout_marginStart="12dp" />
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+        <!-- Separador con más margen -->
+        <View
+            android:id="@+id/divider_service"
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="#E5E7EB"
+            android:layout_marginTop="20dp"
+            app:layout_constraintTop_toBottomOf="@id/card_taxi_condition"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
+
+        <!-- ✅ CONTENEDOR DE ACCIÓN CON MÁS ESPACIO -->
+        <LinearLayout
+            android:id="@+id/action_container"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginTop="20dp"
+            app:layout_constraintTop_toBottomOf="@id/divider_service"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent">
+
+            <!-- Features con más espacio -->
+            <TextView
+                android:id="@+id/tv_service_features"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Disponible 24/7"
+                android:textSize="12sp"
+                android:textColor="@color/text_secondary"
+                android:fontFamily="@font/poppins_regular"
+                android:drawablePadding="8dp"
+                android:gravity="center_vertical" />
+
+            <!-- Botón con mejor tamaño -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_add_to_cart"
+                android:layout_width="wrap_content"
+                android:layout_height="44dp"
+                android:text="Añadir"
+                android:textAllCaps="false"
+                android:textSize="14sp"
+                android:fontFamily="@font/poppins_semibold"
+                app:backgroundTint="@color/orange_primary"
+                app:cornerRadius="22dp"
+                app:icon="@drawable/ic_add_circle"
+                app:iconGravity="textStart"
+                app:iconSize="16dp"
+                android:paddingHorizontal="24dp"
+                android:minWidth="100dp"
+                android:minHeight="44dp" />
+        </LinearLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</com.google.android.material.card.MaterialCardView>

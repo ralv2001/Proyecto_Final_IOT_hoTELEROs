@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_bottom_sheet_rounded"
+    android:padding="20dp">
+
+    <!-- Título del selector -->
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Seleccionar huéspedes"
+        android:textColor="@color/black"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:fontFamily="@font/poppins_semibold"
+        android:gravity="center"
+        android:layout_marginBottom="16dp"/>
+
+    <!-- Sección de Adultos -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="12dp"
+        android:background="@drawable/bg_card_rounded"
+        android:elevation="2dp"
+        android:layout_marginBottom="16dp">
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Adultos"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:textColor="@color/black"
+                android:fontFamily="@font/poppins_medium"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Desde 18 años"
+                android:textSize="14sp"
+                android:textColor="#666666"
+                android:fontFamily="@font/poppins_regular"/>
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:background="@drawable/bg_counter_rounded"
+            android:paddingHorizontal="8dp"
+            android:paddingVertical="4dp">
+
+            <ImageButton
+                android:id="@+id/btnSubAdult"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:src="@drawable/ic_remove"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="Decrementar adultos"
+                app:tint="#FA5D31"/>
+
+            <TextView
+                android:id="@+id/tvAdultsCount"
+                android:layout_width="40dp"
+                android:layout_height="wrap_content"
+                android:text="1"
+                android:textSize="18sp"
+                android:textColor="@color/black"
+                android:fontFamily="@font/poppins_medium"
+                android:gravity="center"/>
+
+            <ImageButton
+                android:id="@+id/btnAddAdult"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:src="@drawable/ic_add"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="Incrementar adultos"
+                app:tint="#FA5D31"/>
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- Sección de Niños -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="12dp"
+        android:background="@drawable/bg_card_rounded"
+        android:elevation="2dp"
+        android:layout_marginBottom="24dp">
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Niños"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:textColor="@color/black"
+                android:fontFamily="@font/poppins_medium"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="De 0 a 17 años"
+                android:textSize="14sp"
+                android:textColor="#666666"
+                android:fontFamily="@font/poppins_regular"/>
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:background="@drawable/bg_counter_rounded"
+            android:paddingHorizontal="8dp"
+            android:paddingVertical="4dp">
+
+            <ImageButton
+                android:id="@+id/btnSubChild"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:src="@drawable/ic_remove"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="Decrementar niños"
+                app:tint="#FA5D31"/>
+
+            <TextView
+                android:id="@+id/tvChildrenCount"
+                android:layout_width="40dp"
+                android:layout_height="wrap_content"
+                android:text="0"
+                android:textSize="18sp"
+                android:textColor="@color/black"
+                android:fontFamily="@font/poppins_medium"
+                android:gravity="center"/>
+
+            <ImageButton
+                android:id="@+id/btnAddChild"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:src="@drawable/ic_add"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="Incrementar niños"
+                app:tint="#FA5D31"/>
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- Botón Aceptar -->
+    <Button
+        android:id="@+id/btnGuestOk"
+        android:layout_width="match_parent"
+        android:layout_height="54dp"
+        android:text="Confirmar"
+        android:textColor="#FFFFFF"
+        android:textSize="16sp"
+        android:fontFamily="@font/poppins_medium"
+        android:backgroundTint="#FA5D31"
+        app:cornerRadius="8dp"/>
+</LinearLayout>

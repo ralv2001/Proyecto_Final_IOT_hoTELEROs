@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:padding="8dp"
+    android:background="?attr/selectableItemBackground">
+
+    <!-- Contenedor del icono principal -->
+    <androidx.cardview.widget.CardView
+        android:id="@+id/icon_container"
+        android:layout_width="56dp"
+        android:layout_height="56dp"
+        app:cardCornerRadius="16dp"
+        app:cardBackgroundColor="@color/orange_light"
+        app:cardElevation="2dp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <ImageView
+            android:id="@+id/iv_service_icon"
+            android:layout_width="28dp"
+            android:layout_height="28dp"
+            android:layout_gravity="center"
+            android:src="@drawable/ic_wifi"
+            android:contentDescription="Icono de servicio"
+            app:tint="@color/orange_primary"
+            android:scaleType="centerInside" />
+    </androidx.cardview.widget.CardView>
+
+    <!-- Indicador condicional (pequeño círculo) -->
+    <View
+        android:id="@+id/conditional_indicator"
+        android:layout_width="20dp"
+        android:layout_height="20dp"
+        android:background="@drawable/bg_circle_orange"
+        android:visibility="gone"
+        android:elevation="4dp"
+        app:layout_constraintTop_toTopOf="@id/icon_container"
+        app:layout_constraintEnd_toEndOf="@id/icon_container"
+        android:layout_marginTop="-6dp"
+        android:layout_marginEnd="-6dp" />
+
+    <!-- Icono dentro del indicador condicional -->
+    <ImageView
+        android:id="@+id/iv_conditional_icon"
+        android:layout_width="12dp"
+        android:layout_height="12dp"
+        android:src="@drawable/ic_star"
+        android:visibility="gone"
+        android:elevation="5dp"
+        app:layout_constraintTop_toTopOf="@id/conditional_indicator"
+        app:layout_constraintBottom_toBottomOf="@id/conditional_indicator"
+        app:layout_constraintStart_toStartOf="@id/conditional_indicator"
+        app:layout_constraintEnd_toEndOf="@id/conditional_indicator"
+        app:tint="@android:color/white" />
+
+    <!-- Nombre del servicio -->
+    <TextView
+        android:id="@+id/tv_service_name"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="WiFi"
+        android:textSize="12sp"
+        android:textColor="@color/text_primary"
+        android:fontFamily="@font/poppins_medium"
+        android:layout_marginTop="8dp"
+        android:maxLines="2"
+        android:gravity="center"
+        android:textAlignment="center"
+        android:ellipsize="end"
+        app:layout_constraintTop_toBottomOf="@id/icon_container"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintWidth_max="80dp" />
+
+    <!-- Badge de estado (GRATIS, INCLUIDO, ESPECIAL) -->
+    <TextView
+        android:id="@+id/tv_status_badge"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="INCLUIDO"
+        android:textSize="8sp"
+        android:textColor="@android:color/white"
+        android:background="@drawable/bg_status_pill"
+        android:paddingHorizontal="6dp"
+        android:paddingVertical="2dp"
+        android:fontFamily="@font/poppins_semibold"
+        android:visibility="gone"
+        android:layout_marginTop="4dp"
+        app:layout_constraintTop_toBottomOf="@id/tv_service_name"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

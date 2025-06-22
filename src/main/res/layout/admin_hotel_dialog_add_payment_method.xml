@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="24dp">
+
+    <TextView
+        android:id="@+id/tv_form_title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Agregar Método de Pago"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        android:gravity="center"
+        android:layout_marginBottom="24dp" />
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/et_payment_name"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Nombre del método de pago" />
+
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <LinearLayout
+        android:id="@+id/layout_account_number"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/et_account_number"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Número de cuenta" />
+
+        </com.google.android.material.textfield.TextInputLayout>
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/layout_bank_name"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="24dp">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/et_bank_name"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Nombre del banco" />
+
+        </com.google.android.material.textfield.TextInputLayout>
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="end">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_cancel"
+            android:layout_width="wrap_content"
+            android:layout_height="48dp"
+            android:text="Cancelar"
+            android:textColor="@color/text_secondary"
+            style="@style/Widget.MaterialComponents.Button.TextButton"
+            android:layout_marginEnd="8dp" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_save"
+            android:layout_width="wrap_content"
+            android:layout_height="48dp"
+            android:text="💾 Guardar"
+            app:backgroundTint="@color/orange"
+            android:textColor="@android:color/white" />
+
+    </LinearLayout>
+
+</LinearLayout>
