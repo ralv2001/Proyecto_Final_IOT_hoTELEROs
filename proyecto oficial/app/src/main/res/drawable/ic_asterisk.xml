@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="16dp"
+    android:height="16dp"
+    android:viewportWidth="100"
+    android:viewportHeight="100">
+
+    <!-- Asterisco más visible -->
+    <path
+        android:fillColor="#FF6B35"
+        android:pathData="M50,10 L55,35 L80,30 L65,50 L90,55 L65,60 L80,80 L55,75 L50,100 L45,75 L20,80 L35,60 L10,55 L35,50 L20,30 L45,35 Z" />
+
+</vector>
