@@ -1,4 +1,3 @@
-/*
 package com.example.proyecto_final_hoteleros.adminhotel.adapters;
 
 import android.content.Context;
@@ -130,5 +129,3 @@ public class ServiceManagementAdapter extends RecyclerView.Adapter<ServiceManage
 
 
 
-
- */

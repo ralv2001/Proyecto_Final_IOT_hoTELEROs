@@ -1,4 +1,3 @@
-/*
 package com.example.proyecto_final_hoteleros.adminhotel.dialog;
 
 import android.app.Dialog;
@@ -15,6 +14,7 @@ import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.appcompat.widget.AppCompatButton;
 import androidx.fragment.app.FragmentActivity;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -40,7 +40,7 @@ public class EditServiceDialog extends Dialog {
     private HotelServiceItem originalService;
     private TextInputEditText etServiceName, etServiceDescription, etServicePrice;
     private AutoCompleteTextView etServiceType;
-    private MaterialButton btnSelectIcon, btnAddPhoto, btnSave, btnCancel;
+    private AppCompatButton btnSelectIcon, btnAddPhoto, btnSave, btnCancel;
     private RecyclerView rvServicePhotos;
 
     private String selectedIconKey;
@@ -223,5 +223,3 @@ public class EditServiceDialog extends Dialog {
         dismiss();
     }
 }
-
- */

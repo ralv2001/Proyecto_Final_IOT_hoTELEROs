@@ -82,6 +82,8 @@
             android:exported="false"
             android:configChanges="orientation|screenSize|keyboardHidden" />
 
+
+
         <activity
             android:name=".auth.register.RegisterSuccessActivity"
             android:exported="false"
@@ -140,6 +142,10 @@
         <!-- Actividad de prueba de notificaciones -->
         <activity
             android:name=".client.ui.activity.NotificationTestActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".client.ui.activity.ViewAllServicesActivity"
             android:exported="false" />
 
         <!-- ========== SERVICIOS ========== -->

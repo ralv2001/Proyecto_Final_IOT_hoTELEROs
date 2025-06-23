@@ -729,10 +729,11 @@
     
             // Obtener archivos desde Room Database
             FileStorageRepository fileRepo = new FileStorageRepository(getActivity());
-    
+
             fileRepo.getFilesByRegistrationId(registration.id, new FileStorageRepository.FileListCallback() {
                 @Override
                 public void onSuccess(List<FileStorageEntity> files) {
+                    debugRegistrationFlow();
                     if (files.isEmpty()) {
                         Log.d(TAG, "No hay archivos para subir, completando registro");
                         completeRegistrationSuccess(userModel, registration);
@@ -818,14 +819,32 @@
                                         uploadFilesSequentially(files, currentIndex + 1, userModel, registration);
                                     });
                                 }
-    
+
                                 @Override
                                 public void onError(String error) {
-                                    Log.w(TAG, "⚠️ Error actualizando FileEntity: " + error);
-                                    // Continuar de todos modos, pero actualizar Firebase
-                                    updateFirebaseWithUrls(userModel, () -> {
-                                        uploadFilesSequentially(files, currentIndex + 1, userModel, registration);
-                                    });
+                                    Log.e(TAG, "❌ Error subiendo archivo " + (currentIndex + 1) + ": " + error);
+
+                                    // ✅ MEJORAR MANEJO DE ERRORES
+                                    if (getActivity() != null) {
+                                        getActivity().runOnUiThread(() -> {
+                                            btnVerifyEmail.setText("Error: " + error);
+                                            btnVerifyEmail.setEnabled(true);
+
+                                            // Mostrar toast con el error específico
+                                            Toast.makeText(getActivity(),
+                                                    "Error subiendo " + fileEntity.originalName + ": " + error,
+                                                    Toast.LENGTH_LONG).show();
+                                        });
+                                    }
+
+                                    // ✅ NO CONTINUAR con otros archivos si hay error crítico
+                                    if (error.contains("Error de conexión") || error.contains("Error del servidor")) {
+                                        Log.e(TAG, "❌ Error crítico, deteniendo upload");
+                                        return;
+                                    }
+
+                                    // Continuar con siguiente archivo solo si es error recuperable
+                                    uploadFilesSequentially(files, currentIndex + 1, userModel, registration);
                                 }
                             });
                         }
@@ -1208,6 +1227,22 @@
          */
         private void updateFirebaseWithUrls(UserModel userModel, Runnable onComplete) {
             Log.d(TAG, "🔄 Actualizando Firebase con URLs de AWS...");
+
+            // ✅ VALIDAR URLs ANTES DE ACTUALIZAR
+            Log.d(TAG, "🔍 Validando URLs antes de actualizar Firebase:");
+            Log.d(TAG, "  PhotoURL: " + (userModel.getPhotoUrl() != null ? userModel.getPhotoUrl() : "null"));
+            Log.d(TAG, "  DocumentURL: " + (userModel.getDocumentUrl() != null ? userModel.getDocumentUrl() : "null"));
+
+            // Verificar que las URLs sean válidas URLs de AWS
+            if (userModel.getPhotoUrl() != null && !userModel.getPhotoUrl().startsWith("https://")) {
+                Log.w(TAG, "⚠️ PhotoURL no es una URL válida: " + userModel.getPhotoUrl());
+                userModel.setPhotoUrl(null);
+            }
+
+            if (userModel.getDocumentUrl() != null && !userModel.getDocumentUrl().startsWith("https://")) {
+                Log.w(TAG, "⚠️ DocumentURL no es una URL válida: " + userModel.getDocumentUrl());
+                userModel.setDocumentUrl(null);
+            }
     
             if ("driver".equals(userModel.getUserType())) {
                 // Para taxistas: actualizar en pending_drivers
@@ -1219,7 +1254,7 @@
                                 Log.d(TAG, "✅ URLs actualizadas en pending_drivers");
                                 if (onComplete != null) onComplete.run();
                             }
-    
+
                             @Override
                             public void onError(String error) {
                                 Log.e(TAG, "❌ Error actualizando URLs en Firebase: " + error);
@@ -1245,6 +1280,48 @@
                                 if (onComplete != null) onComplete.run();
                             }
                         });
+            }
+        }
+
+        // ✅ MÉTODO PARA DEBUGGEAR FLUJO COMPLETO
+        private void debugRegistrationFlow() {
+            Log.d(TAG, "=== 🔍 DEBUG REGISTRATION FLOW ===");
+
+            FirebaseUser currentUser = firebaseManager.getCurrentUser();
+            if (currentUser != null) {
+                Log.d(TAG, "👤 Usuario actual: " + currentUser.getEmail());
+                Log.d(TAG, "🔑 UID: " + currentUser.getUid());
+                Log.d(TAG, "✅ Email verificado: " + currentUser.isEmailVerified());
+            }
+
+            // Debug archivos en Room
+            FileStorageRepository fileRepo = new FileStorageRepository(getActivity());
+
+            // Obtener registrationId desde argumentos
+            int registrationId = -1;
+            if (getArguments() != null) {
+                registrationId = getArguments().getInt("registrationId", -1);
+            }
+
+            if (registrationId != -1) {
+                final int finalRegistrationId = registrationId;
+                fileRepo.getFilesByRegistrationId(finalRegistrationId, new FileStorageRepository.FileListCallback() {
+                    @Override
+                    public void onSuccess(List<FileStorageEntity> files) {
+                        Log.d(TAG, "📁 Archivos en Room para registro " + finalRegistrationId + ": " + files.size());
+                        for (FileStorageEntity file : files) {
+                            Log.d(TAG, "  - " + file.originalName + " | AWS URL: " +
+                                    (file.storedPath != null && file.storedPath.startsWith("https://") ? "✅" : "❌ " + file.storedPath));
+                        }
+                    }
+
+                    @Override
+                    public void onError(String error) {
+                        Log.e(TAG, "❌ Error obteniendo archivos: " + error);
+                    }
+                });
+            } else {
+                Log.w(TAG, "⚠️ No hay registrationId disponible para debug");
             }
         }
     

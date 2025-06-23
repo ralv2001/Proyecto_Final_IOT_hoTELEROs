@@ -37,7 +37,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.sistema_activity_main);
 
         // En caso se necesite crear de nuevo el SuperAdmin porque se borró:
-        //recreateSuperAdmin();
+        recreateSuperAdmin();
 
         // Configurar sistema de insets para pantallas con notch
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {

@@ -1,4 +1,3 @@
-/*
 package com.example.proyecto_final_hoteleros.adminhotel.fragment;
 
 import android.os.Bundle;
@@ -57,7 +56,21 @@ public class ServiceManagementFragment extends Fragment {
 
     private void setupRecyclerView() {
         services = new ArrayList<>();
-        serviceAdapter = new ServiceManagementAdapter(services, this::editService, this::deleteService);
+
+        // Crear los listeners por separado
+        ServiceManagementAdapter.OnServiceActionListener editListener = new ServiceManagementAdapter.OnServiceActionListener() {
+            @Override
+            public void onEditService(HotelServiceItem service, int position) {
+                editService(service, position);
+            }
+
+            @Override
+            public void onDeleteService(HotelServiceItem service, int position) {
+                deleteService(service, position);
+            }
+        };
+
+        serviceAdapter = new ServiceManagementAdapter(services, editListener, editListener);
         rvServices.setLayoutManager(new LinearLayoutManager(getContext()));
         rvServices.setAdapter(serviceAdapter);
     }
@@ -84,7 +97,7 @@ public class ServiceManagementFragment extends Fragment {
         services.add(new HotelServiceItem("Lavandería Express", "Lavado y planchado en 24 horas", 35.0, "ic_laundry", HotelServiceItem.ServiceType.PAID, new ArrayList<>()));
         services.add(new HotelServiceItem("Gimnasio VIP", "Acceso exclusivo con entrenador personal", 50.0, "ic_gym", HotelServiceItem.ServiceType.PAID, new ArrayList<>()));
 
-        // Servicio Especial
+        // Servicio Especial - LÍNEA CORREGIDA
         services.add(new HotelServiceItem("Taxi Aeropuerto VIP", "Transporte gratuito al alcanzar monto mínimo", 0.0, "ic_taxi", HotelServiceItem.ServiceType.SPECIAL, new ArrayList<>()));
 
         serviceAdapter.notifyDataSetChanged();
@@ -153,7 +166,3 @@ public class ServiceManagementFragment extends Fragment {
         }
     }
 }
-
-}
-
- */

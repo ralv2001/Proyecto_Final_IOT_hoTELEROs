@@ -77,46 +77,12 @@ public class AdminHotelFragment extends Fragment {
     private void setupClickListeners() {
         cardHabitaciones.setOnClickListener(v -> {
             animatePress(cardHabitaciones);
-            Toast.makeText(getContext(), "Gestión de Habitaciones", Toast.LENGTH_SHORT).show();
+            navigateToRoomManagement();
         });
 
         cardServicios.setOnClickListener(v -> {
             animatePress(cardServicios);
-            Toast.makeText(getContext(), "Gestión de Servicios", Toast.LENGTH_SHORT).show();
-        });
-
-        cardPerfilHotel.setOnClickListener(v -> {
-            animatePress(cardPerfilHotel);
-            Toast.makeText(getContext(), "Perfil del Hotel", Toast.LENGTH_SHORT).show();
-        });
-
-        cardEstadisticas.setOnClickListener(v -> {
-            animatePress(cardEstadisticas);
-            Toast.makeText(getContext(), "Estadísticas del Hotel", Toast.LENGTH_SHORT).show();
-        });
-
-        cardOcupacion.setOnClickListener(v -> {
-            animatePress(cardOcupacion);
-            Toast.makeText(getContext(), "Ocupación: 85% de habitaciones", Toast.LENGTH_SHORT).show();
-        });
-
-        cardIngresos.setOnClickListener(v -> {
-            animatePress(cardIngresos);
-            Toast.makeText(getContext(), "Ingresos del día: S/ 12,450", Toast.LENGTH_SHORT).show();
-        });
-
-        cardHuespedes.setOnClickListener(v -> {
-            animatePress(cardHuespedes);
-            Toast.makeText(getContext(), "34 huéspedes en el hotel", Toast.LENGTH_SHORT).show();
-        });
-        cardHabitaciones.setOnClickListener(v -> {
-            animatePress(cardHabitaciones);
-
-        });
-
-        cardServicios.setOnClickListener(v -> {
-            animatePress(cardServicios);
-
+            navigateToServiceManagement();
         });
 
         cardPerfilHotel.setOnClickListener(v -> {
@@ -124,8 +90,44 @@ public class AdminHotelFragment extends Fragment {
             navigateToHotelProfile();
         });
 
+        cardEstadisticas.setOnClickListener(v -> {
+            animatePress(cardEstadisticas);
+            Toast.makeText(getContext(), "📊 Función de estadísticas en desarrollo", Toast.LENGTH_SHORT).show();
+        });
+
+        // Stats cards - solo muestran información
+        cardOcupacion.setOnClickListener(v -> {
+            animatePress(cardOcupacion);
+            Toast.makeText(getContext(), "📈 Ocupación: 85% de habitaciones", Toast.LENGTH_SHORT).show();
+        });
+
+        cardIngresos.setOnClickListener(v -> {
+            animatePress(cardIngresos);
+            Toast.makeText(getContext(), "💰 Ingresos del día: S/ 12,450", Toast.LENGTH_SHORT).show();
+        });
+
+        cardHuespedes.setOnClickListener(v -> {
+            animatePress(cardHuespedes);
+            Toast.makeText(getContext(), "👥 34 huéspedes en el hotel", Toast.LENGTH_SHORT).show();
+        });
     }
 
+
+    private void navigateToRoomManagement() {
+        RoomManagementFragment fragment = new RoomManagementFragment();
+        getParentFragmentManager().beginTransaction()
+                .replace(R.id.fragment_container, fragment)
+                .addToBackStack(null)
+                .commit();
+    }
+
+    private void navigateToServiceManagement() {
+        ServiceManagementFragment fragment = new ServiceManagementFragment();
+        getParentFragmentManager().beginTransaction()
+                .replace(R.id.fragment_container, fragment)
+                .addToBackStack(null)
+                .commit();
+    }
 
 
 

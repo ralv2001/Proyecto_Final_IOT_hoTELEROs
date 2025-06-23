@@ -1,4 +1,3 @@
-
 package com.example.proyecto_final_hoteleros.adminhotel.adapters;
 
 import android.view.LayoutInflater;
@@ -70,5 +69,3 @@ public class ServiceSelectionAdapter extends RecyclerView.Adapter<ServiceSelecti
         }
     }
 }
-
-

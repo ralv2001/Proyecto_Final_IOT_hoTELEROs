@@ -64,20 +64,37 @@ public class AwsFileManager {
 
         public static AwsFileInfo fromJson(JSONObject json) throws JSONException {
             AwsFileInfo info = new AwsFileInfo();
+
+            // ✅ VERIFICAR QUE EXISTE EL OBJETO file_info
+            if (!json.has("file_info")) {
+                throw new JSONException("Respuesta AWS no contiene 'file_info'");
+            }
+
             JSONObject fileInfo = json.getJSONObject("file_info");
 
-            info.originalName = fileInfo.getString("original_name");
-            info.storedName = fileInfo.getString("stored_name");
+            // ✅ VERIFICAR CAMPOS CRÍTICOS
+            if (!fileInfo.has("file_url") || !fileInfo.has("s3_key")) {
+                throw new JSONException("Respuesta AWS incompleta - falta file_url o s3_key");
+            }
+
+            info.originalName = fileInfo.optString("original_name", "");
+            info.storedName = fileInfo.optString("stored_name", "");
             info.s3Key = fileInfo.getString("s3_key");
             info.fileUrl = fileInfo.getString("file_url");
-            info.fileType = fileInfo.getString("file_type");
-            info.fileSizeBytes = fileInfo.getLong("file_size_bytes");
-            info.fileSizeMB = fileInfo.getDouble("file_size_mb");
-            info.userId = fileInfo.getString("user_id");
-            info.folder = fileInfo.getString("folder");
-            info.uploadTimestamp = fileInfo.getString("upload_timestamp");
+            info.fileType = fileInfo.optString("file_type", "");
+            info.fileSizeBytes = fileInfo.optLong("file_size_bytes", 0);
+            info.fileSizeMB = fileInfo.optDouble("file_size_mb", 0.0);
+            info.userId = fileInfo.optString("user_id", "");
+            info.folder = fileInfo.optString("folder", "");
+            info.uploadTimestamp = fileInfo.optString("upload_timestamp", "");
             info.etag = json.optString("etag", "");
 
+            // ✅ VALIDAR URL GENERADA
+            if (!info.fileUrl.startsWith("https://")) {
+                throw new JSONException("URL de archivo inválida: " + info.fileUrl);
+            }
+
+            Log.d("AwsFileManager", "✅ FileInfo creado exitosamente - URL: " + info.fileUrl);
             return info;
         }
     }
