@@ -31,7 +31,7 @@ public class QuickAccessAdapter extends RecyclerView.Adapter<QuickAccessAdapter.
     @Override
     public QuickAccessViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext())
-                .inflate(R.layout.item_quick_access, parent, false);
+                .inflate(R.layout.superadmin_item_quick_access, parent, false);
         return new QuickAccessViewHolder(view);
     }
 

@@ -25,7 +25,7 @@ public class MetricsAdapter extends RecyclerView.Adapter<MetricsAdapter.MetricVi
     @Override
     public MetricViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext())
-                .inflate(R.layout.item_metric_card, parent, false);
+                .inflate(R.layout.superadmin_item_metric_card, parent, false);
         return new MetricViewHolder(view);
     }
 

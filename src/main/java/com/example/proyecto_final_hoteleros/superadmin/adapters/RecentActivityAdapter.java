@@ -26,7 +26,7 @@ public class RecentActivityAdapter extends RecyclerView.Adapter<RecentActivityAd
     @Override
     public ActivityViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext())
-                .inflate(R.layout.item_recent_activity, parent, false);
+                .inflate(R.layout.superadmin_item_recent_activity, parent, false);
         return new ActivityViewHolder(view);
     }
 

@@ -13,6 +13,7 @@ import androidx.fragment.app.FragmentTransaction;
 
 import com.example.proyecto_final_hoteleros.R;
 import com.example.proyecto_final_hoteleros.models.UserModel;
+import com.example.proyecto_final_hoteleros.superadmin.fragment.AddHotelAdminFragment;
 import com.example.proyecto_final_hoteleros.superadmin.fragment.DashboardFragment;
 import com.example.proyecto_final_hoteleros.superadmin.fragment.AdminsFragment;
 import com.example.proyecto_final_hoteleros.superadmin.fragment.TaxistasFragment;
@@ -292,7 +293,9 @@ public class SuperAdminActivity extends AppCompatActivity {
     }
 
     public void navigateToAddAdmin() {
-        showToast("Registro de Admin - Próximamente");
+        Log.d(TAG, "Navegando a AddHotelAdminFragment");
+        AddHotelAdminFragment addHotelAdminFragment = new AddHotelAdminFragment();
+        loadFragment(addHotelAdminFragment, "ADD_HOTEL_ADMIN", true);
     }
 
     public void handleQuickAccessClick(String action) {

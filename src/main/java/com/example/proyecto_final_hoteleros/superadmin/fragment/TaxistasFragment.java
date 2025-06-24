@@ -32,7 +32,7 @@ public class TaxistasFragment extends Fragment implements TaxistasAdapter.OnTaxi
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_taxistas, container, false);
+        View view = inflater.inflate(R.layout.superadmin_fragment_taxistas, container, false);
 
         firebaseManager = FirebaseManager.getInstance();
 

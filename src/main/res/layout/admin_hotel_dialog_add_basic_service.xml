@@ -142,6 +142,7 @@
             </LinearLayout>
 
             <!-- Sección de Fotos -->
+            <!-- Sección de Fotos -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -177,26 +178,73 @@
 
                 </LinearLayout>
 
-                <!-- Botón para añadir fotos -->
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnAddPhoto"
+                <!-- Placeholder clickeable cuando no hay fotos -->
+                <LinearLayout
+                    android:id="@+id/layoutPhotoPlaceholder"
                     android:layout_width="match_parent"
-                    android:layout_height="48dp"
-                    android:text="📸 Añadir Fotos"
-                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-                    app:strokeColor="@color/blue"
-                    android:textColor="@color/blue"
-                    app:icon="@drawable/ic_add_photo"
-                    app:iconTint="@color/blue"
-                    android:layout_marginBottom="8dp" />
+                    android:layout_height="100dp"
+                    android:orientation="vertical"
+                    android:gravity="center"
+                    android:background="@drawable/bg_dashed_border_clickable"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:visibility="visible">
+
+                    <ImageView
+                        android:layout_width="32dp"
+                        android:layout_height="32dp"
+                        android:src="@drawable/ic_add_photo"
+                        app:tint="@color/blue"
+                        android:layout_marginBottom="6dp" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Toca para añadir fotos del servicio"
+                        android:textSize="12sp"
+                        android:textColor="@color/blue"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Máximo 3 fotos"
+                        android:textSize="10sp"
+                        android:textColor="@color/text_secondary"
+                        android:layout_marginTop="2dp" />
+
+                </LinearLayout>
 
                 <!-- RecyclerView para mostrar fotos -->
-                <androidx.recyclerview.widget.RecyclerView
-                    android:id="@+id/rvServicePhotos"
+                <LinearLayout
+                    android:id="@+id/layoutPhotosContainer"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:visibility="gone"
-                    android:nestedScrollingEnabled="false" />
+                    android:orientation="vertical"
+                    android:visibility="gone">
+
+                    <androidx.recyclerview.widget.RecyclerView
+                        android:id="@+id/rvServicePhotos"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:nestedScrollingEnabled="false"
+                        android:layout_marginBottom="8dp" />
+
+                    <!-- Botón pequeño para añadir más fotos cuando ya hay algunas -->
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnAddMorePhotos"
+                        android:layout_width="wrap_content"
+                        android:layout_height="36dp"
+                        android:layout_gravity="center"
+                        android:text="+ Añadir más fotos"
+                        style="@style/Widget.MaterialComponents.Button.TextButton"
+                        android:textColor="@color/blue"
+                        android:textSize="12sp"
+                        app:icon="@drawable/ic_add_photo"
+                        app:iconSize="16dp"
+                        app:iconTint="@color/blue" />
+
+                </LinearLayout>
 
             </LinearLayout>
 

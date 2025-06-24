@@ -26,7 +26,7 @@ public class ReportMetricsAdapter extends RecyclerView.Adapter<ReportMetricsAdap
     @Override
     public MetricViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext())
-                .inflate(R.layout.item_report_metric, parent, false);
+                .inflate(R.layout.superadmin_item_report_metric, parent, false);
         return new MetricViewHolder(view);
     }
 

@@ -41,7 +41,9 @@ public class BasicServiceDialog extends Dialog {
     private MaterialButton btnAddPhoto, btnSave, btnCancel;
     private RecyclerView rvServicePhotos;
     private LinearLayout layoutIconPreview;
-
+    private LinearLayout layoutPhotoPlaceholder; // NUEVA LÍNEA
+    private LinearLayout  layoutPhotosContainer;
+    private MaterialButton btnAddMorePhotos;
     private Context context;
     private String selectedIconKey = "ic_service_default";
     private List<Uri> servicePhotos;
@@ -96,12 +98,15 @@ public class BasicServiceDialog extends Dialog {
         ivSelectedIcon = findViewById(R.id.ivSelectedIcon);
         tvSelectedIconName = findViewById(R.id.tvSelectedIconName);
         tvPhotoCount = findViewById(R.id.tvPhotoCount);
-        btnAddPhoto = findViewById(R.id.btnAddPhoto);
         btnSave = findViewById(R.id.btnSave);
         btnCancel = findViewById(R.id.btnCancel);
         rvServicePhotos = findViewById(R.id.rvServicePhotos);
         layoutIconPreview = findViewById(R.id.layoutIconPreview);
+        layoutPhotoPlaceholder = findViewById(R.id.layoutPhotoPlaceholder);
+        layoutPhotosContainer = findViewById(R.id.layoutPhotosContainer);
+        btnAddMorePhotos = findViewById(R.id.btnAddMorePhotos);
     }
+
 
     private void setupRecyclerView() {
         photosAdapter = new ServicePhotosAdapter(servicePhotos, this::removePhoto);
@@ -114,19 +119,23 @@ public class BasicServiceDialog extends Dialog {
         // Botón seleccionar icono
         layoutIconPreview.setOnClickListener(v -> openIconSelector());
 
-        // Botón agregar foto - usar el launcher externo
-        btnAddPhoto.setOnClickListener(v -> {
-            if (servicePhotos.size() < 3) {
-                Intent intent = new Intent(Intent.ACTION_PICK);
-                intent.setType("image/*");
-                photoPickerLauncher.launch(intent);
-            } else {
-                Toast.makeText(context, "Máximo 3 fotos permitidas", Toast.LENGTH_SHORT).show();
-            }
-        });
+        // Placeholder clickeable para añadir primera foto
+        layoutPhotoPlaceholder.setOnClickListener(v -> addPhotoAction());
+
+        // Botón para añadir más fotos cuando ya hay algunas
+        btnAddMorePhotos.setOnClickListener(v -> addPhotoAction());
 
         findViewById(R.id.btnCancel).setOnClickListener(v -> dismiss());
         findViewById(R.id.btnSave).setOnClickListener(v -> saveService());
+    }
+    private void addPhotoAction() {
+        if (servicePhotos.size() < 3) {
+            Intent intent = new Intent(Intent.ACTION_PICK);
+            intent.setType("image/*");
+            photoPickerLauncher.launch(intent);
+        } else {
+            Toast.makeText(context, "Máximo 3 fotos permitidas", Toast.LENGTH_SHORT).show();
+        }
     }
 
     // Método para agregar foto desde el launcher externo
@@ -167,12 +176,27 @@ public class BasicServiceDialog extends Dialog {
 
     private void updatePhotoCount() {
         tvPhotoCount.setText(servicePhotos.size() + "/3");
-        btnAddPhoto.setEnabled(servicePhotos.size() < 3);
-        btnAddPhoto.setAlpha(servicePhotos.size() < 3 ? 1.0f : 0.6f);
+        updatePhotosVisibility(); // Usar el método que ya maneja la visibilidad correctamente
     }
 
     private void updatePhotosVisibility() {
-        rvServicePhotos.setVisibility(servicePhotos.isEmpty() ? View.GONE : View.VISIBLE);
+        boolean hasPhotos = !servicePhotos.isEmpty();
+
+        // Mostrar container de fotos solo cuando hay fotos
+        if (layoutPhotosContainer != null) {
+            layoutPhotosContainer.setVisibility(hasPhotos ? View.VISIBLE : View.GONE);
+        }
+
+        // Mostrar placeholder solo cuando NO hay fotos
+        if (layoutPhotoPlaceholder != null) {
+            layoutPhotoPlaceholder.setVisibility(hasPhotos ? View.GONE : View.VISIBLE);
+        }
+
+        // Habilitar/deshabilitar botón de más fotos según el límite
+        if (btnAddMorePhotos != null) {
+            btnAddMorePhotos.setEnabled(servicePhotos.size() < 3);
+            btnAddMorePhotos.setVisibility(servicePhotos.size() >= 3 ? View.GONE : View.VISIBLE);
+        }
     }
 
     private void removePhoto(int position) {
