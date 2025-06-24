@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginLeft="16dp"
+    android:layout_marginRight="16dp"
+    android:layout_marginTop="4dp"
+    android:layout_marginBottom="4dp"
+    app:cardCornerRadius="12dp"
+    app:cardElevation="3dp"
+    app:cardBackgroundColor="@android:color/white">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <!-- Título del campo -->
+        <TextView
+            android:id="@+id/tv_field_label"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Campo"
+            android:textColor="#333333"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="8dp"
+            android:drawablePadding="8dp"
+            android:gravity="center_vertical" />
+
+        <!-- Campo de texto simple -->
+        <EditText
+            android:id="@+id/et_field_value"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:background="@drawable/edittext_background"
+            android:hint="Escriba aquí..."
+            android:textColor="#1A1A1A"
+            android:textColorHint="#999999"
+            android:textSize="15sp"
+            android:paddingLeft="12dp"
+            android:paddingRight="12dp"
+            android:paddingTop="12dp"
+            android:paddingBottom="12dp"
+            android:inputType="text"
+            android:maxLines="1"
+            android:imeOptions="actionNext" />
+
+        <!-- Indicador de campo requerido -->
+        <TextView
+            android:id="@+id/tv_required_indicator"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:text="* Campo requerido"
+            android:textColor="#FF6B35"
+            android:textSize="11sp"
+            android:textStyle="bold"
+            android:gravity="center_vertical"
+            android:visibility="gone" />
+
+    </LinearLayout>
+
+</androidx.cardview.widget.CardView>
