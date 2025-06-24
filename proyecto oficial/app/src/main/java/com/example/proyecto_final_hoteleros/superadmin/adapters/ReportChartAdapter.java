@@ -30,7 +30,7 @@ public class ReportChartAdapter extends RecyclerView.Adapter<ReportChartAdapter.
     @Override
     public ChartViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext())
-                .inflate(R.layout.item_report_chart, parent, false);
+                .inflate(R.layout.superadmin_item_report_chart, parent, false);
         return new ChartViewHolder(view);
     }
 

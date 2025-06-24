@@ -85,7 +85,7 @@ public class AddHotelAdminFragment extends Fragment {
 
         // Información del Hotel
         fieldsList.add(new HotelAdminField("hotel_name", "Nombre del Hotel",
-                "Ej: Hotel Plaza Central", R.drawable.ic_hotel, "text", true));
+                "Ej: Hotel Plaza Central", R.drawable.ic_location, "text", true));
         fieldsList.add(new HotelAdminField("hotel_address", "Dirección del Hotel",
                 "Ej: Av. Principal 123", R.drawable.ic_location, "text", true));
         fieldsList.add(new HotelAdminField("hotel_city", "Ciudad",

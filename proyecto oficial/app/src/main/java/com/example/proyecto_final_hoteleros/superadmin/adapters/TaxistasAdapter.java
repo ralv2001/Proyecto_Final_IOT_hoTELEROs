@@ -9,7 +9,6 @@ import androidx.annotation.NonNull;
 import androidx.cardview.widget.CardView;
 import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.material.button.MaterialButton;
-import com.google.android.material.chip.Chip;
 
 import com.example.proyecto_final_hoteleros.R;
 import com.example.proyecto_final_hoteleros.superadmin.models.TaxistaUser;
@@ -35,7 +34,7 @@ public class TaxistasAdapter extends RecyclerView.Adapter<TaxistasAdapter.Taxist
     @Override
     public TaxistaViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext())
-                .inflate(R.layout.item_taxista_user, parent, false);
+                .inflate(R.layout.superadmin_item_taxista_user, parent, false);
         return new TaxistaViewHolder(view);
     }
 

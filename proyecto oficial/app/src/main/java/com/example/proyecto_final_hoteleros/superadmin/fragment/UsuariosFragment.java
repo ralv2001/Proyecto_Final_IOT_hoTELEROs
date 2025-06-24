@@ -28,7 +28,7 @@ public class UsuariosFragment extends Fragment {
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_usuarios, container, false);
+        View view = inflater.inflate(R.layout.superadmin_fragment_usuarios, container, false);
 
         initViews(view);
         setupRecyclerView();

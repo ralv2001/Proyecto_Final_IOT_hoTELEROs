@@ -1,9 +1,12 @@
 package com.example.proyecto_final_hoteleros.superadmin.adapters;
 
 import android.text.InputType;
+import android.text.TextWatcher;
+import android.text.Editable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.EditText;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -11,8 +14,6 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.proyecto_final_hoteleros.R;
 import com.example.proyecto_final_hoteleros.superadmin.models.HotelAdminField;
-import com.google.android.material.textfield.TextInputEditText;
-import com.google.android.material.textfield.TextInputLayout;
 
 import java.util.HashMap;
 import java.util.List;
@@ -30,7 +31,7 @@ public class HotelAdminFieldAdapter extends RecyclerView.Adapter<HotelAdminField
     @Override
     public FieldViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext())
-                .inflate(R.layout.item_hotel_admin_field, parent, false);
+                .inflate(R.layout.superadmin_item_hotel_admin_field, parent, false);
         return new FieldViewHolder(view);
     }
 
@@ -45,27 +46,26 @@ public class HotelAdminFieldAdapter extends RecyclerView.Adapter<HotelAdminField
         return fieldsList.size();
     }
 
-    // 🔥 MÉTODO CORREGIDO: Obtener datos del formulario
     public Map<String, String> getFormData() {
         Map<String, String> formData = new HashMap<>();
 
-        // Actualizar valores desde los EditText antes de obtener los datos
         for (HotelAdminField field : fieldsList) {
-            formData.put(field.getFieldId(), field.getValue());
+            String value = field.getValue();
+            formData.put(field.getFieldId(), value != null ? value.trim() : "");
         }
 
         return formData;
     }
 
     static class FieldViewHolder extends RecyclerView.ViewHolder {
-        private TextInputLayout textInputLayout;
-        private TextInputEditText editText;
+        private TextView fieldLabel;
+        private EditText editText;
         private TextView requiredIndicator;
         private HotelAdminField currentField;
 
         public FieldViewHolder(@NonNull View itemView) {
             super(itemView);
-            textInputLayout = itemView.findViewById(R.id.text_input_layout);
+            fieldLabel = itemView.findViewById(R.id.tv_field_label);
             editText = itemView.findViewById(R.id.et_field_value);
             requiredIndicator = itemView.findViewById(R.id.tv_required_indicator);
         }
@@ -73,11 +73,16 @@ public class HotelAdminFieldAdapter extends RecyclerView.Adapter<HotelAdminField
         public void bind(HotelAdminField field) {
             this.currentField = field;
 
-            // Configurar el layout
-            textInputLayout.setHint(field.getLabel());
-            textInputLayout.setStartIconDrawable(field.getIconResId());
+            // Configurar label con ícono
+            fieldLabel.setText(field.getLabel());
+            fieldLabel.setCompoundDrawablesWithIntrinsicBounds(field.getIconResId(), 0, 0, 0);
+            fieldLabel.setCompoundDrawableTintList(
+                    android.content.res.ColorStateList.valueOf(
+                            itemView.getContext().getResources().getColor(android.R.color.holo_orange_dark)
+                    )
+            );
 
-            // Configurar el EditText
+            // Configurar EditText
             editText.setHint(field.getHint());
             editText.setText(field.getValue());
 
@@ -91,15 +96,8 @@ public class HotelAdminFieldAdapter extends RecyclerView.Adapter<HotelAdminField
                 requiredIndicator.setVisibility(View.GONE);
             }
 
-            // 🔥 LISTENER ACTUALIZADO: Guardar valor en tiempo real
-            editText.setOnFocusChangeListener((v, hasFocus) -> {
-                if (!hasFocus && currentField != null) {
-                    currentField.setValue(editText.getText().toString());
-                }
-            });
-
-            // 🔥 NUEVO: Listener para cambios de texto en tiempo real
-            editText.addTextChangedListener(new android.text.TextWatcher() {
+            // TextWatcher para actualizar valores
+            editText.addTextChangedListener(new TextWatcher() {
                 @Override
                 public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
 
@@ -111,7 +109,7 @@ public class HotelAdminFieldAdapter extends RecyclerView.Adapter<HotelAdminField
                 }
 
                 @Override
-                public void afterTextChanged(android.text.Editable s) {}
+                public void afterTextChanged(Editable s) {}
             });
         }
 
@@ -130,17 +128,9 @@ public class HotelAdminFieldAdapter extends RecyclerView.Adapter<HotelAdminField
                     editText.setInputType(InputType.TYPE_CLASS_NUMBER);
                     break;
                 default:
-                    editText.setInputType(InputType.TYPE_CLASS_TEXT);
+                    editText.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_CAP_WORDS);
                     break;
             }
-        }
-
-        public String getValue() {
-            return editText.getText().toString();
-        }
-
-        public String getFieldId() {
-            return currentField != null ? currentField.getFieldId() : "";
         }
     }
 }

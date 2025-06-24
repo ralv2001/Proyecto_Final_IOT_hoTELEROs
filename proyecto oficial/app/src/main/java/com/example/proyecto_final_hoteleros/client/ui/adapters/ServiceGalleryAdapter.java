@@ -31,7 +31,7 @@ public class ServiceGalleryAdapter extends RecyclerView.Adapter<ServiceGalleryAd
     public GalleryViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         context = parent.getContext();
         View view = LayoutInflater.from(context)
-                .inflate(R.layout.item_service_gallery_image, parent, false);
+                .inflate(R.layout.superadmin_item_service_gallery_image, parent, false);
         return new GalleryViewHolder(view);
     }
 
