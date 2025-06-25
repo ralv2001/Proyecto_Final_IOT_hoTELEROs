@@ -49,4 +49,13 @@ public interface UserRegistrationDao {
 
     @Query("UPDATE user_registration_data SET is_completed = :isCompleted, updated_at = :timestamp WHERE id = :id")
     void updateCompletionStatus(int id, boolean isCompleted, long timestamp);
+
+    @Query("SELECT COUNT(*) FROM user_registration_data WHERE email = :email AND created_at > :timeThreshold")
+    int countRecentRegistrationsByEmail(String email, long timeThreshold);
+
+    @Query("SELECT * FROM user_registration_data WHERE created_at BETWEEN :startTime AND :endTime ORDER BY created_at DESC")
+    List<UserRegistrationEntity> getRegistrationsByTimeRange(long startTime, long endTime);
+
+    @Query("SELECT COUNT(*) FROM user_registration_data WHERE numero_documento = :numeroDocumento AND created_at > :timeThreshold")
+    int countRecentRegistrationsByDocument(String numeroDocumento, long timeThreshold);
 }

@@ -993,7 +993,7 @@ public class RegisterUserActivity extends AppCompatActivity {
             // Crear nuevo registro - Room auto-generará el ID único
             // NO asignar manualmente registration.id = algo
 
-            userRegistrationRepository.saveUserRegistration(registration, new UserRegistrationRepository.RegistrationIdCallback() {
+            userRegistrationRepository.saveUserRegistrationSafe(registration, new UserRegistrationRepository.RegistrationIdCallback() {
                 @Override
                 public void onSuccess(int registrationId) {
                     currentRegistrationId = registrationId;

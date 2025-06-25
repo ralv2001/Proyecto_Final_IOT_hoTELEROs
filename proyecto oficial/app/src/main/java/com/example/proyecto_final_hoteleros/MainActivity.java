@@ -12,6 +12,7 @@ import com.example.proyecto_final_hoteleros.client.ui.activity.HomeActivity;
 import com.example.proyecto_final_hoteleros.superadmin.activity.SuperAdminActivity;
 import com.example.proyecto_final_hoteleros.taxista.activity.DriverActivity;
 import com.example.proyecto_final_hoteleros.utils.AwsFileManager;
+import com.example.proyecto_final_hoteleros.utils.ConcurrencyTestHelper;
 import com.example.proyecto_final_hoteleros.utils.DatabaseTestHelper;
 
 import androidx.activity.EdgeToEdge;
@@ -134,6 +135,19 @@ public class MainActivity extends AppCompatActivity {
                 Intent intent = new Intent(MainActivity.this, DriverActivity.class);
                 startActivity(intent);
             }
+        });
+
+        // ========== TESTS DE CONCURRENCIA - ELIMINAR EN PRODUCCIÓN ==========
+        findViewById(R.id.btnLogin).setOnLongClickListener(v -> {
+            Log.d("MainActivity", "Iniciando test de concurrencia normal");
+            ConcurrencyTestHelper.testConcurrentRegistrations(this);
+            return true;
+        });
+
+        findViewById(R.id.btnRegister).setOnLongClickListener(v -> {
+            Log.d("MainActivity", "Iniciando test de email duplicado");
+            ConcurrencyTestHelper.testDuplicateEmailConcurrency(this);
+            return true;
         });
     }
 
