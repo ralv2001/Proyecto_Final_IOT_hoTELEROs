@@ -38,7 +38,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.sistema_activity_main);
 
         // En caso se necesite crear de nuevo el SuperAdmin porque se borró:
-        recreateSuperAdmin();
+        //recreateSuperAdmin();
 
         // Configurar sistema de insets para pantallas con notch
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
@@ -137,7 +137,8 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        // ========== TESTS DE CONCURRENCIA - ELIMINAR EN PRODUCCIÓN ==========
+        // ========== TESTS DE CONCURRENCIA - COMENTADO PARA PRODUCCIÓN ==========
+        /*
         findViewById(R.id.btnLogin).setOnLongClickListener(v -> {
             Log.d("MainActivity", "Iniciando test de concurrencia normal");
             ConcurrencyTestHelper.testConcurrentRegistrations(this);
@@ -149,6 +150,8 @@ public class MainActivity extends AppCompatActivity {
             ConcurrencyTestHelper.testDuplicateEmailConcurrency(this);
             return true;
         });
+        */
+
     }
 
     @Override

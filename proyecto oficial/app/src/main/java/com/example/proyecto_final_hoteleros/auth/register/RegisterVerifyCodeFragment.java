@@ -1,5 +1,6 @@
     package com.example.proyecto_final_hoteleros.auth.register;
     
+    import android.content.Context;
     import android.content.Intent;
     import android.net.Uri;
     import android.os.Bundle;
@@ -726,9 +727,23 @@
     
         private void uploadFilesToAwsAndComplete(UserModel userModel, UserRegistrationEntity registration) {
             Log.d(TAG, "=== SUBIENDO ARCHIVOS A AWS ===");
-    
+
             // Obtener archivos desde Room Database
-            FileStorageRepository fileRepo = new FileStorageRepository(getActivity());
+            // Verificar que tenemos contexto válido antes de crear el repository
+            Context context = getContext();
+            if (context == null) {
+                Log.e(TAG, "❌ Context es null, no se puede continuar con la subida de archivos");
+                if (getActivity() != null) {
+                    getActivity().runOnUiThread(() -> {
+                        btnVerifyEmail.setText("Error: Contexto perdido");
+                        btnVerifyEmail.setEnabled(true);
+                        Toast.makeText(getActivity(), "Error: Sesión perdida. Por favor, intenta nuevamente.", Toast.LENGTH_LONG).show();
+                    });
+                }
+                return;
+            }
+
+            FileStorageRepository fileRepo = new FileStorageRepository(context);
 
             fileRepo.getFilesByRegistrationId(registration.id, new FileStorageRepository.FileListCallback() {
                 @Override
