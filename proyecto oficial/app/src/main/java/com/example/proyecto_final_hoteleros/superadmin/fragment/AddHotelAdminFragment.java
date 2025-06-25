@@ -15,10 +15,12 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.proyecto_final_hoteleros.R;
+import com.example.proyecto_final_hoteleros.models.UserModel;
 import com.example.proyecto_final_hoteleros.superadmin.activity.SuperAdminActivity;
 import com.example.proyecto_final_hoteleros.superadmin.adapters.HotelAdminFieldAdapter;
 import com.example.proyecto_final_hoteleros.superadmin.models.HotelAdminField;
 // import com.example.proyecto_final_hoteleros.utils.FirebaseManager; // 🔥 COMENTADO - Firebase
+import com.example.proyecto_final_hoteleros.utils.FirebaseManager;
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
@@ -83,23 +85,13 @@ public class AddHotelAdminFragment extends Fragment {
     private void loadFormFields() {
         fieldsList.clear();
 
-        // Información del Hotel
-        fieldsList.add(new HotelAdminField("hotel_name", "Nombre del Hotel",
-                "Ej: Hotel Plaza Central", R.drawable.ic_location, "text", true));
-        fieldsList.add(new HotelAdminField("hotel_address", "Dirección del Hotel",
-                "Ej: Av. Principal 123", R.drawable.ic_location, "text", true));
-        fieldsList.add(new HotelAdminField("hotel_city", "Ciudad",
-                "Ej: Lima", R.drawable.ic_location, "text", true));
-        fieldsList.add(new HotelAdminField("hotel_phone", "Teléfono del Hotel",
-                "Ej: +51 999 888 777", R.drawable.ic_phone, "phone", true));
-
-        // Información del Administrador
-        fieldsList.add(new HotelAdminField("admin_name", "Nombre del Administrador",
-                "Ej: Juan Pérez García", R.drawable.ic_profile, "text", true));
+        // Información del Administrador (SEPARADO: nombre y apellido)
+        fieldsList.add(new HotelAdminField("admin_nombres", "Nombres del Administrador",
+                "Ej: Juan Carlos", R.drawable.ic_profile, "text", true));
+        fieldsList.add(new HotelAdminField("admin_apellidos", "Apellidos del Administrador",
+                "Ej: Pérez García", R.drawable.ic_profile, "text", true));
         fieldsList.add(new HotelAdminField("admin_email", "Email del Administrador",
-                "Ej: admin@hotelplaza.com", R.drawable.ic_email, "email", true));
-        fieldsList.add(new HotelAdminField("admin_phone", "Teléfono del Administrador",
-                "Ej: +51 999 777 666", R.drawable.ic_phone, "phone", true));
+                "Ej: admin@hotel.com", R.drawable.ic_email, "email", true));
         fieldsList.add(new HotelAdminField("admin_password", "Contraseña",
                 "Mínimo 6 caracteres", R.drawable.ic_lock, "password", true));
         fieldsList.add(new HotelAdminField("admin_confirm_password", "Confirmar Contraseña",
@@ -168,13 +160,13 @@ public class AddHotelAdminFragment extends Fragment {
     }
 
     private void showCreateConfirmation(Map<String, String> formData) {
-        String hotelName = formData.get("hotel_name");
-        String adminName = formData.get("admin_name");
+        String adminNombres = formData.get("admin_nombres");
+        String adminApellidos = formData.get("admin_apellidos");
         String adminEmail = formData.get("admin_email");
+        String fullName = adminNombres + " " + adminApellidos;
 
         String message = "¿Está seguro de crear el siguiente administrador?\n\n" +
-                "🏨 Hotel: " + hotelName + "\n" +
-                "👤 Administrador: " + adminName + "\n" +
+                "👤 Administrador: " + fullName + "\n" +
                 "📧 Email: " + adminEmail;
 
         new MaterialAlertDialogBuilder(requireContext())
@@ -191,52 +183,35 @@ public class AddHotelAdminFragment extends Fragment {
         btnCreateAdmin.setEnabled(false);
         btnCreateAdmin.setText("Creando...");
 
-        // 🔥 FIREBASE COMENTADO - Simulación de creación exitosa
-        Log.d(TAG, "=== SIMULANDO CREACIÓN DE ADMIN DE HOTEL ===");
-        Log.d(TAG, "Hotel: " + formData.get("hotel_name"));
-        Log.d(TAG, "Admin: " + formData.get("admin_name"));
-        Log.d(TAG, "Email: " + formData.get("admin_email"));
-        Log.d(TAG, "Teléfono Hotel: " + formData.get("hotel_phone"));
-        Log.d(TAG, "Dirección: " + formData.get("hotel_address"));
-        Log.d(TAG, "Ciudad: " + formData.get("hotel_city"));
+        String email = formData.get("admin_email");
+        String password = formData.get("admin_password");
 
-        // Simular un delay de 2 segundos como si fuera una llamada real a Firebase
-        new android.os.Handler().postDelayed(() -> {
-            // Simular éxito
-            Log.d(TAG, "Admin de hotel creado exitosamente (simulación)");
+        Log.d(TAG, "=== CREANDO ADMIN DE HOTEL EN FIREBASE ===");
+        Log.d(TAG, "Email: " + email);
+        Log.d(TAG, "Nombres: " + formData.get("admin_nombres"));
+        Log.d(TAG, "Apellidos: " + formData.get("admin_apellidos"));
 
-            if (getActivity() != null) {
-                getActivity().runOnUiThread(() -> {
-                    showSuccessMessage(formData);
-                    resetForm();
-                });
-            }
-        }, 2000);
+        // 🔥 CREAR EN FIREBASE AUTH
+        FirebaseManager.getInstance().registerUser(email, password, new FirebaseManager.AuthCallback() {
+            @Override
+            public void onSuccess(String userId) {
+                Log.d(TAG, "✅ Usuario Auth creado: " + userId);
 
-        /* 🔥 CÓDIGO FIREBASE COMENTADO
-        // Preparar datos para Firebase
-        Map<String, Object> adminData = new HashMap<>();
-        adminData.put("name", formData.get("admin_name"));
-        adminData.put("email", formData.get("admin_email"));
-        adminData.put("phone", formData.get("admin_phone"));
-        adminData.put("userType", "hotel_admin");
-        adminData.put("hotelName", formData.get("hotel_name"));
-        adminData.put("hotelAddress", formData.get("hotel_address"));
-        adminData.put("hotelCity", formData.get("hotel_city"));
-        adminData.put("hotelPhone", formData.get("hotel_phone"));
-        adminData.put("isActive", true);
-        adminData.put("createdAt", System.currentTimeMillis());
-        adminData.put("createdBy", getCurrentSuperAdminId());
+                // Crear modelo de usuario para admin de hotel
+                UserModel adminUser = new UserModel();
+                adminUser.setUserId(userId);
+                adminUser.setNombres(formData.get("admin_nombres"));
+                adminUser.setApellidos(formData.get("admin_apellidos"));
+                adminUser.setEmail(email);
+                adminUser.setUserType("hotel_admin");
+                adminUser.setActive(true);
+                adminUser.setCreatedAt(System.currentTimeMillis());
 
-        // Crear en Firebase
-        FirebaseManager.getInstance().createHotelAdmin(
-                formData.get("admin_email"),
-                formData.get("admin_password"),
-                adminData,
-                new FirebaseManager.CreateUserCallback() {
+                // Guardar en Firestore
+                FirebaseManager.getInstance().saveUserData(userId, adminUser, new FirebaseManager.DataCallback() {
                     @Override
-                    public void onSuccess(String userId) {
-                        Log.d(TAG, "Admin de hotel creado exitosamente: " + userId);
+                    public void onSuccess() {
+                        Log.d(TAG, "✅ Admin de hotel guardado en Firestore");
 
                         if (getActivity() != null) {
                             getActivity().runOnUiThread(() -> {
@@ -248,7 +223,7 @@ public class AddHotelAdminFragment extends Fragment {
 
                     @Override
                     public void onError(String error) {
-                        Log.e(TAG, "Error creando admin de hotel: " + error);
+                        Log.e(TAG, "❌ Error guardando en Firestore: " + error);
 
                         if (getActivity() != null) {
                             getActivity().runOnUiThread(() -> {
@@ -257,14 +232,27 @@ public class AddHotelAdminFragment extends Fragment {
                             });
                         }
                     }
+                });
+            }
+
+            @Override
+            public void onError(String error) {
+                Log.e(TAG, "❌ Error creando usuario Auth: " + error);
+
+                if (getActivity() != null) {
+                    getActivity().runOnUiThread(() -> {
+                        showErrorMessage(error);
+                        resetButtons();
+                    });
                 }
-        );
-        */
+            }
+        });
     }
 
     private void showSuccessMessage(Map<String, String> formData) {
-        String hotelName = formData.get("hotel_name");
-        String adminName = formData.get("admin_name");
+        String adminNombres = formData.get("admin_nombres");
+        String adminApellidos = formData.get("admin_apellidos");
+        String fullName = adminNombres + " " + adminApellidos;
 
         // Mostrar Snackbar de éxito
         Snackbar.make(requireView(),
@@ -277,8 +265,8 @@ public class AddHotelAdminFragment extends Fragment {
         // Mostrar diálogo de éxito con detalles
         new MaterialAlertDialogBuilder(requireContext())
                 .setTitle("¡Éxito!")
-                .setMessage("El administrador " + adminName + " para el hotel " + hotelName +
-                        " ha sido creado exitosamente.\n\n[MODO SIMULACIÓN - Sin Firebase]")
+                .setMessage("El administrador " + fullName +
+                        " ha sido creado exitosamente y guardado en Firebase.")
                 .setPositiveButton("Continuar", (dialog, which) -> {
                     if (getActivity() instanceof SuperAdminActivity) {
                         ((SuperAdminActivity) getActivity()).navigateBackToDashboard();
@@ -290,7 +278,7 @@ public class AddHotelAdminFragment extends Fragment {
 
         // Enviar notificación local
         sendLocalNotification("Nuevo Admin de Hotel",
-                "Se ha registrado " + adminName + " para " + hotelName);
+                "Se ha registrado " + fullName);
     }
 
     private void showErrorMessage(String error) {

@@ -7,46 +7,184 @@
     android:background="@color/background_gray">
 
     <!-- Header -->
+    <!-- Header mejorado con búsqueda y filtros -->
     <LinearLayout
         android:id="@+id/header_layout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="@android:color/white"
         android:elevation="4dp"
-        android:orientation="horizontal"
-        android:padding="16dp"
-        android:gravity="center_vertical"
+        android:orientation="vertical"
         app:layout_constraintTop_toTopOf="parent">
 
-        <ImageView
-            android:id="@+id/iv_back"
-            android:layout_width="24dp"
-            android:layout_height="24dp"
-            android:src="@drawable/ic_arrow_back"
-            android:background="?android:attr/selectableItemBackgroundBorderless"
-            android:padding="4dp"
-            android:contentDescription="Volver"
-            app:tint="@color/text_primary" />
-
-        <TextView
-            android:layout_width="0dp"
+        <!-- Barra superior con título y controles -->
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="Gestión de Usuarios"
-            android:textSize="20sp"
-            android:textStyle="bold"
-            android:textColor="@color/text_primary"
-            android:layout_marginStart="16dp" />
+            android:orientation="horizontal"
+            android:padding="16dp"
+            android:gravity="center_vertical">
 
-        <ImageView
-            android:id="@+id/iv_filter"
-            android:layout_width="24dp"
-            android:layout_height="24dp"
-            android:src="@drawable/ic_filter"
-            android:background="?android:attr/selectableItemBackgroundBorderless"
-            android:padding="4dp"
-            android:contentDescription="Filtrar"
-            app:tint="@color/text_secondary" />
+            <ImageView
+                android:id="@+id/iv_back"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@drawable/ic_arrow_back"
+                android:background="?android:attr/selectableItemBackgroundBorderless"
+                android:padding="4dp"
+                android:contentDescription="Volver"
+                app:tint="@color/text_primary" />
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Gestión de Usuarios"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:textColor="@color/text_primary"
+                android:layout_marginStart="16dp" />
+
+            <ImageView
+                android:id="@+id/iv_stats"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@drawable/ic_chart"
+                android:background="?android:attr/selectableItemBackgroundBorderless"
+                android:padding="4dp"
+                android:layout_marginEnd="8dp"
+                android:contentDescription="Estadísticas"
+                app:tint="@color/text_secondary" />
+
+            <ImageView
+                android:id="@+id/iv_filter"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@drawable/ic_filter"
+                android:background="?android:attr/selectableItemBackgroundBorderless"
+                android:padding="4dp"
+                android:layout_marginEnd="8dp"
+                android:contentDescription="Filtrar"
+                app:tint="@color/text_secondary" />
+
+            <ImageView
+                android:id="@+id/iv_search_toggle"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@drawable/ic_search_superadmin"
+                android:background="?android:attr/selectableItemBackgroundBorderless"
+                android:padding="4dp"
+                android:contentDescription="Buscar"
+                app:tint="@color/text_secondary" />
+
+        </LinearLayout>
+
+        <!-- Barra de búsqueda (inicialmente oculta) -->
+        <LinearLayout
+            android:id="@+id/layout_search"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:padding="16dp"
+            android:paddingTop="0dp"
+            android:visibility="gone">
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                app:startIconDrawable="@drawable/ic_search_superadmin"
+                app:startIconTint="@color/primary_FF6B35"
+                app:endIconMode="clear_text"
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/et_search"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Buscar por nombre, email o tipo..."
+                    android:inputType="text"
+                    android:imeOptions="actionSearch" />
+
+            </com.google.android.material.textfield.TextInputLayout>
+
+        </LinearLayout>
+
+        <!-- Chips de filtros por tipo de usuario -->
+        <HorizontalScrollView
+            android:id="@+id/scroll_filters"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingHorizontal="16dp"
+            android:paddingBottom="8dp"
+            android:scrollbars="none">
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chip_all"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="📋 Todos"
+                    android:checkable="true"
+                    android:checked="true"
+                    android:layout_marginEnd="8dp"
+                    app:chipBackgroundColor="@color/primary_FF6B35"
+                    app:chipStrokeWidth="0dp" />
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chip_clients"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="👤 Clientes"
+                    android:checkable="true"
+                    android:layout_marginEnd="8dp" />
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chip_hotel_admins"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="🏨 Admins Hotel"
+                    android:checkable="true"
+                    android:layout_marginEnd="8dp" />
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chip_drivers"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="🚗 Taxistas"
+                    android:checkable="true"
+                    android:layout_marginEnd="8dp" />
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chip_pending"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="🕒 Pendientes"
+                    android:checkable="true"
+                    android:layout_marginEnd="8dp" />
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chip_active"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="✅ Activos"
+                    android:checkable="true"
+                    android:layout_marginEnd="8dp" />
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chip_inactive"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="❌ Inactivos"
+                    android:checkable="true" />
+
+            </LinearLayout>
+
+        </HorizontalScrollView>
 
     </LinearLayout>
 

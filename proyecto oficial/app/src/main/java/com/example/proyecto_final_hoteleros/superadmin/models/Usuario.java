@@ -74,6 +74,8 @@ public class Usuario {
                 return "Admin Hotel";
             case "TAXISTA":
                 return "Taxista";
+            case "TAXISTA_PENDIENTE":
+                return "Taxista (Pendiente)";
             case "SUPERADMIN":
                 return "Superadmin";
             default:
@@ -89,6 +91,8 @@ public class Usuario {
                 return android.graphics.Color.parseColor("#FF9800"); // Naranja
             case "TAXISTA":
                 return android.graphics.Color.parseColor("#4CAF50"); // Verde
+            case "TAXISTA_PENDIENTE":
+                return android.graphics.Color.parseColor("#FFC107"); // Amarillo
             case "SUPERADMIN":
                 return android.graphics.Color.parseColor("#9C27B0"); // Púrpura
             default:
@@ -113,6 +117,8 @@ public class Usuario {
                 return "🏨";
             case "TAXISTA":
                 return "🚗";
+            case "TAXISTA_PENDIENTE":
+                return "🕒";
             case "SUPERADMIN":
                 return "⚙️";
             default:

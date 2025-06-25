@@ -1,6 +1,9 @@
 package com.example.proyecto_final_hoteleros.superadmin.models;
 
-public class AdminUser {
+public class AdminUser implements java.io.Serializable {
+
+    private static final long serialVersionUID = 1L;
+
     private String id;
     private String name;
     private String email;
@@ -63,6 +66,25 @@ public class AdminUser {
     public int getStatusColor() {
         return isActive ? android.graphics.Color.parseColor("#4CAF50") :
                 android.graphics.Color.parseColor("#F44336");
+    }
+
+    // Métodos mejorados para mejor UX
+    public String getStatusTextWithIcon() {
+        return isActive ? "🟢 Activo" : "🔴 Inactivo";
+    }
+
+    public int getStatusColorLight() {
+        return isActive ? android.graphics.Color.parseColor("#E8F5E8") :
+                android.graphics.Color.parseColor("#FFEBEE");
+    }
+
+    public String getToggleButtonText() {
+        return isActive ? "🔒 Desactivar" : "✅ Activar";
+    }
+
+    public int getToggleButtonColor() {
+        return isActive ? android.graphics.Color.parseColor("#F44336") :
+                android.graphics.Color.parseColor("#4CAF50");
     }
 
     private String getCurrentDate() {
