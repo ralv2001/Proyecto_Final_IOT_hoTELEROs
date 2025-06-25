@@ -165,26 +165,52 @@
                     android:layout_marginHorizontal="5dp"/>
             </LinearLayout>
 
-            <!-- Botón de verificar con spinner -->
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnVerifyEmail"
+            <!-- Botón de verificar con spinner GIF al lado del texto -->
+            <RelativeLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                app:backgroundTint="@color/colorPrimary"
-                app:cornerRadius="12dp"
-                android:text="Verificando..."
-                android:paddingVertical="18dp"
-                android:paddingHorizontal="20dp"
-                android:textSize="16sp"
-                android:fontFamily="@font/inter_semibold"
-                android:textColor="@android:color/white"
-                android:layout_marginBottom="16dp"
-                android:enabled="false"
-                android:alpha="0.6"
-                app:icon="@drawable/ic_spinnercargandogozu"
-                app:iconGravity="textStart"
-                app:iconSize="20dp"
-                app:iconTint="@android:color/white" />
+                android:layout_marginBottom="16dp">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnVerifyEmail"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:backgroundTint="@color/colorPrimary"
+                    app:cornerRadius="12dp"
+                    android:text="Verificando..."
+                    android:paddingVertical="18dp"
+                    android:paddingHorizontal="20dp"
+                    android:textSize="16sp"
+                    android:fontFamily="@font/inter_semibold"
+                    android:textColor="@android:color/white"
+                    android:enabled="false"
+                    android:alpha="0.6"
+                    android:gravity="center" />
+
+                <!-- Spinner GIF animado - POSICIONADO AL LADO DEL TEXTO -->
+                <ImageView
+                    android:id="@+id/ivSpinnerGif"
+                    android:layout_width="18dp"
+                    android:layout_height="18dp"
+                    android:layout_centerInParent="true"
+                    android:layout_marginEnd="8dp"
+                    android:layout_toStartOf="@+id/tvVerifyText"
+                    android:visibility="gone"
+                    android:contentDescription="Loading spinner" />
+
+                <!-- TextView invisible para calcular posición del spinner -->
+                <TextView
+                    android:id="@+id/tvVerifyText"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_centerInParent="true"
+                    android:text="Verificando..."
+                    android:textSize="16sp"
+                    android:fontFamily="@font/inter_semibold"
+                    android:textColor="@android:color/transparent"
+                    android:visibility="invisible" />
+
+            </RelativeLayout>
 
 <!--            &lt;!&ndash; Botón temporal para debugging - ELIMINAR DESPUÉS &ndash;&gt;-->
 <!--            <com.google.android.material.button.MaterialButton-->
