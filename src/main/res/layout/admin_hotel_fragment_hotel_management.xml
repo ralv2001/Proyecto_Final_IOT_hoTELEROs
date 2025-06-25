@@ -58,30 +58,37 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:text="Métricas de Hoy"
-            android:textSize="24sp"
+            android:textSize="20sp"
             android:textStyle="bold"
-            android:textColor="#1A1A1A"
+            android:textColor="@color/text_primary"
             android:fontFamily="@font/poppins_semibold"
-            android:layout_marginTop="32dp"
+            android:layout_marginTop="24dp"
             android:layout_marginHorizontal="24dp"
-            app:layout_constraintTop_toBottomOf="@id/tvSubtitle"
+            app:layout_constraintTop_toBottomOf="@id/headerBackground"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent" />
 
-        <!-- GUIDELINES PARA GRID RESPONSIVO -->
+        <!-- GUIDELINES PARA STATS -->
         <androidx.constraintlayout.widget.Guideline
             android:id="@+id/guideline33"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            app:layout_constraintGuide_percent="0.33" />
+            app:layout_constraintGuide_percent="0.04" />
 
         <androidx.constraintlayout.widget.Guideline
             android:id="@+id/guideline66"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            app:layout_constraintGuide_percent="0.67" />
+            app:layout_constraintGuide_percent="0.365" />
+
+        <androidx.constraintlayout.widget.Guideline
+            android:id="@+id/guideline100"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            app:layout_constraintGuide_percent="0.69" />
 
         <!-- CARD OCUPACIÓN -->
         <com.google.android.material.card.MaterialCardView
@@ -89,21 +96,20 @@
             android:layout_width="0dp"
             android:layout_height="120dp"
             android:layout_marginTop="24dp"
-            android:layout_marginStart="24dp"
-            android:layout_marginEnd="8dp"
+            android:layout_marginHorizontal="4dp"
             android:clickable="true"
             android:focusable="true"
             app:cardCornerRadius="20dp"
             app:cardElevation="8dp"
             app:rippleColor="@color/white_50"
             app:layout_constraintTop_toBottomOf="@id/tvStatsTitle"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toStartOf="@id/guideline33">
+            app:layout_constraintStart_toStartOf="@id/guideline33"
+            app:layout_constraintEnd_toStartOf="@id/guideline66">
 
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:background="@drawable/bg_info_card_gradient"
+                android:background="@drawable/bg_gradient_purple"
                 android:padding="16dp">
 
                 <ImageView
@@ -111,7 +117,6 @@
                     android:layout_width="24dp"
                     android:layout_height="24dp"
                     android:src="@drawable/ic_hotel"
-                    android:alpha="0.8"
                     app:tint="@android:color/white"
                     app:layout_constraintTop_toTopOf="parent"
                     app:layout_constraintEnd_toEndOf="parent" />
@@ -161,21 +166,20 @@
             app:cardElevation="8dp"
             app:rippleColor="@color/white_50"
             app:layout_constraintTop_toBottomOf="@id/tvStatsTitle"
-            app:layout_constraintStart_toStartOf="@id/guideline33"
-            app:layout_constraintEnd_toStartOf="@id/guideline66">
+            app:layout_constraintStart_toStartOf="@id/guideline66"
+            app:layout_constraintEnd_toStartOf="@id/guideline100">
 
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:background="@drawable/city_card_gradient"
+                android:background="@drawable/bg_gradient_green"
                 android:padding="16dp">
 
                 <ImageView
                     android:id="@+id/ivIngresosIcon"
                     android:layout_width="24dp"
                     android:layout_height="24dp"
-                    android:src="@drawable/ic_payment"
-                    android:alpha="0.8"
+                    android:src="@drawable/ic_money"
                     app:tint="@android:color/white"
                     app:layout_constraintTop_toTopOf="parent"
                     app:layout_constraintEnd_toEndOf="parent" />
@@ -184,8 +188,8 @@
                     android:id="@+id/tvIngresosValue"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:text="S/12.4K"
-                    android:textSize="24sp"
+                    android:text="S/ 12.4K"
+                    android:textSize="26sp"
                     android:textStyle="bold"
                     android:textColor="@android:color/white"
                     android:fontFamily="@font/poppins_bold"
@@ -199,7 +203,7 @@
                     android:id="@+id/tvIngresosLabel"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:text="Ingresos"
+                    android:text="Ingresos Hoy"
                     android:textSize="12sp"
                     android:textColor="#E8EAED"
                     android:fontFamily="@font/inter_regular"
@@ -218,29 +222,28 @@
             android:layout_width="0dp"
             android:layout_height="120dp"
             android:layout_marginTop="24dp"
-            android:layout_marginStart="8dp"
-            android:layout_marginEnd="24dp"
+            android:layout_marginHorizontal="4dp"
             android:clickable="true"
             android:focusable="true"
             app:cardCornerRadius="20dp"
             app:cardElevation="8dp"
             app:rippleColor="@color/white_50"
             app:layout_constraintTop_toBottomOf="@id/tvStatsTitle"
-            app:layout_constraintStart_toStartOf="@id/guideline66"
-            app:layout_constraintEnd_toEndOf="parent">
+            app:layout_constraintStart_toStartOf="@id/guideline100"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:layout_marginEnd="24dp">
 
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:background="@drawable/gradient_overlay_profile"
+                android:background="@drawable/bg_gradient_orange"
                 android:padding="16dp">
 
                 <ImageView
                     android:id="@+id/ivHuespedesIcon"
                     android:layout_width="24dp"
                     android:layout_height="24dp"
-                    android:src="@drawable/ic_group"
-                    android:alpha="0.8"
+                    android:src="@drawable/ic_people"
                     app:tint="@android:color/white"
                     app:layout_constraintTop_toTopOf="parent"
                     app:layout_constraintEnd_toEndOf="parent" />
@@ -283,321 +286,192 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:text="Gestión del Hotel"
-            android:textSize="24sp"
+            android:textSize="20sp"
             android:textStyle="bold"
-            android:textColor="#1A1A1A"
+            android:textColor="@color/text_primary"
             android:fontFamily="@font/poppins_semibold"
-            android:layout_marginTop="48dp"
+            android:layout_marginTop="32dp"
             android:layout_marginHorizontal="24dp"
             app:layout_constraintTop_toBottomOf="@id/cardOcupacion"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent" />
 
-        <!-- GUIDELINES PARA GESTIÓN (50-50) -->
-        <androidx.constraintlayout.widget.Guideline
-            android:id="@+id/guideline50"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            app:layout_constraintGuide_percent="0.5" />
-
-        <!-- HABITACIONES -->
-        <com.google.android.material.card.MaterialCardView
-            android:id="@+id/cardHabitaciones"
+        <!-- SECCIÓN DE GESTIÓN - Reorganizada en 3 columnas -->
+        <LinearLayout
+            android:id="@+id/llManagement"
             android:layout_width="0dp"
-            android:layout_height="140dp"
-            android:layout_marginTop="24dp"
-            android:layout_marginStart="24dp"
-            android:layout_marginEnd="12dp"
-            android:clickable="true"
-            android:focusable="true"
-            app:cardCornerRadius="24dp"
-            app:cardElevation="12dp"
-            app:cardBackgroundColor="@android:color/white"
-            app:rippleColor="@color/orange"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginTop="20dp"
+            android:layout_marginHorizontal="24dp"
             app:layout_constraintTop_toBottomOf="@id/tvManagementTitle"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toStartOf="@id/guideline50">
-
-            <androidx.constraintlayout.widget.ConstraintLayout
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:padding="20dp">
-
-                <View
-                    android:id="@+id/iconBgHab"
-                    android:layout_width="56dp"
-                    android:layout_height="56dp"
-                    android:background="@drawable/bg_circle_orange_light"
-                    app:layout_constraintTop_toTopOf="parent"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintEnd_toEndOf="parent" />
-
-                <ImageView
-                    android:layout_width="28dp"
-                    android:layout_height="28dp"
-                    android:src="@drawable/ic_room"
-                    app:tint="@color/orange"
-                    app:layout_constraintTop_toTopOf="@id/iconBgHab"
-                    app:layout_constraintBottom_toBottomOf="@id/iconBgHab"
-                    app:layout_constraintStart_toStartOf="@id/iconBgHab"
-                    app:layout_constraintEnd_toEndOf="@id/iconBgHab" />
-
-                <TextView
-                    android:id="@+id/tvHabTitle"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:text="Habitaciones"
-                    android:textSize="16sp"
-                    android:textStyle="bold"
-                    android:textColor="#1A1A1A"
-                    android:fontFamily="@font/poppins_semibold"
-                    android:gravity="center"
-                    android:layout_marginTop="16dp"
-                    app:layout_constraintTop_toBottomOf="@id/iconBgHab"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintEnd_toEndOf="parent" />
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:text="Gestionar reservas"
-                    android:textSize="12sp"
-                    android:textColor="#6B7280"
-                    android:fontFamily="@font/inter_regular"
-                    android:gravity="center"
-                    android:layout_marginTop="4dp"
-                    app:layout_constraintTop_toBottomOf="@id/tvHabTitle"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintEnd_toEndOf="parent" />
-
-            </androidx.constraintlayout.widget.ConstraintLayout>
-
-        </com.google.android.material.card.MaterialCardView>
-
-        <!-- SERVICIOS -->
-        <com.google.android.material.card.MaterialCardView
-            android:id="@+id/cardServicios"
-            android:layout_width="0dp"
-            android:layout_height="140dp"
-            android:layout_marginTop="24dp"
-            android:layout_marginStart="12dp"
-            android:layout_marginEnd="24dp"
-            android:clickable="true"
-            android:focusable="true"
-            app:cardCornerRadius="24dp"
-            app:cardElevation="12dp"
-            app:cardBackgroundColor="@android:color/white"
-            app:rippleColor="@color/orange"
-            app:layout_constraintTop_toBottomOf="@id/tvManagementTitle"
-            app:layout_constraintStart_toStartOf="@id/guideline50"
             app:layout_constraintEnd_toEndOf="parent">
 
-            <androidx.constraintlayout.widget.ConstraintLayout
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:padding="20dp">
+            <!-- HABITACIONES -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cardHabitaciones"
+                android:layout_width="0dp"
+                android:layout_height="170dp"
+                android:layout_weight="1"
+                android:layout_marginEnd="8dp"
+                android:clickable="true"
+                android:focusable="true"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="6dp"
+                app:rippleColor="@color/orange_50">
 
-                <View
-                    android:id="@+id/iconBgServ"
-                    android:layout_width="56dp"
-                    android:layout_height="56dp"
-                    android:background="@drawable/bg_circle_orange_light"
-                    app:layout_constraintTop_toTopOf="parent"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintEnd_toEndOf="parent" />
-
-                <ImageView
-                    android:layout_width="28dp"
-                    android:layout_height="28dp"
-                    android:src="@drawable/ic_service_wifi"
-                    app:tint="@color/orange"
-                    app:layout_constraintTop_toTopOf="@id/iconBgServ"
-                    app:layout_constraintBottom_toBottomOf="@id/iconBgServ"
-                    app:layout_constraintStart_toStartOf="@id/iconBgServ"
-                    app:layout_constraintEnd_toEndOf="@id/iconBgServ" />
-
-                <TextView
-                    android:id="@+id/tvServTitle"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:text="Servicios"
-                    android:textSize="16sp"
-                    android:textStyle="bold"
-                    android:textColor="#1A1A1A"
-                    android:fontFamily="@font/poppins_semibold"
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="183dp"
+                    android:background="@drawable/bg_card_habitaciones"
                     android:gravity="center"
-                    android:layout_marginTop="16dp"
-                    app:layout_constraintTop_toBottomOf="@id/iconBgServ"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintEnd_toEndOf="parent" />
+                    android:orientation="vertical"
+                    android:padding="12dp">
 
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:text="Administrar servicios"
-                    android:textSize="12sp"
-                    android:textColor="#6B7280"
-                    android:fontFamily="@font/inter_regular"
+                    <ImageView
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:layout_marginBottom="12dp"
+                        android:src="@drawable/ic_bed"
+                        app:tint="@color/orange" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="@font/poppins_semibold"
+                        android:gravity="center"
+                        android:text="Habitaciones"
+                        android:textColor="@color/text_primary"
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:fontFamily="@font/inter_regular"
+                        android:gravity="center"
+                        android:text="Gestionar tipos"
+                        android:textColor="@color/text_secondary"
+                        android:textSize="11sp" />
+
+                </LinearLayout>
+
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- SERVICIOS -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cardServicios"
+                android:layout_width="0dp"
+                android:layout_height="170dp"
+                android:layout_weight="1"
+                android:layout_marginHorizontal="4dp"
+                android:clickable="true"
+                android:focusable="true"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="6dp"
+                app:rippleColor="@color/blue_50">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:orientation="vertical"
                     android:gravity="center"
-                    android:layout_marginTop="4dp"
-                    app:layout_constraintTop_toBottomOf="@id/tvServTitle"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintEnd_toEndOf="parent" />
+                    android:padding="16dp"
+                    android:background="@drawable/bg_card_servicios">
 
-            </androidx.constraintlayout.widget.ConstraintLayout>
+                    <ImageView
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:src="@drawable/ic_service"
+                        app:tint="@color/blue_gradient_start"
+                        android:layout_marginBottom="12dp" />
 
-        </com.google.android.material.card.MaterialCardView>
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Servicios"
+                        android:textSize="14sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/text_primary"
+                        android:fontFamily="@font/poppins_semibold"
+                        android:gravity="center" />
 
-        <!-- PERFIL HOTEL -->
-        <com.google.android.material.card.MaterialCardView
-            android:id="@+id/cardPerfilHotel"
-            android:layout_width="0dp"
-            android:layout_height="140dp"
-            android:layout_marginTop="20dp"
-            android:layout_marginStart="24dp"
-            android:layout_marginEnd="12dp"
-            android:clickable="true"
-            android:focusable="true"
-            app:cardCornerRadius="24dp"
-            app:cardElevation="12dp"
-            app:cardBackgroundColor="@android:color/white"
-            app:rippleColor="@color/orange"
-            app:layout_constraintTop_toBottomOf="@id/cardHabitaciones"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toStartOf="@id/guideline50">
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Gestionar ofertas"
+                        android:textSize="11sp"
+                        android:textColor="@color/text_secondary"
+                        android:fontFamily="@font/inter_regular"
+                        android:gravity="center"
+                        android:layout_marginTop="4dp" />
 
-            <androidx.constraintlayout.widget.ConstraintLayout
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:padding="20dp">
+                </LinearLayout>
 
-                <View
-                    android:id="@+id/iconBgPerfil"
-                    android:layout_width="56dp"
-                    android:layout_height="56dp"
-                    android:background="@drawable/bg_circle_orange_light"
-                    app:layout_constraintTop_toTopOf="parent"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintEnd_toEndOf="parent" />
+            </com.google.android.material.card.MaterialCardView>
 
-                <ImageView
-                    android:layout_width="28dp"
-                    android:layout_height="28dp"
-                    android:src="@drawable/ic_hotel"
-                    app:tint="@color/orange"
-                    app:layout_constraintTop_toTopOf="@id/iconBgPerfil"
-                    app:layout_constraintBottom_toBottomOf="@id/iconBgPerfil"
-                    app:layout_constraintStart_toStartOf="@id/iconBgPerfil"
-                    app:layout_constraintEnd_toEndOf="@id/iconBgPerfil" />
+            <!-- PERFIL HOTEL -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cardPerfilHotel"
+                android:layout_width="0dp"
+                android:layout_height="170dp"
+                android:layout_weight="1"
+                android:layout_marginStart="8dp"
+                android:clickable="true"
+                android:focusable="true"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="6dp"
+                app:rippleColor="@color/green_50">
 
-                <TextView
-                    android:id="@+id/tvPerfilTitle"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:text="Perfil Hotel"
-                    android:textSize="16sp"
-                    android:textStyle="bold"
-                    android:textColor="#1A1A1A"
-                    android:fontFamily="@font/poppins_semibold"
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:orientation="vertical"
                     android:gravity="center"
-                    android:layout_marginTop="16dp"
-                    app:layout_constraintTop_toBottomOf="@id/iconBgPerfil"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintEnd_toEndOf="parent" />
+                    android:padding="16dp"
+                    android:background="@drawable/bg_card_perfil">
 
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:text="Configuración"
-                    android:textSize="12sp"
-                    android:textColor="#6B7280"
-                    android:fontFamily="@font/inter_regular"
-                    android:gravity="center"
-                    android:layout_marginTop="4dp"
-                    app:layout_constraintTop_toBottomOf="@id/tvPerfilTitle"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintEnd_toEndOf="parent" />
+                    <ImageView
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:src="@drawable/ic_hotel_profile"
+                        app:tint="@color/green"
+                        android:layout_marginBottom="12dp" />
 
-            </androidx.constraintlayout.widget.ConstraintLayout>
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Perfil Hotel"
+                        android:textSize="14sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/text_primary"
+                        android:fontFamily="@font/poppins_semibold"
+                        android:gravity="center" />
 
-        </com.google.android.material.card.MaterialCardView>
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Configurar info"
+                        android:textSize="11sp"
+                        android:textColor="@color/text_secondary"
+                        android:fontFamily="@font/inter_regular"
+                        android:gravity="center"
+                        android:layout_marginTop="4dp" />
 
-        <!-- ESTADÍSTICAS -->
-        <com.google.android.material.card.MaterialCardView
-            android:id="@+id/cardEstadisticas"
-            android:layout_width="0dp"
-            android:layout_height="140dp"
-            android:layout_marginTop="20dp"
-            android:layout_marginStart="12dp"
-            android:layout_marginEnd="24dp"
-            android:layout_marginBottom="32dp"
-            android:clickable="true"
-            android:focusable="true"
-            app:cardCornerRadius="24dp"
-            app:cardElevation="12dp"
-            app:cardBackgroundColor="@android:color/white"
-            app:rippleColor="@color/orange"
-            app:layout_constraintTop_toBottomOf="@id/cardServicios"
-            app:layout_constraintStart_toStartOf="@id/guideline50"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent">
+                </LinearLayout>
 
-            <androidx.constraintlayout.widget.ConstraintLayout
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:padding="20dp">
+            </com.google.android.material.card.MaterialCardView>
 
-                <View
-                    android:id="@+id/iconBgEstad"
-                    android:layout_width="56dp"
-                    android:layout_height="56dp"
-                    android:background="@drawable/bg_circle_orange_light"
-                    app:layout_constraintTop_toTopOf="parent"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintEnd_toEndOf="parent" />
+        </LinearLayout>
 
-                <ImageView
-                    android:layout_width="28dp"
-                    android:layout_height="28dp"
-                    android:src="@drawable/ic_reportes"
-                    app:tint="@color/orange"
-                    app:layout_constraintTop_toTopOf="@id/iconBgEstad"
-                    app:layout_constraintBottom_toBottomOf="@id/iconBgEstad"
-                    app:layout_constraintStart_toStartOf="@id/iconBgEstad"
-                    app:layout_constraintEnd_toEndOf="@id/iconBgEstad" />
-
-                <TextView
-                    android:id="@+id/tvEstadTitle"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:text="Estadísticas"
-                    android:textSize="16sp"
-                    android:textStyle="bold"
-                    android:textColor="#1A1A1A"
-                    android:fontFamily="@font/poppins_semibold"
-                    android:gravity="center"
-                    android:layout_marginTop="16dp"
-                    app:layout_constraintTop_toBottomOf="@id/iconBgEstad"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintEnd_toEndOf="parent" />
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:text="Análisis y métricas"
-                    android:textSize="12sp"
-                    android:textColor="#6B7280"
-                    android:fontFamily="@font/inter_regular"
-                    android:gravity="center"
-                    android:layout_marginTop="4dp"
-                    app:layout_constraintTop_toBottomOf="@id/tvEstadTitle"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintEnd_toEndOf="parent" />
-
-            </androidx.constraintlayout.widget.ConstraintLayout>
-
-        </com.google.android.material.card.MaterialCardView>
+        <!-- SPACER FINAL -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="24dp"
+            app:layout_constraintTop_toBottomOf="@id/llManagement"
+            app:layout_constraintBottom_toBottomOf="parent" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

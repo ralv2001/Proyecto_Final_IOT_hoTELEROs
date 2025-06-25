@@ -37,18 +37,9 @@
                     android:textColor="@color/text_primary"
                     android:fontFamily="@font/poppins_semibold" />
 
-                <TextView
-                    android:id="@+id/tvRoomDescription"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Suite con sala de estar independiente"
-                    android:textSize="14sp"
-                    android:textColor="@color/text_secondary"
-                    android:fontFamily="@font/inter_regular"
-                    android:layout_marginTop="2dp" />
-
             </LinearLayout>
 
+            <!-- Action Buttons -->
             <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -56,53 +47,51 @@
 
                 <ImageView
                     android:id="@+id/ivEdit"
-                    android:layout_width="36dp"
-                    android:layout_height="36dp"
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
                     android:src="@drawable/ic_edit"
-                    app:tint="@color/blue"
-                    android:background="@drawable/bg_circle_button"
-                    android:backgroundTint="@color/blue"
+                    android:background="@drawable/bg_circle_blue_light"
                     android:padding="8dp"
-                    android:layout_marginEnd="8dp"
-                    android:clickable="true"
-                    android:focusable="true" />
+                    android:layout_marginEnd="8dp" />
 
                 <ImageView
                     android:id="@+id/ivDelete"
-                    android:layout_width="36dp"
-                    android:layout_height="36dp"
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
                     android:src="@drawable/ic_delete"
-                    app:tint="@android:color/white"
-                    android:background="@drawable/bg_circle_button"
-                    android:backgroundTint="@color/red"
+                    android:background="@drawable/bg_circle_red_light"
                     android:padding="8dp"
-                    android:clickable="true"
-                    android:focusable="true" />
+                    app:tint="@color/red" />
 
             </LinearLayout>
 
         </LinearLayout>
 
-        <!-- Room Info -->
-        <LinearLayout
+        <!-- Info Grid - CON CAPACIDAD -->
+        <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:background="@drawable/bg_info_container"
-            android:padding="16dp">
+            android:layout_marginBottom="12dp">
 
+            <!-- Área -->
             <LinearLayout
+                android:id="@+id/llArea"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
                 android:orientation="vertical"
-                android:gravity="center">
+                android:gravity="center"
+                android:background="@drawable/bg_info_container"
+                android:padding="12dp"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toStartOf="@+id/llPrecio"
+                app:layout_constraintWidth_percent="0.3">
 
                 <TextView
                     android:id="@+id/tvRoomArea"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="45 m²"
+                    android:text="25 m²"
                     android:textSize="16sp"
                     android:textStyle="bold"
                     android:textColor="@color/text_primary"
@@ -112,30 +101,32 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Área"
-                    android:textSize="12sp"
+                    android:textSize="11sp"
                     android:textColor="@color/text_secondary"
                     android:fontFamily="@font/inter_regular" />
 
             </LinearLayout>
 
-            <View
-                android:layout_width="1dp"
-                android:layout_height="match_parent"
-                android:layout_marginHorizontal="12dp"
-                android:background="@color/light_gray" />
-
+            <!-- Precio -->
             <LinearLayout
+                android:id="@+id/llPrecio"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
                 android:orientation="vertical"
-                android:gravity="center">
+                android:gravity="center"
+                android:background="@drawable/bg_info_container"
+                android:padding="12dp"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintStart_toEndOf="@id/llArea"
+                app:layout_constraintEnd_toStartOf="@+id/llCapacidad"
+                app:layout_constraintWidth_percent="0.35"
+                android:layout_marginHorizontal="4dp">
 
                 <TextView
                     android:id="@+id/tvRoomPrice"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="S/ 400/noche"
+                    android:text="S/ 150"
                     android:textSize="16sp"
                     android:textStyle="bold"
                     android:textColor="@color/green"
@@ -144,31 +135,32 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Precio"
-                    android:textSize="12sp"
+                    android:text="Por noche"
+                    android:textSize="11sp"
                     android:textColor="@color/text_secondary"
                     android:fontFamily="@font/inter_regular" />
 
             </LinearLayout>
 
-            <View
-                android:layout_width="1dp"
-                android:layout_height="match_parent"
-                android:layout_marginHorizontal="12dp"
-                android:background="@color/light_gray" />
-
+            <!-- ✅ NUEVO: Capacidad -->
             <LinearLayout
+                android:id="@+id/llCapacidad"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
                 android:orientation="vertical"
-                android:gravity="center">
+                android:gravity="center"
+                android:background="@drawable/bg_info_container"
+                android:padding="12dp"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintStart_toEndOf="@id/llPrecio"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintWidth_percent="0.3">
 
                 <TextView
-                    android:id="@+id/tvAvailableRooms"
+                    android:id="@+id/tvRoomCapacity"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="1 disponible"
+                    android:text="4"
                     android:textSize="16sp"
                     android:textStyle="bold"
                     android:textColor="@color/orange"
@@ -177,28 +169,42 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Cantidad"
-                    android:textSize="12sp"
+                    android:text="Personas"
+                    android:textSize="11sp"
                     android:textColor="@color/text_secondary"
                     android:fontFamily="@font/inter_regular" />
 
             </LinearLayout>
 
-        </LinearLayout>
+        </androidx.constraintlayout.widget.ConstraintLayout>
 
-        <!-- Services Info -->
+        <!-- Disponibilidad -->
         <TextView
-            android:id="@+id/tvServicesCount"
+            android:id="@+id/tvAvailableRooms"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="4 habitaciones disponibles"
+            android:textSize="14sp"
+            android:textColor="@color/text_secondary"
+            android:fontFamily="@font/inter_regular"
+            android:layout_marginBottom="12dp" />
+
+        <!-- Services Grid -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Servicios incluidos:"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:textColor="@color/text_primary"
+            android:fontFamily="@font/poppins_semibold"
+            android:layout_marginBottom="8dp" />
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvServices"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="9 servicios incluidos"
-            android:textSize="14sp"
-            android:textColor="@color/blue"
-            android:fontFamily="@font/inter_medium"
-            android:layout_marginTop="12dp"
-            android:drawableStart="@drawable/ic_service_wifi"
-            android:drawablePadding="8dp"
-            app:drawableTint="@color/blue" />
+            android:nestedScrollingEnabled="false" />
 
     </LinearLayout>
 

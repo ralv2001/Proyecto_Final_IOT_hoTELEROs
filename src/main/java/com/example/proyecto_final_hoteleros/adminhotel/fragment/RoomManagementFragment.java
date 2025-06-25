@@ -16,7 +16,6 @@ import com.example.proyecto_final_hoteleros.adminhotel.adapters.RoomTypeAdapter;
 import com.example.proyecto_final_hoteleros.adminhotel.dialog.AddRoomTypeDialog;
 import com.example.proyecto_final_hoteleros.adminhotel.dialog.EditRoomTypeDialog;
 import com.example.proyecto_final_hoteleros.adminhotel.model.RoomType;
-import com.google.android.material.button.MaterialButton;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import java.util.ArrayList;
@@ -52,7 +51,6 @@ public class RoomManagementFragment extends Fragment {
     private void setupRecyclerView() {
         roomTypes = new ArrayList<>();
 
-        // Crear los listeners por separado en lugar de usar method references
         RoomTypeAdapter.OnRoomActionListener editListener = new RoomTypeAdapter.OnRoomActionListener() {
             @Override
             public void onEditRoom(RoomType roomType, int position) {
@@ -77,11 +75,18 @@ public class RoomManagementFragment extends Fragment {
     }
 
     private void loadRoomTypes() {
-        // Cargar tipos de habitación existentes
-        roomTypes.add(new RoomType("Habitación Estándar", "Habitación cómoda con servicios básicos", 25.0, 150.0, createBasicServices(), 4));
-        roomTypes.add(new RoomType("Habitación Deluxe", "Habitación amplia con vista panorámica", 35.0, 250.0, createDeluxeServices(), 2));
-        roomTypes.add(new RoomType("Suite Ejecutiva", "Suite con sala de estar independiente", 45.0, 400.0, createSuiteServices(), 1));
-        roomTypes.add(new RoomType("Suite Presidencial", "La mejor suite del hotel con todas las comodidades", 80.0, 800.0, createPresidentialServices(), 1));
+        // ✅ ACTUALIZADO: Agregar capacidad a los datos de prueba
+        roomTypes.add(new RoomType("Habitación Estándar", "Habitación cómoda con servicios básicos",
+                25.0, 150.0, createBasicServices(), 4, 2)); // Capacidad: 2
+
+        roomTypes.add(new RoomType("Habitación Deluxe", "Habitación amplia con vista panorámica",
+                35.0, 250.0, createDeluxeServices(), 2, 3)); // Capacidad: 3
+
+        roomTypes.add(new RoomType("Suite Ejecutiva", "Suite con sala de estar independiente",
+                45.0, 400.0, createSuiteServices(), 1, 4)); // Capacidad: 4
+
+        roomTypes.add(new RoomType("Suite Presidencial", "La mejor suite del hotel con todas las comodidades",
+                80.0, 800.0, createPresidentialServices(), 1, 6)); // Capacidad: 6
 
         roomAdapter.notifyDataSetChanged();
     }
@@ -92,6 +97,7 @@ public class RoomManagementFragment extends Fragment {
         services.add("Aire Acondicionado");
         services.add("TV Cable");
         services.add("Teléfono");
+        services.add("Baño Privado");
         return services;
     }
 
@@ -100,6 +106,7 @@ public class RoomManagementFragment extends Fragment {
         services.add("Minibar");
         services.add("Caja Fuerte");
         services.add("Balcón");
+        services.add("Vista al Mar");
         return services;
     }
 
@@ -108,6 +115,7 @@ public class RoomManagementFragment extends Fragment {
         services.add("Sala de Estar");
         services.add("Escritorio");
         services.add("Bañera de Hidromasaje");
+        services.add("Servicio de Habitaciones 24h");
         return services;
     }
 
@@ -116,6 +124,7 @@ public class RoomManagementFragment extends Fragment {
         services.add("Mayordomo Personal");
         services.add("Cocina Equipada");
         services.add("Terraza Privada");
+        services.add("Jacuzzi");
         return services;
     }
 
@@ -150,4 +159,3 @@ public class RoomManagementFragment extends Fragment {
                 .show();
     }
 }
-
