@@ -215,4 +215,74 @@ public class UserRegistrationRepository {
             }
         });
     }
+
+    // ========== MÉTODO THREAD-SAFE PARA CONCURRENCIA ==========
+    public void saveUserRegistrationSafe(UserRegistrationEntity userRegistration,
+                                         RegistrationIdCallback callback) {
+        executor.execute(() -> {
+            try {
+                Log.d(TAG, "🔍 CONCURRENCY CHECK - Verificando registro seguro");
+                Log.d(TAG, "  - Email: " + userRegistration.email);
+                Log.d(TAG, "  - Documento: " + userRegistration.numeroDocumento);
+                Log.d(TAG, "  - Thread ID: " + Thread.currentThread().getId());
+
+                // Verificar registros recientes con el mismo email (últimos 5 minutos)
+                long fiveMinutesAgo = System.currentTimeMillis() - (5 * 60 * 1000);
+                int recentEmailCount = userRegistrationDao.countRecentRegistrationsByEmail(
+                        userRegistration.email, fiveMinutesAgo);
+
+                int recentDocCount = userRegistrationDao.countRecentRegistrationsByDocument(
+                        userRegistration.numeroDocumento, fiveMinutesAgo);
+
+                // ✅ NUEVO: También verificar si existe registro con este email SIN importar el tiempo
+                UserRegistrationEntity existingByEmail = userRegistrationDao
+                        .getUserRegistrationByEmail(userRegistration.email);
+
+                if (existingByEmail != null) {
+                    Log.w(TAG, "⚠️ CONCURRENCY WARNING: Email ya existe en la base de datos: " +
+                            userRegistration.email + " (ID existente: " + existingByEmail.id + ")");
+
+                    Log.d(TAG, "✅ CONCURRENCY RESOLVE: Devolviendo registro existente por email: " + existingByEmail.id);
+                    callback.onSuccess(existingByEmail.id);
+                    return;
+                }
+
+                if (recentEmailCount > 0) {
+                    Log.w(TAG, "⚠️ CONCURRENCY WARNING: Email ya registrado recientemente: " +
+                            userRegistration.email + " (count: " + recentEmailCount + ")");
+
+                    // Buscar el registro existente por email
+                    UserRegistrationEntity existing = userRegistrationDao
+                            .getUserRegistrationByEmail(userRegistration.email);
+                    if (existing != null) {
+                        Log.d(TAG, "✅ CONCURRENCY RESOLVE: Devolviendo registro existente por email reciente: " + existing.id);
+                        callback.onSuccess(existing.id);
+                        return;
+                    }
+                }
+
+                if (recentDocCount > 0) {
+                    Log.w(TAG, "⚠️ CONCURRENCY WARNING: Documento ya registrado recientemente: " +
+                            userRegistration.numeroDocumento + " (count: " + recentDocCount + ")");
+                    callback.onError("Este documento ya fue registrado recientemente. Espere unos minutos e intente de nuevo.");
+                    return;
+                }
+
+                // Si no hay conflictos, proceder con el registro normal
+                userRegistration.updateTimestamp();
+                long id = userRegistrationDao.insertUserRegistration(userRegistration);
+
+                Log.d(TAG, "✅ CONCURRENCY SAFE: Nuevo registro creado con ID: " + id);
+                Log.d(TAG, "  - Registration ID: " + id);
+                Log.d(TAG, "  - Email: " + userRegistration.email);
+                Log.d(TAG, "  - Timestamp: " + userRegistration.createdAt);
+
+                callback.onSuccess((int) id);
+
+            } catch (Exception e) {
+                Log.e(TAG, "❌ CONCURRENCY ERROR: " + e.getMessage(), e);
+                callback.onError("Error de concurrencia en el registro: " + e.getMessage());
+            }
+        });
+    }
 }

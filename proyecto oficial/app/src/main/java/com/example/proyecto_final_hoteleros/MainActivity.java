@@ -12,6 +12,7 @@ import com.example.proyecto_final_hoteleros.client.ui.activity.HomeActivity;
 import com.example.proyecto_final_hoteleros.superadmin.activity.SuperAdminActivity;
 import com.example.proyecto_final_hoteleros.taxista.activity.DriverActivity;
 import com.example.proyecto_final_hoteleros.utils.AwsFileManager;
+import com.example.proyecto_final_hoteleros.utils.ConcurrencyTestHelper;
 import com.example.proyecto_final_hoteleros.utils.DatabaseTestHelper;
 
 import androidx.activity.EdgeToEdge;
@@ -37,7 +38,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.sistema_activity_main);
 
         // En caso se necesite crear de nuevo el SuperAdmin porque se borró:
-        recreateSuperAdmin();
+        //recreateSuperAdmin();
 
         // Configurar sistema de insets para pantallas con notch
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
@@ -135,6 +136,22 @@ public class MainActivity extends AppCompatActivity {
                 startActivity(intent);
             }
         });
+
+        // ========== TESTS DE CONCURRENCIA - COMENTADO PARA PRODUCCIÓN ==========
+        /*
+        findViewById(R.id.btnLogin).setOnLongClickListener(v -> {
+            Log.d("MainActivity", "Iniciando test de concurrencia normal");
+            ConcurrencyTestHelper.testConcurrentRegistrations(this);
+            return true;
+        });
+
+        findViewById(R.id.btnRegister).setOnLongClickListener(v -> {
+            Log.d("MainActivity", "Iniciando test de email duplicado");
+            ConcurrencyTestHelper.testDuplicateEmailConcurrency(this);
+            return true;
+        });
+        */
+
     }
 
     @Override
