@@ -581,6 +581,241 @@ public class FirebaseManager {
                     }
                 });
     }
+    // ========== MÉTODO PARA OBTENER ADMINISTRADORES DE HOTEL ==========
+    public void getHotelAdmins(DriverListCallback callback) {
+        Log.d(TAG, "Obteniendo administradores de hotel...");
 
+        firestore.collection(USERS_COLLECTION)
+                .whereEqualTo("userType", "hotel_admin")
+                .get()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        List<UserModel> admins = new ArrayList<>();
+
+                        for (DocumentSnapshot document : task.getResult()) {
+                            try {
+                                UserModel admin = UserModel.fromMap(document.getData());
+                                admin.setUserId(document.getId());
+                                admins.add(admin);
+                            } catch (Exception e) {
+                                Log.e(TAG, "Error parseando admin de hotel: " + e.getMessage());
+                            }
+                        }
+
+                        Log.d(TAG, "✅ " + admins.size() + " administradores de hotel obtenidos");
+                        callback.onSuccess(admins);
+
+                    } else {
+                        String error = task.getException() != null ?
+                                task.getException().getMessage() : "Error desconocido";
+                        Log.e(TAG, "❌ Error obteniendo admins de hotel: " + error);
+                        callback.onError(error);
+                    }
+                });
+    }
+
+    // ========== MÉTODO PARA ACTIVAR/DESACTIVAR ADMIN ==========
+    public void toggleHotelAdminStatus(String adminId, boolean newStatus, DataCallback callback) {
+        Log.d(TAG, "Cambiando estado de admin: " + adminId + " a " + newStatus);
+
+        firestore.collection(USERS_COLLECTION)
+                .document(adminId)
+                .update("active", newStatus)
+                .addOnSuccessListener(aVoid -> {
+                    Log.d(TAG, "✅ Estado de admin actualizado");
+                    callback.onSuccess();
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "❌ Error actualizando estado: " + e.getMessage());
+                    callback.onError(e.getMessage());
+                });
+    }
+
+    // ========== MÉTODO PARA ACTUALIZAR ADMIN DE HOTEL ==========
+    public void updateHotelAdmin(String adminId, Map<String, Object> updates, DataCallback callback) {
+        Log.d(TAG, "Actualizando admin de hotel: " + adminId);
+
+        // Validar parámetros
+        if (adminId == null || adminId.isEmpty()) {
+            Log.e(TAG, "❌ ID de admin inválido");
+            callback.onError("ID de administrador inválido");
+            return;
+        }
+
+        if (updates == null || updates.isEmpty()) {
+            Log.e(TAG, "❌ No hay datos para actualizar");
+            callback.onError("No hay datos para actualizar");
+            return;
+        }
+
+        // Agregar timestamp de actualización
+        updates.put("updatedAt", System.currentTimeMillis());
+
+        Log.d(TAG, "Datos a actualizar: " + updates.toString());
+
+        firestore.collection(USERS_COLLECTION)
+                .document(adminId)
+                .update(updates)
+                .addOnSuccessListener(aVoid -> {
+                    Log.d(TAG, "✅ Admin de hotel actualizado exitosamente");
+                    callback.onSuccess();
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "❌ Error actualizando admin: " + e.getMessage());
+                    callback.onError(e.getMessage());
+                });
+    }
+
+    // ========== MÉTODO PARA OBTENER TODOS LOS USUARIOS DEL SISTEMA ==========
+    public void getAllUsers(DriverListCallback callback) {
+        Log.d(TAG, "Obteniendo todos los usuarios del sistema...");
+
+        List<UserModel> allUsers = new ArrayList<>();
+        final int[] completedQueries = {0};
+        final boolean[] hasErrors = {false};
+        final int totalQueries = 2; // users + pending_drivers
+
+        // Query 1: Obtener usuarios activos (clientes, admins hotel, taxistas aprobados, superadmins)
+        firestore.collection(USERS_COLLECTION)
+                .get()
+                .addOnCompleteListener(task1 -> {
+                    if (task1.isSuccessful() && !hasErrors[0]) {
+                        for (DocumentSnapshot document : task1.getResult()) {
+                            try {
+                                UserModel user = UserModel.fromMap(document.getData());
+                                user.setUserId(document.getId());
+                                // Marcar como usuario activo/aprobado
+                                user.setActive(true);
+                                allUsers.add(user);
+                            } catch (Exception e) {
+                                Log.e(TAG, "Error parseando usuario activo: " + e.getMessage());
+                            }
+                        }
+                        Log.d(TAG, "✅ " + task1.getResult().size() + " usuarios activos obtenidos");
+                    } else if (!hasErrors[0]) {
+                        Log.e(TAG, "❌ Error obteniendo usuarios activos");
+                        hasErrors[0] = true;
+                        callback.onError("Error obteniendo usuarios activos");
+                        return;
+                    }
+
+                    completedQueries[0]++;
+                    if (completedQueries[0] == totalQueries) {
+                        Log.d(TAG, "✅ Total: " + allUsers.size() + " usuarios obtenidos");
+                        callback.onSuccess(allUsers);
+                    }
+                });
+
+        // Query 2: Obtener taxistas pendientes
+        firestore.collection(PENDING_DRIVERS_COLLECTION)
+                .get()
+                .addOnCompleteListener(task2 -> {
+                    if (task2.isSuccessful() && !hasErrors[0]) {
+                        for (DocumentSnapshot document : task2.getResult()) {
+                            try {
+                                UserModel user = UserModel.fromMap(document.getData());
+                                user.setUserId(document.getId());
+                                user.setUserType("driver"); // Asegurar que sea driver
+                                // Marcar como pendiente
+                                user.setActive(false);
+                                allUsers.add(user);
+                            } catch (Exception e) {
+                                Log.e(TAG, "Error parseando taxista pendiente: " + e.getMessage());
+                            }
+                        }
+                        Log.d(TAG, "✅ " + task2.getResult().size() + " taxistas pendientes obtenidos");
+                    } else if (!hasErrors[0]) {
+                        Log.e(TAG, "❌ Error obteniendo taxistas pendientes");
+                        hasErrors[0] = true;
+                        callback.onError("Error obteniendo taxistas pendientes");
+                        return;
+                    }
+
+                    completedQueries[0]++;
+                    if (completedQueries[0] == totalQueries) {
+                        Log.d(TAG, "✅ Total: " + allUsers.size() + " usuarios obtenidos");
+                        callback.onSuccess(allUsers);
+                    }
+                });
+    }
+
+    // ========== MÉTODO PARA OBTENER ESTADÍSTICAS DE USUARIOS ==========
+    public void getUserStatistics(UserStatsCallback callback) {
+        Log.d(TAG, "Obteniendo estadísticas de usuarios...");
+
+        getAllUsers(new DriverListCallback() {
+            @Override
+            public void onSuccess(List<UserModel> users) {
+                UserStatistics stats = new UserStatistics();
+
+                for (UserModel user : users) {
+                    stats.totalUsers++;
+
+                    switch (user.getUserType()) {
+                        case "client":
+                            stats.totalClients++;
+                            if (user.isActive()) stats.activeClients++;
+                            break;
+                        case "driver":
+                            stats.totalDrivers++;
+                            if (user.isActive()) {
+                                stats.approvedDrivers++;
+                            } else {
+                                stats.pendingDrivers++;
+                            }
+                            break;
+                        case "hotel_admin":
+                            stats.totalHotelAdmins++;
+                            if (user.isActive()) stats.activeHotelAdmins++;
+                            break;
+                        case "superadmin":
+                            stats.totalSuperAdmins++;
+                            break;
+                    }
+
+                    if (user.isActive()) stats.totalActiveUsers++;
+                }
+
+                Log.d(TAG, "✅ Estadísticas calculadas: " + stats.totalUsers + " usuarios totales");
+                callback.onSuccess(stats);
+            }
+
+            @Override
+            public void onError(String error) {
+                Log.e(TAG, "❌ Error obteniendo estadísticas: " + error);
+                callback.onError(error);
+            }
+        });
+    }
+
+    // ========== INTERFACES PARA ESTADÍSTICAS ==========
+    public interface UserStatsCallback {
+        void onSuccess(UserStatistics stats);
+        void onError(String error);
+    }
+
+    public static class UserStatistics {
+        public int totalUsers = 0;
+        public int totalActiveUsers = 0;
+        public int totalClients = 0;
+        public int activeClients = 0;
+        public int totalDrivers = 0;
+        public int approvedDrivers = 0;
+        public int pendingDrivers = 0;
+        public int totalHotelAdmins = 0;
+        public int activeHotelAdmins = 0;
+        public int totalSuperAdmins = 0;
+
+        @Override
+        public String toString() {
+            return "UserStatistics{" +
+                    "totalUsers=" + totalUsers +
+                    ", activeUsers=" + totalActiveUsers +
+                    ", clients=" + totalClients +
+                    ", drivers=" + totalDrivers +
+                    ", hotelAdmins=" + totalHotelAdmins +
+                    '}';
+        }
+    }
 
 }

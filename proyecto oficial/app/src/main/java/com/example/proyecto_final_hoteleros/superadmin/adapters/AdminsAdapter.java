@@ -82,15 +82,49 @@ public class AdminsAdapter extends RecyclerView.Adapter<AdminsAdapter.AdminViewH
             tvHotel.setText(admin.getHotelName());
             tvRegistrationDate.setText("Registrado: " + admin.getRegistrationDate());
 
-            // Configurar chip de estado
-            chipStatus.setText(admin.getStatusText());
-            chipStatus.setChipBackgroundColor(android.content.res.ColorStateList.valueOf(admin.getStatusColor()));
+            // Configurar estado con TextView personalizado más visible
+            if (admin.isActive()) {
+                chipStatus.setText("✅ ACTIVO");
+                chipStatus.setBackgroundColor(android.graphics.Color.parseColor("#4CAF50")); // Verde
+                chipStatus.setTextColor(android.graphics.Color.BLACK);
+            } else {
+                chipStatus.setText("❌ INACTIVO");
+                chipStatus.setBackgroundColor(android.graphics.Color.parseColor("#F44336")); // Rojo
+                chipStatus.setTextColor(android.graphics.Color.BLACK);
+            }
 
-            // Configurar botón de toggle
-            btnToggleStatus.setText(admin.isActive() ? "Desactivar" : "Activar");
-            btnToggleStatus.setBackgroundColor(admin.isActive() ?
-                    android.graphics.Color.parseColor("#F44336") :
-                    android.graphics.Color.parseColor("#4CAF50"));
+            // Estilo mejorado
+            chipStatus.setTextSize(11);
+            chipStatus.setPadding(12, 6, 12, 6);
+            chipStatus.setTypeface(null, android.graphics.Typeface.BOLD);
+
+            // Esquinas redondeadas
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.JELLY_BEAN) {
+                android.graphics.drawable.GradientDrawable shape = new android.graphics.drawable.GradientDrawable();
+                shape.setShape(android.graphics.drawable.GradientDrawable.RECTANGLE);
+                shape.setCornerRadius(20f); // Esquinas redondeadas
+                if (admin.isActive()) {
+                    shape.setColor(android.graphics.Color.parseColor("#4CAF50"));
+                } else {
+                    shape.setColor(android.graphics.Color.parseColor("#F44336"));
+                }
+                chipStatus.setBackground(shape);
+            }
+
+            // Configurar botón de toggle con mejor UX
+            if (admin.isActive()) {
+                btnToggleStatus.setText("🔒 Desactivar");
+                btnToggleStatus.setBackgroundTintList(android.content.res.ColorStateList.valueOf(
+                        android.graphics.Color.parseColor("#F44336"))); // Rojo
+            } else {
+                btnToggleStatus.setText("✅ Activar");
+                btnToggleStatus.setBackgroundTintList(android.content.res.ColorStateList.valueOf(
+                        android.graphics.Color.parseColor("#4CAF50"))); // Verde
+            }
+
+            // Mejorar estilo del botón
+            btnToggleStatus.setTextColor(android.graphics.Color.WHITE);
+            btnToggleStatus.setAllCaps(false); // Texto normal, no mayúsculas
 
             // Configurar imagen de perfil (placeholder por ahora)
             ivProfile.setImageResource(R.drawable.ic_person);
@@ -100,6 +134,19 @@ public class AdminsAdapter extends RecyclerView.Adapter<AdminsAdapter.AdminViewH
                 if (actionListener != null) {
                     actionListener.onAdminAction(admin, "view_details");
                 }
+            });
+
+            cardAdmin.setOnTouchListener((v, event) -> {
+                switch (event.getAction()) {
+                    case android.view.MotionEvent.ACTION_DOWN:
+                        v.setAlpha(0.7f);
+                        break;
+                    case android.view.MotionEvent.ACTION_UP:
+                    case android.view.MotionEvent.ACTION_CANCEL:
+                        v.setAlpha(1.0f);
+                        break;
+                }
+                return false;
             });
 
             btnToggleStatus.setOnClickListener(v -> {

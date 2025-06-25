@@ -60,7 +60,7 @@
                         android:layout_height="wrap_content"
                         android:text="Activo"
                         android:textSize="11sp"
-                        android:textColor="@android:color/white"
+                        android:textColor="@android:color/black"
                         app:chipMinHeight="24dp" />
 
                 </LinearLayout>
