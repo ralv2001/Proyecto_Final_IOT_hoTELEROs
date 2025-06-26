@@ -866,4 +866,275 @@ public class FirebaseManager {
         }
     }
 
+
+    // ========== FIX PREVENTIVO: LIMPIEZA DE DATOS ANTIGUOS ==========
+
+    /**
+     * Método para limpiar datos antiguos de un usuario antes de crear nuevos
+     * Esto previene problemas de reutilización de UID
+     */
+    private void deleteOldUserData(String userId, Runnable onComplete) {
+        Log.d(TAG, "🧹 Limpiando datos antiguos para UID: " + userId);
+
+        final int[] completedDeletions = {0};
+        final int totalDeletions = 3; // users, pending_drivers, hotel_admins
+
+        // Eliminar de 'users'
+        firestore.collection("users").document(userId).delete()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        Log.d(TAG, "✅ Datos eliminados de 'users'");
+                    } else {
+                        Log.d(TAG, "ℹ️ No había datos en 'users' (normal para nuevo usuario)");
+                    }
+
+                    completedDeletions[0]++;
+                    if (completedDeletions[0] == totalDeletions && onComplete != null) {
+                        onComplete.run();
+                    }
+                });
+
+        // Eliminar de 'pending_drivers'
+        firestore.collection("pending_drivers").document(userId).delete()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        Log.d(TAG, "✅ Datos eliminados de 'pending_drivers'");
+                    } else {
+                        Log.d(TAG, "ℹ️ No había datos en 'pending_drivers' (normal para nuevo usuario)");
+                    }
+
+                    completedDeletions[0]++;
+                    if (completedDeletions[0] == totalDeletions && onComplete != null) {
+                        onComplete.run();
+                    }
+                });
+
+        // Eliminar de 'hotel_admins' (por si acaso)
+        firestore.collection("hotel_admins").document(userId).delete()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        Log.d(TAG, "✅ Datos eliminados de 'hotel_admins'");
+                    } else {
+                        Log.d(TAG, "ℹ️ No había datos en 'hotel_admins' (normal para nuevo usuario)");
+                    }
+
+                    completedDeletions[0]++;
+                    if (completedDeletions[0] == totalDeletions && onComplete != null) {
+                        onComplete.run();
+                    }
+                });
+    }
+
+    /**
+     * Método mejorado para guardar datos de usuario con limpieza preventiva
+     */
+    public void saveUserDataSafe(String userId, UserModel userModel, DataCallback callback) {
+        Log.d(TAG, "💾 Guardando datos del usuario SAFE: " + userId + " - Tipo: " + userModel.getUserType());
+
+        // PASO 1: Verificar si ya existe algún dato para este UID
+        checkIfUserExistsInAnyCollection(userId, new UserExistsCallback() {
+            @Override
+            public void onUserExists(String foundInCollection) {
+                Log.w(TAG, "⚠️ Usuario ya existe en '" + foundInCollection + "', limpiando datos antiguos...");
+
+                // Limpiar datos antiguos y luego proceder
+                deleteOldUserData(userId, () -> {
+                    // Esperar 1 segundo y proceder con creación limpia
+                    new android.os.Handler().postDelayed(() -> {
+                        proceedWithUserCreation(userId, userModel, callback);
+                    }, 1000);
+                });
+            }
+
+            @Override
+            public void onUserNotExists() {
+                Log.d(TAG, "✅ Usuario limpio, procediendo directamente");
+                // Usuario limpio, proceder normalmente
+                proceedWithUserCreation(userId, userModel, callback);
+            }
+
+            @Override
+            public void onError(String error) {
+                Log.e(TAG, "❌ Error verificando existencia de usuario: " + error);
+                // En caso de error, proceder normalmente (mejor que fallar)
+                proceedWithUserCreation(userId, userModel, callback);
+            }
+        });
+    }
+
+    /**
+     * Método para proceder con la creación después de limpieza
+     */
+    private void proceedWithUserCreation(String userId, UserModel userModel, DataCallback callback) {
+        Log.d(TAG, "🚀 Procediendo con creación limpia para: " + userId + " - Tipo: " + userModel.getUserType());
+
+        String targetCollection;
+
+        // Determinar colección según tipo de usuario
+        if ("driver".equals(userModel.getUserType())) {
+            targetCollection = PENDING_DRIVERS_COLLECTION;
+            Log.d(TAG, "📋 Guardando taxista en pending_drivers");
+        } else {
+            targetCollection = USERS_COLLECTION;
+            Log.d(TAG, "👤 Guardando usuario en users");
+        }
+
+        // Guardar en la colección apropiada
+        firestore.collection(targetCollection)
+                .document(userId)
+                .set(userModel.toMap())
+                .addOnSuccessListener(aVoid -> {
+                    Log.d(TAG, "✅ Usuario guardado exitosamente en " + targetCollection);
+                    callback.onSuccess();
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "❌ Error guardando usuario: " + e.getMessage());
+                    callback.onError(e.getMessage());
+                });
+    }
+
+    /**
+     * Interface para verificar existencia de usuario
+     */
+    public interface UserExistsCallback {
+        void onUserExists(String foundInCollection);
+        void onUserNotExists();
+        void onError(String error);
+    }
+
+    /**
+     * Verificar si un usuario existe en cualquier colección
+     */
+    private void checkIfUserExistsInAnyCollection(String userId, UserExistsCallback callback) {
+        Log.d(TAG, "🔍 Verificando existencia de usuario en todas las colecciones: " + userId);
+
+        // Verificar en 'users' primero
+        firestore.collection("users").document(userId).get()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful() && task.getResult() != null && task.getResult().exists()) {
+                        Log.d(TAG, "⚠️ Usuario encontrado en 'users'");
+                        callback.onUserExists("users");
+                        return;
+                    }
+
+                    // Si no está en users, verificar en pending_drivers
+                    firestore.collection("pending_drivers").document(userId).get()
+                            .addOnCompleteListener(pendingTask -> {
+                                if (pendingTask.isSuccessful() && pendingTask.getResult() != null && pendingTask.getResult().exists()) {
+                                    Log.d(TAG, "⚠️ Usuario encontrado en 'pending_drivers'");
+                                    callback.onUserExists("pending_drivers");
+                                    return;
+                                }
+
+                                // Si no está en ninguna, usuario limpio
+                                Log.d(TAG, "✅ Usuario no existe en ninguna colección");
+                                callback.onUserNotExists();
+                            })
+                            .addOnFailureListener(e -> {
+                                Log.e(TAG, "❌ Error verificando pending_drivers: " + e.getMessage());
+                                callback.onError(e.getMessage());
+                            });
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "❌ Error verificando users: " + e.getMessage());
+                    callback.onError(e.getMessage());
+                });
+    }
+
+    // ========== ACTUALIZAR PERFIL DE TAXISTA ==========
+    public void updateDriverProfile(String userId, String newPhone, String newAddress, String newPhotoUrl, DataCallback callback) {
+        Log.d(TAG, "🔄 Actualizando perfil de taxista: " + userId);
+        Log.d(TAG, "Nuevo teléfono: " + newPhone);
+        Log.d(TAG, "Nueva dirección: " + newAddress);
+        Log.d(TAG, "Nueva foto: " + (newPhotoUrl != null ? "SÍ" : "NO"));
+
+        // Crear mapa con los campos a actualizar
+        Map<String, Object> updates = new HashMap<>();
+
+        if (newPhone != null && !newPhone.trim().isEmpty()) {
+            updates.put("telefono", newPhone.trim());
+        }
+
+        if (newAddress != null && !newAddress.trim().isEmpty()) {
+            updates.put("direccion", newAddress.trim());
+        }
+
+        if (newPhotoUrl != null && !newPhotoUrl.trim().isEmpty()) {
+            updates.put("photoUrl", newPhotoUrl.trim());
+        }
+
+        // Agregar timestamp de actualización
+        updates.put("updatedAt", System.currentTimeMillis());
+
+        if (updates.size() <= 1) { // Solo timestamp
+            Log.w(TAG, "⚠️ No hay datos para actualizar");
+            callback.onError("No hay cambios para guardar");
+            return;
+        }
+
+        Log.d(TAG, "📝 Datos a actualizar: " + updates.toString());
+
+        // Actualizar en la colección 'users' (taxistas aprobados)
+        firestore.collection(USERS_COLLECTION)
+                .document(userId)
+                .update(updates)
+                .addOnSuccessListener(aVoid -> {
+                    Log.d(TAG, "✅ Perfil de taxista actualizado exitosamente en 'users'");
+                    callback.onSuccess();
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "❌ Error actualizando perfil en 'users': " + e.getMessage());
+                    // Si falla en users, no hay más intentos porque el taxista debe estar aprobado
+                    callback.onError("Error actualizando perfil: " + e.getMessage());
+                });
+    }
+
+
+    // ========== ACTUALIZAR PERFIL DE CLIENTE ==========
+    public void updateClientProfile(String userId, String newPhone, String newAddress, String newPhotoUrl, DataCallback callback) {
+        Log.d(TAG, "🔄 Actualizando perfil de cliente: " + userId);
+        Log.d(TAG, "Nuevo teléfono: " + newPhone);
+        Log.d(TAG, "Nueva dirección: " + newAddress);
+        Log.d(TAG, "Nueva foto: " + (newPhotoUrl != null ? "SÍ" : "NO"));
+
+        // Crear mapa con los campos a actualizar
+        Map<String, Object> updates = new HashMap<>();
+
+        if (newPhone != null && !newPhone.trim().isEmpty()) {
+            updates.put("telefono", newPhone.trim());
+        }
+
+        if (newAddress != null && !newAddress.trim().isEmpty()) {
+            updates.put("direccion", newAddress.trim());
+        }
+
+        if (newPhotoUrl != null && !newPhotoUrl.trim().isEmpty()) {
+            updates.put("photoUrl", newPhotoUrl.trim());
+        }
+
+        // Agregar timestamp de actualización
+        updates.put("updatedAt", System.currentTimeMillis());
+
+        if (updates.size() <= 1) { // Solo timestamp
+            Log.w(TAG, "⚠️ No hay datos para actualizar en cliente");
+            callback.onError("No hay cambios para guardar");
+            return;
+        }
+
+        Log.d(TAG, "📝 Datos del cliente a actualizar: " + updates.toString());
+
+        // Actualizar en la colección 'users' (clientes activos)
+        firestore.collection(USERS_COLLECTION)
+                .document(userId)
+                .update(updates)
+                .addOnSuccessListener(aVoid -> {
+                    Log.d(TAG, "✅ Perfil de cliente actualizado exitosamente en 'users'");
+                    callback.onSuccess();
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "❌ Error actualizando perfil de cliente: " + e.getMessage());
+                    callback.onError("Error actualizando perfil: " + e.getMessage());
+                });
+    }
+
 }

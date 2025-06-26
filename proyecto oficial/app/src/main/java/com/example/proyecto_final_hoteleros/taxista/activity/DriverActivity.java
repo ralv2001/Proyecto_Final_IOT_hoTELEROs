@@ -26,10 +26,31 @@ public class DriverActivity extends AppCompatActivity {
 
     private View lastSelectedNavItem;
 
+    // 🔥 NUEVOS CAMPOS PARA DATOS DEL USUARIO LOGUEADO
+    private String userId;
+    private String userEmail;
+    private String userName;
+    private String userType;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.taxi_activity_driver);
+
+        // 🔥 AGREGAR: Recibir datos del intent
+        Intent intent = getIntent();
+        if (intent != null) {
+            userId = intent.getStringExtra("userId");
+            userEmail = intent.getStringExtra("userEmail");
+            userName = intent.getStringExtra("userName");
+            userType = intent.getStringExtra("userType");
+
+            android.util.Log.d("DriverActivity", "=== DATOS RECIBIDOS ===");
+            android.util.Log.d("DriverActivity", "UserId: " + userId);
+            android.util.Log.d("DriverActivity", "Email: " + userEmail);
+            android.util.Log.d("DriverActivity", "Name: " + userName);
+            android.util.Log.d("DriverActivity", "Type: " + userType);
+        }
 
         // Inicializar las vistas de navegación
         navMapa = findViewById(R.id.nav_mapa);
@@ -50,6 +71,13 @@ public class DriverActivity extends AppCompatActivity {
             updateSelectedNavItem(navMapa);
         }
     }
+
+    // 🔥 GETTERS PARA QUE LOS FRAGMENTS ACCEDAN A LOS DATOS
+    public String getUserId() { return userId; }
+    public String getUserEmail() { return userEmail; }
+    public String getUserName() { return userName; }
+    public String getUserType() { return userType; }
+
     private void setupNavigationListeners() {
         navMapa.setOnClickListener(v -> {
             updateSelectedNavItem(v);

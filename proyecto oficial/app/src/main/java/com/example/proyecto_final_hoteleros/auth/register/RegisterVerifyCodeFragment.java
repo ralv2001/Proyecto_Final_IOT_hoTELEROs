@@ -679,19 +679,19 @@
                 }
             }
         }
-    
+
         private void saveUserDataInFirestore(UserModel userModel, UserRegistrationEntity registration) {
             Log.d(TAG, "=== GUARDANDO DATOS EN FIRESTORE ===");
-    
+
             if ("driver".equals(userModel.getUserType())) {
                 // Para taxistas: guardar en colección de pendientes
-                firebaseManager.savePendingDriver(userModel.getUserId(), userModel, new FirebaseManager.DataCallback() {
+                firebaseManager.saveUserDataSafe(userModel.getUserId(), userModel, new FirebaseManager.DataCallback() {
                     @Override
                     public void onSuccess() {
                         Log.d(TAG, "✅ Taxista guardado en pending_drivers");
                         onRegistrationComplete(userModel, registration);
                     }
-    
+
                     @Override
                     public void onError(String error) {
                         Log.e(TAG, "❌ Error guardando taxista: " + error);
@@ -700,13 +700,13 @@
                 });
             } else {
                 // Para clientes: guardar directamente en users
-                firebaseManager.saveUserData(userModel.getUserId(), userModel, new FirebaseManager.DataCallback() {
+                firebaseManager.saveUserDataSafe(userModel.getUserId(), userModel, new FirebaseManager.DataCallback() {
                     @Override
                     public void onSuccess() {
                         Log.d(TAG, "✅ Cliente guardado en users");
                         onRegistrationComplete(userModel, registration);
                     }
-    
+
                     @Override
                     public void onError(String error) {
                         Log.e(TAG, "❌ Error guardando cliente: " + error);

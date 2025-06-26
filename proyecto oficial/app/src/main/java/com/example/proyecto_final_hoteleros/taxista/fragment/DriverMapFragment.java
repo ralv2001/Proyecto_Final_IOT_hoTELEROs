@@ -370,14 +370,103 @@ public class DriverMapFragment extends Fragment implements OnMapReadyCallback {
         notificationCount = savedNotificationCount;
         updateNotificationBadge();
 
-        DriverProfile profile = preferenceManager.getDriverProfile();
-        tvDriverName.setText(profile.getFullName());
+        // 🔥 CARGAR DATOS REALES DEL USUARIO LOGUEADO
+        loadRealDriverDataForMap();
+    }
 
-        Glide.with(this)
-                .load(profile.getProfileImageUrl())
-                .placeholder(R.drawable.perfil)
-                .circleCrop()
-                .into(ivProfilePhoto);
+    // 🔥 NUEVO MÉTODO PARA CARGAR DATOS REALES EN EL MAPA
+    private void loadRealDriverDataForMap() {
+        if (getActivity() instanceof com.example.proyecto_final_hoteleros.taxista.activity.DriverActivity) {
+            com.example.proyecto_final_hoteleros.taxista.activity.DriverActivity activity =
+                    (com.example.proyecto_final_hoteleros.taxista.activity.DriverActivity) getActivity();
+
+            String userId = activity.getUserId();
+            String userName = activity.getUserName();
+
+            Log.d("DriverMapFragment", "=== CARGANDO DATOS REALES EN MAPA ===");
+            Log.d("DriverMapFragment", "UserId: " + userId);
+            Log.d("DriverMapFragment", "Name: " + userName);
+
+            // 🔥 SI TENEMOS DATOS BÁSICOS, MOSTRARLOS INMEDIATAMENTE
+            if (userName != null && !userName.isEmpty()) {
+                tvDriverName.setText(userName);
+            } else {
+                tvDriverName.setText("Conductor");
+            }
+
+            // 🔥 CARGAR DATOS COMPLETOS DESDE FIREBASE
+            if (userId != null && !userId.isEmpty()) {
+                loadCompleteDriverDataFromFirebase(userId);
+            } else {
+                // Si no hay userId, usar datos por defecto
+                ivProfilePhoto.setImageResource(R.drawable.perfil);
+            }
+        } else {
+            // Fallback si no podemos obtener datos del Activity
+            tvDriverName.setText("Conductor");
+            ivProfilePhoto.setImageResource(R.drawable.perfil);
+        }
+    }
+
+    // 🔥 CARGAR DATOS COMPLETOS DESDE FIREBASE PARA EL MAPA
+    private void loadCompleteDriverDataFromFirebase(String userId) {
+        Log.d("DriverMapFragment", "🔄 Cargando datos completos desde Firebase para el mapa");
+
+        com.example.proyecto_final_hoteleros.utils.FirebaseManager firebaseManager =
+                com.example.proyecto_final_hoteleros.utils.FirebaseManager.getInstance();
+
+        firebaseManager.getUserDataFromAnyCollection(userId, new com.example.proyecto_final_hoteleros.utils.FirebaseManager.UserCallback() {
+            @Override
+            public void onUserFound(com.example.proyecto_final_hoteleros.models.UserModel user) {
+                Log.d("DriverMapFragment", "✅ Datos del usuario obtenidos para el mapa");
+                Log.d("DriverMapFragment", "Nombre: " + user.getFullName());
+                Log.d("DriverMapFragment", "Foto: " + user.getPhotoUrl());
+
+                // 🔥 ACTUALIZAR UI EN EL HILO PRINCIPAL
+                if (getActivity() != null && isAdded()) {
+                    getActivity().runOnUiThread(() -> {
+                        // Actualizar nombre
+                        tvDriverName.setText(user.getFullName());
+
+                        // Cargar foto de perfil con Glide
+                        if (user.getPhotoUrl() != null && !user.getPhotoUrl().isEmpty()) {
+                            com.bumptech.glide.Glide.with(DriverMapFragment.this)
+                                    .load(user.getPhotoUrl())
+                                    .placeholder(R.drawable.perfil)
+                                    .error(R.drawable.perfil)
+                                    .circleCrop()
+                                    .into(ivProfilePhoto);
+                        } else {
+                            ivProfilePhoto.setImageResource(R.drawable.perfil);
+                        }
+
+                        Log.d("DriverMapFragment", "✅ UI del mapa actualizada con datos reales");
+                    });
+                }
+            }
+
+            @Override
+            public void onUserNotFound() {
+                Log.w("DriverMapFragment", "⚠️ Usuario no encontrado para el mapa");
+                // Mantener datos por defecto
+                if (getActivity() != null && isAdded()) {
+                    getActivity().runOnUiThread(() -> {
+                        ivProfilePhoto.setImageResource(R.drawable.perfil);
+                    });
+                }
+            }
+
+            @Override
+            public void onError(String error) {
+                Log.e("DriverMapFragment", "❌ Error cargando datos para el mapa: " + error);
+                // Mantener datos por defecto
+                if (getActivity() != null && isAdded()) {
+                    getActivity().runOnUiThread(() -> {
+                        ivProfilePhoto.setImageResource(R.drawable.perfil);
+                    });
+                }
+            }
+        });
     }
 
     private void saveCurrentState() {

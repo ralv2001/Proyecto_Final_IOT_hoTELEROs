@@ -146,10 +146,71 @@ public class HomeFragment extends BaseBottomNavigationFragment {
 
     private void setupUserData() {
         if (tvGreeting != null) {
-            String greetingText = "Hola, " + UserDataManager.getInstance().getUserName();
-            tvGreeting.setText(greetingText);
-            Log.d(TAG, "Greeting configurado: " + greetingText);
+            // 🔥 CARGAR DATOS REALES DEL USUARIO
+            loadRealUserDataForHome();
         }
+    }
+
+    // 🔥 CARGAR DATOS REALES PARA EL HOME
+    private void loadRealUserDataForHome() {
+        if (getActivity() instanceof com.example.proyecto_final_hoteleros.client.ui.activity.HomeActivity) {
+            com.example.proyecto_final_hoteleros.client.ui.activity.HomeActivity activity =
+                    (com.example.proyecto_final_hoteleros.client.ui.activity.HomeActivity) getActivity();
+
+            String userId = activity.getUserId();
+            String userName = activity.getUserName();
+
+            // 🔥 MOSTRAR NOMBRE BÁSICO INMEDIATAMENTE
+            if (userName != null && !userName.isEmpty()) {
+                String greetingText = "Hola, " + userName;
+                tvGreeting.setText(greetingText);
+                Log.d(TAG, "Greeting básico configurado: " + greetingText);
+            }
+
+            // 🔥 CARGAR DATOS COMPLETOS DESDE FIREBASE
+            if (userId != null && !userId.isEmpty()) {
+                loadCompleteUserDataFromFirebase(userId);
+            }
+        }
+    }
+
+    // 🔥 CARGAR DATOS COMPLETOS DESDE FIREBASE PARA EL HOME
+    private void loadCompleteUserDataFromFirebase(String userId) {
+        Log.d(TAG, "🔄 Cargando datos completos desde Firebase para el home");
+
+        com.example.proyecto_final_hoteleros.utils.FirebaseManager firebaseManager =
+                com.example.proyecto_final_hoteleros.utils.FirebaseManager.getInstance();
+
+        firebaseManager.getUserDataFromAnyCollection(userId, new com.example.proyecto_final_hoteleros.utils.FirebaseManager.UserCallback() {
+            @Override
+            public void onUserFound(com.example.proyecto_final_hoteleros.models.UserModel user) {
+                Log.d(TAG, "✅ Datos del usuario obtenidos para el home");
+                Log.d(TAG, "Nombre completo: " + user.getFullName());
+
+                // 🔥 ACTUALIZAR UI EN EL HILO PRINCIPAL
+                if (getActivity() != null && isAdded()) {
+                    getActivity().runOnUiThread(() -> {
+                        // Actualizar saludo con nombre completo
+                        String greetingText = "Hola, " + user.getNombres();
+                        tvGreeting.setText(greetingText);
+
+                        Log.d(TAG, "✅ Home actualizado con datos reales: " + greetingText);
+                    });
+                }
+            }
+
+            @Override
+            public void onUserNotFound() {
+                Log.w(TAG, "⚠️ Usuario no encontrado para el home");
+                // Mantener saludo básico
+            }
+
+            @Override
+            public void onError(String error) {
+                Log.e(TAG, "❌ Error cargando datos para el home: " + error);
+                // Mantener saludo básico
+            }
+        });
     }
 
     private void setupHotelsData() {
