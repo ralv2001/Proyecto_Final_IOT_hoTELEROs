@@ -1041,4 +1041,52 @@ public class FirebaseManager {
                 });
     }
 
+    // ========== ACTUALIZAR PERFIL DE TAXISTA ==========
+    public void updateDriverProfile(String userId, String newPhone, String newAddress, String newPhotoUrl, DataCallback callback) {
+        Log.d(TAG, "🔄 Actualizando perfil de taxista: " + userId);
+        Log.d(TAG, "Nuevo teléfono: " + newPhone);
+        Log.d(TAG, "Nueva dirección: " + newAddress);
+        Log.d(TAG, "Nueva foto: " + (newPhotoUrl != null ? "SÍ" : "NO"));
+
+        // Crear mapa con los campos a actualizar
+        Map<String, Object> updates = new HashMap<>();
+
+        if (newPhone != null && !newPhone.trim().isEmpty()) {
+            updates.put("telefono", newPhone.trim());
+        }
+
+        if (newAddress != null && !newAddress.trim().isEmpty()) {
+            updates.put("direccion", newAddress.trim());
+        }
+
+        if (newPhotoUrl != null && !newPhotoUrl.trim().isEmpty()) {
+            updates.put("photoUrl", newPhotoUrl.trim());
+        }
+
+        // Agregar timestamp de actualización
+        updates.put("updatedAt", System.currentTimeMillis());
+
+        if (updates.size() <= 1) { // Solo timestamp
+            Log.w(TAG, "⚠️ No hay datos para actualizar");
+            callback.onError("No hay cambios para guardar");
+            return;
+        }
+
+        Log.d(TAG, "📝 Datos a actualizar: " + updates.toString());
+
+        // Actualizar en la colección 'users' (taxistas aprobados)
+        firestore.collection(USERS_COLLECTION)
+                .document(userId)
+                .update(updates)
+                .addOnSuccessListener(aVoid -> {
+                    Log.d(TAG, "✅ Perfil de taxista actualizado exitosamente en 'users'");
+                    callback.onSuccess();
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "❌ Error actualizando perfil en 'users': " + e.getMessage());
+                    // Si falla en users, no hay más intentos porque el taxista debe estar aprobado
+                    callback.onError("Error actualizando perfil: " + e.getMessage());
+                });
+    }
+
 }
