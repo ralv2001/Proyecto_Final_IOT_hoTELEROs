@@ -8,6 +8,7 @@ import com.example.proyecto_final_hoteleros.database.AppDatabase;
 import com.example.proyecto_final_hoteleros.database.dao.FileStorageDao;
 import com.example.proyecto_final_hoteleros.database.entities.FileStorageEntity;
 import com.example.proyecto_final_hoteleros.utils.AwsFileManager;
+import com.example.proyecto_final_hoteleros.utils.UniqueIdGenerator;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -17,6 +18,7 @@ import java.io.InputStream;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+
 
 public class FileStorageRepository {
 
@@ -28,6 +30,9 @@ public class FileStorageRepository {
     private final ExecutorService executor;
     private final File uploadsDir;
 
+    // ========== GENERACIÓN DE IDS THREAD-SAFE ==========
+    private UniqueIdGenerator uniqueIdGenerator;
+
     public FileStorageRepository(Context context) {
         this.context = context.getApplicationContext();
         this.fileStorageDao = AppDatabase.getInstance(context).fileStorageDao();
@@ -38,6 +43,13 @@ public class FileStorageRepository {
         if (!uploadsDir.exists()) {
             boolean created = uploadsDir.mkdirs();
             Log.d(TAG, "Uploads directory created: " + created);
+        }
+    }
+
+    // Inicializar UniqueIdGenerator
+    private void initializeUniqueIdGenerator() {
+        if (uniqueIdGenerator == null) {
+            uniqueIdGenerator = UniqueIdGenerator.getInstance(context);
         }
     }
 
@@ -59,6 +71,7 @@ public class FileStorageRepository {
             try {
                 // Crear nombre único para el archivo
                 String fileName = generateUniqueFileName(originalName, fileType);
+                Log.d(TAG, "🔍 LOCAL SAVE DEBUG - Generated unique filename: " + fileName + " for registration: " + registrationId);
                 File permanentFile = new File(uploadsDir, fileName);
 
                 // Copiar archivo temporal a ubicación permanente
@@ -178,9 +191,8 @@ public class FileStorageRepository {
 
     // Métodos helper privados
     private String generateUniqueFileName(String originalName, String fileType) {
-        long timestamp = System.currentTimeMillis();
-        String extension = getFileExtension(originalName);
-        return fileType.toLowerCase() + "_" + timestamp + "." + extension;
+        initializeUniqueIdGenerator();
+        return uniqueIdGenerator.generateUniqueFileName(fileType, originalName);
     }
 
     private String getFileExtension(String fileName) {
@@ -246,11 +258,21 @@ public class FileStorageRepository {
 
         initializeAwsManager();
 
+        // Debug para verificar IDs únicos en uploads concurrentes
+        Log.d(TAG, "🔍 CONCURRENCY DEBUG:");
+        Log.d(TAG, "  - Registration ID: " + registrationId);
+        Log.d(TAG, "  - Thread ID: " + Thread.currentThread().getId());
+        Log.d(TAG, "  - Timestamp: " + System.currentTimeMillis());
+        Log.d(TAG, "  - Original filename: " + originalName);
+        Log.d(TAG, "  - File type: " + fileType);
+
         executor.execute(() -> {
             try {
                 // Determinar folder según tipo de archivo
                 String awsFolder = fileType.equals(FileStorageEntity.FILE_TYPE_PDF) ? "documents" : "photos";
-                String userId = "reg_" + registrationId; // Usar registration ID como user ID temporal
+                initializeUniqueIdGenerator();
+                String userId = uniqueIdGenerator.generateAwsUserId(); // Generar ID único para AWS
+                Log.d(TAG, "🔍 CONCURRENCY DEBUG - Using unique AWS User ID: " + userId + " for registration: " + registrationId);
 
                 Log.d(TAG, "Subiendo archivo a AWS: " + originalName);
 

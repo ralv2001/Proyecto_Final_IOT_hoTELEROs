@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+
+    <!-- Fondo del edificio -->
+    <path
+        android:fillColor="#FF6B35"
+        android:pathData="M3,21h18v-12l-9-6l-9,6v12z" />
+
+    <!-- Techo -->
+    <path
+        android:fillColor="#D35400"
+        android:pathData="M2,9l10-7l10,7h-20z" />
+
+    <!-- Ventanas -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M6,12h2v2h-2v-2z" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M16,12h2v2h-2v-2z" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M6,16h2v2h-2v-2z" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M16,16h2v2h-2v-2z" />
+
+    <!-- Puerta -->
+    <path
+        android:fillColor="#8B4513"
+        android:pathData="M10,15h4v6h-4v-6z" />
+
+    <!-- Letrero HOTEL -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M8,10h8v1h-8v-1z" />
+
+    <!-- Base -->
+    <path
+        android:fillColor="#34495E"
+        android:pathData="M2,21h20v1h-20v-1z" />
+</vector>

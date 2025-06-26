@@ -10,7 +10,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
-
+import android.os.Handler;
 import com.example.proyecto_final_hoteleros.R;
 import com.example.proyecto_final_hoteleros.models.UserModel;
 import com.example.proyecto_final_hoteleros.superadmin.fragment.AddHotelAdminFragment;
@@ -331,6 +331,25 @@ public class SuperAdminActivity extends AppCompatActivity {
         // Cargar el dashboard
         DashboardFragment dashboardFragment = new DashboardFragment();
         loadFragment(dashboardFragment, "DASHBOARD", false);
+    }
+
+    public void navigateBackToDashboardWithRefresh() {
+        Log.d(TAG, "Navegando de vuelta al Dashboard con refresh forzado");
+
+        // Limpiar el back stack
+        getSupportFragmentManager().popBackStack(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
+
+        // Crear nuevo dashboard y forzar recarga de datos
+        DashboardFragment dashboardFragment = new DashboardFragment();
+        loadFragment(dashboardFragment, "DASHBOARD", false);
+
+        // 🔥 FORZAR REFRESH después de un delay adicional
+        new Handler().postDelayed(() -> {
+            Fragment currentFragment = getSupportFragmentManager().findFragmentByTag("DASHBOARD");
+            if (currentFragment instanceof DashboardFragment) {
+                ((DashboardFragment) currentFragment).forceDataRefresh();
+            }
+        }, 500);
     }
 
     private void showProfileOptions() {

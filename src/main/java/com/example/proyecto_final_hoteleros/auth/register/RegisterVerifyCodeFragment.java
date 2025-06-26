@@ -1,5 +1,6 @@
     package com.example.proyecto_final_hoteleros.auth.register;
     
+    import android.content.Context;
     import android.content.Intent;
     import android.net.Uri;
     import android.os.Bundle;
@@ -11,6 +12,7 @@
     import android.view.ViewGroup;
     import android.widget.EditText;
     import android.widget.ImageButton;
+    import android.widget.ImageView;
     import android.widget.TextView;
     import android.widget.Toast;
     import android.os.Handler;
@@ -94,6 +96,8 @@
             etCode5 = view.findViewById(R.id.etCode5);
             btnVerifyEmail = view.findViewById(R.id.btnVerifyEmail);
             btnVerifyEmail.setText("Verificar Email");
+            // Inicializar el spinner GIF
+            ivSpinnerGif = view.findViewById(R.id.ivSpinnerGif);
             tvInstructions = view.findViewById(R.id.tvInstructions);
     
             tvEmailSent = view.findViewById(R.id.tvEmailSent);
@@ -242,11 +246,14 @@
     
             // Inicializar verificación automática
             initializeEmailVerificationCheck();
-    
+
             // Deshabilitar botón inicialmente con estado "Verificando..."
             btnVerifyEmail.setEnabled(false);
             btnVerifyEmail.setText("Verificando...");
             btnVerifyEmail.setAlpha(0.6f);
+
+            // Iniciar animación del spinner
+            startSpinnerAnimation();
         }
     
         private String maskEmail(String email) {
@@ -726,9 +733,23 @@
     
         private void uploadFilesToAwsAndComplete(UserModel userModel, UserRegistrationEntity registration) {
             Log.d(TAG, "=== SUBIENDO ARCHIVOS A AWS ===");
-    
+
             // Obtener archivos desde Room Database
-            FileStorageRepository fileRepo = new FileStorageRepository(getActivity());
+            // Verificar que tenemos contexto válido antes de crear el repository
+            Context context = getContext();
+            if (context == null) {
+                Log.e(TAG, "❌ Context es null, no se puede continuar con la subida de archivos");
+                if (getActivity() != null) {
+                    getActivity().runOnUiThread(() -> {
+                        btnVerifyEmail.setText("Error: Contexto perdido");
+                        btnVerifyEmail.setEnabled(true);
+                        Toast.makeText(getActivity(), "Error: Sesión perdida. Por favor, intenta nuevamente.", Toast.LENGTH_LONG).show();
+                    });
+                }
+                return;
+            }
+
+            FileStorageRepository fileRepo = new FileStorageRepository(context);
 
             fileRepo.getFilesByRegistrationId(registration.id, new FileStorageRepository.FileListCallback() {
                 @Override
@@ -1069,20 +1090,23 @@
             // Tu lógica existente para completar el registro
             getRegistrationDataAndRegisterInFirebase();
         }
-    
+
         @Override
         public void onDestroyView() {
             super.onDestroyView();
-    
+
             // Limpiar handlers para evitar memory leaks
             if (verificationHandler != null && verificationRunnable != null) {
                 verificationHandler.removeCallbacks(verificationRunnable);
             }
-    
+
             if (resendHandler != null) {
                 resendHandler.removeCallbacksAndMessages(null);
             }
-    
+
+            // Detener animación del spinner
+            stopSpinnerAnimation();
+
             isCheckingVerification = false;
         }
     
@@ -1100,6 +1124,9 @@
                 getActivity().runOnUiThread(() -> {
                     btnVerifyEmail.setText("Completando registro...");
                     btnVerifyEmail.setEnabled(false);
+
+                    // Detener animación del spinner
+                    stopSpinnerAnimation();
                 });
             }
     
@@ -1322,6 +1349,53 @@
                 });
             } else {
                 Log.w(TAG, "⚠️ No hay registrationId disponible para debug");
+            }
+        }
+
+        // ========== ANIMACIÓN CON GIF PERSONALIZADO ==========
+
+        private ImageView ivSpinnerGif;
+
+        private void startSpinnerAnimation() {
+            Log.d(TAG, "🎬 Iniciando spinner GIF personalizado");
+
+            if (getActivity() != null && ivSpinnerGif != null && btnVerifyEmail != null) {
+                try {
+                    // Cargar el GIF usando Glide
+                    com.bumptech.glide.Glide.with(this)
+                            .asGif()
+                            .load(R.drawable.spinner_loading)
+                            .into(ivSpinnerGif);
+
+                    // Mostrar el spinner AL LADO del texto
+                    ivSpinnerGif.setVisibility(View.VISIBLE);
+
+                    // OPCIONAL: Quitar el texto del botón y usar solo el spinner + texto custom
+                    btnVerifyEmail.setText("    Verificando..."); // Espacios para el spinner
+
+                    Log.d(TAG, "✅ Spinner GIF iniciado correctamente");
+
+                } catch (Exception e) {
+                    Log.e(TAG, "❌ Error cargando GIF: " + e.getMessage());
+                    // Fallback: mostrar texto normal
+                    btnVerifyEmail.setText("Verificando...");
+                }
+            }
+        }
+
+        private void stopSpinnerAnimation() {
+            Log.d(TAG, "🛑 Deteniendo spinner GIF");
+
+            if (ivSpinnerGif != null) {
+                // Ocultar el spinner
+                ivSpinnerGif.setVisibility(View.GONE);
+
+                // Limpiar Glide para liberar memoria
+                if (getActivity() != null) {
+                    com.bumptech.glide.Glide.with(this).clear(ivSpinnerGif);
+                }
+
+                Log.d(TAG, "✅ Spinner GIF detenido");
             }
         }
     

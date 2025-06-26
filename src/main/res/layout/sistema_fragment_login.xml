@@ -208,21 +208,21 @@
                 </LinearLayout>
 
                 <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnFacebookLogin"
+                    android:id="@+id/btnGitHubLogin"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     app:backgroundTint="#FFFFFF"
                     app:strokeColor="#E1E1E1"
                     app:strokeWidth="1dp"
                     app:cornerRadius="12dp"
-                    app:icon="@drawable/ic_facebook_custom"
+                    app:icon="@drawable/ic_githubgozu"
                     app:iconGravity="textStart"
                     app:iconTint="@null"
                     app:iconPadding="8dp"
                     app:iconSize="24dp"
                     android:textColor="#2A2A2A"
                     style="@style/SocialButtonTextStyle"
-                    android:text="Iniciar sesión con Facebook"
+                    android:text="Iniciar sesión con GitHub"
                     android:paddingVertical="15dp"
                     android:layout_marginBottom="16dp"
                     android:layout_marginHorizontal="26dp" />

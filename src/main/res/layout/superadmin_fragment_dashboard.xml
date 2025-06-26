@@ -13,14 +13,64 @@
         android:padding="16dp">
 
         <!-- Sección de métricas -->
+        <!-- Header mejorado con indicador EN VIVO -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="8dp">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Resumen del sistema"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:textColor="@color/text_primary" />
+
+            <!-- Indicador EN VIVO -->
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:background="@drawable/live_indicator_background"
+                android:padding="6dp">
+
+                <View
+                    android:id="@+id/view_live_indicator"
+                    android:layout_width="6dp"
+                    android:layout_height="6dp"
+                    android:background="@drawable/circle_live_indicator"
+                    android:layout_marginEnd="4dp" />
+
+                <TextView
+                    android:id="@+id/tv_live_indicator"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="EN VIVO"
+                    android:textSize="10sp"
+                    android:textStyle="bold"
+                    android:textColor="#4CAF50" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+        <!-- Timestamp de última actualización -->
         <TextView
+            android:id="@+id/tv_last_update"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Resumen del sistema"
-            android:textSize="18sp"
-            android:textStyle="bold"
-            android:textColor="@color/text_primary"
-            android:layout_marginBottom="12dp" />
+            android:text="Última actualización: --:--:--"
+            android:textSize="12sp"
+            android:textColor="@color/text_secondary"
+            android:layout_marginBottom="12dp"
+            android:drawableStart="@drawable/ic_clock"
+            android:drawablePadding="4dp"
+            app:drawableTint="@color/text_secondary" />
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/rv_metrics"

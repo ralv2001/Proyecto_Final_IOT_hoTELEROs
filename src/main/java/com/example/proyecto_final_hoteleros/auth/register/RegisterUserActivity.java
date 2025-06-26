@@ -958,7 +958,6 @@ public class RegisterUserActivity extends AppCompatActivity {
             }
         }
 
-        // Crear entidad de registro
         UserRegistrationEntity registration = userRegistrationRepository.createFromViewModel(
                 userType,
                 etNombres.getText().toString().trim(),
@@ -966,45 +965,45 @@ public class RegisterUserActivity extends AppCompatActivity {
                 etEmail.getText().toString().trim(),
                 etFechaNacimiento.getText().toString().trim(),
                 etTelefono.getText().toString().trim(),
-                currentDocType,
+                currentDocType,  // ← ARREGLADO: Usar la variable que SÍ existe
                 etNumeroDocumento.getText().toString().trim(),
                 etDireccion.getText().toString().trim(),
                 "driver".equals(userType) ? etPlacaVehiculo.getText().toString().trim() : null,
                 etContrasena.getText().toString()
         );
 
-        // Si ya existe un registro, usar su ID
+        // Si ya existe un registro, actualizar en lugar de crear
         if (currentRegistrationId != -1) {
-            registration.id = currentRegistrationId;
+            registration.id = currentRegistrationId; // Mantener el ID existente para update
 
             userRegistrationRepository.updateUserRegistration(registration, new UserRegistrationRepository.RegistrationCallback() {
                 @Override
                 public void onSuccess(UserRegistrationEntity updatedRegistration) {
-                    Log.d("RegisterUser", "Registro actualizado exitosamente: " + updatedRegistration.id);
-                    // IMPORTANTE: NO llamar a proceedToNextStep desde aquí para evitar el bucle
+                    Log.d("RegisterUser", "✅ Registro actualizado exitosamente: " + updatedRegistration.id);
                     runOnUiThread(() -> proceedToNextStep(updatedRegistration.id));
                 }
 
                 @Override
                 public void onError(String error) {
-                    Log.e("RegisterUser", "Error actualizando registro: " + error);
+                    Log.e("RegisterUser", "❌ Error actualizando registro: " + error);
                     runOnUiThread(() -> Toast.makeText(RegisterUserActivity.this, "Error al guardar: " + error, Toast.LENGTH_SHORT).show());
                 }
             });
         } else {
-            // Crear nuevo registro
-            userRegistrationRepository.saveUserRegistration(registration, new UserRegistrationRepository.RegistrationIdCallback() {
+            // Crear nuevo registro - Room auto-generará el ID único
+            // NO asignar manualmente registration.id = algo
+
+            userRegistrationRepository.saveUserRegistrationSafe(registration, new UserRegistrationRepository.RegistrationIdCallback() {
                 @Override
                 public void onSuccess(int registrationId) {
                     currentRegistrationId = registrationId;
-                    Log.d("RegisterUser", "Nuevo registro creado: " + registrationId);
-                    // IMPORTANTE: NO llamar a proceedToNextStep desde aquí para evitar el bucle
+                    Log.d("RegisterUser", "✅ Nuevo registro creado con ID único: " + registrationId);
                     runOnUiThread(() -> proceedToNextStep(registrationId));
                 }
 
                 @Override
                 public void onError(String error) {
-                    Log.e("RegisterUser", "Error creando registro: " + error);
+                    Log.e("RegisterUser", "❌ Error creando registro: " + error);
                     runOnUiThread(() -> Toast.makeText(RegisterUserActivity.this, "Error al guardar: " + error, Toast.LENGTH_SHORT).show());
                 }
             });

@@ -187,6 +187,39 @@
     <color name="taxi_condition_bg">#FFF8E1</color>
     <color name="purple">#9C27B0</color>
     <color name="brown">#795548</color>
+
+
+    <!-- ========== COLORES TEMÁTICOS PARA DASHBOARD ========== -->
+
+    <!-- 🔵 AZUL - Usuarios y Gestión General -->
+    <color name="theme_blue_primary">#2196F3</color>
+    <color name="theme_blue_light">#E3F2FD</color>
+    <color name="theme_blue_dark">#1976D2</color>
+
+    <!-- 🟢 VERDE - Taxistas y Estados Positivos -->
+    <color name="theme_green_primary">#4CAF50</color>
+    <color name="theme_green_light">#E8F5E9</color>
+    <color name="theme_green_dark">#388E3C</color>
+
+    <!-- 🟠 NARANJA - Alertas e Importancia (tu color actual) -->
+    <color name="theme_orange_primary">#FF6B35</color>
+    <color name="theme_orange_light">#FFDECC</color>
+    <color name="theme_orange_dark">#E67730</color>
+
+    <!-- 🟣 PÚRPURA - Reportes y Analytics -->
+    <color name="theme_purple_primary">#9C27B0</color>
+    <color name="theme_purple_light">#F3E5F5</color>
+    <color name="theme_purple_dark">#7B1FA2</color>
+
+    <!-- 🟡 AMARILLO - Logs y Sistema -->
+    <color name="theme_yellow_primary">#FFC107</color>
+    <color name="theme_yellow_light">#FFF8E1</color>
+    <color name="theme_yellow_dark">#FF8F00</color>
+
+    <!-- 🔴 ROJO - Estados Críticos -->
+    <color name="theme_red_primary">#F44336</color>
+    <color name="theme_red_light">#FFEBEE</color>
+
     <color name="orange_very_light">#FFF3E0</color>
 
     <color name="blue_light">#E3F2FD</color>
@@ -210,6 +243,5 @@
     <!-- Colores adicionales que pueden ser útiles -->
     <color name="purple_dark">#7B1FA2</color>
     <color name="icon_color">#F4EFEF</color>
-
 
 </resources>
