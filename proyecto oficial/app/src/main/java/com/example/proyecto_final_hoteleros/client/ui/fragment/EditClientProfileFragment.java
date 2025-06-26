@@ -110,19 +110,44 @@ public class EditClientProfileFragment extends Fragment implements
     }
 
     private void loadClientData() {
-        // Obtener datos del cliente actual
-        if (currentClient == null) {
-            currentClient = getCurrentClientData();
-        }
+        Log.d(TAG, "🔄 Cargando datos reales del cliente para editar perfil");
 
         // Limpiar items existentes
         profileItems.clear();
 
-        // Agregar header con foto de perfil
+        // 🔥 CARGAR DATOS REALES DESDE EL ACTIVITY
+        if (getActivity() instanceof com.example.proyecto_final_hoteleros.client.ui.activity.HomeActivity) {
+            com.example.proyecto_final_hoteleros.client.ui.activity.HomeActivity activity =
+                    (com.example.proyecto_final_hoteleros.client.ui.activity.HomeActivity) getActivity();
+
+            String userId = activity.getUserId();
+            String userFullName = activity.getUserFullName();
+            String userEmail = activity.getUserEmail();
+
+            Log.d(TAG, "UserId: " + userId);
+            Log.d(TAG, "Name: " + userFullName);
+            Log.d(TAG, "Email: " + userEmail);
+
+            // 🔥 MOSTRAR DATOS BÁSICOS INMEDIATAMENTE
+            createBasicProfileItems(userFullName, userEmail);
+
+            // 🔥 CARGAR DATOS COMPLETOS DESDE FIREBASE
+            if (userId != null && !userId.isEmpty()) {
+                loadCompleteDataFromFirebase(userId);
+            }
+        } else {
+            // Fallback: crear perfil básico
+            createBasicProfileItems("Cliente", "cliente@email.com");
+        }
+    }
+
+    // 🔥 CREAR ITEMS BÁSICOS DEL PERFIL (SIN CAMPOS QUE NO EXISTEN PARA CLIENTES)
+    private void createBasicProfileItems(String fullName, String email) {
+        // Header con foto de perfil
         profileItems.add(new ClientEditProfileItem(
                 ClientEditProfileItem.EditItemType.PROFILE_HEADER,
                 "Foto de Perfil",
-                currentClient.getProfileImageUrl(),
+                "", // Se actualizará desde Firebase
                 "profile_image",
                 true,
                 R.drawable.ic_camera
@@ -141,7 +166,7 @@ public class EditClientProfileFragment extends Fragment implements
         profileItems.add(new ClientEditProfileItem(
                 ClientEditProfileItem.EditItemType.READ_ONLY_FIELD,
                 "Nombres",
-                extractFirstName(currentClient.getFullName()),
+                extractFirstName(fullName),
                 "first_name",
                 false,
                 R.drawable.ic_group
@@ -150,7 +175,7 @@ public class EditClientProfileFragment extends Fragment implements
         profileItems.add(new ClientEditProfileItem(
                 ClientEditProfileItem.EditItemType.READ_ONLY_FIELD,
                 "Apellidos",
-                extractLastName(currentClient.getFullName()),
+                extractLastName(fullName),
                 "last_name",
                 false,
                 R.drawable.ic_group
@@ -158,23 +183,14 @@ public class EditClientProfileFragment extends Fragment implements
 
         profileItems.add(new ClientEditProfileItem(
                 ClientEditProfileItem.EditItemType.READ_ONLY_FIELD,
-                "ID de Cliente",
-                currentClient.getClientId(),
-                "client_id",
-                false,
-                R.drawable.ic_document
-        ));
-
-        profileItems.add(new ClientEditProfileItem(
-                ClientEditProfileItem.EditItemType.READ_ONLY_FIELD,
                 "Correo Electrónico",
-                currentClient.getEmail(),
+                email,
                 "email",
                 false,
                 R.drawable.ic_email
         ));
 
-        // Información editable
+        // Información de contacto editable
         profileItems.add(new ClientEditProfileItem(
                 ClientEditProfileItem.EditItemType.SECTION_HEADER,
                 "Información de Contacto",
@@ -187,7 +203,7 @@ public class EditClientProfileFragment extends Fragment implements
         profileItems.add(new ClientEditProfileItem(
                 ClientEditProfileItem.EditItemType.EDITABLE_FIELD,
                 "Teléfono",
-                currentClient.getPhoneNumber(),
+                "Cargando...", // Se actualizará desde Firebase
                 "phone",
                 true,
                 R.drawable.ic_phone
@@ -196,13 +212,144 @@ public class EditClientProfileFragment extends Fragment implements
         profileItems.add(new ClientEditProfileItem(
                 ClientEditProfileItem.EditItemType.EDITABLE_FIELD,
                 "Dirección",
-                currentClient.getAddress(),
+                "Cargando...", // Se actualizará desde Firebase
                 "address",
                 true,
                 R.drawable.ic_location
         ));
 
+        // Información del documento (solo lectura)
+        profileItems.add(new ClientEditProfileItem(
+                ClientEditProfileItem.EditItemType.SECTION_HEADER,
+                "Información del Documento",
+                "",
+                "",
+                false,
+                0
+        ));
+
+        profileItems.add(new ClientEditProfileItem(
+                ClientEditProfileItem.EditItemType.READ_ONLY_FIELD,
+                "Tipo de Documento",
+                "Cargando...", // Se actualizará desde Firebase
+                "document_type",
+                false,
+                R.drawable.ic_document
+        ));
+
+        profileItems.add(new ClientEditProfileItem(
+                ClientEditProfileItem.EditItemType.READ_ONLY_FIELD,
+                "Número de Documento",
+                "Cargando...", // Se actualizará desde Firebase
+                "document_number",
+                false,
+                R.drawable.ic_document
+        ));
+
+        profileItems.add(new ClientEditProfileItem(
+                ClientEditProfileItem.EditItemType.READ_ONLY_FIELD,
+                "Fecha de Nacimiento",
+                "Cargando...", // Se actualizará desde Firebase
+                "birth_date",
+                false,
+                R.drawable.ic_calendar
+        ));
+
+        // 🚫 NO AGREGAMOS información de vehículo (solo para taxistas)
+
         adapter.notifyDataSetChanged();
+    }
+
+    // 🔥 CARGAR DATOS COMPLETOS DESDE FIREBASE
+    private void loadCompleteDataFromFirebase(String userId) {
+        Log.d(TAG, "🔄 Obteniendo datos completos desde Firebase");
+
+        com.example.proyecto_final_hoteleros.utils.FirebaseManager firebaseManager =
+                com.example.proyecto_final_hoteleros.utils.FirebaseManager.getInstance();
+
+        firebaseManager.getUserDataFromAnyCollection(userId, new com.example.proyecto_final_hoteleros.utils.FirebaseManager.UserCallback() {
+            @Override
+            public void onUserFound(com.example.proyecto_final_hoteleros.models.UserModel user) {
+                Log.d(TAG, "✅ Datos completos del cliente obtenidos desde Firebase");
+                Log.d(TAG, "Teléfono: " + user.getTelefono());
+                Log.d(TAG, "Dirección: " + user.getDireccion());
+                Log.d(TAG, "Documento: " + user.getNumeroDocumento());
+                Log.d(TAG, "Foto: " + user.getPhotoUrl());
+
+                // 🔥 ACTUALIZAR UI EN EL HILO PRINCIPAL
+                if (getActivity() != null && isAdded()) {
+                    getActivity().runOnUiThread(() -> {
+                        updateProfileItemsWithRealData(user);
+                    });
+                }
+            }
+
+            @Override
+            public void onUserNotFound() {
+                Log.w(TAG, "⚠️ Cliente no encontrado en Firebase");
+                if (getContext() != null && isAdded()) {
+                    Toast.makeText(getContext(), "No se pudieron cargar todos los datos", Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onError(String error) {
+                Log.e(TAG, "❌ Error cargando datos completos del cliente: " + error);
+                if (getContext() != null && isAdded()) {
+                    Toast.makeText(getContext(), "Error cargando datos: " + error, Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+    }
+
+    // 🔥 ACTUALIZAR ITEMS CON DATOS REALES DE FIREBASE
+    private void updateProfileItemsWithRealData(com.example.proyecto_final_hoteleros.models.UserModel user) {
+        Log.d(TAG, "🔄 Actualizando items del cliente con datos reales");
+
+        for (int i = 0; i < profileItems.size(); i++) {
+            ClientEditProfileItem item = profileItems.get(i);
+            boolean needsUpdate = false;
+
+            switch (item.getKey()) {
+                case "profile_image":
+                    if (user.getPhotoUrl() != null && !user.getPhotoUrl().isEmpty()) {
+                        item.setValue(user.getPhotoUrl());
+                        needsUpdate = true;
+                    }
+                    break;
+
+                case "phone":
+                    item.setValue(user.getTelefono() != null ? user.getTelefono() : "No especificado");
+                    needsUpdate = true;
+                    break;
+
+                case "address":
+                    item.setValue(user.getDireccion() != null ? user.getDireccion() : "No especificado");
+                    needsUpdate = true;
+                    break;
+
+                case "document_type":
+                    item.setValue(user.getTipoDocumento() != null ? user.getTipoDocumento() : "DNI");
+                    needsUpdate = true;
+                    break;
+
+                case "document_number":
+                    item.setValue(user.getNumeroDocumento() != null ? user.getNumeroDocumento() : "No especificado");
+                    needsUpdate = true;
+                    break;
+
+                case "birth_date":
+                    item.setValue(user.getFechaNacimiento() != null ? user.getFechaNacimiento() : "No especificado");
+                    needsUpdate = true;
+                    break;
+            }
+
+            if (needsUpdate) {
+                adapter.notifyItemChanged(i);
+            }
+        }
+
+        Log.d(TAG, "✅ Items del cliente actualizados con datos reales");
     }
 
     private ClientProfile getCurrentClientData() {
@@ -271,60 +418,237 @@ public class EditClientProfileFragment extends Fragment implements
     }
 
     private void saveProfile() {
-        Log.d(TAG, "Guardando perfil...");
+        Log.d(TAG, "💾 Guardando perfil del cliente...");
 
         String newPhone = "";
         String newAddress = "";
-        String newProfileImageUrl = currentClient.getProfileImageUrl();
+        boolean hasChanges = false;
 
         // Recopilar cambios de los campos editables
         for (ClientEditProfileItem item : profileItems) {
             if (item.getType() == ClientEditProfileItem.EditItemType.EDITABLE_FIELD) {
                 switch (item.getKey()) {
                     case "phone":
-                        newPhone = item.getValue();
+                        newPhone = item.getValue().trim();
                         break;
                     case "address":
-                        newAddress = item.getValue();
+                        newAddress = item.getValue().trim();
                         break;
                 }
             }
         }
 
-        // Obtener URL de imagen si fue cambiada
+        // Verificar si hay nueva foto
         if (selectedProfileImageUri != null) {
-            newProfileImageUrl = selectedProfileImageUri.toString();
+            hasChanges = true;
         }
 
         // Validar datos obligatorios
-        if (newPhone.trim().isEmpty()) {
+        if (newPhone.isEmpty()) {
             Toast.makeText(getContext(), "El teléfono es obligatorio", Toast.LENGTH_SHORT).show();
             return;
         }
-        if (newAddress.trim().isEmpty()) {
+
+        if (newAddress.isEmpty()) {
             Toast.makeText(getContext(), "La dirección es obligatoria", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        // Actualizar el perfil del cliente
-        currentClient.setPhoneNumber(newPhone);
-        currentClient.setAddress(newAddress);
-        currentClient.setProfileImageUrl(newProfileImageUrl);
+        // Mostrar indicador de carga
+        btnSave.setEnabled(false);
+        btnSave.setText("Guardando...");
 
-        // Actualizar UserDataManager si es necesario
-        UserDataManager.getInstance().updateUserData(
-                currentClient.getClientId(),
-                extractFirstName(currentClient.getFullName()),
-                currentClient.getFullName(),
-                currentClient.getEmail(),
-                "client"
-        );
+        // 🔥 OBTENER userId DEL ACTIVITY
+        if (getActivity() instanceof com.example.proyecto_final_hoteleros.client.ui.activity.HomeActivity) {
+            com.example.proyecto_final_hoteleros.client.ui.activity.HomeActivity activity =
+                    (com.example.proyecto_final_hoteleros.client.ui.activity.HomeActivity) getActivity();
 
-        Toast.makeText(getContext(), "Perfil actualizado correctamente", Toast.LENGTH_SHORT).show();
+            String userId = activity.getUserId();
 
-        // Regresar a la pantalla anterior
-        if (getActivity() != null) {
-            getActivity().getSupportFragmentManager().popBackStack();
+            if (userId != null && !userId.isEmpty()) {
+                // 🔥 SI HAY NUEVA FOTO, SUBIRLA PRIMERO
+                if (selectedProfileImageUri != null) {
+                    uploadNewProfilePhoto(userId, newPhone, newAddress);
+                } else {
+                    // 🔥 ACTUALIZAR SOLO TELÉFONO Y DIRECCIÓN
+                    updateProfileInFirebase(userId, newPhone, newAddress, null);
+                }
+            } else {
+                showError("Error: No se pudo obtener ID de usuario");
+            }
+        } else {
+            showError("Error: No se pudo acceder a los datos de usuario");
+        }
+    }
+
+    // 🔥 SUBIR NUEVA FOTO DE PERFIL A AWS S3 (IMPLEMENTACIÓN REAL)
+    private void uploadNewProfilePhoto(String userId, String newPhone, String newAddress) {
+        Log.d(TAG, "📸 Subiendo nueva foto de perfil del cliente a AWS S3...");
+
+        try {
+            // Crear instancia del AwsFileManager
+            com.example.proyecto_final_hoteleros.utils.AwsFileManager awsManager =
+                    new com.example.proyecto_final_hoteleros.utils.AwsFileManager(requireContext());
+
+            // Generar nombre único para la foto
+            String fileName = "client_profile_" + userId + "_" + System.currentTimeMillis() + ".jpg";
+            String folder = "photos"; // Carpeta en S3 para fotos de perfil
+
+            Log.d(TAG, "📤 Subiendo archivo: " + fileName);
+            Log.d(TAG, "📁 Carpeta S3: " + folder);
+            Log.d(TAG, "👤 UserId: " + userId);
+
+            // Subir archivo a AWS S3
+            awsManager.uploadFile(selectedProfileImageUri, userId, folder,
+                    new com.example.proyecto_final_hoteleros.utils.AwsFileManager.UploadCallback() {
+                        @Override
+                        public void onSuccess(com.example.proyecto_final_hoteleros.utils.AwsFileManager.AwsFileInfo fileInfo) {
+                            Log.d(TAG, "✅ Foto del cliente subida exitosamente a AWS S3");
+                            Log.d(TAG, "🔗 URL generada: " + fileInfo.fileUrl);
+
+                            // Continuar con la actualización en Firebase usando la URL real
+                            if (getActivity() != null) {
+                                getActivity().runOnUiThread(() -> {
+                                    updateProfileInFirebase(userId, newPhone, newAddress, fileInfo.fileUrl);
+                                });
+                            }
+                        }
+
+                        @Override
+                        public void onError(String error) {
+                            Log.e(TAG, "❌ Error subiendo foto del cliente a AWS: " + error);
+
+                            if (getActivity() != null && isAdded()) {
+                                getActivity().runOnUiThread(() -> {
+                                    // Preguntar si quiere continuar sin cambiar la foto
+                                    new androidx.appcompat.app.AlertDialog.Builder(requireContext())
+                                            .setTitle("Error subiendo foto")
+                                            .setMessage("No se pudo subir la nueva foto. ¿Deseas guardar solo los cambios de teléfono y dirección?")
+                                            .setPositiveButton("Sí, guardar", (dialog, which) -> {
+                                                updateProfileInFirebase(userId, newPhone, newAddress, null);
+                                            })
+                                            .setNegativeButton("Cancelar", (dialog, which) -> {
+                                                btnSave.setEnabled(true);
+                                                btnSave.setText("Guardar Cambios");
+                                            })
+                                            .show();
+                                });
+                            }
+                        }
+
+                        @Override
+                        public void onProgress(int percentage) {
+                            Log.d(TAG, "📊 Progreso subida cliente: " + percentage + "%");
+
+                            if (getActivity() != null && isAdded()) {
+                                getActivity().runOnUiThread(() -> {
+                                    btnSave.setText("Subiendo... " + percentage + "%");
+                                });
+                            }
+                        }
+                    });
+
+        } catch (Exception e) {
+            Log.e(TAG, "❌ Error inicializando subida a AWS: " + e.getMessage());
+            showError("Error inicializando subida: " + e.getMessage());
+        }
+    }
+
+    // 🔥 ACTUALIZAR PERFIL EN FIREBASE
+    private void updateProfileInFirebase(String userId, String newPhone, String newAddress, String newPhotoUrl) {
+        Log.d(TAG, "🔥 Actualizando perfil del cliente en Firebase...");
+
+        com.example.proyecto_final_hoteleros.utils.FirebaseManager firebaseManager =
+                com.example.proyecto_final_hoteleros.utils.FirebaseManager.getInstance();
+
+        firebaseManager.updateClientProfile(userId, newPhone, newAddress, newPhotoUrl,
+                new com.example.proyecto_final_hoteleros.utils.FirebaseManager.DataCallback() {
+                    @Override
+                    public void onSuccess() {
+                        Log.d(TAG, "✅ Perfil del cliente actualizado exitosamente en Firebase");
+
+                        if (getActivity() != null && isAdded()) {
+                            getActivity().runOnUiThread(() -> {
+                                // Restaurar botón
+                                btnSave.setEnabled(true);
+                                btnSave.setText("Guardar Cambios");
+
+                                Toast.makeText(getContext(), "✅ Perfil actualizado correctamente", Toast.LENGTH_SHORT).show();
+
+                                // 🔥 ACTUALIZAR DATOS EN TIEMPO REAL
+                                updateLocalProfileData(newPhone, newAddress, newPhotoUrl);
+
+                                // Regresar a la pantalla anterior después de un momento
+                                new android.os.Handler().postDelayed(() -> {
+                                    if (getActivity() != null) {
+                                        getActivity().getSupportFragmentManager().popBackStack();
+                                    }
+                                }, 1500);
+                            });
+                        }
+                    }
+
+                    @Override
+                    public void onError(String error) {
+                        Log.e(TAG, "❌ Error actualizando perfil del cliente: " + error);
+
+                        if (getActivity() != null && isAdded()) {
+                            getActivity().runOnUiThread(() -> {
+                                showError("Error actualizando perfil: " + error);
+                            });
+                        }
+                    }
+                });
+    }
+
+    // 🔥 ACTUALIZAR DATOS LOCALES PARA REFLEJAR CAMBIOS INMEDIATAMENTE
+    private void updateLocalProfileData(String newPhone, String newAddress, String newPhotoUrl) {
+        Log.d(TAG, "🔄 Actualizando datos locales del cliente...");
+
+        // Actualizar items en la lista actual
+        for (int i = 0; i < profileItems.size(); i++) {
+            ClientEditProfileItem item = profileItems.get(i);
+            boolean needsUpdate = false;
+
+            switch (item.getKey()) {
+                case "phone":
+                    if (!newPhone.equals(item.getValue())) {
+                        item.setValue(newPhone);
+                        needsUpdate = true;
+                    }
+                    break;
+
+                case "address":
+                    if (!newAddress.equals(item.getValue())) {
+                        item.setValue(newAddress);
+                        needsUpdate = true;
+                    }
+                    break;
+
+                case "profile_image":
+                    if (newPhotoUrl != null && !newPhotoUrl.equals(item.getValue())) {
+                        item.setValue(newPhotoUrl);
+                        needsUpdate = true;
+                    }
+                    break;
+            }
+
+            if (needsUpdate) {
+                adapter.notifyItemChanged(i);
+            }
+        }
+    }
+
+    // 🔥 MÉTODO HELPER PARA MOSTRAR ERRORES
+    private void showError(String message) {
+        if (getContext() != null && isAdded()) {
+            Toast.makeText(getContext(), message, Toast.LENGTH_LONG).show();
+        }
+
+        // Restaurar botón en caso de error
+        if (btnSave != null) {
+            btnSave.setEnabled(true);
+            btnSave.setText("Guardar Cambios");
         }
     }
 

@@ -56,7 +56,21 @@ public class HomeActivity extends AppCompatActivity {
 
         // ========== OBTENER DATOS DEL USUARIO DESDE EL INTENT ==========
         getUserDataFromIntent();
+        // 🔥 VERIFICAR DATOS ANTES DE GUARDAR
+        Log.d(TAG, "🔄 Guardando datos en UserDataManager...");
+        Log.d(TAG, "  userId: " + userId);
+        Log.d(TAG, "  userName: " + userName);
+        Log.d(TAG, "  userFullName: " + userFullName);
+        Log.d(TAG, "  userEmail: " + userEmail);
+        Log.d(TAG, "  userType: " + userType);
+
         UserDataManager.getInstance().setUserData(userId, userName, userFullName, userEmail, userType);
+
+// 🔥 VERIFICAR QUE SE GUARDÓ CORRECTAMENTE
+        Log.d(TAG, "✅ Datos guardados. Verificando:");
+        Log.d(TAG, "  UserDataManager.getUserId(): " + UserDataManager.getInstance().getUserId());
+        Log.d(TAG, "  UserDataManager.getUserName(): " + UserDataManager.getInstance().getUserName());
+        Log.d(TAG, "  UserDataManager.getUserEmail(): " + UserDataManager.getInstance().getUserEmail());
 
         // Inicializar Firebase
         try {
@@ -90,17 +104,20 @@ public class HomeActivity extends AppCompatActivity {
     }
 
     private void getUserDataFromIntent() {
-        userId = getIntent().getStringExtra("user_id");
-        userName = getIntent().getStringExtra("user_name");
-        userFullName = getIntent().getStringExtra("user_full_name");
-        userEmail = getIntent().getStringExtra("user_email");
-        userType = getIntent().getStringExtra("user_type");
+        // 🔥 USAR LOS NOMBRES EXACTOS QUE ENVÍA LoginFragment
+        userId = getIntent().getStringExtra("userId");
+        userEmail = getIntent().getStringExtra("userEmail");
+        userName = getIntent().getStringExtra("userName");  // Este es el nombre completo
+        userType = getIntent().getStringExtra("userType");
+
+        // 🔥 PARA CLIENTES: userName viene con el nombre completo
+        userFullName = userName;  // userName ya contiene el nombre completo
 
         Log.d(TAG, "=== DATOS DEL USUARIO RECIBIDOS ===");
         Log.d(TAG, "User ID: " + userId);
-        Log.d(TAG, "User Name: " + userName);
-        Log.d(TAG, "User Full Name: " + userFullName);
         Log.d(TAG, "User Email: " + userEmail);
+        Log.d(TAG, "User Name (completo): " + userName);
+        Log.d(TAG, "User Full Name: " + userFullName);
         Log.d(TAG, "User Type: " + userType);
 
         // Valores por defecto si no se reciben datos
@@ -111,6 +128,20 @@ public class HomeActivity extends AppCompatActivity {
 
         if (userFullName == null || userFullName.isEmpty()) {
             userFullName = userName;
+        }
+
+        // 🔥 VERIFICAR QUE REALMENTE LLEGARON LOS DATOS
+        if (userId == null) {
+            Log.e(TAG, "❌ ERROR: userId llegó como null");
+            Log.e(TAG, "❌ Todos los extras del intent:");
+            Bundle extras = getIntent().getExtras();
+            if (extras != null) {
+                for (String key : extras.keySet()) {
+                    Log.e(TAG, "  " + key + " = " + extras.get(key));
+                }
+            } else {
+                Log.e(TAG, "❌ El intent no tiene extras");
+            }
         }
     }
 

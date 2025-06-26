@@ -45,4 +45,15 @@ public class UserDataManager {
     public String getUserFullName() { return userFullName != null ? userFullName : getUserName(); }
     public String getUserEmail() { return userEmail; }
     public String getUserType() { return userType; }
+
+    // 🔥 LIMPIAR TODOS LOS DATOS DEL USUARIO
+    public void clearUserData() {
+        this.userId = null;
+        this.userName = null;
+        this.userFullName = null;
+        this.userEmail = null;
+        this.userType = null;
+
+        android.util.Log.d("UserDataManager", "✅ Todos los datos del usuario limpiados");
+    }
 }

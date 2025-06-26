@@ -95,21 +95,140 @@ public class ProfileFragment extends BaseBottomNavigationFragment implements
     }
 
     private ClientProfile generateClientProfile() {
-        UserDataManager userManager = UserDataManager.getInstance();
+        // 🔥 OBTENER DATOS REALES DEL USUARIO LOGUEADO
+        if (getActivity() instanceof com.example.proyecto_final_hoteleros.client.ui.activity.HomeActivity) {
+            com.example.proyecto_final_hoteleros.client.ui.activity.HomeActivity activity =
+                    (com.example.proyecto_final_hoteleros.client.ui.activity.HomeActivity) getActivity();
 
+            String userId = activity.getUserId();
+            String userEmail = activity.getUserEmail();
+            String userFullName = activity.getUserFullName();
+
+            Log.d(TAG, "=== CARGANDO PERFIL REAL DEL CLIENTE ===");
+            Log.d(TAG, "UserId: " + userId);
+            Log.d(TAG, "Email: " + userEmail);
+            Log.d(TAG, "Name: " + userFullName);
+
+            // 🔥 CARGAR DATOS REALES DESDE FIREBASE
+            if (userId != null && !userId.isEmpty()) {
+                loadRealClientProfile(userId);
+            }
+        }
+
+        // 🔥 MIENTRAS SE CARGAN LOS DATOS REALES, MOSTRAR DATOS BÁSICOS
+        return createTemporaryProfile();
+    }
+
+    // 🔥 MÉTODO PARA CARGAR DATOS REALES DESDE FIREBASE
+    private void loadRealClientProfile(String userId) {
+        Log.d(TAG, "🔄 Cargando datos reales desde Firebase para userId: " + userId);
+
+        com.example.proyecto_final_hoteleros.utils.FirebaseManager firebaseManager =
+                com.example.proyecto_final_hoteleros.utils.FirebaseManager.getInstance();
+
+        firebaseManager.getUserDataFromAnyCollection(userId, new com.example.proyecto_final_hoteleros.utils.FirebaseManager.UserCallback() {
+            @Override
+            public void onUserFound(com.example.proyecto_final_hoteleros.models.UserModel user) {
+                Log.d(TAG, "✅ Datos del cliente obtenidos desde Firebase");
+                Log.d(TAG, "Nombre: " + user.getFullName());
+                Log.d(TAG, "Email: " + user.getEmail());
+                Log.d(TAG, "Teléfono: " + user.getTelefono());
+                Log.d(TAG, "Foto: " + user.getPhotoUrl());
+
+                // 🔥 CONVERTIR UserModel → ClientProfile
+                ClientProfile realProfile = convertUserModelToClientProfile(user);
+
+                // 🔥 ACTUALIZAR LA VISTA CON DATOS REALES
+                if (getActivity() != null) {
+                    getActivity().runOnUiThread(() -> {
+                        updateProfileWithRealData(realProfile);
+                    });
+                }
+            }
+
+            @Override
+            public void onUserNotFound() {
+                Log.w(TAG, "⚠️ Cliente no encontrado en Firebase");
+                if (getContext() != null && isAdded()) {
+                    Toast.makeText(getContext(), "No se pudieron cargar los datos del perfil", Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onError(String error) {
+                Log.e(TAG, "❌ Error cargando datos del cliente: " + error);
+                if (getContext() != null && isAdded()) {
+                    Toast.makeText(getContext(), "Error cargando perfil: " + error, Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+    }
+
+    // 🔥 CREAR PERFIL TEMPORAL MIENTRAS SE CARGAN LOS DATOS REALES
+    private ClientProfile createTemporaryProfile() {
+        if (getActivity() instanceof com.example.proyecto_final_hoteleros.client.ui.activity.HomeActivity) {
+            com.example.proyecto_final_hoteleros.client.ui.activity.HomeActivity activity =
+                    (com.example.proyecto_final_hoteleros.client.ui.activity.HomeActivity) getActivity();
+
+            String userFullName = activity.getUserFullName();
+            String userEmail = activity.getUserEmail();
+            String userId = activity.getUserId();
+
+            return new ClientProfile(
+                    userId != null ? userId : "loading", // clientId
+                    userFullName != null ? userFullName : "Cargando...", // fullName
+                    userEmail != null ? userEmail : "Cargando...", // email
+                    "Cargando...", // phoneNumber
+                    null, // profileImageUrl
+                    "Cargando...", // address
+                    true, // isActive
+                    0, // totalReservations
+                    0, // completedStays
+                    4.5f, // averageRating
+                    0.0 // totalSpent
+            );
+        }
+
+        // Fallback profile
         return new ClientProfile(
-                userManager.getUserId() != null ? userManager.getUserId() : "client001",
-                userManager.getUserFullName() != null ? userManager.getUserFullName() : "Cliente Usuario",
-                userManager.getUserEmail() != null ? userManager.getUserEmail() : "cliente@email.com",
-                "+51 987 654 321",
-                "https://via.placeholder.com/150", // URL de imagen por defecto
-                "Av. Lima 123, San Miguel, Lima",
-                true,
-                15, // total reservas
-                12, // estancias completadas
-                4.8f, // rating promedio
-                2580.50 // total gastado
+                "temp", "Cliente", "cliente@email.com", "999999999",
+                null, "Lima, Perú", true, 0, 0, 4.5f, 0.0
         );
+    }
+
+    // 🔥 CONVERTIR UserModel A ClientProfile
+    private ClientProfile convertUserModelToClientProfile(com.example.proyecto_final_hoteleros.models.UserModel user) {
+        return new ClientProfile(
+                user.getUserId(),
+                user.getFullName(), // nombres + apellidos
+                user.getEmail(),
+                user.getTelefono() != null ? user.getTelefono() : "No especificado",
+                user.getPhotoUrl(), // URL de la foto
+                user.getDireccion() != null ? user.getDireccion() : "No especificado",
+                user.isActive(),
+                0, // Reservas totales (se puede calcular después)
+                0, // Estancias completadas (se puede calcular después)
+                4.5f, // Rating por defecto
+                0.0 // Total gastado (se puede calcular después)
+        );
+    }
+
+    // 🔥 ACTUALIZAR LA VISTA CON DATOS REALES
+    private void updateProfileWithRealData(ClientProfile realProfile) {
+        Log.d(TAG, "🔄 Actualizando vista con datos reales del cliente");
+
+        // Reemplazar el perfil temporal con el real
+        if (profileItems != null && !profileItems.isEmpty()) {
+            profileItems.set(0, realProfile); // El primer item es el header con el perfil
+            currentClient = realProfile;
+
+            // Notificar al adapter que se actualizó el primer item
+            if (adapter != null) {
+                adapter.notifyItemChanged(0);
+            }
+
+            Log.d(TAG, "✅ Vista del cliente actualizada con datos reales");
+        }
     }
 
     private List<ClientProfileMenuItem> generateMenuItems() {
@@ -214,25 +333,100 @@ public class ProfileFragment extends BaseBottomNavigationFragment implements
     }
 
     private void performLogout() {
+        Log.d(TAG, "🚪 Iniciando proceso de cierre de sesión del cliente...");
+
+        // Mostrar indicador de progreso
+        androidx.appcompat.app.AlertDialog progressDialog = new androidx.appcompat.app.AlertDialog.Builder(requireContext())
+                .setTitle("Cerrando Sesión")
+                .setMessage("Cerrando sesión, por favor espera...")
+                .setCancelable(false)
+                .create();
+
+        progressDialog.show();
+
+        // 🔥 LIMPIAR DATOS LOCALES DEL CLIENTE
+        clearLocalClientData();
+
+        // 🔥 CERRAR SESIÓN EN FIREBASE
+        com.example.proyecto_final_hoteleros.utils.FirebaseManager firebaseManager =
+                com.example.proyecto_final_hoteleros.utils.FirebaseManager.getInstance();
+
         try {
-            Log.d(TAG, "Iniciando proceso de cierre de sesión...");
+            firebaseManager.signOut();
+            Log.d(TAG, "✅ Sesión cerrada en Firebase Auth");
 
-            FirebaseAuth.getInstance().signOut();
-            Log.d(TAG, "Sesión de Firebase cerrada exitosamente");
+            // Simular pequeña espera para mejor UX
+            new android.os.Handler().postDelayed(() -> {
+                if (isAdded() && getActivity() != null) {
+                    progressDialog.dismiss();
 
-            Toast.makeText(requireContext(), "Cerrando sesión...", Toast.LENGTH_SHORT).show();
+                    // 🔥 NAVEGAR A PANTALLA DE LOGIN
+                    navigateToLogin();
 
-            Intent intent = new Intent(requireActivity(), MainActivity.class);
-            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-            startActivity(intent);
-
-            requireActivity().finish();
-            Log.d(TAG, "Navegación a MainActivity completada");
+                    Log.d(TAG, "✅ Logout del cliente completado exitosamente");
+                }
+            }, 1500);
 
         } catch (Exception e) {
-            Log.e(TAG, "Error al cerrar sesión: " + e.getMessage());
-            e.printStackTrace();
-            Toast.makeText(requireContext(), "Error al cerrar sesión", Toast.LENGTH_SHORT).show();
+            Log.e(TAG, "❌ Error durante logout del cliente: " + e.getMessage());
+
+            if (isAdded() && getActivity() != null) {
+                progressDialog.dismiss();
+                navigateToLogin();
+            }
+        }
+    }
+
+    // 🔥 LIMPIAR TODOS LOS DATOS LOCALES DEL CLIENTE
+    private void clearLocalClientData() {
+        Log.d(TAG, "🧹 Limpiando datos locales del cliente...");
+
+        try {
+            // Limpiar UserDataManager
+            UserDataManager.getInstance().clearUserData();
+            Log.d(TAG, "✅ UserDataManager limpiado");
+
+            // Limpiar SharedPreferences del cliente
+            android.content.SharedPreferences prefs = requireContext().getSharedPreferences("ClientData", android.content.Context.MODE_PRIVATE);
+            prefs.edit().clear().apply();
+            Log.d(TAG, "✅ SharedPreferences de ClientData limpiados");
+
+            // Limpiar datos de autenticación
+            android.content.SharedPreferences authPrefs = requireContext().getSharedPreferences("auth_data", android.content.Context.MODE_PRIVATE);
+            authPrefs.edit().clear().apply();
+            Log.d(TAG, "✅ Datos de autenticación limpiados");
+
+        } catch (Exception e) {
+            Log.e(TAG, "⚠️ Error limpiando algunos datos locales del cliente: " + e.getMessage());
+        }
+    }
+
+    // 🔥 NAVEGAR A PANTALLA DE LOGIN
+    private void navigateToLogin() {
+        Log.d(TAG, "🔄 Navegando a pantalla de login...");
+
+        try {
+            android.content.Intent intent = new android.content.Intent(getActivity(),
+                    com.example.proyecto_final_hoteleros.AuthActivity.class);
+
+            intent.putExtra("mode", "login");
+            intent.setFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK |
+                    android.content.Intent.FLAG_ACTIVITY_CLEAR_TASK);
+
+            startActivity(intent);
+
+            if (getActivity() != null) {
+                getActivity().finish();
+            }
+
+            Log.d(TAG, "✅ Navegación a login completada");
+
+        } catch (Exception e) {
+            Log.e(TAG, "❌ Error navegando a login: " + e.getMessage());
+
+            if (getActivity() != null) {
+                getActivity().finishAffinity();
+            }
         }
     }
 
