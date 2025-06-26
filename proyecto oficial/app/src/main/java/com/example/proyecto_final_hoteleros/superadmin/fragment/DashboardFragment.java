@@ -388,6 +388,11 @@ public class DashboardFragment extends Fragment {
                 updateLastUpdateTime();
                 startLiveIndicatorAnimation();
 
+                // 🔥 NUEVO: Notificar a SuperAdminActivity que refresh todos los fragments
+                if (getActivity() instanceof SuperAdminActivity) {
+                    ((SuperAdminActivity) getActivity()).refreshAllFragments();
+                }
+
                 // Mostrar toast de confirmación
                 android.widget.Toast.makeText(getContext(),
                         "✅ Dashboard actualizado", android.widget.Toast.LENGTH_SHORT).show();

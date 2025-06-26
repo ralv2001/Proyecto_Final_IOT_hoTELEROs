@@ -351,6 +351,23 @@ public class SuperAdminActivity extends AppCompatActivity {
             }
         }, 500);
     }
+    // 🔥 NUEVO: Refrescar todos los fragments que puedan tener datos obsoletos
+    public void refreshAllFragments() {
+        Log.d(TAG, "🔄 Refrescando todos los fragments...");
+
+        // Si hay un AdminsFragment activo, refrescarlo
+        Fragment adminsFragment = getSupportFragmentManager().findFragmentByTag("ADMINS");
+        if (adminsFragment instanceof AdminsFragment) {
+            ((AdminsFragment) adminsFragment).refreshAdminsList();
+        }
+
+        // Si hay un UsuariosFragment activo, refrescarlo también
+        Fragment usuariosFragment = getSupportFragmentManager().findFragmentByTag("USUARIOS");
+        if (usuariosFragment instanceof UsuariosFragment) {
+            // Aquí puedes agregar refresh para UsuariosFragment si es necesario
+            Log.d(TAG, "UsuariosFragment encontrado - refresh pendiente");
+        }
+    }
 
     private void showProfileOptions() {
         String[] options;

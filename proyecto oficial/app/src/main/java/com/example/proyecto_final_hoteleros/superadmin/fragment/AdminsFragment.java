@@ -566,4 +566,18 @@ public class AdminsFragment extends Fragment {
                 .setNegativeButton("Cancelar", (dialog, which) -> dialog.dismiss())
                 .show();
     }
+    @Override
+    public void onResume() {
+        super.onResume();
+        Log.d("AdminsFragment", "📱 AdminsFragment onResume() - Refrescando lista de admins...");
+
+        // Recargar datos cada vez que se vuelve al fragment
+        loadData();
+    }
+
+    // 🔥 NUEVO: Método público para refrescar desde SuperAdminActivity
+    public void refreshAdminsList() {
+        Log.d("AdminsFragment", "🔄 Refresh forzado de administradores...");
+        loadData();
+    }
 }
