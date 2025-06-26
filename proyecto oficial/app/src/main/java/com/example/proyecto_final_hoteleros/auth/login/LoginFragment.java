@@ -3,13 +3,18 @@ package com.example.proyecto_final_hoteleros.auth.login;
 
 import androidx.lifecycle.ViewModelProvider;
 
+import android.app.AlertDialog;
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
+import android.os.Handler;
+import android.os.Looper;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.text.method.PasswordTransformationMethod;
@@ -31,6 +36,7 @@ import com.example.proyecto_final_hoteleros.models.UserModel;
 import android.app.Activity;
 import com.example.proyecto_final_hoteleros.utils.GoogleSignInHelper;
 import com.example.proyecto_final_hoteleros.utils.GitHubSignInHelper;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
 import com.example.proyecto_final_hoteleros.AuthActivity;
@@ -229,7 +235,26 @@ public class LoginFragment extends Fragment {
             }
         });
 
-        return view;
+//        // TEMPORAL: Botón para limpiar estado de GitHub
+//        btnGitHubLogin.setOnLongClickListener(v -> {
+//            Log.d(TAG, "Limpiando estado de GitHub...");
+//
+//            // Limpiar SharedPreferences
+//            getActivity().getSharedPreferences("github_pending", Context.MODE_PRIVATE)
+//                    .edit().clear().apply();
+//
+//            // Hacer sign out para limpiar cualquier estado pendiente
+//            FirebaseAuth.getInstance().signOut();
+//
+//            Toast.makeText(getContext(), "Estado de GitHub limpiado", Toast.LENGTH_SHORT).show();
+//
+//            // Resetear botón
+//            resetGitHubLoginButton();
+//
+//            return true;
+//        });
+
+        return view;  // <-- AQUÍ DEBE ESTAR, AL FINAL DEL MÉTODO
     }
 
     @Override
@@ -694,21 +719,48 @@ public class LoginFragment extends Fragment {
     }
 
     private void checkAndLinkPendingGitHub() {
-        if (getActivity() == null) return;
+        Log.d(TAG, "=== VERIFICANDO GITHUB PENDIENTE ===");
 
-        // Verificar si hay GitHub pendiente de vincular
-        boolean hasPending = getActivity().getSharedPreferences("github_pending", getActivity().MODE_PRIVATE)
-                .getBoolean("has_pending", false);
-
-        if (hasPending) {
-            String pendingEmail = getActivity().getSharedPreferences("github_pending", getActivity().MODE_PRIVATE)
-                    .getString("pending_email", null);
-
-            Log.d(TAG, "🔗 Detectado GitHub pendiente para: " + pendingEmail);
-
-            // Intentar vincular automáticamente
-            linkGitHubAutomatically();
+        if (getActivity() == null) {
+            Log.e(TAG, "Activity es null, no se puede verificar GitHub pendiente");
+            return;
         }
+
+        // Agregar un pequeño delay para asegurar que la UI esté lista
+        new Handler(Looper.getMainLooper()).postDelayed(() -> {
+            if (getActivity() == null || getContext() == null) {
+                Log.e(TAG, "Contexto perdido después del delay");
+                return;
+            }
+
+            // Verificar si hay GitHub pendiente de vincular
+            SharedPreferences prefs = getActivity().getSharedPreferences("github_pending", getActivity().MODE_PRIVATE);
+            boolean hasPending = prefs.getBoolean("has_pending", false);
+            String pendingEmail = prefs.getString("pending_email", null);
+
+            Log.d(TAG, "Has pending: " + hasPending);
+            Log.d(TAG, "Pending email: " + pendingEmail);
+
+            if (hasPending && pendingEmail != null) {
+                Log.d(TAG, "🔗 Detectado GitHub pendiente para: " + pendingEmail);
+
+                // Mostrar diálogo preguntando si quiere vincular
+                new AlertDialog.Builder(getContext())
+                        .setTitle("Vincular GitHub")
+                        .setMessage("Detectamos que intentaste iniciar sesión con GitHub. ¿Deseas vincular tu cuenta de GitHub a este perfil?")
+                        .setPositiveButton("Sí, vincular", (dialog, which) -> {
+                            linkGitHubAutomatically();
+                        })
+                        .setNegativeButton("No, gracias", (dialog, which) -> {
+                            // Limpiar pendiente
+                            prefs.edit().clear().apply();
+                            Log.d(TAG, "Usuario rechazó la vinculación");
+                        })
+                        .show();
+            } else {
+                Log.d(TAG, "No hay GitHub pendiente para vincular");
+            }
+        }, 500); // 500ms de delay
     }
 
     private void linkGitHubAutomatically() {
@@ -746,7 +798,7 @@ public class LoginFragment extends Fragment {
             public void onAccountCollision(String email) {
                 Log.d(TAG, "Collision durante vinculación - no debería pasar");
             }
-        });
+        }, gitHubSignInLauncher);
     }
 
     private void resetGoogleLoginButton() {
@@ -802,7 +854,7 @@ public class LoginFragment extends Fragment {
                     });
                 }
             }
-        }, gitHubSignInLauncher);
+        });
     }
 
     private void handleGitHubSignInSuccess(FirebaseUser firebaseUser) {
@@ -960,13 +1012,21 @@ public class LoginFragment extends Fragment {
 
         // Guardar el email para vincular después
         if (getActivity() != null) {
-            getActivity().getSharedPreferences("github_pending", getActivity().MODE_PRIVATE)
-                    .edit()
-                    .putString("pending_email", email)
-                    .putBoolean("has_pending", true)
-                    .apply();
+            SharedPreferences.Editor editor = getActivity()
+                    .getSharedPreferences("github_pending", getActivity().MODE_PRIVATE)
+                    .edit();
+
+            editor.putString("pending_email", email);
+            editor.putBoolean("has_pending", true);
+            boolean saved = editor.commit(); // Usar commit() en lugar de apply()
 
             Log.d(TAG, "✅ Email guardado para vinculación posterior: " + email);
+            Log.d(TAG, "SharedPreferences guardado correctamente: " + saved);
+
+            // Verificar inmediatamente que se guardó
+            SharedPreferences prefs = getActivity().getSharedPreferences("github_pending", getActivity().MODE_PRIVATE);
+            Log.d(TAG, "Verificación - has_pending: " + prefs.getBoolean("has_pending", false));
+            Log.d(TAG, "Verificación - pending_email: " + prefs.getString("pending_email", null));
         }
 
         resetGitHubLoginButton();

@@ -1,6 +1,9 @@
 package com.example.proyecto_final_hoteleros;
 
+import com.google.firebase.auth.FirebaseAuth;
+import android.app.AlertDialog;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.os.Bundle;
 import android.util.Log;
@@ -24,16 +27,27 @@ import androidx.core.view.WindowInsetsCompat;
 import com.example.proyecto_final_hoteleros.adminhotel.activity.AdminHotelActivity;
 import com.example.proyecto_final_hoteleros.utils.FirebaseManager;
 import com.example.proyecto_final_hoteleros.utils.FirebaseTestHelper;
+import com.example.proyecto_final_hoteleros.utils.GitHubSignInHelper;
 import com.google.android.material.button.MaterialButton;
 import com.google.firebase.FirebaseApp;
+import com.google.firebase.auth.FirebaseUser;
 
 public class MainActivity extends AppCompatActivity {
+
+    private FirebaseAuth firebaseAuth; // Agregar esta línea
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         // Inicializar Firebase (añade esta línea)
         FirebaseApp.initializeApp(this);
+
+        // Inicializar Firebase Auth  <-- AGREGAR ESTA LÍNEA
+        firebaseAuth = FirebaseAuth.getInstance();
+
+        // Verificar si hay vinculación pendiente de GitHub
+        //checkPendingGitHubLink();
+
         EdgeToEdge.enable(this);
         setContentView(R.layout.sistema_activity_main);
 
@@ -235,6 +249,64 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
+    }
+
+
+    private void checkPendingGitHubLink() {
+        SharedPreferences prefs = getSharedPreferences("github_pending", MODE_PRIVATE);
+        String pendingEmail = prefs.getString("pending_email", null);
+
+        if (pendingEmail != null && firebaseAuth.getCurrentUser() != null) {
+            String currentEmail = firebaseAuth.getCurrentUser().getEmail();
+
+            if (pendingEmail.equals(currentEmail)) {
+                // Mostrar diálogo o snackbar
+                new AlertDialog.Builder(this)
+                        .setTitle("Vincular GitHub")
+                        .setMessage("¿Deseas vincular tu cuenta de GitHub a este perfil?")
+                        .setPositiveButton("Sí", (dialog, which) -> {
+                            linkGitHubAccount();
+                        })
+                        .setNegativeButton("No", (dialog, which) -> {
+                            // Limpiar pendiente
+                            prefs.edit().clear().apply();
+                        })
+                        .show();
+            }
+        }
+    }
+
+    private void linkGitHubAccount() {
+        GitHubSignInHelper gitHubHelper = new GitHubSignInHelper(this);
+        gitHubHelper.linkGitHubToCurrentUser(new GitHubSignInHelper.GitHubSignInCallback() {
+            @Override
+            public void onSignInSuccess(FirebaseUser user) {
+                Toast.makeText(MainActivity.this,
+                        "✅ GitHub vinculado exitosamente!",
+                        Toast.LENGTH_LONG).show();
+
+                // Limpiar pendiente
+                getSharedPreferences("github_pending", MODE_PRIVATE)
+                        .edit().clear().apply();
+            }
+
+            @Override
+            public void onSignInFailure(String error) {
+                Toast.makeText(MainActivity.this,
+                        "Error vinculando GitHub: " + error,
+                        Toast.LENGTH_LONG).show();
+            }
+
+            @Override
+            public void onSignInCanceled() {
+                // Usuario canceló
+            }
+
+            @Override
+            public void onAccountCollision(String email) {
+                // No debería pasar en vinculación
+            }
+        }, null);
     }
 
 

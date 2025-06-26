@@ -43,7 +43,7 @@ public class GitHubSignInHelper {
         Log.d(TAG, "✅ GitHub Sign-In Helper inicializado");
     }
 
-    public void signIn(GitHubSignInCallback callback, ActivityResultLauncher<Intent> launcher) {
+    public void signIn(GitHubSignInCallback callback) {
         this.callback = callback;
 
         if (firebaseAuth == null) {
@@ -56,16 +56,14 @@ public class GitHubSignInHelper {
 
         Log.d(TAG, "Iniciando GitHub Sign-In...");
 
-        // Configurar el proveedor OAuth para GitHub (OFICIAL)
+        // Configurar el proveedor OAuth para GitHub
         OAuthProvider.Builder provider = OAuthProvider.newBuilder(GITHUB_PROVIDER_ID);
-
-        // Solicitar información básica del usuario
         provider.setScopes(Arrays.asList("user:email"));
 
-        // PASO 1: Verificar si hay resultado pendiente (OFICIAL)
+        // PASO 1: Verificar si hay resultado pendiente
         Task<AuthResult> pendingResultTask = firebaseAuth.getPendingAuthResult();
         if (pendingResultTask != null) {
-            // Ya hay un sign-in en progreso, manejar el resultado
+            Log.d(TAG, "Hay una operación pendiente, manejándola...");
             pendingResultTask
                     .addOnSuccessListener(new OnSuccessListener<AuthResult>() {
                         @Override
@@ -76,11 +74,21 @@ public class GitHubSignInHelper {
                     .addOnFailureListener(new OnFailureListener() {
                         @Override
                         public void onFailure(@NonNull Exception e) {
-                            handleFailure(e);
+                            // Si falla la operación pendiente, intentar nueva
+                            Log.w(TAG, "Operación pendiente falló, intentando nueva", e);
+                            startNewSignIn(provider);
                         }
                     });
         } else {
-            // PASO 2: No hay resultado pendiente, iniciar nuevo sign-in (OFICIAL)
+            // No hay operación pendiente, iniciar nueva
+            startNewSignIn(provider);
+        }
+    }
+
+    private void startNewSignIn(OAuthProvider.Builder provider) {
+        Log.d(TAG, "Iniciando nuevo GitHub Sign-In...");
+
+        try {
             firebaseAuth.startActivityForSignInWithProvider(activity, provider.build())
                     .addOnSuccessListener(new OnSuccessListener<AuthResult>() {
                         @Override
@@ -94,6 +102,11 @@ public class GitHubSignInHelper {
                             handleFailure(e);
                         }
                     });
+        } catch (Exception e) {
+            Log.e(TAG, "Error iniciando GitHub Sign-In", e);
+            if (callback != null) {
+                callback.onSignInFailure("Error iniciando GitHub Sign-In: " + e.getMessage());
+            }
         }
     }
 
@@ -169,7 +182,7 @@ public class GitHubSignInHelper {
     /**
      * MÉTODO OFICIAL para vincular GitHub a usuario ya autenticado
      */
-    public void linkGitHubToCurrentUser(GitHubSignInCallback callback) {
+    public void linkGitHubToCurrentUser(GitHubSignInCallback callback, ActivityResultLauncher<Intent> launcher) {
         this.callback = callback;
 
         FirebaseUser currentUser = firebaseAuth.getCurrentUser();
@@ -186,7 +199,7 @@ public class GitHubSignInHelper {
         OAuthProvider.Builder provider = OAuthProvider.newBuilder(GITHUB_PROVIDER_ID);
         provider.setScopes(Arrays.asList("user:email"));
 
-        // USAR API OFICIAL DE LINKING
+        // USAR API OFICIAL DE LINKING (SIN launcher.launch)
         currentUser.startActivityForLinkWithProvider(activity, provider.build())
                 .addOnSuccessListener(new OnSuccessListener<AuthResult>() {
                     @Override
