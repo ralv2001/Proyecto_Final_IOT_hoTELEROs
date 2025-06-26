@@ -3,13 +3,18 @@ package com.example.proyecto_final_hoteleros.auth.login;
 
 import androidx.lifecycle.ViewModelProvider;
 
+import android.app.AlertDialog;
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
+import android.os.Handler;
+import android.os.Looper;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.text.method.PasswordTransformationMethod;
@@ -30,6 +35,8 @@ import com.example.proyecto_final_hoteleros.models.UserModel;
 
 import android.app.Activity;
 import com.example.proyecto_final_hoteleros.utils.GoogleSignInHelper;
+import com.example.proyecto_final_hoteleros.utils.GitHubSignInHelper;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
 import com.example.proyecto_final_hoteleros.AuthActivity;
@@ -54,14 +61,18 @@ public class LoginFragment extends Fragment {
     private TextView tvErrorMessage;
     private TextView tvForgotPassword;
     private Button btnContinue;
-    private Button btnFacebookLogin;
     private Button btnGoogleLogin;
+    private Button btnGitHubLogin;
     private TextView tvRegisterPrompt;
 
     private boolean isPasswordVisible = false;
 
     // ========== NUEVAS VARIABLES PARA GOOGLE SIGN-IN ==========
     private GoogleSignInHelper googleSignInHelper;
+
+    // ========== VARIABLES PARA GITHUB SIGN-IN ==========
+    private GitHubSignInHelper gitHubSignInHelper;
+    private ActivityResultLauncher<Intent> gitHubSignInLauncher;
 
     private View passwordLayoutContainer;
     private TextView tvGeneralError;
@@ -82,12 +93,15 @@ public class LoginFragment extends Fragment {
         tvErrorMessage = view.findViewById(R.id.tvErrorMessage);
         tvForgotPassword = view.findViewById(R.id.tvForgotPassword);
         btnContinue = view.findViewById(R.id.btnContinue);
-        btnFacebookLogin = view.findViewById(R.id.btnFacebookLogin);
         btnGoogleLogin = view.findViewById(R.id.btnGoogleLogin);
+        btnGitHubLogin = view.findViewById(R.id.btnGitHubLogin);
         tvRegisterPrompt = view.findViewById(R.id.tvRegisterPrompt);
 
         // ========== INICIALIZAR GOOGLE SIGN-IN ==========
         googleSignInHelper = new GoogleSignInHelper(getActivity());
+
+        // ========== INICIALIZAR GITHUB SIGN-IN ==========
+        gitHubSignInHelper = new GitHubSignInHelper(getActivity());
 
         // ========== CONFIGURAR ACTIVITY RESULT LAUNCHER ==========
         googleSignInLauncher = registerForActivityResult(
@@ -105,6 +119,19 @@ public class LoginFragment extends Fragment {
                     }
                 }
         );
+
+        // ========== CONFIGURAR GITHUB ACTIVITY RESULT LAUNCHER ==========
+        gitHubSignInLauncher = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                result -> {
+                    Log.d(TAG, "=== GITHUB ACTIVITY RESULT LAUNCHER ===");
+                    Log.d(TAG, "Result Code: " + result.getResultCode());
+                    Log.d(TAG, "Data: " + (result.getData() != null ?
+                            result.getData().toString() : "null"));
+
+                    // Para GitHub, no necesitamos manejar el resultado aquí
+                    // porque el callback se maneja automáticamente en GitHubSignInHelper
+                });
 
         passwordLayoutContainer = view.findViewById(R.id.passwordLayout);
         tvGeneralError = view.findViewById(R.id.tvGeneralError);
@@ -183,11 +210,11 @@ public class LoginFragment extends Fragment {
             }
         });
 
-        btnFacebookLogin.setOnClickListener(new View.OnClickListener() {
+        btnGitHubLogin.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Toast.makeText(getContext(), "Iniciar sesión con Facebook", Toast.LENGTH_SHORT).show();
-                // Implementar inicio de sesión con Facebook
+                Log.d(TAG, "Botón GitHub presionado");
+                initiateGitHubSignIn();
             }
         });
 
@@ -208,7 +235,26 @@ public class LoginFragment extends Fragment {
             }
         });
 
-        return view;
+//        // TEMPORAL: Botón para limpiar estado de GitHub
+//        btnGitHubLogin.setOnLongClickListener(v -> {
+//            Log.d(TAG, "Limpiando estado de GitHub...");
+//
+//            // Limpiar SharedPreferences
+//            getActivity().getSharedPreferences("github_pending", Context.MODE_PRIVATE)
+//                    .edit().clear().apply();
+//
+//            // Hacer sign out para limpiar cualquier estado pendiente
+//            FirebaseAuth.getInstance().signOut();
+//
+//            Toast.makeText(getContext(), "Estado de GitHub limpiado", Toast.LENGTH_SHORT).show();
+//
+//            // Resetear botón
+//            resetGitHubLoginButton();
+//
+//            return true;
+//        });
+
+        return view;  // <-- AQUÍ DEBE ESTAR, AL FINAL DEL MÉTODO
     }
 
     @Override
@@ -301,9 +347,8 @@ public class LoginFragment extends Fragment {
 
                                 // Verificar si es superadmin
                                 if ("superadmin".equals(user.getUserType())) {
-                                    Toast.makeText(getContext(),
-                                            "¡Bienvenido Superadmin " + user.getNombres() + "!",
-                                            Toast.LENGTH_SHORT).show();
+                                    Toast.makeText(getContext(), "¡Bienvenido Superadmin " + user.getNombres() + "!", Toast.LENGTH_SHORT).show();
+                                    checkAndLinkPendingGitHub(); // ← AGREGAR ESTA LÍNEA
 
                                     // Navegar a SuperAdminActivity
                                     Intent intent = new Intent(getActivity(), com.example.proyecto_final_hoteleros.superadmin.activity.SuperAdminActivity.class);
@@ -323,6 +368,9 @@ public class LoginFragment extends Fragment {
                                 Toast.makeText(getContext(),
                                         "¡Bienvenido " + user.getNombres() + "!",
                                         Toast.LENGTH_SHORT).show();
+
+                                // AGREGAR ESTA LÍNEA AQUÍ:
+                                checkAndLinkPendingGitHub();
 
                                 // Navegar según el tipo de usuario
                                 Intent intent;
@@ -546,6 +594,7 @@ public class LoginFragment extends Fragment {
                                             "¡Bienvenido Superadmin " + user.getNombres() + "!",
                                             Toast.LENGTH_SHORT).show();
 
+                                    checkAndLinkPendingGitHub(); // ← AGREGAR ESTA LÍNEA
                                     // Navegar a SuperAdminActivity
                                     Intent intent = new Intent(getActivity(), com.example.proyecto_final_hoteleros.superadmin.activity.SuperAdminActivity.class);
                                     intent.putExtra("userId", firebaseUser.getUid());
@@ -562,6 +611,7 @@ public class LoginFragment extends Fragment {
                                                 "¡Bienvenido " + user.getNombres() + "!",
                                                 Toast.LENGTH_SHORT).show();
                                         // Navegar a HomeActivity de cliente
+                                        checkAndLinkPendingGitHub(); // ← AGREGAR ESTA LÍNEA
                                         Intent intent = new Intent(getActivity(), com.example.proyecto_final_hoteleros.client.ui.activity.HomeActivity.class);
                                         intent.putExtra("userId", firebaseUser.getUid());
                                         intent.putExtra("userEmail", user.getEmail());
@@ -584,6 +634,7 @@ public class LoginFragment extends Fragment {
                                                 "¡Bienvenido conductor " + user.getNombres() + "!",
                                                 Toast.LENGTH_SHORT).show();
                                         // Navegar a DriverActivity
+                                        checkAndLinkPendingGitHub(); // ← AGREGAR ESTA LÍNEA
                                         Intent intent = new Intent(getActivity(), com.example.proyecto_final_hoteleros.taxista.activity.DriverActivity.class);
                                         intent.putExtra("userId", firebaseUser.getUid());
                                         intent.putExtra("userEmail", user.getEmail());
@@ -606,6 +657,7 @@ public class LoginFragment extends Fragment {
                                                 "¡Bienvenido " + user.getNombres() + "!",
                                                 Toast.LENGTH_SHORT).show();
                                         // Navegar a AdminHotelActivity
+                                        checkAndLinkPendingGitHub(); // ← AGREGAR ESTA LÍNEA
                                         Intent intent = new Intent(getActivity(), com.example.proyecto_final_hoteleros.adminhotel.activity.AdminHotelActivity.class);
                                         intent.putExtra("userId", firebaseUser.getUid());
                                         intent.putExtra("userEmail", user.getEmail());
@@ -666,12 +718,318 @@ public class LoginFragment extends Fragment {
         }
     }
 
+    private void checkAndLinkPendingGitHub() {
+        Log.d(TAG, "=== VERIFICANDO GITHUB PENDIENTE ===");
+
+        if (getActivity() == null) {
+            Log.e(TAG, "Activity es null, no se puede verificar GitHub pendiente");
+            return;
+        }
+
+        // Agregar un pequeño delay para asegurar que la UI esté lista
+        new Handler(Looper.getMainLooper()).postDelayed(() -> {
+            if (getActivity() == null || getContext() == null) {
+                Log.e(TAG, "Contexto perdido después del delay");
+                return;
+            }
+
+            // Verificar si hay GitHub pendiente de vincular
+            SharedPreferences prefs = getActivity().getSharedPreferences("github_pending", getActivity().MODE_PRIVATE);
+            boolean hasPending = prefs.getBoolean("has_pending", false);
+            String pendingEmail = prefs.getString("pending_email", null);
+
+            Log.d(TAG, "Has pending: " + hasPending);
+            Log.d(TAG, "Pending email: " + pendingEmail);
+
+            if (hasPending && pendingEmail != null) {
+                Log.d(TAG, "🔗 Detectado GitHub pendiente para: " + pendingEmail);
+
+                // Mostrar diálogo preguntando si quiere vincular
+                new AlertDialog.Builder(getContext())
+                        .setTitle("Vincular GitHub")
+                        .setMessage("Detectamos que intentaste iniciar sesión con GitHub. ¿Deseas vincular tu cuenta de GitHub a este perfil?")
+                        .setPositiveButton("Sí, vincular", (dialog, which) -> {
+                            linkGitHubAutomatically();
+                        })
+                        .setNegativeButton("No, gracias", (dialog, which) -> {
+                            // Limpiar pendiente
+                            prefs.edit().clear().apply();
+                            Log.d(TAG, "Usuario rechazó la vinculación");
+                        })
+                        .show();
+            } else {
+                Log.d(TAG, "No hay GitHub pendiente para vincular");
+            }
+        }, 500); // 500ms de delay
+    }
+
+    private void linkGitHubAutomatically() {
+        Log.d(TAG, "🔗 Iniciando vinculación automática de GitHub");
+
+        gitHubSignInHelper.linkGitHubToCurrentUser(new GitHubSignInHelper.GitHubSignInCallback() {
+            @Override
+            public void onSignInSuccess(FirebaseUser user) {
+                Log.d(TAG, "✅ GitHub vinculado exitosamente!");
+                if (getActivity() != null) {
+                    getActivity().runOnUiThread(() -> {
+                        // Limpiar pending
+                        getActivity().getSharedPreferences("github_pending", getActivity().MODE_PRIVATE)
+                                .edit()
+                                .clear()
+                                .apply();
+
+                        Toast.makeText(getContext(), "🎉 GitHub vinculado exitosamente a tu cuenta!", Toast.LENGTH_LONG).show();
+                    });
+                }
+            }
+
+            @Override
+            public void onSignInFailure(String error) {
+                Log.e(TAG, "❌ Error vinculando GitHub: " + error);
+                // No mostrar error al usuario, solo en logs
+            }
+
+            @Override
+            public void onSignInCanceled() {
+                Log.d(TAG, "Vinculación de GitHub cancelada");
+            }
+
+            @Override
+            public void onAccountCollision(String email) {
+                Log.d(TAG, "Collision durante vinculación - no debería pasar");
+            }
+        }, gitHubSignInLauncher);
+    }
+
     private void resetGoogleLoginButton() {
         if (btnGoogleLogin != null) {
             btnGoogleLogin.setEnabled(true);
             btnGoogleLogin.setText("Continuar con Google");
             btnGoogleLogin.setAlpha(1.0f);
         }
+    }
+
+    private void initiateGitHubSignIn() {
+        Log.d(TAG, "Iniciando GitHub Sign-In");
+
+        // Deshabilitar botón mientras se procesa
+        btnGitHubLogin.setEnabled(false);
+        btnGitHubLogin.setText("Conectando...");
+        btnGitHubLogin.setAlpha(0.6f);
+
+        gitHubSignInHelper.signIn(new GitHubSignInHelper.GitHubSignInCallback() {
+            @Override
+            public void onSignInSuccess(FirebaseUser user) {
+                Log.d(TAG, "✅ GitHub Sign-In exitoso: " + user.getEmail());
+                handleGitHubSignInSuccess(user);
+            }
+
+            @Override
+            public void onSignInFailure(String error) {
+                Log.e(TAG, "❌ Error en GitHub Sign-In: " + error);
+                if (getActivity() != null) {
+                    getActivity().runOnUiThread(() -> {
+                        Toast.makeText(getContext(), error, Toast.LENGTH_LONG).show();
+                        resetGitHubLoginButton();
+                    });
+                }
+            }
+
+            @Override
+            public void onSignInCanceled() {
+                Log.d(TAG, "GitHub Sign-In cancelado por el usuario");
+                if (getActivity() != null) {
+                    getActivity().runOnUiThread(() -> {
+                        resetGitHubLoginButton();
+                    });
+                }
+            }
+
+            @Override
+            public void onAccountCollision(String email) {
+                Log.d(TAG, "🔗 Account collision detectada para: " + email);
+                if (getActivity() != null) {
+                    getActivity().runOnUiThread(() -> {
+                        handleAccountCollision(email);
+                    });
+                }
+            }
+        });
+    }
+
+    private void handleGitHubSignInSuccess(FirebaseUser firebaseUser) {
+        if (getActivity() != null) {
+            getActivity().runOnUiThread(() -> {
+                Log.d(TAG, "Procesando usuario de GitHub: " + firebaseUser.getEmail());
+
+                // Buscar si el usuario ya existe en Firestore (EXACTAMENTE la misma lógica que Google)
+                FirebaseManager firebaseManager = FirebaseManager.getInstance();
+                firebaseManager.getUserDataFromAnyCollection(firebaseUser.getUid(), new FirebaseManager.UserCallback() {
+                    @Override
+                    public void onUserFound(UserModel user) {
+                        if (getActivity() != null) {
+                            getActivity().runOnUiThread(() -> {
+                                Log.d(TAG, "✅ Usuario encontrado en Firestore: " + user.getFullName());
+
+                                // Verificar el estado del usuario
+                                String userType = user.getUserType();
+                                boolean isActive = user.isActive();
+
+                                if ("superadmin".equals(userType)) {
+                                    Toast.makeText(getContext(),
+                                            "¡Bienvenido Superadmin " + user.getNombres() + "!",
+                                            Toast.LENGTH_SHORT).show();
+
+                                    // Navegar a SuperAdminActivity
+                                    Intent intent = new Intent(getActivity(), com.example.proyecto_final_hoteleros.superadmin.activity.SuperAdminActivity.class);
+                                    intent.putExtra("userId", firebaseUser.getUid());
+                                    intent.putExtra("userEmail", user.getEmail());
+                                    intent.putExtra("userName", user.getFullName());
+                                    intent.putExtra("userType", user.getUserType());
+                                    startActivity(intent);
+                                    getActivity().finish();
+
+                                } else if ("client".equals(userType)) {
+                                    if (isActive) {
+                                        Toast.makeText(getContext(),
+                                                "¡Bienvenido " + user.getNombres() + "!",
+                                                Toast.LENGTH_SHORT).show();
+                                        Intent intent = new Intent(getActivity(), com.example.proyecto_final_hoteleros.client.ui.activity.HomeActivity.class);
+                                        intent.putExtra("userId", firebaseUser.getUid());
+                                        intent.putExtra("userEmail", user.getEmail());
+                                        intent.putExtra("userName", user.getFullName());
+                                        intent.putExtra("userType", user.getUserType());
+                                        startActivity(intent);
+                                        getActivity().finish();
+                                    } else {
+                                        Toast.makeText(getContext(),
+                                                "Tu cuenta ha sido desactivada. Contacta al administrador para más información.",
+                                                Toast.LENGTH_LONG).show();
+                                        gitHubSignInHelper.signOut();
+                                        resetGitHubLoginButton();
+                                    }
+
+                                } else if ("driver".equals(userType)) {
+                                    if (isActive) {
+                                        Toast.makeText(getContext(),
+                                                "¡Bienvenido conductor " + user.getNombres() + "!",
+                                                Toast.LENGTH_SHORT).show();
+                                        Intent intent = new Intent(getActivity(), com.example.proyecto_final_hoteleros.taxista.activity.DriverActivity.class);
+                                        intent.putExtra("userId", firebaseUser.getUid());
+                                        intent.putExtra("userEmail", user.getEmail());
+                                        intent.putExtra("userName", user.getFullName());
+                                        intent.putExtra("userType", user.getUserType());
+                                        startActivity(intent);
+                                        getActivity().finish();
+                                    } else {
+                                        Toast.makeText(getContext(),
+                                                "Tu cuenta de conductor está pendiente de aprobación o ha sido desactivada. Te notificaremos por email cuando sea aprobada.",
+                                                Toast.LENGTH_LONG).show();
+                                        gitHubSignInHelper.signOut();
+                                        resetGitHubLoginButton();
+                                    }
+
+                                } else if ("admin_hotel".equals(userType)) {
+                                    if (isActive) {
+                                        Toast.makeText(getContext(),
+                                                "¡Bienvenido " + user.getNombres() + "!",
+                                                Toast.LENGTH_SHORT).show();
+                                        Intent intent = new Intent(getActivity(), com.example.proyecto_final_hoteleros.adminhotel.activity.AdminHotelActivity.class);
+                                        intent.putExtra("userId", firebaseUser.getUid());
+                                        intent.putExtra("userEmail", user.getEmail());
+                                        intent.putExtra("userName", user.getFullName());
+                                        intent.putExtra("userType", user.getUserType());
+                                        startActivity(intent);
+                                        getActivity().finish();
+                                    } else {
+                                        Toast.makeText(getContext(),
+                                                "Tu cuenta ha sido desactivada. Contacta al administrador.",
+                                                Toast.LENGTH_LONG).show();
+                                        gitHubSignInHelper.signOut();
+                                        resetGitHubLoginButton();
+                                    }
+
+                                } else {
+                                    Toast.makeText(getContext(),
+                                            "Tipo de usuario no válido para inicio de sesión.",
+                                            Toast.LENGTH_SHORT).show();
+                                    gitHubSignInHelper.signOut();
+                                    resetGitHubLoginButton();
+                                }
+                            });
+                        }
+                    }
+
+                    @Override
+                    public void onUserNotFound() {
+                        if (getActivity() != null) {
+                            getActivity().runOnUiThread(() -> {
+                                Log.w(TAG, "Usuario no encontrado en Firestore. Debe registrarse primero.");
+                                Toast.makeText(getContext(),
+                                        "No tienes una cuenta registrada con este correo. Por favor regístrate primero usando el formulario de registro.",
+                                        Toast.LENGTH_LONG).show();
+
+                                // Cerrar sesión de GitHub/Firebase ya que no está registrado en nuestro sistema
+                                gitHubSignInHelper.signOut();
+                                resetGitHubLoginButton();
+                            });
+                        }
+                    }
+
+                    @Override
+                    public void onError(String error) {
+                        if (getActivity() != null) {
+                            getActivity().runOnUiThread(() -> {
+                                Log.e(TAG, "❌ Error obteniendo datos de usuario: " + error);
+                                Toast.makeText(getContext(),
+                                        "Error verificando tu cuenta. Por favor inténtalo de nuevo.",
+                                        Toast.LENGTH_LONG).show();
+                                gitHubSignInHelper.signOut();
+                                resetGitHubLoginButton();
+                            });
+                        }
+                    }
+                });
+            });
+        }
+    }
+
+    private void resetGitHubLoginButton() {
+        if (btnGitHubLogin != null) {
+            btnGitHubLogin.setEnabled(true);
+            btnGitHubLogin.setText("Iniciar sesión con GitHub");
+            btnGitHubLogin.setAlpha(1.0f);
+        }
+    }
+
+    private void handleAccountCollision(String email) {
+        Log.d(TAG, "Manejando collision para: " + email);
+
+        // Mostrar mensaje explicativo al usuario
+        Toast.makeText(getContext(),
+                "Esta cuenta ya existe. Inicia sesión con email/contraseña y luego vincularemos GitHub automáticamente.",
+                Toast.LENGTH_LONG).show();
+
+        // Guardar el email para vincular después
+        if (getActivity() != null) {
+            SharedPreferences.Editor editor = getActivity()
+                    .getSharedPreferences("github_pending", getActivity().MODE_PRIVATE)
+                    .edit();
+
+            editor.putString("pending_email", email);
+            editor.putBoolean("has_pending", true);
+            boolean saved = editor.commit(); // Usar commit() en lugar de apply()
+
+            Log.d(TAG, "✅ Email guardado para vinculación posterior: " + email);
+            Log.d(TAG, "SharedPreferences guardado correctamente: " + saved);
+
+            // Verificar inmediatamente que se guardó
+            SharedPreferences prefs = getActivity().getSharedPreferences("github_pending", getActivity().MODE_PRIVATE);
+            Log.d(TAG, "Verificación - has_pending: " + prefs.getBoolean("has_pending", false));
+            Log.d(TAG, "Verificación - pending_email: " + prefs.getString("pending_email", null));
+        }
+
+        resetGitHubLoginButton();
     }
 
 }
