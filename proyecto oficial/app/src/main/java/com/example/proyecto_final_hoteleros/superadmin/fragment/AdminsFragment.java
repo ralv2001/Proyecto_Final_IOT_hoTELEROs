@@ -26,6 +26,7 @@ import com.example.proyecto_final_hoteleros.superadmin.adapters.AdminsAdapter;
 import com.example.proyecto_final_hoteleros.superadmin.models.AdminUser;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 public class AdminsFragment extends Fragment {
@@ -298,14 +299,18 @@ public class AdminsFragment extends Fragment {
         FirebaseManager.getInstance().getHotelAdmins(new FirebaseManager.DriverListCallback() {
             @Override
             public void onSuccess(List<UserModel> hotelAdmins) {
-                Log.d("AdminsFragment", "✅ " + hotelAdmins.size() + " administradores obtenidos");
+                Log.d("AdminsFragment", "✅ " + hotelAdmins.size() + " administradores obtenidos [" + new Date() + "]");
 
                 if (getActivity() != null) {
                     getActivity().runOnUiThread(() -> {
-                        // Convertir UserModel a AdminUser
                         List<AdminUser> admins = convertUserModelsToAdminUsers(hotelAdmins);
                         updateAdminsList(admins);
                         showLoading(false);
+
+                        // 🔥 NUEVO: Notificar que los datos se actualizaron
+                        android.widget.Toast.makeText(getContext(),
+                                "✅ Lista actualizada: " + admins.size() + " admins",
+                                android.widget.Toast.LENGTH_SHORT).show();
                     });
                 }
             }
