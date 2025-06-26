@@ -1,0 +1,1256 @@
+Index: app/src/main/java/com/example/proyecto_final_hoteleros/client/ui/fragment/ProfileFragment.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.example.proyecto_final_hoteleros.client.ui.fragment;\r\n\r\nimport android.content.Intent;\r\nimport android.os.Bundle;\r\nimport android.transition.TransitionInflater;\r\nimport android.util.Log;\r\nimport android.view.LayoutInflater;\r\nimport android.view.View;\r\nimport android.view.ViewGroup;\r\nimport android.widget.LinearLayout;\r\nimport android.widget.TextView;\r\nimport android.widget.Toast;\r\n\r\nimport androidx.annotation.Nullable;\r\nimport androidx.core.view.ViewCompat;\r\n\r\nimport com.example.proyecto_final_hoteleros.MainActivity;\r\nimport com.example.proyecto_final_hoteleros.R;\r\nimport com.example.proyecto_final_hoteleros.client.navigation.NavigationManager;\r\nimport com.example.proyecto_final_hoteleros.client.utils.UserDataManager;\r\nimport com.google.firebase.auth.FirebaseAuth;\r\n\r\npublic class ProfileFragment extends BaseBottomNavigationFragment {\r\n    private static final String TAG = \"ProfileFragment\";\r\n\r\n    // Variables para las opciones del perfil\r\n    private LinearLayout layoutProfileOption, layoutPaymentOption, layoutNotificationOption;\r\n    private TextView btnLogout;\r\n\r\n    // Views para mostrar datos del usuario\r\n    private TextView tvProfileName;\r\n\r\n    @Override\r\n    protected NavigationTab getCurrentTab() {\r\n        return NavigationTab.PROFILE;\r\n    }\r\n\r\n    @Override\r\n    public void onCreate(@Nullable Bundle savedInstanceState) {\r\n        super.onCreate(savedInstanceState);\r\n\r\n        // Obtener datos del usuario y guardarlos en el manager si vienen en argumentos\r\n        if (getArguments() != null) {\r\n            String userId = getArguments().getString(\"user_id\");\r\n            String userName = getArguments().getString(\"user_name\");\r\n            String userFullName = getArguments().getString(\"user_full_name\");\r\n            String userEmail = getArguments().getString(\"user_email\");\r\n            String userType = getArguments().getString(\"user_type\");\r\n\r\n            UserDataManager.getInstance().setUserData(userId, userName, userFullName, userEmail, userType);\r\n\r\n            Log.d(TAG, \"=== DATOS RECIBIDOS EN PROFILEFRAGMENT ===\");\r\n            Log.d(TAG, \"User ID: \" + userId);\r\n            Log.d(TAG, \"User Name: \" + userName);\r\n        }\r\n\r\n        // Configurar transiciones\r\n        setSharedElementEnterTransition(\r\n                TransitionInflater.from(requireContext())\r\n                        .inflateTransition(android.R.transition.move)\r\n                        .setDuration(300)\r\n        );\r\n\r\n        setSharedElementReturnTransition(\r\n                TransitionInflater.from(requireContext())\r\n                        .inflateTransition(android.R.transition.move)\r\n                        .setDuration(300)\r\n        );\r\n    }\r\n\r\n    @Override\r\n    public View onCreateView(LayoutInflater inflater, ViewGroup container,\r\n                             Bundle savedInstanceState) {\r\n        View rootView = inflater.inflate(R.layout.client_fragment_profile, container, false);\r\n\r\n        // Inicializar views\r\n        initViews(rootView);\r\n\r\n        // Configurar datos del usuario\r\n        setupUserData();\r\n\r\n        // Configurar el avatar con transición\r\n        de.hdodenhof.circleimageview.CircleImageView profileAvatar =\r\n                rootView.findViewById(R.id.ivProfileAvatar);\r\n        ViewCompat.setTransitionName(profileAvatar, \"avatar_transition\");\r\n\r\n        // Inicializar las opciones del perfil\r\n        initializeProfileOptions(rootView);\r\n\r\n        return rootView;\r\n    }\r\n\r\n    private void initViews(View view) {\r\n        tvProfileName = view.findViewById(R.id.tvProfileName);\r\n    }\r\n\r\n    private void setupUserData() {\r\n        if (tvProfileName != null) {\r\n            String displayName = UserDataManager.getInstance().getUserFullName();\r\n            tvProfileName.setText(displayName);\r\n            Log.d(TAG, \"Nombre de perfil configurado: \" + displayName);\r\n        } else {\r\n            Log.e(TAG, \"TextView tvProfileName no encontrado en el layout\");\r\n        }\r\n    }\r\n\r\n    private void initializeProfileOptions(View rootView) {\r\n        // Referencias a los elementos de las opciones\r\n        layoutProfileOption = rootView.findViewById(R.id.layoutProfileOption);\r\n        layoutPaymentOption = rootView.findViewById(R.id.layoutPaymentOption);\r\n        layoutNotificationOption = rootView.findViewById(R.id.layoutNotificationOption);\r\n        btnLogout = rootView.findViewById(R.id.btnLogout);\r\n\r\n        // Configurar listeners para las opciones\r\n        layoutProfileOption.setOnClickListener(v -> navigateToEditProfile());\r\n\r\n        layoutPaymentOption.setOnClickListener(v -> {\r\n            Toast.makeText(requireContext(), \"Métodos de pago\", Toast.LENGTH_SHORT).show();\r\n        });\r\n\r\n        layoutNotificationOption.setOnClickListener(v -> navigateToNotifications());\r\n\r\n        btnLogout.setOnClickListener(v -> performLogout());\r\n    }\r\n\r\n    private void navigateToEditProfile() {\r\n        Bundle args = UserDataManager.getInstance().getUserBundle();\r\n        String message = \"Editar perfil de: \" + UserDataManager.getInstance().getUserFullName();\r\n        Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show();\r\n\r\n        // Cuando tengas EditProfileFragment, usar NavigationManager:\r\n        // NavigationManager.getInstance().navigateToEditProfile(args);\r\n    }\r\n\r\n    private void navigateToNotifications() {\r\n        NavigationManager.getInstance().navigateToNotificationSettings(\r\n                UserDataManager.getInstance().getUserBundle()\r\n        );\r\n    }\r\n\r\n    private void performLogout() {\r\n        try {\r\n            Log.d(TAG, \"Iniciando proceso de cierre de sesión...\");\r\n\r\n            FirebaseAuth.getInstance().signOut();\r\n            Log.d(TAG, \"Sesión de Firebase cerrada exitosamente\");\r\n\r\n            Toast.makeText(requireContext(), \"Cerrando sesión...\", Toast.LENGTH_SHORT).show();\r\n\r\n            Intent intent = new Intent(requireActivity(), MainActivity.class);\r\n            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);\r\n            startActivity(intent);\r\n\r\n            requireActivity().finish();\r\n            Log.d(TAG, \"Navegación a MainActivity completada\");\r\n\r\n        } catch (Exception e) {\r\n            Log.e(TAG, \"Error al cerrar sesión: \" + e.getMessage());\r\n            e.printStackTrace();\r\n            Toast.makeText(requireContext(), \"Error al cerrar sesión\", Toast.LENGTH_SHORT).show();\r\n        }\r\n    }\r\n\r\n    // Métodos públicos para acceder a los datos del usuario\r\n    public String getUserName() {\r\n        return UserDataManager.getInstance().getUserName();\r\n    }\r\n\r\n    public String getUserFullName() {\r\n        return UserDataManager.getInstance().getUserFullName();\r\n    }\r\n\r\n    public String getUserId() {\r\n        return UserDataManager.getInstance().getUserId();\r\n    }\r\n\r\n    public String getUserEmail() {\r\n        return UserDataManager.getInstance().getUserEmail();\r\n    }\r\n\r\n    public String getUserType() {\r\n        return UserDataManager.getInstance().getUserType();\r\n    }\r\n}
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/java/com/example/proyecto_final_hoteleros/client/ui/fragment/ProfileFragment.java b/app/src/main/java/com/example/proyecto_final_hoteleros/client/ui/fragment/ProfileFragment.java
+--- a/app/src/main/java/com/example/proyecto_final_hoteleros/client/ui/fragment/ProfileFragment.java	(revision 5df4e88388a3dc069cccd9c236947ef34d865be1)
++++ b/app/src/main/java/com/example/proyecto_final_hoteleros/client/ui/fragment/ProfileFragment.java	(date 1749101319678)
+@@ -1,184 +1,261 @@
+ package com.example.proyecto_final_hoteleros.client.ui.fragment;
+ 
++import android.app.AlertDialog;
+ import android.content.Intent;
++import android.content.SharedPreferences;
+ import android.os.Bundle;
+-import android.transition.TransitionInflater;
+ import android.util.Log;
+ import android.view.LayoutInflater;
+ import android.view.View;
+ import android.view.ViewGroup;
+-import android.widget.LinearLayout;
+-import android.widget.TextView;
+ import android.widget.Toast;
+ 
++import androidx.annotation.NonNull;
+ import androidx.annotation.Nullable;
+-import androidx.core.view.ViewCompat;
++import androidx.fragment.app.Fragment;
++import androidx.recyclerview.widget.LinearLayoutManager;
++import androidx.recyclerview.widget.RecyclerView;
+ 
+-import com.example.proyecto_final_hoteleros.MainActivity;
+ import com.example.proyecto_final_hoteleros.R;
+-import com.example.proyecto_final_hoteleros.client.navigation.NavigationManager;
+-import com.example.proyecto_final_hoteleros.client.utils.UserDataManager;
+-import com.google.firebase.auth.FirebaseAuth;
++import com.example.proyecto_final_hoteleros.client.ui.adapters.ClientProfileAdapter;
++import com.example.proyecto_final_hoteleros.client.data.model.ClientProfile;
++import com.example.proyecto_final_hoteleros.taxista.model.ProfileMenuItem;
++
++import java.util.ArrayList;
++import java.util.List;
+ 
+-public class ProfileFragment extends BaseBottomNavigationFragment {
++import static android.content.Context.MODE_PRIVATE;
++
++public class ProfileFragment extends Fragment implements ClientProfileAdapter.OnProfileItemClickListener {
++
+     private static final String TAG = "ProfileFragment";
+ 
+-    // Variables para las opciones del perfil
+-    private LinearLayout layoutProfileOption, layoutPaymentOption, layoutNotificationOption;
+-    private TextView btnLogout;
++    private RecyclerView recyclerProfile;
++    private ClientProfileAdapter adapter;
++    private List<Object> profileItems;
++    private ClientProfile currentClient;
+ 
+-    // Views para mostrar datos del usuario
+-    private TextView tvProfileName;
+-
+-    @Override
+-    protected NavigationTab getCurrentTab() {
+-        return NavigationTab.PROFILE;
+-    }
+-
+-    @Override
+-    public void onCreate(@Nullable Bundle savedInstanceState) {
+-        super.onCreate(savedInstanceState);
+-
+-        // Obtener datos del usuario y guardarlos en el manager si vienen en argumentos
+-        if (getArguments() != null) {
+-            String userId = getArguments().getString("user_id");
+-            String userName = getArguments().getString("user_name");
+-            String userFullName = getArguments().getString("user_full_name");
+-            String userEmail = getArguments().getString("user_email");
+-            String userType = getArguments().getString("user_type");
+-
+-            UserDataManager.getInstance().setUserData(userId, userName, userFullName, userEmail, userType);
+-
+-            Log.d(TAG, "=== DATOS RECIBIDOS EN PROFILEFRAGMENT ===");
+-            Log.d(TAG, "User ID: " + userId);
+-            Log.d(TAG, "User Name: " + userName);
+-        }
+-
+-        // Configurar transiciones
+-        setSharedElementEnterTransition(
+-                TransitionInflater.from(requireContext())
+-                        .inflateTransition(android.R.transition.move)
+-                        .setDuration(300)
+-        );
+-
+-        setSharedElementReturnTransition(
+-                TransitionInflater.from(requireContext())
+-                        .inflateTransition(android.R.transition.move)
+-                        .setDuration(300)
+-        );
++    public ProfileFragment() {
++        // Constructor vacío requerido
+     }
+ 
+     @Override
+     public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                              Bundle savedInstanceState) {
+-        View rootView = inflater.inflate(R.layout.client_fragment_profile, container, false);
++        View view = inflater.inflate(R.layout.client_fragment_profile, container, false);
++
++        recyclerProfile = view.findViewById(R.id.recycler_profile);
++
++        setupRecyclerView();
++        loadProfileData();
+ 
+-        // Inicializar views
+-        initViews(rootView);
++        return view;
++    }
+ 
+-        // Configurar datos del usuario
+-        setupUserData();
++    private void setupRecyclerView() {
++        profileItems = new ArrayList<>();
++        adapter = new ClientProfileAdapter(getContext(), profileItems, this);
++        recyclerProfile.setLayoutManager(new LinearLayoutManager(getContext()));
++        recyclerProfile.setAdapter(adapter);
++    }
+ 
+-        // Configurar el avatar con transición
+-        de.hdodenhof.circleimageview.CircleImageView profileAvatar =
+-                rootView.findViewById(R.id.ivProfileAvatar);
+-        ViewCompat.setTransitionName(profileAvatar, "avatar_transition");
++    private void loadProfileData() {
++        // Generar datos de ejemplo del cliente
++        currentClient = generateClientProfile();
+ 
+-        // Inicializar las opciones del perfil
+-        initializeProfileOptions(rootView);
++        // Agregar header (perfil del cliente con estadísticas integradas)
++        profileItems.add(currentClient);
+ 
+-        return rootView;
++        // Agregar items del menú
++        profileItems.addAll(generateMenuItems());
++
++        // Notificar al adapter
++        adapter.notifyDataSetChanged();
+     }
+ 
+-    private void initViews(View view) {
+-        tvProfileName = view.findViewById(R.id.tvProfileName);
++    private ClientProfile generateClientProfile() {
++        // Datos de ejemplo del cliente
++        return new ClientProfile(
++                "client001",
++                "Juan Pérez",
++                "juan.perez@email.com",
++                "+51 987 123 456",
++                "https://randomuser.me/api/portraits/men/1.jpg", // URL de ejemplo
++                "Av. Javier Prado 123, San Isidro, Lima",
++                true,
++                23, // total reservas
++                4580.50, // total gastado
++                4.9f, // rating
++                "2023" // miembro desde
++        );
+     }
+ 
+-    private void setupUserData() {
+-        if (tvProfileName != null) {
+-            String displayName = UserDataManager.getInstance().getUserFullName();
+-            tvProfileName.setText(displayName);
+-            Log.d(TAG, "Nombre de perfil configurado: " + displayName);
+-        } else {
+-            Log.e(TAG, "TextView tvProfileName no encontrado en el layout");
+-        }
+-    }
++    private List<ProfileMenuItem> generateMenuItems() {
++        List<ProfileMenuItem> menuItems = new ArrayList<>();
+ 
+-    private void initializeProfileOptions(View rootView) {
+-        // Referencias a los elementos de las opciones
+-        layoutProfileOption = rootView.findViewById(R.id.layoutProfileOption);
+-        layoutPaymentOption = rootView.findViewById(R.id.layoutPaymentOption);
+-        layoutNotificationOption = rootView.findViewById(R.id.layoutNotificationOption);
+-        btnLogout = rootView.findViewById(R.id.btnLogout);
++        menuItems.add(new ProfileMenuItem(
++                "Ver Perfil",
++                R.drawable.ic_person,
++                "Editar información personal",
++                true,
++                ProfileMenuItem.ProfileMenuType.MENU_ITEM
++        ));
+ 
+-        // Configurar listeners para las opciones
+-        layoutProfileOption.setOnClickListener(v -> navigateToEditProfile());
++        menuItems.add(new ProfileMenuItem(
++                "Métodos de pago",
++                R.drawable.ic_payment,
++                "Gestionar tarjetas y pagos",
++                true,
++                ProfileMenuItem.ProfileMenuType.MENU_ITEM
++        ));
+ 
+-        layoutPaymentOption.setOnClickListener(v -> {
+-            Toast.makeText(requireContext(), "Métodos de pago", Toast.LENGTH_SHORT).show();
+-        });
++        menuItems.add(new ProfileMenuItem(
++                "Notificaciones",
++                R.drawable.ic_notification,
++                "Configurar alertas y avisos",
++                true,
++                ProfileMenuItem.ProfileMenuType.MENU_ITEM
++        ));
+ 
+-        layoutNotificationOption.setOnClickListener(v -> navigateToNotifications());
++        // Cerrar sesión sin flecha
++        menuItems.add(new ProfileMenuItem(
++                "Cerrar sesión",
++                R.drawable.ic_logout,
++                "Salir de la aplicación",
++                false, // Sin flecha para cerrar sesión
++                ProfileMenuItem.ProfileMenuType.MENU_ITEM
++        ));
+ 
+-        btnLogout.setOnClickListener(v -> performLogout());
++        return menuItems;
+     }
+ 
+-    private void navigateToEditProfile() {
+-        Bundle args = UserDataManager.getInstance().getUserBundle();
+-        String message = "Editar perfil de: " + UserDataManager.getInstance().getUserFullName();
+-        Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show();
++    @Override
++    public void onMenuItemClick(ProfileMenuItem item) {
++        Log.d(TAG, "Menu item clicked: " + item.getTitle());
+ 
+-        // Cuando tengas EditProfileFragment, usar NavigationManager:
+-        // NavigationManager.getInstance().navigateToEditProfile(args);
++        switch (item.getTitle()) {
++            case "Ver Perfil":
++                handleVerPerfil();
++                break;
++            case "Métodos de pago":
++                handleMetodosPago();
++                break;
++            case "Notificaciones":
++                handleNotificaciones();
++                break;
++            default:
++                Toast.makeText(getContext(), "Función no implementada: " + item.getTitle(), Toast.LENGTH_SHORT).show();
++        }
+     }
+ 
+-    private void navigateToNotifications() {
+-        NavigationManager.getInstance().navigateToNotificationSettings(
+-                UserDataManager.getInstance().getUserBundle()
+-        );
++    @Override
++    public void onLogoutClick() {
++        Log.d(TAG, "Logout clicked");
++        showLogoutConfirmationDialog();
++    }
++
++    private void showLogoutConfirmationDialog() {
++        if (getContext() == null) return;
++
++        new AlertDialog.Builder(getContext())
++                .setTitle("Cerrar sesión")
++                .setMessage("¿Estás seguro que deseas cerrar sesión?")
++                .setPositiveButton("Sí", (dialog, which) -> {
++                    Log.d(TAG, "User confirmed logout");
++                    performLogout();
++                })
++                .setNegativeButton("Cancelar", (dialog, which) -> {
++                    Log.d(TAG, "User cancelled logout");
++                    dialog.dismiss();
++                })
++                .setCancelable(true)
++                .show();
+     }
+ 
+     private void performLogout() {
+-        try {
+-            Log.d(TAG, "Iniciando proceso de cierre de sesión...");
++        //try {
++            //if (getContext() == null) return;
++
++            // Limpiar datos de sesión
++            //SharedPreferences prefs = getContext().getSharedPreferences("user_prefs", MODE_PRIVATE);
++            //prefs.edit().clear().apply();
+ 
+-            FirebaseAuth.getInstance().signOut();
+-            Log.d(TAG, "Sesión de Firebase cerrada exitosamente");
++            // Mostrar mensaje de confirmación
++            Toast.makeText(getContext(), "Sesión cerrada exitosamente", Toast.LENGTH_SHORT).show();
+ 
+-            Toast.makeText(requireContext(), "Cerrando sesión...", Toast.LENGTH_SHORT).show();
++            // Navegar a la pantalla de login
++            // Nota: Ajusta el nombre de tu Activity de login
++            //Intent intent = new Intent(getContext(), LoginActivity.class);
++            //intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
++            //startActivity(intent);
+ 
+-            Intent intent = new Intent(requireActivity(), MainActivity.class);
+-            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+-            startActivity(intent);
++            // Finalizar la actividad actual
++            //if (getActivity() != null) {
++              //  getActivity().finish();
++            //}
+ 
+-            requireActivity().finish();
+-            Log.d(TAG, "Navegación a MainActivity completada");
++            //Log.d(TAG, "Logout completed successfully");
+ 
+-        } catch (Exception e) {
+-            Log.e(TAG, "Error al cerrar sesión: " + e.getMessage());
+-            e.printStackTrace();
+-            Toast.makeText(requireContext(), "Error al cerrar sesión", Toast.LENGTH_SHORT).show();
+-        }
++        //} catch (Exception e) {
++            //Log.e(TAG, "Error during logout", e);
++            //if (getContext() != null) {
++             //   Toast.makeText(getContext(), "Error al cerrar sesión", Toast.LENGTH_SHORT).show();
++            //}
++        //}
++    }
++
++    private void handleVerPerfil() {
++        Log.d(TAG, "Ver Perfil clicked");
++        Toast.makeText(getContext(), "Navegando a editar perfil...", Toast.LENGTH_SHORT).show();
++
++        // TODO: Implementar navegación al fragmento de editar perfil del cliente
++        // EditClientProfileFragment editFragment = new EditClientProfileFragment();
++        // Bundle args = new Bundle();
++        // args.putParcelable("client_profile", currentClient);
++        // editFragment.setArguments(args);
++        // getParentFragmentManager().beginTransaction()
++        //     .replace(R.id.fragment_container, editFragment)
++        //     .addToBackStack(null)
++        //     .commit();
+     }
+ 
+-    // Métodos públicos para acceder a los datos del usuario
+-    public String getUserName() {
+-        return UserDataManager.getInstance().getUserName();
+-    }
++    private void handleMetodosPago() {
++        Log.d(TAG, "Métodos de Pago clicked");
++        Toast.makeText(getContext(), "Navegando a métodos de pago...", Toast.LENGTH_SHORT).show();
+ 
+-    public String getUserFullName() {
+-        return UserDataManager.getInstance().getUserFullName();
++        // TODO: Implementar navegación al fragmento de métodos de pago del cliente
++        // ClientPaymentMethodsFragment paymentFragment = new ClientPaymentMethodsFragment();
++        // getParentFragmentManager().beginTransaction()
++        //     .replace(R.id.fragment_container, paymentFragment)
++        //     .addToBackStack("payment_methods")
++        //     .commit();
+     }
+ 
+-    public String getUserId() {
+-        return UserDataManager.getInstance().getUserId();
++    private void handleNotificaciones() {
++        Log.d(TAG, "Notificaciones clicked");
++        Toast.makeText(getContext(), "Configurando notificaciones...", Toast.LENGTH_SHORT).show();
++
++        // TODO: Implementar navegación al fragmento de configuración de notificaciones
++        // NotificationSettingsFragment notificationFragment = new NotificationSettingsFragment();
++        // getParentFragmentManager().beginTransaction()
++        //     .replace(R.id.fragment_container, notificationFragment)
++        //     .addToBackStack("notifications")
++        //     .commit();
+     }
+ 
+-    public String getUserEmail() {
+-        return UserDataManager.getInstance().getUserEmail();
++    @Override
++    public void onResume() {
++        super.onResume();
++        Log.d(TAG, "Fragment resumed");
+     }
+ 
+-    public String getUserType() {
+-        return UserDataManager.getInstance().getUserType();
++    @Override
++    public void onDestroyView() {
++        super.onDestroyView();
++        // Limpiar referencias para evitar memory leaks
++        recyclerProfile = null;
++        adapter = null;
++        profileItems = null;
++        Log.d(TAG, "Vista destruida y referencias limpiadas");
+     }
+ }
+\ No newline at end of file
+Index: app/src/main/res/layout/client_fragment_profile.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><?xml version=\"1.0\" encoding=\"utf-8\"?>\r\n<androidx.constraintlayout.widget.ConstraintLayout\r\n    xmlns:android=\"http://schemas.android.com/apk/res/android\"\r\n    xmlns:app=\"http://schemas.android.com/apk/res-auto\"\r\n    xmlns:tools=\"http://schemas.android.com/tools\"\r\n    android:layout_width=\"match_parent\"\r\n    android:layout_height=\"match_parent\"\r\n    android:background=\"@android:color/white\"\r\n    android:paddingTop=\"16dp\"\r\n    android:paddingBottom=\"0dp\">\r\n    <androidx.constraintlayout.widget.ConstraintLayout\r\n        android:id=\"@+id/content_container\"\r\n        android:layout_width=\"0dp\"\r\n        android:layout_height=\"0dp\"\r\n        android:paddingStart=\"16dp\"\r\n        android:paddingEnd=\"16dp\"\r\n        app:layout_constraintTop_toTopOf=\"parent\"\r\n        app:layout_constraintBottom_toTopOf=\"@id/bottom_nav\"\r\n        app:layout_constraintStart_toStartOf=\"parent\"\r\n        app:layout_constraintEnd_toEndOf=\"parent\">\r\n\r\n        <TextView\r\n            android:id=\"@+id/tvProfileTitle\"\r\n            android:layout_width=\"wrap_content\"\r\n            android:layout_height=\"wrap_content\"\r\n            android:text=\"Mi Perfil\"\r\n            android:textSize=\"28sp\"\r\n            android:textStyle=\"bold\"\r\n            android:textColor=\"@android:color/black\"\r\n            android:fontFamily=\"@font/poppins_semibold\"\r\n            app:layout_constraintTop_toTopOf=\"parent\"\r\n            app:layout_constraintStart_toStartOf=\"parent\"\r\n            android:layout_marginTop=\"40dp\"/>\r\n\r\n        <de.hdodenhof.circleimageview.CircleImageView\r\n            android:id=\"@+id/ivProfileAvatar\"\r\n            android:layout_width=\"100dp\"\r\n            android:layout_height=\"100dp\"\r\n            android:src=\"@drawable/perfil\"\r\n            app:civ_border_width=\"2dp\"\r\n            app:civ_border_color=\"#FA5D31\"\r\n            app:layout_constraintTop_toBottomOf=\"@id/tvProfileTitle\"\r\n            app:layout_constraintStart_toStartOf=\"parent\"\r\n            app:layout_constraintEnd_toEndOf=\"parent\"\r\n            android:layout_marginTop=\"40dp\"/>\r\n\r\n        <!-- Cambiar esta línea -->\r\n        <TextView\r\n            android:id=\"@+id/tvProfileName\"\r\n            android:layout_width=\"wrap_content\"\r\n            android:layout_height=\"wrap_content\"\r\n            android:text=\"Usuario\"\r\n            android:textSize=\"20sp\"\r\n            android:textStyle=\"bold\"\r\n            android:textColor=\"@android:color/black\"\r\n            android:fontFamily=\"@font/poppins_semibold\"\r\n            app:layout_constraintTop_toBottomOf=\"@id/ivProfileAvatar\"\r\n            app:layout_constraintStart_toStartOf=\"parent\"\r\n            app:layout_constraintEnd_toEndOf=\"parent\"\r\n            android:layout_marginTop=\"16dp\"/>\r\n\r\n        <!-- Configuration Section Title -->\r\n        <TextView\r\n            android:id=\"@+id/tvConfigTitle\"\r\n            android:layout_width=\"wrap_content\"\r\n            android:layout_height=\"wrap_content\"\r\n            android:text=\"Configuración\"\r\n            android:textSize=\"18sp\"\r\n            android:textColor=\"#9E9E9E\"\r\n            android:layout_marginTop=\"40dp\"\r\n            app:layout_constraintTop_toBottomOf=\"@id/tvProfileName\"\r\n            app:layout_constraintStart_toStartOf=\"parent\"/>\r\n\r\n        <!-- Profile Option -->\r\n        <LinearLayout\r\n            android:id=\"@+id/layoutProfileOption\"\r\n            android:layout_width=\"match_parent\"\r\n            android:layout_height=\"wrap_content\"\r\n            android:orientation=\"horizontal\"\r\n            android:gravity=\"center_vertical\"\r\n            android:padding=\"16dp\"\r\n            app:layout_constraintTop_toBottomOf=\"@id/tvConfigTitle\"\r\n            app:layout_constraintStart_toStartOf=\"parent\"\r\n            app:layout_constraintEnd_toEndOf=\"parent\">\r\n\r\n            <ImageView\r\n                android:layout_width=\"24dp\"\r\n                android:layout_height=\"24dp\"\r\n                android:src=\"@drawable/ic_group\"\r\n                app:tint=\"#333333\" />\r\n\r\n            <TextView\r\n                android:layout_width=\"0dp\"\r\n                android:layout_height=\"wrap_content\"\r\n                android:layout_weight=\"1\"\r\n                android:text=\"Mi Perfil\"\r\n                android:textSize=\"16sp\"\r\n                android:textColor=\"#333333\"\r\n                android:layout_marginStart=\"16dp\" />\r\n        </LinearLayout>\r\n\r\n        <View\r\n            android:id=\"@+id/divider1\"\r\n            android:layout_width=\"match_parent\"\r\n            android:layout_height=\"1dp\"\r\n            android:background=\"#EEEEEE\"\r\n            app:layout_constraintTop_toBottomOf=\"@id/layoutProfileOption\" />\r\n\r\n        <!-- Payment Methods Option -->\r\n        <LinearLayout\r\n            android:id=\"@+id/layoutPaymentOption\"\r\n            android:layout_width=\"match_parent\"\r\n            android:layout_height=\"wrap_content\"\r\n            android:orientation=\"horizontal\"\r\n            android:gravity=\"center_vertical\"\r\n            android:padding=\"16dp\"\r\n            app:layout_constraintTop_toBottomOf=\"@id/divider1\"\r\n            app:layout_constraintStart_toStartOf=\"parent\"\r\n            app:layout_constraintEnd_toEndOf=\"parent\">\r\n\r\n            <ImageView\r\n                android:layout_width=\"24dp\"\r\n                android:layout_height=\"24dp\"\r\n                android:src=\"@drawable/ic_payment\"\r\n                app:tint=\"#333333\" />\r\n\r\n            <TextView\r\n                android:layout_width=\"0dp\"\r\n                android:layout_height=\"wrap_content\"\r\n                android:layout_weight=\"1\"\r\n                android:text=\"Metodos de Pago\"\r\n                android:textSize=\"16sp\"\r\n                android:textColor=\"#333333\"\r\n                android:layout_marginStart=\"16dp\" />\r\n        </LinearLayout>\r\n\r\n        <View\r\n            android:id=\"@+id/divider2\"\r\n            android:layout_width=\"match_parent\"\r\n            android:layout_height=\"1dp\"\r\n            android:background=\"#EEEEEE\"\r\n            app:layout_constraintTop_toBottomOf=\"@id/layoutPaymentOption\" />\r\n\r\n        <!-- Notifications Option -->\r\n        <LinearLayout\r\n            android:id=\"@+id/layoutNotificationOption\"\r\n            android:layout_width=\"match_parent\"\r\n            android:layout_height=\"wrap_content\"\r\n            android:orientation=\"horizontal\"\r\n            android:gravity=\"center_vertical\"\r\n            android:padding=\"16dp\"\r\n            app:layout_constraintTop_toBottomOf=\"@id/divider2\"\r\n            app:layout_constraintStart_toStartOf=\"parent\"\r\n            app:layout_constraintEnd_toEndOf=\"parent\">\r\n\r\n            <ImageView\r\n                android:layout_width=\"24dp\"\r\n                android:layout_height=\"24dp\"\r\n                android:src=\"@drawable/ic_notification\"\r\n                app:tint=\"#333333\" />\r\n\r\n            <TextView\r\n                android:layout_width=\"0dp\"\r\n                android:layout_height=\"wrap_content\"\r\n                android:layout_weight=\"1\"\r\n                android:text=\"Notificaciones\"\r\n                android:textSize=\"16sp\"\r\n                android:textColor=\"#333333\"\r\n                android:layout_marginStart=\"16dp\" />\r\n        </LinearLayout>\r\n\r\n        <View\r\n            android:id=\"@+id/divider3\"\r\n            android:layout_width=\"match_parent\"\r\n            android:layout_height=\"1dp\"\r\n            android:background=\"#EEEEEE\"\r\n            app:layout_constraintTop_toBottomOf=\"@id/layoutNotificationOption\" />\r\n\r\n        <!-- Log Out Button -->\r\n        <TextView\r\n            android:id=\"@+id/btnLogout\"\r\n            android:layout_width=\"wrap_content\"\r\n            android:layout_height=\"wrap_content\"\r\n            android:text=\"Cerrar Sesión\"\r\n            android:textSize=\"16sp\"\r\n            android:textColor=\"#F44336\"\r\n            android:padding=\"16dp\"\r\n            android:layout_marginTop=\"32dp\"\r\n            app:layout_constraintTop_toBottomOf=\"@id/divider3\"\r\n            app:layout_constraintStart_toStartOf=\"parent\"\r\n            app:layout_constraintEnd_toEndOf=\"parent\" />\r\n\r\n    </androidx.constraintlayout.widget.ConstraintLayout>\r\n\r\n    <!-- Incluimos la barra de navegación inferior -->\r\n    <include\r\n        android:id=\"@+id/bottom_nav\"\r\n        layout=\"@layout/client_bottom_navigation\"\r\n        android:layout_width=\"match_parent\"\r\n        android:layout_height=\"wrap_content\"\r\n        app:layout_constraintBottom_toBottomOf=\"parent\"\r\n        app:layout_constraintEnd_toEndOf=\"parent\"\r\n        app:layout_constraintStart_toStartOf=\"parent\" />\r\n\r\n</androidx.constraintlayout.widget.ConstraintLayout>
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/res/layout/client_fragment_profile.xml b/app/src/main/res/layout/client_fragment_profile.xml
+--- a/app/src/main/res/layout/client_fragment_profile.xml	(revision 5df4e88388a3dc069cccd9c236947ef34d865be1)
++++ b/app/src/main/res/layout/client_fragment_profile.xml	(date 1749102720140)
+@@ -1,197 +1,23 @@
+ <?xml version="1.0" encoding="utf-8"?>
+-<androidx.constraintlayout.widget.ConstraintLayout
+-    xmlns:android="http://schemas.android.com/apk/res/android"
++<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+     xmlns:app="http://schemas.android.com/apk/res-auto"
+     xmlns:tools="http://schemas.android.com/tools"
+     android:layout_width="match_parent"
+     android:layout_height="match_parent"
+-    android:background="@android:color/white"
+-    android:paddingTop="16dp"
+-    android:paddingBottom="0dp">
+-    <androidx.constraintlayout.widget.ConstraintLayout
+-        android:id="@+id/content_container"
+-        android:layout_width="0dp"
+-        android:layout_height="0dp"
+-        android:paddingStart="16dp"
+-        android:paddingEnd="16dp"
+-        app:layout_constraintTop_toTopOf="parent"
+-        app:layout_constraintBottom_toTopOf="@id/bottom_nav"
+-        app:layout_constraintStart_toStartOf="parent"
+-        app:layout_constraintEnd_toEndOf="parent">
+-
+-        <TextView
+-            android:id="@+id/tvProfileTitle"
+-            android:layout_width="wrap_content"
+-            android:layout_height="wrap_content"
+-            android:text="Mi Perfil"
+-            android:textSize="28sp"
+-            android:textStyle="bold"
+-            android:textColor="@android:color/black"
+-            android:fontFamily="@font/poppins_semibold"
+-            app:layout_constraintTop_toTopOf="parent"
+-            app:layout_constraintStart_toStartOf="parent"
+-            android:layout_marginTop="40dp"/>
+-
+-        <de.hdodenhof.circleimageview.CircleImageView
+-            android:id="@+id/ivProfileAvatar"
+-            android:layout_width="100dp"
+-            android:layout_height="100dp"
+-            android:src="@drawable/perfil"
+-            app:civ_border_width="2dp"
+-            app:civ_border_color="#FA5D31"
+-            app:layout_constraintTop_toBottomOf="@id/tvProfileTitle"
+-            app:layout_constraintStart_toStartOf="parent"
+-            app:layout_constraintEnd_toEndOf="parent"
+-            android:layout_marginTop="40dp"/>
+-
+-        <!-- Cambiar esta línea -->
+-        <TextView
+-            android:id="@+id/tvProfileName"
+-            android:layout_width="wrap_content"
+-            android:layout_height="wrap_content"
+-            android:text="Usuario"
+-            android:textSize="20sp"
+-            android:textStyle="bold"
+-            android:textColor="@android:color/black"
+-            android:fontFamily="@font/poppins_semibold"
+-            app:layout_constraintTop_toBottomOf="@id/ivProfileAvatar"
+-            app:layout_constraintStart_toStartOf="parent"
+-            app:layout_constraintEnd_toEndOf="parent"
+-            android:layout_marginTop="16dp"/>
+-
+-        <!-- Configuration Section Title -->
+-        <TextView
+-            android:id="@+id/tvConfigTitle"
+-            android:layout_width="wrap_content"
+-            android:layout_height="wrap_content"
+-            android:text="Configuración"
+-            android:textSize="18sp"
+-            android:textColor="#9E9E9E"
+-            android:layout_marginTop="40dp"
+-            app:layout_constraintTop_toBottomOf="@id/tvProfileName"
+-            app:layout_constraintStart_toStartOf="parent"/>
+-
+-        <!-- Profile Option -->
+-        <LinearLayout
+-            android:id="@+id/layoutProfileOption"
+-            android:layout_width="match_parent"
+-            android:layout_height="wrap_content"
+-            android:orientation="horizontal"
+-            android:gravity="center_vertical"
+-            android:padding="16dp"
+-            app:layout_constraintTop_toBottomOf="@id/tvConfigTitle"
+-            app:layout_constraintStart_toStartOf="parent"
+-            app:layout_constraintEnd_toEndOf="parent">
+-
+-            <ImageView
+-                android:layout_width="24dp"
+-                android:layout_height="24dp"
+-                android:src="@drawable/ic_group"
+-                app:tint="#333333" />
+-
+-            <TextView
+-                android:layout_width="0dp"
+-                android:layout_height="wrap_content"
+-                android:layout_weight="1"
+-                android:text="Mi Perfil"
+-                android:textSize="16sp"
+-                android:textColor="#333333"
+-                android:layout_marginStart="16dp" />
+-        </LinearLayout>
++    android:background="#F5F5F5"
++    tools:context=".client.ui.fragment.ProfileFragment">
+ 
+-        <View
+-            android:id="@+id/divider1"
+-            android:layout_width="match_parent"
+-            android:layout_height="1dp"
+-            android:background="#EEEEEE"
+-            app:layout_constraintTop_toBottomOf="@id/layoutProfileOption" />
+-
+-        <!-- Payment Methods Option -->
+-        <LinearLayout
+-            android:id="@+id/layoutPaymentOption"
+-            android:layout_width="match_parent"
+-            android:layout_height="wrap_content"
+-            android:orientation="horizontal"
+-            android:gravity="center_vertical"
+-            android:padding="16dp"
+-            app:layout_constraintTop_toBottomOf="@id/divider1"
+-            app:layout_constraintStart_toStartOf="parent"
+-            app:layout_constraintEnd_toEndOf="parent">
+-
+-            <ImageView
+-                android:layout_width="24dp"
+-                android:layout_height="24dp"
+-                android:src="@drawable/ic_payment"
+-                app:tint="#333333" />
+-
+-            <TextView
+-                android:layout_width="0dp"
+-                android:layout_height="wrap_content"
+-                android:layout_weight="1"
+-                android:text="Metodos de Pago"
+-                android:textSize="16sp"
+-                android:textColor="#333333"
+-                android:layout_marginStart="16dp" />
+-        </LinearLayout>
+-
+-        <View
+-            android:id="@+id/divider2"
+-            android:layout_width="match_parent"
+-            android:layout_height="1dp"
+-            android:background="#EEEEEE"
+-            app:layout_constraintTop_toBottomOf="@id/layoutPaymentOption" />
+-
+-        <!-- Notifications Option -->
+-        <LinearLayout
+-            android:id="@+id/layoutNotificationOption"
+-            android:layout_width="match_parent"
+-            android:layout_height="wrap_content"
+-            android:orientation="horizontal"
+-            android:gravity="center_vertical"
+-            android:padding="16dp"
+-            app:layout_constraintTop_toBottomOf="@id/divider2"
+-            app:layout_constraintStart_toStartOf="parent"
+-            app:layout_constraintEnd_toEndOf="parent">
+-
+-            <ImageView
+-                android:layout_width="24dp"
+-                android:layout_height="24dp"
+-                android:src="@drawable/ic_notification"
+-                app:tint="#333333" />
+-
+-            <TextView
+-                android:layout_width="0dp"
+-                android:layout_height="wrap_content"
+-                android:layout_weight="1"
+-                android:text="Notificaciones"
+-                android:textSize="16sp"
+-                android:textColor="#333333"
+-                android:layout_marginStart="16dp" />
+-        </LinearLayout>
+-
+-        <View
+-            android:id="@+id/divider3"
+-            android:layout_width="match_parent"
+-            android:layout_height="1dp"
+-            android:background="#EEEEEE"
+-            app:layout_constraintTop_toBottomOf="@id/layoutNotificationOption" />
+-
+-        <!-- Log Out Button -->
+-        <TextView
+-            android:id="@+id/btnLogout"
+-            android:layout_width="wrap_content"
+-            android:layout_height="wrap_content"
+-            android:text="Cerrar Sesión"
+-            android:textSize="16sp"
+-            android:textColor="#F44336"
+-            android:padding="16dp"
+-            android:layout_marginTop="32dp"
+-            app:layout_constraintTop_toBottomOf="@id/divider3"
+-            app:layout_constraintStart_toStartOf="parent"
+-            app:layout_constraintEnd_toEndOf="parent" />
++    <androidx.recyclerview.widget.RecyclerView
++        android:id="@+id/recycler_profile"
++        android:layout_width="match_parent"
++        android:layout_height="match_parent"
++        android:clipToPadding="false"
++        android:paddingBottom="16dp"
++        app:layout_constraintTop_toTopOf="parent"
++        app:layout_constraintBottom_toBottomOf="parent"
++        app:layout_constraintStart_toStartOf="parent"
++        app:layout_constraintEnd_toEndOf="parent" />
+ 
+-    </androidx.constraintlayout.widget.ConstraintLayout>
+-
+     <!-- Incluimos la barra de navegación inferior -->
+     <include
+         android:id="@+id/bottom_nav"
+@@ -201,5 +27,4 @@
+         app:layout_constraintBottom_toBottomOf="parent"
+         app:layout_constraintEnd_toEndOf="parent"
+         app:layout_constraintStart_toStartOf="parent" />
+-
+ </androidx.constraintlayout.widget.ConstraintLayout>
+\ No newline at end of file
+Index: app/src/main/res/layout/taxi_item_edit_profile_header.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><?xml version=\"1.0\" encoding=\"utf-8\"?>\r\n<LinearLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\r\n    xmlns:app=\"http://schemas.android.com/apk/res-auto\"\r\n    android:layout_width=\"match_parent\"\r\n    android:layout_height=\"wrap_content\"\r\n    android:orientation=\"vertical\"\r\n    android:paddingHorizontal=\"24dp\"\r\n    android:paddingVertical=\"32dp\"\r\n    android:gravity=\"center\">\r\n\r\n    <!-- Card contenedora de la imagen de perfil -->\r\n    <com.google.android.material.card.MaterialCardView\r\n        android:id=\"@+id/card_profile_image\"\r\n        android:layout_width=\"140dp\"\r\n        android:layout_height=\"140dp\"\r\n        android:clickable=\"true\"\r\n        android:focusable=\"true\"\r\n        app:cardCornerRadius=\"70dp\"\r\n        app:cardElevation=\"8dp\"\r\n        app:rippleColor=\"#33FF6B35\"\r\n        app:strokeWidth=\"0dp\">\r\n\r\n        <FrameLayout\r\n            android:layout_width=\"match_parent\"\r\n            android:layout_height=\"match_parent\">\r\n\r\n            <!-- Imagen de perfil -->\r\n            <ImageView\r\n                android:id=\"@+id/iv_profile_image\"\r\n                android:layout_width=\"match_parent\"\r\n                android:layout_height=\"match_parent\"\r\n                android:scaleType=\"centerCrop\"\r\n                android:src=\"@drawable/ic_person\"\r\n                android:contentDescription=\"Foto de perfil\" />\r\n\r\n            <!-- Overlay con icono de cámara -->\r\n            <View\r\n                android:layout_width=\"match_parent\"\r\n                android:layout_height=\"match_parent\"\r\n                android:background=\"@drawable/gradient_overlay_profile\" />\r\n\r\n            <!-- Icono de cámara -->\r\n            <ImageView\r\n                android:id=\"@+id/iv_camera_icon\"\r\n                android:layout_width=\"32dp\"\r\n                android:layout_height=\"32dp\"\r\n                android:layout_gravity=\"center\"\r\n                android:src=\"@drawable/ic_camera\"\r\n                android:tint=\"@android:color/white\"\r\n                android:contentDescription=\"Cambiar foto\" />\r\n\r\n        </FrameLayout>\r\n\r\n    </com.google.android.material.card.MaterialCardView>\r\n\r\n    <!-- Texto informativo -->\r\n    <TextView\r\n        android:layout_width=\"wrap_content\"\r\n        android:layout_height=\"wrap_content\"\r\n        android:layout_marginTop=\"16dp\"\r\n        android:text=\"Toca para cambiar foto\"\r\n        android:textColor=\"#666666\"\r\n        android:textSize=\"14sp\"\r\n        android:fontFamily=\"@font/roboto_regular\" />\r\n\r\n</LinearLayout>\r\n\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/res/layout/taxi_item_edit_profile_header.xml b/app/src/main/res/layout/taxi_item_edit_profile_header.xml
+--- a/app/src/main/res/layout/taxi_item_edit_profile_header.xml	(revision 5df4e88388a3dc069cccd9c236947ef34d865be1)
++++ b/app/src/main/res/layout/taxi_item_edit_profile_header.xml	(date 1749099088472)
+@@ -46,7 +46,7 @@
+                 android:layout_height="32dp"
+                 android:layout_gravity="center"
+                 android:src="@drawable/ic_camera"
+-                android:tint="@android:color/white"
++                app:tint="@android:color/white"
+                 android:contentDescription="Cambiar foto" />
+ 
+         </FrameLayout>
+Index: app/src/main/res/layout/client_item_profile_header.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/res/layout/client_item_profile_header.xml b/app/src/main/res/layout/client_item_profile_header.xml
+new file mode 100644
+--- /dev/null	(date 1749099993191)
++++ b/app/src/main/res/layout/client_item_profile_header.xml	(date 1749099993191)
+@@ -0,0 +1,263 @@
++<?xml version="1.0" encoding="utf-8"?>
++<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
++    xmlns:app="http://schemas.android.com/apk/res-auto"
++    android:layout_width="match_parent"
++    android:layout_height="wrap_content"
++    android:orientation="vertical"
++    android:background="@android:color/transparent">
++
++    <!-- Header Card con foto de perfil -->
++    <com.google.android.material.card.MaterialCardView
++        android:id="@+id/card_profile_header"
++        android:layout_width="match_parent"
++        android:layout_height="wrap_content"
++        android:layout_margin="16dp"
++        app:cardCornerRadius="20dp"
++        app:cardElevation="8dp"
++        app:cardBackgroundColor="@android:color/white">
++
++        <androidx.constraintlayout.widget.ConstraintLayout
++            android:layout_width="match_parent"
++            android:layout_height="wrap_content"
++            android:padding="20dp">
++
++            <!-- Foto de perfil -->
++            <com.google.android.material.card.MaterialCardView
++                android:id="@+id/card_profile_photo"
++                android:layout_width="100dp"
++                android:layout_height="100dp"
++                android:layout_marginTop="16dp"
++                app:cardCornerRadius="50dp"
++                app:cardElevation="4dp"
++                app:layout_constraintTop_toTopOf="parent"
++                app:layout_constraintStart_toStartOf="parent"
++                app:layout_constraintEnd_toEndOf="parent">
++
++                <ImageView
++                    android:id="@+id/iv_profile_image"
++                    android:layout_width="match_parent"
++                    android:layout_height="match_parent"
++                    android:src="@drawable/ic_person"
++                    android:scaleType="centerCrop" />
++            </com.google.android.material.card.MaterialCardView>
++
++            <!-- Nombre del cliente -->
++            <TextView
++                android:id="@+id/tv_client_name"
++                android:layout_width="0dp"
++                android:layout_height="wrap_content"
++                android:layout_marginTop="16dp"
++                android:text="Juan Pérez"
++                android:textSize="22sp"
++                android:textStyle="bold"
++                android:textColor="#1A1A1A"
++                android:fontFamily="sans-serif-medium"
++                android:gravity="center"
++                app:layout_constraintTop_toBottomOf="@id/card_profile_photo"
++                app:layout_constraintStart_toStartOf="parent"
++                app:layout_constraintEnd_toEndOf="parent" />
++
++            <!-- Email del cliente -->
++            <TextView
++                android:id="@+id/tv_client_email"
++                android:layout_width="0dp"
++                android:layout_height="wrap_content"
++                android:layout_marginTop="4dp"
++                android:text="juan.perez@email.com"
++                android:textSize="14sp"
++                android:textColor="#666666"
++                android:fontFamily="sans-serif"
++                android:gravity="center"
++                app:layout_constraintTop_toBottomOf="@id/tv_client_name"
++                app:layout_constraintStart_toStartOf="parent"
++                app:layout_constraintEnd_toEndOf="parent" />
++
++            <!-- Miembro desde -->
++            <LinearLayout
++                android:id="@+id/member_info_container"
++                android:layout_width="wrap_content"
++                android:layout_height="wrap_content"
++                android:layout_marginTop="8dp"
++                android:orientation="horizontal"
++                android:gravity="center_vertical"
++                android:background="@drawable/bg_vehicle_info"
++                android:paddingHorizontal="16dp"
++                android:paddingVertical="8dp"
++                app:layout_constraintTop_toBottomOf="@id/tv_client_email"
++                app:layout_constraintStart_toStartOf="parent"
++                app:layout_constraintEnd_toEndOf="parent">
++
++                <TextView
++                    android:layout_width="wrap_content"
++                    android:layout_height="wrap_content"
++                    android:text="👤"
++                    android:textSize="16sp" />
++
++                <TextView
++                    android:id="@+id/tv_member_since"
++                    android:layout_width="wrap_content"
++                    android:layout_height="wrap_content"
++                    android:layout_marginStart="8dp"
++                    android:text="Miembro desde 2023"
++                    android:textSize="14sp"
++                    android:textColor="#666666"
++                    android:fontFamily="sans-serif-medium" />
++            </LinearLayout>
++
++            <!-- Rating -->
++            <LinearLayout
++                android:layout_width="wrap_content"
++                android:layout_height="wrap_content"
++                android:layout_marginTop="12dp"
++                android:orientation="horizontal"
++                android:gravity="center_vertical"
++                android:background="@drawable/bg_rating_modern"
++                android:paddingHorizontal="12dp"
++                android:paddingVertical="6dp"
++                app:layout_constraintTop_toBottomOf="@id/member_info_container"
++                app:layout_constraintStart_toStartOf="parent"
++                app:layout_constraintEnd_toEndOf="parent">
++
++                <ImageView
++                    android:layout_width="16dp"
++                    android:layout_height="16dp"
++                    android:src="@drawable/ic_star"
++                    app:tint="#FFD700" />
++
++                <TextView
++                    android:id="@+id/tv_rating"
++                    android:layout_width="wrap_content"
++                    android:layout_height="wrap_content"
++                    android:layout_marginStart="4dp"
++                    android:text="4.9"
++                    android:textColor="#1A1A1A"
++                    android:textSize="14sp"
++                    android:textStyle="bold" />
++
++                <TextView
++                    android:layout_width="wrap_content"
++                    android:layout_height="wrap_content"
++                    android:layout_marginStart="4dp"
++                    android:text="(23 reservas)"
++                    android:textColor="#666666"
++                    android:textSize="12sp" />
++            </LinearLayout>
++        </androidx.constraintlayout.widget.ConstraintLayout>
++    </com.google.android.material.card.MaterialCardView>
++
++    <!-- Estadísticas Cards -->
++    <LinearLayout
++        android:id="@+id/stats_container"
++        android:layout_width="match_parent"
++        android:layout_height="wrap_content"
++        android:layout_marginHorizontal="16dp"
++        android:layout_marginTop="8dp"
++        android:orientation="horizontal"
++        android:weightSum="3">
++
++        <!-- Reservas totales -->
++        <com.google.android.material.card.MaterialCardView
++            android:layout_width="0dp"
++            android:layout_height="80dp"
++            android:layout_weight="1"
++            android:layout_marginEnd="8dp"
++            app:cardCornerRadius="16dp"
++            app:cardElevation="4dp"
++            app:cardBackgroundColor="@android:color/white">
++
++            <LinearLayout
++                android:layout_width="match_parent"
++                android:layout_height="match_parent"
++                android:orientation="vertical"
++                android:gravity="center"
++                android:padding="8dp">
++
++                <TextView
++                    android:id="@+id/tv_total_reservations"
++                    android:layout_width="wrap_content"
++                    android:layout_height="wrap_content"
++                    android:text="23"
++                    android:textSize="20sp"
++                    android:textStyle="bold"
++                    android:textColor="#F44336" />
++
++                <TextView
++                    android:layout_width="wrap_content"
++                    android:layout_height="wrap_content"
++                    android:text="Reservas"
++                    android:textSize="12sp"
++                    android:textColor="#666666" />
++            </LinearLayout>
++        </com.google.android.material.card.MaterialCardView>
++
++        <!-- Total gastado -->
++        <com.google.android.material.card.MaterialCardView
++            android:layout_width="0dp"
++            android:layout_height="80dp"
++            android:layout_weight="1"
++            android:layout_marginHorizontal="4dp"
++            app:cardCornerRadius="16dp"
++            app:cardElevation="4dp"
++            app:cardBackgroundColor="@android:color/white">
++
++            <LinearLayout
++                android:layout_width="match_parent"
++                android:layout_height="match_parent"
++                android:orientation="vertical"
++                android:gravity="center"
++                android:padding="8dp">
++
++                <TextView
++                    android:id="@+id/tv_total_spent"
++                    android:layout_width="wrap_content"
++                    android:layout_height="wrap_content"
++                    android:text="S/ 4,580"
++                    android:textSize="16sp"
++                    android:textStyle="bold"
++                    android:textColor="#4CAF50" />
++
++                <TextView
++                    android:layout_width="wrap_content"
++                    android:layout_height="wrap_content"
++                    android:text="Gastado"
++                    android:textSize="12sp"
++                    android:textColor="#666666" />
++            </LinearLayout>
++        </com.google.android.material.card.MaterialCardView>
++
++        <!-- Última reserva -->
++        <com.google.android.material.card.MaterialCardView
++            android:layout_width="0dp"
++            android:layout_height="80dp"
++            android:layout_weight="1"
++            android:layout_marginStart="8dp"
++            app:cardCornerRadius="16dp"
++            app:cardElevation="4dp"
++            app:cardBackgroundColor="@android:color/white">
++
++            <LinearLayout
++                android:layout_width="match_parent"
++                android:layout_height="match_parent"
++                android:orientation="vertical"
++                android:gravity="center"
++                android:padding="8dp">
++
++                <TextView
++                    android:layout_width="wrap_content"
++                    android:layout_height="wrap_content"
++                    android:text="15 Ene"
++                    android:textSize="16sp"
++                    android:textStyle="bold"
++                    android:textColor="#2196F3" />
++
++                <TextView
++                    android:layout_width="wrap_content"
++                    android:layout_height="wrap_content"
++                    android:text="Última"
++                    android:textSize="12sp"
++                    android:textColor="#666666" />
++            </LinearLayout>
++        </com.google.android.material.card.MaterialCardView>
++    </LinearLayout>
++
++</LinearLayout>
+\ No newline at end of file
+Index: app/src/main/java/com/example/proyecto_final_hoteleros/client/ui/adapters/ClientProfileAdapter.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/java/com/example/proyecto_final_hoteleros/client/ui/adapters/ClientProfileAdapter.java b/app/src/main/java/com/example/proyecto_final_hoteleros/client/ui/adapters/ClientProfileAdapter.java
+new file mode 100644
+--- /dev/null	(date 1749101013696)
++++ b/app/src/main/java/com/example/proyecto_final_hoteleros/client/ui/adapters/ClientProfileAdapter.java	(date 1749101013696)
+@@ -0,0 +1,200 @@
++package com.example.proyecto_final_hoteleros.client.ui.adapters;
++
++import android.content.Context;
++import android.view.LayoutInflater;
++import android.view.View;
++import android.view.ViewGroup;
++import android.widget.ImageView;
++import android.widget.TextView;
++
++import androidx.annotation.NonNull;
++import androidx.recyclerview.widget.RecyclerView;
++
++import com.bumptech.glide.Glide;
++import com.example.proyecto_final_hoteleros.R;
++import com.example.proyecto_final_hoteleros.client.data.model.ClientProfile;
++import com.example.proyecto_final_hoteleros.taxista.model.ProfileMenuItem;
++import com.google.android.material.card.MaterialCardView;
++
++import java.text.NumberFormat;
++import java.util.List;
++import java.util.Locale;
++
++public class ClientProfileAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
++
++    private static final int TYPE_HEADER = 0;
++    private static final int TYPE_MENU_ITEM = 1;
++
++    private Context context;
++    private List<Object> items;
++    private OnProfileItemClickListener listener;
++
++    public interface OnProfileItemClickListener {
++        void onMenuItemClick(ProfileMenuItem item);
++        void onLogoutClick(); // Nuevo método para cerrar sesión
++    }
++
++    public ClientProfileAdapter(Context context, List<Object> items, OnProfileItemClickListener listener) {
++        this.context = context;
++        this.items = items;
++        this.listener = listener;
++    }
++
++    @Override
++    public int getItemViewType(int position) {
++        Object item = items.get(position);
++        if (item instanceof ClientProfile) {
++            return TYPE_HEADER;
++        } else if (item instanceof ProfileMenuItem) {
++            return TYPE_MENU_ITEM;
++        }
++        return TYPE_MENU_ITEM;
++    }
++
++    @NonNull
++    @Override
++    public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
++        LayoutInflater inflater = LayoutInflater.from(context);
++
++        switch (viewType) {
++            case TYPE_HEADER:
++                View headerView = inflater.inflate(R.layout.client_item_profile_header, parent, false);
++                return new HeaderViewHolder(headerView);
++            case TYPE_MENU_ITEM:
++            default:
++                View menuView = inflater.inflate(R.layout.taxi_item_profile_menu, parent, false);
++                return new MenuItemViewHolder(menuView);
++        }
++    }
++
++    @Override
++    public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
++        Object item = items.get(position);
++
++        switch (holder.getItemViewType()) {
++            case TYPE_HEADER:
++                bindHeaderViewHolder((HeaderViewHolder) holder, (ClientProfile) item);
++                break;
++            case TYPE_MENU_ITEM:
++                bindMenuItemViewHolder((MenuItemViewHolder) holder, (ProfileMenuItem) item);
++                break;
++        }
++    }
++
++    private void bindHeaderViewHolder(HeaderViewHolder holder, ClientProfile profile) {
++        holder.tvClientName.setText(profile.getFullName());
++        holder.tvClientEmail.setText(profile.getEmail());
++        holder.tvMemberSince.setText("Miembro desde " + profile.getMemberSince());
++        holder.tvRating.setText(String.format("%.1f", profile.getAverageRating()));
++
++        // Estadísticas
++        holder.tvTotalReservations.setText(String.valueOf(profile.getTotalReservations()));
++
++        NumberFormat format = NumberFormat.getCurrencyInstance(new Locale("es", "PE"));
++        String formattedAmount = format.format(profile.getTotalSpent()).replace("PEN", "S/");
++        holder.tvTotalSpent.setText(formattedAmount);
++
++        // Cargar imagen de perfil
++        Glide.with(context)
++                .load(profile.getProfileImageUrl())
++                .placeholder(R.drawable.ic_person)
++                .circleCrop()
++                .into(holder.ivProfileImage);
++    }
++
++    private void bindMenuItemViewHolder(MenuItemViewHolder holder, ProfileMenuItem menuItem) {
++        holder.tvTitle.setText(menuItem.getTitle());
++        holder.tvSubtitle.setText(menuItem.getSubtitle());
++        holder.ivIcon.setImageResource(menuItem.getIconResId());
++        holder.ivArrow.setVisibility(menuItem.hasArrow() ? View.VISIBLE : View.GONE);
++
++        // Configurar colores según el tipo de opción
++        int backgroundColor, iconColor;
++        switch (menuItem.getTitle()) {
++            case "Ver Perfil":
++                backgroundColor = 0xFFE3F2FD; // Azul claro
++                iconColor = 0xFF2196F3; // Azul
++                break;
++            case "Métodos de pago":
++                backgroundColor = 0xFFF3E5F5; // Púrpura claro
++                iconColor = 0xFF9C27B0; // Púrpura
++                break;
++            case "Notificaciones":
++                backgroundColor = 0xFFE8F5E8; // Verde claro
++                iconColor = 0xFF4CAF50; // Verde
++                break;
++            case "Cerrar sesión":
++                backgroundColor = 0xFFFFEBEE; // Rojo claro
++                iconColor = 0xFFE53935; // Rojo
++                break;
++            default:
++                backgroundColor = 0xFFF5F5F5; // Gris claro por defecto
++                iconColor = 0xFF757575; // Gris oscuro
++                break;
++        }
++
++        holder.cardIconBackground.setCardBackgroundColor(backgroundColor);
++        holder.ivIcon.setColorFilter(iconColor);
++
++        if (menuItem.getSubtitle() != null && !menuItem.getSubtitle().isEmpty()) {
++            holder.tvSubtitle.setVisibility(View.VISIBLE);
++        } else {
++            holder.tvSubtitle.setVisibility(View.GONE);
++        }
++
++        // Manejar click especial para cerrar sesión
++        holder.itemView.setOnClickListener(v -> {
++            if (listener != null) {
++                if ("Cerrar sesión".equals(menuItem.getTitle())) {
++                    listener.onLogoutClick(); // Llamar método específico
++                } else {
++                    listener.onMenuItemClick(menuItem);
++                }
++            }
++        });
++    }
++
++    @Override
++    public int getItemCount() {
++        return items.size();
++    }
++
++    // ViewHolders
++    static class HeaderViewHolder extends RecyclerView.ViewHolder {
++        ImageView ivProfileImage;
++        TextView tvClientName;
++        TextView tvClientEmail;
++        TextView tvMemberSince;
++        TextView tvRating;
++        TextView tvTotalReservations;
++        TextView tvTotalSpent;
++
++        HeaderViewHolder(@NonNull View itemView) {
++            super(itemView);
++            ivProfileImage = itemView.findViewById(R.id.iv_profile_image);
++            tvClientName = itemView.findViewById(R.id.tv_client_name);
++            tvClientEmail = itemView.findViewById(R.id.tv_client_email);
++            tvMemberSince = itemView.findViewById(R.id.tv_member_since);
++            tvRating = itemView.findViewById(R.id.tv_rating);
++            tvTotalReservations = itemView.findViewById(R.id.tv_total_reservations);
++            tvTotalSpent = itemView.findViewById(R.id.tv_total_spent);
++        }
++    }
++
++    static class MenuItemViewHolder extends RecyclerView.ViewHolder {
++        MaterialCardView cardIconBackground;
++        ImageView ivIcon;
++        TextView tvTitle;
++        TextView tvSubtitle;
++        ImageView ivArrow;
++
++        MenuItemViewHolder(@NonNull View itemView) {
++            super(itemView);
++            cardIconBackground = itemView.findViewById(R.id.card_icon_background);
++            ivIcon = itemView.findViewById(R.id.iv_menu_icon);
++            tvTitle = itemView.findViewById(R.id.tv_menu_title);
++            tvSubtitle = itemView.findViewById(R.id.tv_menu_subtitle);
++            ivArrow = itemView.findViewById(R.id.iv_menu_arrow);
++        }
++    }
++}
+\ No newline at end of file
+Index: app/src/main/java/com/example/proyecto_final_hoteleros/client/data/model/ClientProfile.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/java/com/example/proyecto_final_hoteleros/client/data/model/ClientProfile.java b/app/src/main/java/com/example/proyecto_final_hoteleros/client/data/model/ClientProfile.java
+new file mode 100644
+--- /dev/null	(date 1749099823407)
++++ b/app/src/main/java/com/example/proyecto_final_hoteleros/client/data/model/ClientProfile.java	(date 1749099823407)
+@@ -0,0 +1,117 @@
++package com.example.proyecto_final_hoteleros.client.data.model;
++
++import android.os.Parcel;
++import android.os.Parcelable;
++
++public class ClientProfile implements Parcelable {
++    private String clientId;
++    private String fullName;
++    private String email;
++    private String phoneNumber;
++    private String profileImageUrl;
++    private String address;
++    private boolean isActive;
++
++    // Estadísticas del cliente
++    private int totalReservations;
++    private double totalSpent;
++    private float averageRating;
++    private String memberSince;
++
++    public ClientProfile(String clientId, String fullName, String email, String phoneNumber,
++                         String profileImageUrl, String address, boolean isActive,
++                         int totalReservations, double totalSpent, float averageRating,
++                         String memberSince) {
++        this.clientId = clientId;
++        this.fullName = fullName;
++        this.email = email;
++        this.phoneNumber = phoneNumber;
++        this.profileImageUrl = profileImageUrl;
++        this.address = address;
++        this.isActive = isActive;
++        this.totalReservations = totalReservations;
++        this.totalSpent = totalSpent;
++        this.averageRating = averageRating;
++        this.memberSince = memberSince;
++    }
++
++    protected ClientProfile(Parcel in) {
++        clientId = in.readString();
++        fullName = in.readString();
++        email = in.readString();
++        phoneNumber = in.readString();
++        profileImageUrl = in.readString();
++        address = in.readString();
++        isActive = in.readByte() != 0;
++        totalReservations = in.readInt();
++        totalSpent = in.readDouble();
++        averageRating = in.readFloat();
++        memberSince = in.readString();
++    }
++
++    public static final Creator<ClientProfile> CREATOR = new Creator<ClientProfile>() {
++        @Override
++        public ClientProfile createFromParcel(Parcel in) {
++            return new ClientProfile(in);
++        }
++
++        @Override
++        public ClientProfile[] newArray(int size) {
++            return new ClientProfile[size];
++        }
++    };
++
++    @Override
++    public int describeContents() {
++        return 0;
++    }
++
++    @Override
++    public void writeToParcel(Parcel dest, int flags) {
++        dest.writeString(clientId);
++        dest.writeString(fullName);
++        dest.writeString(email);
++        dest.writeString(phoneNumber);
++        dest.writeString(profileImageUrl);
++        dest.writeString(address);
++        dest.writeByte((byte) (isActive ? 1 : 0));
++        dest.writeInt(totalReservations);
++        dest.writeDouble(totalSpent);
++        dest.writeFloat(averageRating);
++        dest.writeString(memberSince);
++    }
++
++    // Getters y setters
++    public String getClientId() { return clientId; }
++    public void setClientId(String clientId) { this.clientId = clientId; }
++
++    public String getFullName() { return fullName; }
++    public void setFullName(String fullName) { this.fullName = fullName; }
++
++    public String getEmail() { return email; }
++    public void setEmail(String email) { this.email = email; }
++
++    public String getPhoneNumber() { return phoneNumber; }
++    public void setPhoneNumber(String phoneNumber) { this.phoneNumber = phoneNumber; }
++
++    public String getProfileImageUrl() { return profileImageUrl; }
++    public void setProfileImageUrl(String profileImageUrl) { this.profileImageUrl = profileImageUrl; }
++
++    public String getAddress() { return address; }
++    public void setAddress(String address) { this.address = address; }
++
++    public boolean isActive() { return isActive; }
++    public void setActive(boolean active) { isActive = active; }
++
++    public int getTotalReservations() { return totalReservations; }
++    public void setTotalReservations(int totalReservations) { this.totalReservations = totalReservations; }
++
++    public double getTotalSpent() { return totalSpent; }
++    public void setTotalSpent(double totalSpent) { this.totalSpent = totalSpent; }
++
++    public float getAverageRating() { return averageRating; }
++    public void setAverageRating(float averageRating) { this.averageRating = averageRating; }
++
++    public String getMemberSince() { return memberSince; }
++    public void setMemberSince(String memberSince) { this.memberSince = memberSince; }
++}
