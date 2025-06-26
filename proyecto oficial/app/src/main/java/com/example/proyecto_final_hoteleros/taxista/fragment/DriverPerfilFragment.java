@@ -290,21 +290,131 @@ public class DriverPerfilFragment extends Fragment implements
     }
 
     private void performLogout() {
-        Toast.makeText(getContext(), "Cerrando sesión...", Toast.LENGTH_SHORT).show();
+        Log.d(TAG, "🚪 Iniciando proceso de cierre de sesión...");
 
-        // TODO: Implementar la lógica de logout:
-        // 1. Limpiar datos del usuario guardados (SharedPreferences, etc.)
-        // 2. Cerrar sesión en Firebase/backend
-        // 3. Actualizar estado del conductor a "offline"
-        // 4. Redirigir a la pantalla de login
+        // Mostrar indicador de progreso
+        androidx.appcompat.app.AlertDialog progressDialog = new androidx.appcompat.app.AlertDialog.Builder(requireContext())
+                .setTitle("Cerrando Sesión")
+                .setMessage("Cerrando sesión, por favor espera...")
+                .setCancelable(false)
+                .create();
 
-        // Ejemplo de redirección (ajustar según tu estructura):
-        // Intent intent = new Intent(getActivity(), LoginActivity.class);
-        // intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-        // startActivity(intent);
-        // getActivity().finish();
+        progressDialog.show();
 
-        Log.d(TAG, "Logout completado");
+        // 🔥 LIMPIAR DATOS LOCALES PRIMERO
+        clearLocalUserData();
+
+        // 🔥 CERRAR SESIÓN EN FIREBASE
+        com.example.proyecto_final_hoteleros.utils.FirebaseManager firebaseManager =
+                com.example.proyecto_final_hoteleros.utils.FirebaseManager.getInstance();
+
+        try {
+            // Cerrar sesión en Firebase Auth
+            firebaseManager.signOut();
+            Log.d(TAG, "✅ Sesión cerrada en Firebase Auth");
+
+            // Simular pequeña espera para mejor UX
+            new android.os.Handler().postDelayed(() -> {
+                if (isAdded() && getActivity() != null) {
+                    progressDialog.dismiss();
+
+                    // 🔥 NAVEGAR A PANTALLA DE LOGIN
+                    navigateToLogin();
+
+                    Log.d(TAG, "✅ Logout completado exitosamente");
+                }
+            }, 1500);
+
+        } catch (Exception e) {
+            Log.e(TAG, "❌ Error durante logout: " + e.getMessage());
+
+            if (isAdded() && getActivity() != null) {
+                progressDialog.dismiss();
+
+                // Mostrar error pero continuar con logout local
+                Toast.makeText(getContext(),
+                        "Sesión cerrada localmente",
+                        Toast.LENGTH_SHORT).show();
+
+                navigateToLogin();
+            }
+        }
+    }
+
+    // 🔥 LIMPIAR TODOS LOS DATOS LOCALES
+    private void clearLocalUserData() {
+        Log.d(TAG, "🧹 Limpiando datos locales...");
+
+        try {
+            // Limpiar preferencias del conductor
+            if (preferenceManager != null) {
+                preferenceManager.clearAllData();
+                Log.d(TAG, "✅ Datos de DriverPreferenceManager limpiados");
+            }
+
+            // Limpiar SharedPreferences generales
+            android.content.SharedPreferences prefs = requireContext().getSharedPreferences("UserData", android.content.Context.MODE_PRIVATE);
+            prefs.edit().clear().apply();
+            Log.d(TAG, "✅ SharedPreferences de UserData limpiados");
+
+            // Limpiar cualquier otro dato de sesión que puedas tener
+            android.content.SharedPreferences authPrefs = requireContext().getSharedPreferences("auth_data", android.content.Context.MODE_PRIVATE);
+            authPrefs.edit().clear().apply();
+            Log.d(TAG, "✅ Datos de autenticación limpiados");
+
+            // Ocultar notificaciones persistentes
+            if (notificationHelper != null) {
+                notificationHelper.hideOnlineStatusNotification();
+                Log.d(TAG, "✅ Notificaciones persistentes ocultadas");
+            }
+
+            // Actualizar estado del conductor a offline
+            if (preferenceManager != null) {
+                preferenceManager.setDriverAvailable(false);
+                preferenceManager.setDriverStatus("Fuera de servicio");
+            }
+
+        } catch (Exception e) {
+            Log.e(TAG, "⚠️ Error limpiando algunos datos locales: " + e.getMessage());
+            // Continuar de todos modos
+        }
+    }
+
+    // 🔥 NAVEGAR A PANTALLA DE LOGIN
+    // 🔥 NAVEGAR A PANTALLA DE LOGIN (CORREGIDO)
+    private void navigateToLogin() {
+        Log.d(TAG, "🔄 Navegando a pantalla de login...");
+
+        try {
+            // Crear intent para ir a AuthActivity (RUTA CORRECTA)
+            android.content.Intent intent = new android.content.Intent(getActivity(),
+                    com.example.proyecto_final_hoteleros.AuthActivity.class);
+
+            // Configurar intent para mostrar pestaña de login
+            intent.putExtra("mode", "login");
+
+            // Limpiar stack de actividades para que no pueda regresar
+            intent.setFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK |
+                    android.content.Intent.FLAG_ACTIVITY_CLEAR_TASK);
+
+            // Iniciar AuthActivity
+            startActivity(intent);
+
+            // Finalizar DriverActivity actual
+            if (getActivity() != null) {
+                getActivity().finish();
+            }
+
+            Log.d(TAG, "✅ Navegación a login completada");
+
+        } catch (Exception e) {
+            Log.e(TAG, "❌ Error navegando a login: " + e.getMessage());
+
+            // Fallback: cerrar la aplicación
+            if (getActivity() != null) {
+                getActivity().finishAffinity();
+            }
+        }
     }
 
     // Método público para actualizar datos del perfil desde otras partes de la app
