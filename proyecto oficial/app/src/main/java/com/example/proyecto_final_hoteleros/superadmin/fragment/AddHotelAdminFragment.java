@@ -42,6 +42,11 @@ public class AddHotelAdminFragment extends Fragment {
     private HotelAdminFieldAdapter adapter;
     private List<HotelAdminField> fieldsList;
 
+    // 🔥 NUEVO: Handler como variable de clase para manejo seguro
+    private Handler delayHandler;
+    private Runnable pendingNavigation;
+    private boolean isNavigationPending = false;
+
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -66,8 +71,16 @@ public class AddHotelAdminFragment extends Fragment {
         toolbar.setTitle("Registrar Admin de Hotel");
         toolbar.setNavigationIcon(R.drawable.ic_arrow_back);
         toolbar.setNavigationOnClickListener(v -> {
+            Log.d(TAG, "Usuario hizo click en back button");
+
+            // Cancelar cualquier navegación pendiente
+            cancelPendingNavigation();
+
+            // Navegación segura hacia atrás
             if (getActivity() instanceof SuperAdminActivity) {
                 ((SuperAdminActivity) getActivity()).navigateBackToDashboard();
+            } else {
+                emergencyNavigation();
             }
         });
     }
@@ -255,6 +268,8 @@ public class AddHotelAdminFragment extends Fragment {
         String adminApellidos = formData.get("admin_apellidos");
         String fullName = adminNombres + " " + adminApellidos;
 
+        Log.d(TAG, "🎉 Mostrando mensaje de éxito para: " + fullName);
+
         // Mostrar Snackbar de éxito
         Snackbar.make(requireView(),
                         "✅ Admin de hotel creado exitosamente",
@@ -269,12 +284,24 @@ public class AddHotelAdminFragment extends Fragment {
                 .setMessage("El administrador " + fullName +
                         " ha sido creado exitosamente y guardado en Firebase.")
                 .setPositiveButton("Continuar", (dialog, which) -> {
+                    Log.d(TAG, "Usuario hizo click en Continuar");
+
                     if (getActivity() instanceof SuperAdminActivity) {
-                        // 🔥 INCREMENTAR DELAY para mejor sincronización
+                        // 🔥 INCREMENTAR DELAY PARA MEJOR SINCRONIZACIÓN
                         new Handler().postDelayed(() -> {
-                            ((SuperAdminActivity) getActivity()).navigateBackToDashboardWithRefresh();
-                        }, 2500); // 2.5 segundos de delay
+                            // Verificaciones de seguridad
+                            if (getActivity() != null && isAdded() && !isDetached()) {
+                                ((SuperAdminActivity) getActivity()).navigateBackToDashboardWithRefresh();
+                            }
+                        }, 2000); // 🔥 INCREMENTAR A 2 SEGUNDOS
+                    } else {
+                        // Navegación inmediata como fallback
+                        navigateBackSafely();
                     }
+                })
+                .setOnDismissListener(dialog -> {
+                    // 🔥 CANCELAR cualquier navegación pendiente si el diálogo se cierra
+                    cancelPendingNavigation();
                 })
                 .setIcon(R.drawable.ic_check)
                 .setCancelable(false)
@@ -284,6 +311,152 @@ public class AddHotelAdminFragment extends Fragment {
         sendLocalNotification("Nuevo Admin de Hotel",
                 "Se ha registrado " + fullName);
     }
+    // 🔥 NUEVO MÉTODO: Navegación segura con múltiples verificaciones
+    private void navigateBackSafely() {
+        Log.d(TAG, "=== INICIANDO NAVEGACIÓN SEGURA ===");
+
+        // Verificación 1: Fragment está adjunto y activo
+        if (!isAdded() || isDetached() || isRemoving()) {
+            Log.w(TAG, "❌ Fragment no está en estado válido para navegar");
+            return;
+        }
+
+        // Verificación 2: Activity existe y es del tipo correcto
+        if (!(getActivity() instanceof SuperAdminActivity)) {
+            Log.w(TAG, "❌ Activity no es SuperAdminActivity o es null");
+            return;
+        }
+
+        // Verificación 3: Activity no está siendo destruida
+        if (getActivity().isFinishing() || getActivity().isDestroyed()) {
+            Log.w(TAG, "❌ Activity está siendo destruida");
+            return;
+        }
+
+        SuperAdminActivity activity = (SuperAdminActivity) getActivity();
+
+        // 🔥 OPCIÓN A: Navegación inmediata (recomendada)
+        executeImmediateNavigation(activity);
+
+        // 🔥 OPCIÓN B: Navegación con delay seguro (comentada)
+        // executeDelayedNavigation(activity);
+    }
+
+    // 🔥 MÉTODO: Navegación inmediata
+    private void executeImmediateNavigation(SuperAdminActivity activity) {
+        Log.d(TAG, "✅ Ejecutando navegación inmediata");
+
+        try {
+            activity.navigateBackToDashboardWithRefresh();
+            Log.d(TAG, "✅ Navegación exitosa");
+        } catch (Exception e) {
+            Log.e(TAG, "❌ Error en navegación inmediata: " + e.getMessage());
+            // Fallback: navegación normal
+            try {
+                activity.navigateBackToDashboard();
+                Log.d(TAG, "✅ Fallback navegación exitosa");
+            } catch (Exception fallbackError) {
+                Log.e(TAG, "❌ Error en fallback navegación: " + fallbackError.getMessage());
+            }
+        }
+    }
+
+    // 🔥 MÉTODO: Navegación con delay seguro (alternativa)
+    private void executeDelayedNavigation(SuperAdminActivity activity) {
+        Log.d(TAG, "⏳ Ejecutando navegación con delay seguro");
+
+        // Cancelar cualquier navegación pendiente
+        cancelPendingNavigation();
+
+        // Crear Handler y Runnable
+        delayHandler = new Handler();
+        pendingNavigation = () -> {
+            Log.d(TAG, "🔄 Ejecutando navegación diferida...");
+
+            // Verificaciones adicionales antes de ejecutar
+            if (isAdded() && !isDetached() && !isRemoving() &&
+                    getActivity() != null && !getActivity().isFinishing()) {
+
+                try {
+                    ((SuperAdminActivity) getActivity()).navigateBackToDashboardWithRefresh();
+                    Log.d(TAG, "✅ Navegación diferida exitosa");
+                } catch (Exception e) {
+                    Log.e(TAG, "❌ Error en navegación diferida: " + e.getMessage());
+                }
+            } else {
+                Log.w(TAG, "❌ Navegación diferida cancelada - Fragment no válido");
+            }
+
+            // Limpiar referencias
+            isNavigationPending = false;
+            pendingNavigation = null;
+        };
+
+        // Ejecutar después del delay
+        isNavigationPending = true;
+        delayHandler.postDelayed(pendingNavigation, 1500);
+        Log.d(TAG, "⏰ Navegación programada para 1.5 segundos");
+    }
+
+    // 🔥 MÉTODO: Cancelar navegación pendiente
+    private void cancelPendingNavigation() {
+        if (isNavigationPending && delayHandler != null && pendingNavigation != null) {
+            Log.d(TAG, "🚫 Cancelando navegación pendiente");
+            delayHandler.removeCallbacks(pendingNavigation);
+            isNavigationPending = false;
+            pendingNavigation = null;
+        }
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        Log.d(TAG, "📱 Fragment onPause() - Cancelando navegaciones pendientes");
+        cancelPendingNavigation();
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        Log.d(TAG, "📱 Fragment onStop() - Limpiando recursos");
+        cancelPendingNavigation();
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        Log.d(TAG, "📱 Fragment onDestroyView() - Limpieza final");
+        cancelPendingNavigation();
+
+        // Limpiar referencias
+        delayHandler = null;
+        pendingNavigation = null;
+        isNavigationPending = false;
+    }
+
+    // 🔥 MÉTODO: Navegación de emergencia si falla todo lo demás
+    private void emergencyNavigation() {
+        Log.d(TAG, "🚨 Ejecutando navegación de emergencia");
+
+        if (getActivity() != null) {
+            try {
+                // Intentar ir atrás usando el back stack
+                getActivity().onBackPressed();
+                Log.d(TAG, "✅ Navegación de emergencia exitosa");
+            } catch (Exception e) {
+                Log.e(TAG, "❌ Error en navegación de emergencia: " + e.getMessage());
+
+                // Último recurso: finalizar el fragmento
+                try {
+                    getActivity().finish();
+                    Log.d(TAG, "⚠️ Activity finalizada como último recurso");
+                } catch (Exception finalError) {
+                    Log.e(TAG, "❌ Error finalizando activity: " + finalError.getMessage());
+                }
+            }
+        }
+    }
+
     private void showErrorMessage(String error) {
         new MaterialAlertDialogBuilder(requireContext())
                 .setTitle("Error")
