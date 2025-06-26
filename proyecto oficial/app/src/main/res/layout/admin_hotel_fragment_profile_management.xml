@@ -84,24 +84,6 @@
                 <com.google.android.material.textfield.TextInputLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="12dp"
-                    app:boxStrokeColor="@color/orange"
-                    app:hintTextColor="@color/orange">
-
-                    <com.google.android.material.textfield.TextInputEditText
-                        android:id="@+id/etHotelDescription"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:hint="Descripción del Hotel"
-                        android:inputType="textMultiLine"
-                        android:maxLines="3" />
-
-                </com.google.android.material.textfield.TextInputLayout>
-
-                <com.google.android.material.textfield.TextInputLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="12dp"
                     app:boxStrokeColor="@color/orange"
                     app:hintTextColor="@color/orange">
 
@@ -109,22 +91,9 @@
                         android:id="@+id/etHotelAddress"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:hint="Dirección Completa" />
-
-                </com.google.android.material.textfield.TextInputLayout>
-
-                <com.google.android.material.textfield.TextInputLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    app:boxStrokeColor="@color/orange"
-                    app:hintTextColor="@color/orange">
-
-                    <com.google.android.material.textfield.TextInputEditText
-                        android:id="@+id/etHotelPhone"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:hint="Teléfono de Contacto"
-                        android:inputType="phone" />
+                        android:hint="Dirección Completa"
+                        android:minLines="2"
+                        android:maxLines="3" />
 
                 </com.google.android.material.textfield.TextInputLayout>
 
@@ -136,7 +105,8 @@
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginHorizontal="16dp"
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="16dp"
             android:layout_marginBottom="16dp"
             app:cardCornerRadius="16dp"
             app:cardElevation="4dp">
@@ -152,54 +122,66 @@
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
                     android:gravity="center_vertical"
-                    android:layout_marginBottom="16dp">
+                    android:layout_marginBottom="12dp">
 
                     <TextView
+                        android:id="@+id/tvPhotosStatus"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:text="📸 Fotos del Hotel (Mín. 4)"
-                        android:textSize="18sp"
+                        android:text="📷 No hay fotos subidas"
+                        android:textSize="16sp"
                         android:textStyle="bold"
-                        android:textColor="@color/text_primary" />
+                        android:textColor="@color/text_secondary" />
 
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/btnAddPhoto"
+                    <TextView
+                        android:id="@+id/tvPhotosCounter"
                         android:layout_width="wrap_content"
-                        android:layout_height="40dp"
-                        android:text="➕ Agregar Foto"
+                        android:layout_height="wrap_content"
+                        android:text="0/8 fotos"
                         android:textSize="12sp"
-                        app:backgroundTint="@color/blue"
-                        android:textColor="@android:color/white" />
+                        android:textColor="@color/text_secondary"
+                        android:background="@drawable/bg_rounded_light_gray"
+                        android:padding="8dp" />
 
                 </LinearLayout>
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Se requieren mínimo 4 fotos del hotel. Puedes subir hasta 8 fotos para mostrar mejor tu establecimiento."
+                    android:textSize="12sp"
+                    android:textColor="@color/text_secondary"
+                    android:layout_marginBottom="16dp" />
 
                 <androidx.recyclerview.widget.RecyclerView
                     android:id="@+id/rvHotelPhotos"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:nestedScrollingEnabled="false" />
+                    android:layout_marginBottom="16dp"
+                    android:visibility="gone" />
 
-                <TextView
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnAddPhoto"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="💡 Agrega fotos de recepción, habitaciones, instalaciones y áreas comunes"
-                    android:textSize="12sp"
-                    android:textColor="@color/text_secondary"
-                    android:gravity="center"
-                    android:layout_marginTop="12dp"
-                    android:background="@drawable/bg_info_note"
-                    android:padding="12dp" />
+                    android:text="📷 Subir Primera Foto"
+                    android:textColor="@color/orange"
+                    app:backgroundTint="@android:color/transparent"
+                    app:strokeColor="@color/orange"
+                    app:strokeWidth="2dp"
+                    app:cornerRadius="12dp" />
 
             </LinearLayout>
 
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- Servicios Básicos -->
+        <!-- Servicios Básicos Incluidos -->
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginHorizontal="16dp"
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="16dp"
             android:layout_marginBottom="16dp"
             app:cardCornerRadius="16dp"
             app:cardElevation="4dp">
@@ -210,49 +192,41 @@
                 android:orientation="vertical"
                 android:padding="20dp">
 
-                <LinearLayout
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="🛏️ Servicios Básicos Incluidos"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/text_primary"
+                    android:layout_marginBottom="8dp" />
+
+                <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:gravity="center_vertical"
-                    android:layout_marginBottom="16dp">
-
-                    <TextView
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:text="🛎️ Servicios Básicos Incluidos"
-                        android:textSize="18sp"
-                        android:textStyle="bold"
-                        android:textColor="@color/text_primary" />
-
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/btnAddBasicService"
-                        android:layout_width="wrap_content"
-                        android:layout_height="40dp"
-                        android:text="➕ Agregar Servicio"
-                        android:textSize="12sp"
-                        app:backgroundTint="@color/green"
-                        android:textColor="@android:color/white" />
-
-                </LinearLayout>
+                    android:text="Servicios que tendrán TODAS las habitaciones sin excepción y sin costo adicional"
+                    android:textSize="12sp"
+                    android:textColor="@color/text_secondary"
+                    android:layout_marginBottom="16dp" />
 
                 <androidx.recyclerview.widget.RecyclerView
                     android:id="@+id/rvBasicServices"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:layout_marginBottom="16dp"
+                    android:minHeight="120dp"
                     android:nestedScrollingEnabled="false" />
 
-                <TextView
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnAddBasicService"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="ℹ️ Estos servicios estarán incluidos en todas las habitaciones sin costo adicional"
-                    android:textSize="12sp"
-                    android:textColor="@color/text_secondary"
-                    android:gravity="center"
-                    android:layout_marginTop="12dp"
-                    android:background="@drawable/bg_info_note"
-                    android:padding="12dp" />
+                    android:text="➕ Agregar Servicio Básico"
+                    android:textColor="@color/orange"
+                    app:backgroundTint="@android:color/transparent"
+                    app:strokeColor="@color/orange"
+                    app:strokeWidth="2dp"
+                    app:cornerRadius="12dp" />
 
             </LinearLayout>
 
@@ -262,14 +236,14 @@
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnSaveProfile"
             android:layout_width="match_parent"
-            android:layout_height="56dp"
+            android:layout_height="60dp"
             android:layout_margin="16dp"
-            android:text="💾 GUARDAR PERFIL DEL HOTEL"
+            android:text="💾 Guardar Perfil del Hotel"
             android:textSize="16sp"
             android:textStyle="bold"
             app:backgroundTint="@color/orange"
-            android:textColor="@android:color/white"
-            app:cornerRadius="16dp" />
+            app:cornerRadius="16dp"
+            android:textColor="@android:color/white" />
 
     </LinearLayout>
 

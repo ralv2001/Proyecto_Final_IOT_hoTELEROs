@@ -1,81 +1,83 @@
 package com.example.proyecto_final_hoteleros.adminhotel.dialog;
 
-import android.app.Dialog;
 import android.content.Context;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
-import android.view.LayoutInflater;
-import android.view.View;
 import android.view.ViewGroup;
-import android.view.Window;
-import android.widget.ImageView;
-import android.widget.TextView;
-
+import android.widget.SearchView;
+import androidx.appcompat.app.AppCompatDialog;
 import androidx.recyclerview.widget.GridLayoutManager;
-import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-
 import com.example.proyecto_final_hoteleros.R;
+import com.example.proyecto_final_hoteleros.adminhotel.adapters.IconSelectorAdapter;
 import com.example.proyecto_final_hoteleros.adminhotel.utils.IconHelper;
+import com.google.android.material.button.MaterialButton;
 import com.google.android.material.tabs.TabLayout;
-
 import java.util.List;
 
-public class IconSelectorDialog extends Dialog {
-
-    private Context context;
-    private OnIconSelectedListener listener;
-    private TabLayout tabCategories;
-    private RecyclerView rvIcons;
-    private IconAdapter iconAdapter;
-    private String selectedIconKey = "";
+public class IconSelectorDialog extends AppCompatDialog {
 
     public interface OnIconSelectedListener {
         void onIconSelected(String iconKey, String iconName);
     }
 
-    public IconSelectorDialog(Context context, OnIconSelectedListener listener) {
-        super(context);
-        this.context = context;
-        this.listener = listener;
-        setupDialog();
-    }
+    private Context context;
+    private TabLayout tabCategories;
+    private SearchView searchView;
+    private RecyclerView rvIcons;
+    private MaterialButton btnCancel, btnSelect;
+
+    private IconSelectorAdapter adapter;
+    private OnIconSelectedListener listener;
+    private String selectedIconKey;
+    private List<IconHelper.IconItem> currentIcons;
 
     public IconSelectorDialog(Context context, String currentIconKey, OnIconSelectedListener listener) {
-        super(context);
+        super(context, R.style.DialogTheme);
         this.context = context;
-        this.listener = listener;
         this.selectedIconKey = currentIconKey;
+        this.listener = listener;
         setupDialog();
     }
 
     private void setupDialog() {
-        requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.admin_hotel_dialog_icon_selector);
+        setCancelable(true);
+        setCanceledOnTouchOutside(true);
 
-        Window window = getWindow();
-        if (window != null) {
-            window.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
-            window.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        if (getWindow() != null) {
+            getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+            getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT, (int) (context.getResources().getDisplayMetrics().heightPixels * 0.8));
         }
 
         initViews();
-        setupTabs();
         setupRecyclerView();
-        loadIcons("Básicos"); // Cargar primera categoría por defecto
+        setupTabs();
+        setupClickListeners();
+        loadIcons("Conectividad"); // Categoría por defecto
     }
 
     private void initViews() {
         tabCategories = findViewById(R.id.tabCategories);
+        searchView = findViewById(R.id.searchView);
         rvIcons = findViewById(R.id.rvIcons);
+        btnCancel = findViewById(R.id.btnCancel);
+        btnSelect = findViewById(R.id.btnSelect);
+    }
 
-        findViewById(R.id.btnCancel).setOnClickListener(v -> dismiss());
-        findViewById(R.id.btnSelect).setOnClickListener(v -> {
-            if (!selectedIconKey.isEmpty() && listener != null) {
-                listener.onIconSelected(selectedIconKey, IconHelper.getIconName(selectedIconKey));
+    private void setupRecyclerView() {
+        adapter = new IconSelectorAdapter(selectedIconKey, new IconSelectorAdapter.OnIconClickListener() {
+            @Override
+            public void onIconClick(IconHelper.IconItem iconItem) {
+                selectedIconKey = iconItem.getKey();
+                adapter.setSelectedIconKey(selectedIconKey);
+                btnSelect.setText("✅ Seleccionar: " + iconItem.getName());
+                btnSelect.setEnabled(true);
             }
-            dismiss();
         });
+
+        rvIcons.setLayoutManager(new GridLayoutManager(context, 4));
+        rvIcons.setAdapter(adapter);
     }
 
     private void setupTabs() {
@@ -88,7 +90,10 @@ public class IconSelectorDialog extends Dialog {
         tabCategories.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
             @Override
             public void onTabSelected(TabLayout.Tab tab) {
-                loadIcons(tab.getText().toString());
+                String category = tab.getText().toString();
+                loadIcons(category);
+                searchView.setQuery("", false);
+                searchView.clearFocus();
             }
 
             @Override
@@ -99,68 +104,50 @@ public class IconSelectorDialog extends Dialog {
         });
     }
 
-    private void setupRecyclerView() {
-        iconAdapter = new IconAdapter();
-        rvIcons.setLayoutManager(new GridLayoutManager(context, 4));
-        rvIcons.setAdapter(iconAdapter);
+    private void setupClickListeners() {
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                filterIcons(query);
+                return true;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                if (newText.length() > 2 || newText.isEmpty()) {
+                    filterIcons(newText);
+                }
+                return true;
+            }
+        });
+
+        btnCancel.setOnClickListener(v -> dismiss());
+
+        btnSelect.setOnClickListener(v -> {
+            if (selectedIconKey != null && listener != null) {
+                String iconName = IconHelper.getIconName(selectedIconKey);
+                listener.onIconSelected(selectedIconKey, iconName);
+            }
+            dismiss();
+        });
     }
 
     private void loadIcons(String category) {
-        List<IconHelper.IconItem> icons = IconHelper.getIconsByCategory(category);
-        iconAdapter.updateIcons(icons);
+        currentIcons = IconHelper.getIconsByCategory(category);
+        adapter.updateIcons(currentIcons);
     }
 
-    private class IconAdapter extends RecyclerView.Adapter<IconAdapter.IconViewHolder> {
-        private List<IconHelper.IconItem> icons;
-
-        public void updateIcons(List<IconHelper.IconItem> newIcons) {
-            this.icons = newIcons;
-            notifyDataSetChanged();
-        }
-
-        @Override
-        public IconViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-            View view = LayoutInflater.from(context).inflate(R.layout.admin_hotel_item_icon_selector, parent, false);
-            return new IconViewHolder(view);
-        }
-
-        @Override
-        public void onBindViewHolder(IconViewHolder holder, int position) {
-            IconHelper.IconItem icon = icons.get(position);
-            holder.bind(icon);
-        }
-
-        @Override
-        public int getItemCount() {
-            return icons != null ? icons.size() : 0;
-        }
-
-        class IconViewHolder extends RecyclerView.ViewHolder {
-            private ImageView ivIcon;
-            private TextView tvIconName;
-            private View iconContainer;
-
-            public IconViewHolder(View itemView) {
-                super(itemView);
-                ivIcon = itemView.findViewById(R.id.ivIcon);
-                tvIconName = itemView.findViewById(R.id.tvIconName);
-                iconContainer = itemView.findViewById(R.id.iconContainer);
+    private void filterIcons(String query) {
+        if (query.isEmpty()) {
+            // Si la búsqueda está vacía, mostrar la categoría actual
+            TabLayout.Tab selectedTab = tabCategories.getTabAt(tabCategories.getSelectedTabPosition());
+            if (selectedTab != null) {
+                loadIcons(selectedTab.getText().toString());
             }
-
-            public void bind(IconHelper.IconItem icon) {
-                ivIcon.setImageResource(icon.getResourceId());
-                tvIconName.setText(icon.getName());
-
-                // Highlight si está seleccionado
-                boolean isSelected = icon.getKey().equals(selectedIconKey);
-                iconContainer.setBackgroundResource(isSelected ?
-                        R.drawable.bg_service_card_selected : R.drawable.bg_service_card);
-
-                iconContainer.setOnClickListener(v -> {
-                    selectedIconKey = icon.getKey();
-                    notifyDataSetChanged(); // Refresh para actualizar selección
-                });
-            }
+        } else {
+            // Filtrar iconos por la consulta
+            List<IconHelper.IconItem> filteredIcons = IconHelper.searchIcons(query);
+            adapter.updateIcons(filteredIcons);
         }
     }
 }

@@ -132,7 +132,7 @@ public class AdminCheckoutFragment extends Fragment implements CheckoutAdapter.O
     }
 
     private void createBetterSampleData() {
-        // Checkout 1 - Pendiente con servicios múltiples
+        // Checkout 1 - Pendiente SIN DAÑOS (limpio)
         CheckoutItem checkout1 = new CheckoutItem("María González", "301", "15/06/2024", "18/06/2024");
         checkout1.setEmailHuesped("maria.gonzalez@gmail.com");
         checkout1.setTelefonoHuesped("+51 987 654 321");
@@ -142,9 +142,9 @@ public class AdminCheckoutFragment extends Fragment implements CheckoutAdapter.O
         checkout1.addServicioAdicional(new CheckoutItem.ServicioAdicional("Spa & Wellness", 180.0, 2, "16/06/2024", "Masajes de relajación"));
         checkout1.addServicioAdicional(new CheckoutItem.ServicioAdicional("Room Service", 95.0, 3, "15/06/2024", "Cenas premium"));
         checkout1.addServicioAdicional(new CheckoutItem.ServicioAdicional("Minibar", 65.0, 1, "17/06/2024", "Bebidas importadas"));
-        checkout1.addServicioAdicional(new CheckoutItem.ServicioAdicional("Lavandería Express", 45.0, 1, "16/06/2024", "Servicio urgente"));
+        // NO AGREGAR DAÑOS - Se agregarán durante el procesamiento si es necesario
 
-        // Checkout 2 - Con daños reportados (PENDIENTE)
+        // Checkout 2 - Pendiente SIN DAÑOS (limpio)
         CheckoutItem checkout2 = new CheckoutItem("Carlos Mendoza", "205", "12/06/2024", "15/06/2024");
         checkout2.setEmailHuesped("carlos.mendoza@email.com");
         checkout2.setTelefonoHuesped("+51 987 123 456");
@@ -153,26 +153,22 @@ public class AdminCheckoutFragment extends Fragment implements CheckoutAdapter.O
         checkout2.setTipoHabitacion("Suite Premium");
         checkout2.addServicioAdicional(new CheckoutItem.ServicioAdicional("Gimnasio VIP", 120.0, 2, "13/06/2024", "Entrenador personal"));
         checkout2.addServicioAdicional(new CheckoutItem.ServicioAdicional("Transporte", 150.0, 1, "15/06/2024", "Aeropuerto - Hotel"));
+        // NO AGREGAR DAÑOS - Se agregarán durante el procesamiento si es necesario
 
-        // Agregar daños confirmados
-        CheckoutItem.DanoHabitacion dano1 = new CheckoutItem.DanoHabitacion("Vidrio de baño quebrado", 120.0, "Moderado", "14/06/2024");
-        dano1.setConfirmado(true);
-        checkout2.addDano(dano1);
-
-        CheckoutItem.DanoHabitacion dano2 = new CheckoutItem.DanoHabitacion("Mancha en sofá", 80.0, "Leve", "15/06/2024");
-        dano2.setConfirmado(false); // Pendiente de confirmación
-        checkout2.addDano(dano2);
-
-        // Checkout 3 - Simple sin servicios adicionales
+        // Checkout 3 - Pendiente SIN DAÑOS (limpio)
         CheckoutItem checkout3 = new CheckoutItem("Ana Palacios", "150", "10/06/2024", "12/06/2024");
         checkout3.setEmailHuesped("ana.palacios@outlook.com");
         checkout3.setTelefonoHuesped("+51 987 789 123");
         checkout3.setCostoHabitacion(400.0);
         checkout3.setNumeroNoches(2);
         checkout3.setTipoHabitacion("Habitación Deluxe");
+        // NO AGREGAR DAÑOS - Se agregarán durante el procesamiento si es necesario
 
-        // Checkout 4 - Con múltiples servicios Y daños (ejemplo completo)
+        // Checkout 4 - COMPLETADO CON DAÑOS (ya procesado anteriormente)
         CheckoutItem checkout4 = new CheckoutItem("Renato Sulca", "412", "08/06/2024", "11/06/2024");
+        checkout4.setEstado("Completado");
+        checkout4.setPagado(true);
+        checkout4.setMetodoPago("Tarjeta de Crédito");
         checkout4.setEmailHuesped("renato.sulca@gmail.com");
         checkout4.setTelefonoHuesped("+51 987 456 789");
         checkout4.setCostoHabitacion(1200.0);
@@ -183,19 +179,17 @@ public class AdminCheckoutFragment extends Fragment implements CheckoutAdapter.O
         checkout4.addServicioAdicional(new CheckoutItem.ServicioAdicional("Spa Premium", 200.0, 2, "09/06/2024", "Tratamiento completo"));
         checkout4.addServicioAdicional(new CheckoutItem.ServicioAdicional("Room Service Gourmet", 180.0, 3, "08/06/2024", "Chef privado"));
         checkout4.addServicioAdicional(new CheckoutItem.ServicioAdicional("Minibar Premium", 95.0, 2, "09/06/2024", "Licores premium"));
-        checkout4.addServicioAdicional(new CheckoutItem.ServicioAdicional("Transporte VIP", 250.0, 1, "11/06/2024", "Limousine al aeropuerto"));
-        checkout4.addServicioAdicional(new CheckoutItem.ServicioAdicional("Lavandería Premium", 75.0, 1, "10/06/2024", "Servicio express de lujo"));
 
-        // Daños múltiples
-        CheckoutItem.DanoHabitacion dano3 = new CheckoutItem.DanoHabitacion("Daño en mueble de baño", 200.0, "Moderado", "10/06/2024");
-        dano3.setConfirmado(true);
-        checkout4.addDano(dano3);
+        // DAÑOS que se agregaron DURANTE el procesamiento anterior
+        CheckoutItem.DanoHabitacion dano1 = new CheckoutItem.DanoHabitacion("Daño en mueble de baño", 200.0, "Moderado", "10/06/2024");
+        dano1.setConfirmado(true);
+        checkout4.addDano(dano1);
 
-        CheckoutItem.DanoHabitacion dano4 = new CheckoutItem.DanoHabitacion("Quemadura en alfombra", 150.0, "Leve", "11/06/2024");
-        dano4.setConfirmado(true);
-        checkout4.addDano(dano4);
+        CheckoutItem.DanoHabitacion dano2 = new CheckoutItem.DanoHabitacion("Quemadura en alfombra", 150.0, "Leve", "11/06/2024");
+        dano2.setConfirmado(true);
+        checkout4.addDano(dano2);
 
-        // Checkout 5 - Completado (para mostrar variedad)
+        // Checkout 5 - COMPLETADO SIN DAÑOS (checkout limpio procesado anteriormente)
         CheckoutItem checkout5 = new CheckoutItem("Pedro Martín", "101", "05/06/2024", "07/06/2024");
         checkout5.setEstado("Completado");
         checkout5.setPagado(true);
@@ -204,8 +198,9 @@ public class AdminCheckoutFragment extends Fragment implements CheckoutAdapter.O
         checkout5.setNumeroNoches(2);
         checkout5.setTipoHabitacion("Habitación Standard");
         checkout5.addServicioAdicional(new CheckoutItem.ServicioAdicional("Desayuno", 60.0, 2, "06/06/2024", "Buffet continental"));
+        // SIN DAÑOS - Habitación estaba en perfecto estado
 
-        // Checkout 6 - En proceso
+        // Checkout 6 - EN PROCESO SIN DAÑOS (en proceso de pago)
         CheckoutItem checkout6 = new CheckoutItem("Luis Rodríguez", "250", "13/06/2024", "16/06/2024");
         checkout6.setEstado("En Proceso");
         checkout6.setEmailHuesped("luis.rodriguez@yahoo.com");
@@ -214,6 +209,7 @@ public class AdminCheckoutFragment extends Fragment implements CheckoutAdapter.O
         checkout6.setNumeroNoches(3);
         checkout6.setTipoHabitacion("Suite Junior");
         checkout6.addServicioAdicional(new CheckoutItem.ServicioAdicional("Piscina VIP", 80.0, 2, "14/06/2024", "Área privada"));
+        // SIN DAÑOS - Se agregarán durante el procesamiento si es necesario
 
         // Agregar todos a la lista
         listaCheckouts.add(checkout1);
@@ -223,7 +219,6 @@ public class AdminCheckoutFragment extends Fragment implements CheckoutAdapter.O
         listaCheckouts.add(checkout5);
         listaCheckouts.add(checkout6);
     }
-
     private void updateStats() {
         int pendingCount = 0;
         double totalRevenue = 0.0;

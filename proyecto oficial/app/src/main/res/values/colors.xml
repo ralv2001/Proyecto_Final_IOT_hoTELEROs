@@ -175,6 +175,7 @@
     <color name="gray_500">#9E9E9E</color>
     <color name="amber_600">#FFB300</color>
     <color name="green_500">#4CAF50</color>
+    <color name="light_blue_bg">#F0F8FF</color>
 
     <!-- Colores para LocationAdapter -->
     <color name="departamento_color">#FF5722</color>
@@ -186,6 +187,7 @@
     <color name="taxi_condition_bg">#FFF8E1</color>
     <color name="purple">#9C27B0</color>
     <color name="brown">#795548</color>
+
 
     <!-- ========== COLORES TEMÁTICOS PARA DASHBOARD ========== -->
 
@@ -217,5 +219,29 @@
     <!-- 🔴 ROJO - Estados Críticos -->
     <color name="theme_red_primary">#F44336</color>
     <color name="theme_red_light">#FFEBEE</color>
-    <color name="theme_red_dark">#D32F2F</color>
+
+    <color name="orange_very_light">#FFF3E0</color>
+
+    <color name="blue_light">#E3F2FD</color>
+    <color name="green_light">#E8F5E8</color>
+    <color name="orange_ultralight">#FFF3E0</color>
+    <color name="gold">#FFD700</color>
+
+    <color name="surface_light">#FAFAFA</color>
+    <color name="surface_variant">#F5F5F5</color>
+    <color name="border_light">#E0E0E0</color>
+
+    <color name="orange_50">#FFF7ED</color>
+    <color name="blue_50">#EFF6FF</color>
+    <color name="green_50">#ECFDF5</color>
+    <!-- Añadir estos colores a tu archivo colors.xml existente -->
+
+    <!-- Colores para switches -->
+    <color name="switch_track_color">#E0E0E0</color>
+    <color name="switch_track_color_checked">#FFB74D</color>
+
+    <!-- Colores adicionales que pueden ser útiles -->
+    <color name="purple_dark">#7B1FA2</color>
+    <color name="icon_color">#F4EFEF</color>
+
 </resources>

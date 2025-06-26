@@ -1,202 +1,321 @@
-
 package com.example.proyecto_final_hoteleros.adminhotel.dialog;
 
-
-import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
+import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
+import android.view.WindowManager;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 import android.widget.Toast;
-
 import androidx.activity.result.ActivityResultLauncher;
-import androidx.activity.result.contract.ActivityResultContracts;
-import androidx.appcompat.widget.AppCompatButton;
-import androidx.recyclerview.widget.GridLayoutManager;
+import androidx.appcompat.app.AppCompatDialog;
+import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-
 import com.example.proyecto_final_hoteleros.R;
-import com.example.proyecto_final_hoteleros.adminhotel.adapters.HotelPhotosAdapter;
+import com.example.proyecto_final_hoteleros.adminhotel.adapters.ServicePhotosAdapter;
 import com.example.proyecto_final_hoteleros.adminhotel.model.HotelServiceItem;
 import com.example.proyecto_final_hoteleros.adminhotel.utils.IconHelper;
 import com.google.android.material.button.MaterialButton;
+import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.textfield.TextInputEditText;
-
+import com.google.android.material.textfield.TextInputLayout;
 import java.util.ArrayList;
 import java.util.List;
 
-public class AddServiceDialog extends Dialog {
+public class AddServiceDialog extends AppCompatDialog {
 
     public interface OnServiceAddedListener {
         void onServiceAdded(HotelServiceItem service);
     }
 
     private Context context;
-    private OnServiceAddedListener listener;
-    private TextInputEditText etServiceName, etServiceDescription, etServicePrice;
+    private TextInputEditText etServiceName, etServiceDescription, etServicePrice, etConditionalAmount;
     private AutoCompleteTextView etServiceType;
-    private AppCompatButton btnSelectIcon, btnAddPhoto, btnSave, btnCancel;
+    private TextInputLayout tilServicePrice, tilConditionalAmount;
+    private ImageView ivSelectedIcon;
+    private TextView tvSelectedIconName, tvPhotoCount;
+    private LinearLayout layoutIconPreview;
+    private MaterialCardView cardAddPhoto;
     private RecyclerView rvServicePhotos;
+    private MaterialButton btnCancel, btnSave;
 
-    private String selectedIconKey = "wifi";
+    private String selectedIconKey = "service";
     private List<Uri> servicePhotos;
-    private HotelPhotosAdapter photosAdapter;
+    private ServicePhotosAdapter photosAdapter;
     private ActivityResultLauncher<Intent> photoPickerLauncher;
+    private OnServiceAddedListener listener;
 
-    public AddServiceDialog(Context context, OnServiceAddedListener listener) {
-        super(context);
+    // Tipos de servicio disponibles
+    private final String[] serviceTypes = {
+            "Incluido",
+            "Pagado",
+            "Condicional"
+    };
+
+    public AddServiceDialog(Context context, ActivityResultLauncher<Intent> photoLauncher, OnServiceAddedListener listener) {
+        super(context, R.style.DialogTheme);
         this.context = context;
         this.listener = listener;
+        this.photoPickerLauncher = photoLauncher;
         this.servicePhotos = new ArrayList<>();
         setupDialog();
     }
 
     private void setupDialog() {
-        requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.admin_hotel_dialog_add_service);
+        setCancelable(true);
+        setCanceledOnTouchOutside(true);
 
-        Window window = getWindow();
-        if (window != null) {
-            window.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
-            window.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        if (getWindow() != null) {
+            getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+            getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+            getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
         }
 
         initViews();
-        setupPhotoLauncher();
-        setupServiceTypes();
+        setupRecyclerView();
         setupClickListeners();
-        updateIconButton();
+        setupServiceTypeDropdown();
+        updateIconDisplay();
+        updatePhotoCount();
     }
 
     private void initViews() {
         etServiceName = findViewById(R.id.etServiceName);
         etServiceDescription = findViewById(R.id.etServiceDescription);
-        etServicePrice = findViewById(R.id.etServicePrice);
         etServiceType = findViewById(R.id.etServiceType);
-        btnSelectIcon = findViewById(R.id.btnSelectIcon);
-        btnAddPhoto = findViewById(R.id.btnAddPhoto);
-        rvServicePhotos = findViewById(R.id.rvServicePhotos);
-        btnSave = findViewById(R.id.btnSave);
-        btnCancel = findViewById(R.id.btnCancel);
+        etServicePrice = findViewById(R.id.etServicePrice);
+        etConditionalAmount = findViewById(R.id.etConditionalAmount);
 
-        // Setup photos RecyclerView
-        photosAdapter = new HotelPhotosAdapter(servicePhotos, this::removePhoto);
-        rvServicePhotos.setLayoutManager(new GridLayoutManager(context, 3));
+        tilServicePrice = findViewById(R.id.tilServicePrice);
+        tilConditionalAmount = findViewById(R.id.tilConditionalAmount);
+
+        ivSelectedIcon = findViewById(R.id.ivSelectedIcon);
+        tvSelectedIconName = findViewById(R.id.tvSelectedIconName);
+        tvPhotoCount = findViewById(R.id.tvPhotoCount);
+
+        layoutIconPreview = findViewById(R.id.layoutIconPreview);
+        cardAddPhoto = findViewById(R.id.cardAddPhoto);
+        rvServicePhotos = findViewById(R.id.rvServicePhotos);
+
+        btnCancel = findViewById(R.id.btnCancel);
+        btnSave = findViewById(R.id.btnSave);
+    }
+
+    private void setupRecyclerView() {
+        photosAdapter = new ServicePhotosAdapter(servicePhotos, new ServicePhotosAdapter.OnPhotoActionListener() {
+            @Override
+            public void onRemovePhoto(int position) {
+                servicePhotos.remove(position);
+                photosAdapter.notifyItemRemoved(position);
+                updatePhotoCount();
+                updatePhotosVisibility();
+            }
+        });
+
+        rvServicePhotos.setLayoutManager(new LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false));
         rvServicePhotos.setAdapter(photosAdapter);
     }
 
-    private void setupPhotoLauncher() {
-        photoPickerLauncher = ((androidx.fragment.app.FragmentActivity) context).registerForActivityResult(
-                new ActivityResultContracts.StartActivityForResult(),
-                result -> {
-                    if (result.getResultCode() == ((androidx.fragment.app.FragmentActivity) context).RESULT_OK && result.getData() != null) {
-                        Uri photoUri = result.getData().getData();
-                        if (photoUri != null && servicePhotos.size() < 5) {
-                            servicePhotos.add(photoUri);
-                            photosAdapter.notifyDataSetChanged();
-                        } else if (servicePhotos.size() >= 5) {
-                            Toast.makeText(context, "Máximo 5 fotos permitidas", Toast.LENGTH_SHORT).show();
-                        }
-                    }
-                }
-        );
+    private void setupServiceTypeDropdown() {
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(context, android.R.layout.simple_dropdown_item_1line, serviceTypes);
+        etServiceType.setAdapter(adapter);
+
+        etServiceType.setOnItemClickListener((parent, view, position, id) -> {
+            String selectedType = serviceTypes[position];
+            updateFieldsVisibilityByType(selectedType);
+        });
     }
 
-    private void setupServiceTypes() {
-        String[] types = {"Incluido", "Pagado", "Especial"};
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(context, android.R.layout.simple_dropdown_item_1line, types);
-        etServiceType.setAdapter(adapter);
-        etServiceType.setText("Pagado", false);
+    private void updateFieldsVisibilityByType(String serviceType) {
+        switch (serviceType) {
+            case "Incluido":
+                tilServicePrice.setVisibility(View.GONE);
+                tilConditionalAmount.setVisibility(View.GONE);
+                break;
+            case "Pagado":
+                tilServicePrice.setVisibility(View.VISIBLE);
+                tilConditionalAmount.setVisibility(View.GONE);
+                break;
+            case "Condicional":
+                tilServicePrice.setVisibility(View.GONE);
+                tilConditionalAmount.setVisibility(View.VISIBLE);
+                break;
+        }
     }
 
     private void setupClickListeners() {
-        btnSelectIcon.setOnClickListener(v -> showIconSelector());
+        layoutIconPreview.setOnClickListener(v -> showIconSelectorDialog());
 
-        btnAddPhoto.setOnClickListener(v -> {
-            if (servicePhotos.size() >= 5) {
-                Toast.makeText(context, "Máximo 5 fotos permitidas", Toast.LENGTH_SHORT).show();
+        cardAddPhoto.setOnClickListener(v -> {
+            if (servicePhotos.size() >= 3) {
+                Toast.makeText(context, "⚠️ Máximo 3 fotos permitidas", Toast.LENGTH_SHORT).show();
                 return;
             }
-            Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
-            intent.setType("image/*");
-            photoPickerLauncher.launch(intent);
+            openPhotoSelector();
         });
 
-        btnSave.setOnClickListener(v -> saveService());
         btnCancel.setOnClickListener(v -> dismiss());
+        btnSave.setOnClickListener(v -> saveService());
     }
 
-    private void showIconSelector() {
-        IconSelectorDialog iconDialog = new IconSelectorDialog(context, selectedIconKey, (iconKey, iconName) -> {
-            selectedIconKey = iconKey;
-            updateIconButton();
+    private void showIconSelectorDialog() {
+        IconSelectorDialog iconDialog = new IconSelectorDialog(context, selectedIconKey, new IconSelectorDialog.OnIconSelectedListener() {
+            @Override
+            public void onIconSelected(String iconKey, String iconName) {
+                selectedIconKey = iconKey;
+                updateIconDisplay();
+            }
         });
         iconDialog.show();
     }
 
-    private void updateIconButton() {
-        btnSelectIcon.setCompoundDrawablesWithIntrinsicBounds(IconHelper.getIconResource(selectedIconKey), 0, 0, 0);
-        btnSelectIcon.setText(IconHelper.getIconName(selectedIconKey));
+    private void updateIconDisplay() {
+        int iconResource = IconHelper.getIconResource(selectedIconKey);
+        ivSelectedIcon.setImageResource(iconResource);
+
+        String iconName = IconHelper.getIconName(selectedIconKey);
+        tvSelectedIconName.setText(iconName);
     }
 
-    private void removePhoto(int position) {
-        servicePhotos.remove(position);
-        photosAdapter.notifyItemRemoved(position);
+    private void openPhotoSelector() {
+        Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+        intent.setType("image/*");
+        intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
+        photoPickerLauncher.launch(Intent.createChooser(intent, "Seleccionar fotos"));
+    }
+
+    public void handlePhotoResult(Intent data) {
+        if (data.getClipData() != null) {
+            // Múltiples fotos seleccionadas
+            int count = data.getClipData().getItemCount();
+            for (int i = 0; i < count && servicePhotos.size() < 3; i++) {
+                Uri imageUri = data.getClipData().getItemAt(i).getUri();
+                servicePhotos.add(imageUri);
+            }
+        } else if (data.getData() != null) {
+            // Una sola foto seleccionada
+            if (servicePhotos.size() < 3) {
+                servicePhotos.add(data.getData());
+            }
+        }
+
+        photosAdapter.notifyDataSetChanged();
+        updatePhotoCount();
+        updatePhotosVisibility();
+
+        if (servicePhotos.size() >= 3) {
+            Toast.makeText(context, "✅ Máximo de fotos alcanzado", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void updatePhotoCount() {
+        tvPhotoCount.setText(servicePhotos.size() + " / 3 fotos");
+    }
+
+    private void updatePhotosVisibility() {
+        if (servicePhotos.isEmpty()) {
+            rvServicePhotos.setVisibility(View.GONE);
+        } else {
+            rvServicePhotos.setVisibility(View.VISIBLE);
+        }
     }
 
     private void saveService() {
         String name = etServiceName.getText().toString().trim();
         String description = etServiceDescription.getText().toString().trim();
-        String priceStr = etServicePrice.getText().toString().trim();
         String typeStr = etServiceType.getText().toString().trim();
 
-        if (name.isEmpty() || description.isEmpty() || typeStr.isEmpty()) {
-            Toast.makeText(context, "Por favor completa todos los campos requeridos", Toast.LENGTH_SHORT).show();
+        if (name.isEmpty()) {
+            Toast.makeText(context, "⚠️ Ingresa el nombre del servicio", Toast.LENGTH_SHORT).show();
+            etServiceName.requestFocus();
             return;
         }
 
+        if (description.isEmpty()) {
+            Toast.makeText(context, "⚠️ Ingresa la descripción del servicio", Toast.LENGTH_SHORT).show();
+            etServiceDescription.requestFocus();
+            return;
+        }
+
+        if (typeStr.isEmpty()) {
+            Toast.makeText(context, "⚠️ Selecciona el tipo de servicio", Toast.LENGTH_SHORT).show();
+            etServiceType.requestFocus();
+            return;
+        }
+
+        // Determinar tipo de servicio y validar campos correspondientes
         HotelServiceItem.ServiceType serviceType;
         double price = 0.0;
+        double conditionalAmount = 0.0;
 
         switch (typeStr) {
             case "Incluido":
                 serviceType = HotelServiceItem.ServiceType.INCLUDED;
                 break;
-            case "Especial":
-                serviceType = HotelServiceItem.ServiceType.SPECIAL;
-                break;
-            default: // "Pagado"
+            case "Pagado":
                 serviceType = HotelServiceItem.ServiceType.PAID;
+                String priceStr = etServicePrice.getText().toString().trim();
                 if (priceStr.isEmpty()) {
-                    Toast.makeText(context, "Ingresa el precio del servicio", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(context, "⚠️ Ingresa el precio del servicio", Toast.LENGTH_SHORT).show();
+                    etServicePrice.requestFocus();
                     return;
                 }
                 try {
                     price = Double.parseDouble(priceStr);
                     if (price <= 0) {
-                        Toast.makeText(context, "El precio debe ser mayor a 0", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(context, "⚠️ El precio debe ser mayor a 0", Toast.LENGTH_SHORT).show();
+                        etServicePrice.requestFocus();
                         return;
                     }
                 } catch (NumberFormatException e) {
-                    Toast.makeText(context, "Ingresa un precio válido", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(context, "⚠️ Ingresa un precio válido", Toast.LENGTH_SHORT).show();
+                    etServicePrice.requestFocus();
                     return;
                 }
                 break;
+            case "Condicional":
+                serviceType = HotelServiceItem.ServiceType.CONDITIONAL;
+                String amountStr = etConditionalAmount.getText().toString().trim();
+                if (amountStr.isEmpty()) {
+                    Toast.makeText(context, "⚠️ Ingresa el monto mínimo para activar", Toast.LENGTH_SHORT).show();
+                    etConditionalAmount.requestFocus();
+                    return;
+                }
+                try {
+                    conditionalAmount = Double.parseDouble(amountStr);
+                    if (conditionalAmount <= 0) {
+                        Toast.makeText(context, "⚠️ El monto debe ser mayor a 0", Toast.LENGTH_SHORT).show();
+                        etConditionalAmount.requestFocus();
+                        return;
+                    }
+                } catch (NumberFormatException e) {
+                    Toast.makeText(context, "⚠️ Ingresa un monto válido", Toast.LENGTH_SHORT).show();
+                    etConditionalAmount.requestFocus();
+                    return;
+                }
+                break;
+            default:
+                Toast.makeText(context, "⚠️ Tipo de servicio no válido", Toast.LENGTH_SHORT).show();
+                return;
         }
 
-        HotelServiceItem service = new HotelServiceItem(name, description, price, selectedIconKey, serviceType, new ArrayList<>(servicePhotos));
+        // Crear servicio
+        HotelServiceItem service = new HotelServiceItem(name, description, price, selectedIconKey, serviceType, new ArrayList<>(servicePhotos), conditionalAmount);
 
         if (listener != null) {
             listener.onServiceAdded(service);
         }
 
+        Toast.makeText(context, "✅ Servicio agregado exitosamente", Toast.LENGTH_SHORT).show();
         dismiss();
     }
 }
-
-

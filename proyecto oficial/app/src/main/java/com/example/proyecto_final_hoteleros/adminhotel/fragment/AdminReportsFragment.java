@@ -41,12 +41,28 @@ public class AdminReportsFragment extends Fragment {
 
     private void setupClickListeners() {
         cardReporteServicios.setOnClickListener(v -> {
-            Toast.makeText(getContext(), "Reporte por Servicios", Toast.LENGTH_SHORT).show();
+            navigateToServiceReport();
         });
 
         cardReporteUsuarios.setOnClickListener(v -> {
-            Toast.makeText(getContext(), "Reporte por Usuarios", Toast.LENGTH_SHORT).show();
+            navigateToUserReport();
         });
+    }
+
+    private void navigateToServiceReport() {
+        ReportServiceFragment fragment = new ReportServiceFragment();
+        getParentFragmentManager().beginTransaction()
+                .replace(R.id.fragment_container, fragment)
+                .addToBackStack(null)
+                .commit();
+    }
+
+    private void navigateToUserReport() {
+        ReportUserFragment fragment = new ReportUserFragment();
+        getParentFragmentManager().beginTransaction()
+                .replace(R.id.fragment_container, fragment)
+                .addToBackStack(null)
+                .commit();
     }
 
     private void loadReportData() {

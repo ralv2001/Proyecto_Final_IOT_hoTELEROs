@@ -1,29 +1,137 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<com.google.android.material.card.MaterialCardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="horizontal"
-    android:padding="12dp"
-    android:gravity="center_vertical"
-    android:background="?attr/selectableItemBackground"
-    android:clickable="true"
-    android:focusable="true">
+    android:layout_margin="4dp"
+    app:cardCornerRadius="12dp"
+    app:cardElevation="2dp"
+    android:id="@+id/cardService"
+    app:cardBackgroundColor="@android:color/white">
 
-    <CheckBox
-        android:id="@+id/cbService"
-        android:layout_width="wrap_content"
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginEnd="12dp"
-        android:buttonTint="@color/orange" />
+        android:padding="12dp"
+        android:background="?attr/selectableItemBackground"
+        android:clickable="true"
+        android:focusable="true">
 
-    <TextView
-        android:id="@+id/tvServiceName"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:text="WiFi Gratuito"
-        android:textSize="14sp"
-        android:textColor="@color/text_primary"
-        android:fontFamily="@font/inter_regular" />
+        <!-- Indicador de selección (lado izquierdo) -->
+        <View
+            android:id="@+id/selectionIndicator"
+            android:layout_width="4dp"
+            android:layout_height="0dp"
+            android:background="@color/green"
+            android:visibility="gone"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent" />
 
-</LinearLayout>
+        <!-- Contenedor del icono -->
+        <FrameLayout
+            android:id="@+id/iconContainer"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginStart="8dp"
+            app:layout_constraintStart_toEndOf="@id/selectionIndicator"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent">
+
+            <!-- Fondo del icono -->
+            <View
+                android:id="@+id/iconBackground"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:background="@drawable/bg_circle_orange_light"
+                android:alpha="0.3" />
+
+            <!-- Icono del servicio -->
+            <ImageView
+                android:id="@+id/ivServiceIcon"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:layout_gravity="center"
+                android:src="@drawable/ic_hotel_service_default"
+                app:tint="@color/orange"
+                android:scaleType="centerInside" />
+
+        </FrameLayout>
+
+        <!-- Información del servicio -->
+        <LinearLayout
+            android:id="@+id/serviceInfo"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginStart="12dp"
+            android:layout_marginEnd="12dp"
+            app:layout_constraintStart_toEndOf="@id/iconContainer"
+            app:layout_constraintEnd_toStartOf="@id/checkboxContainer"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent">
+
+            <TextView
+                android:id="@+id/tvServiceName"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="WiFi Gratuito"
+                android:textSize="14sp"
+                android:textColor="@color/text_primary"
+                android:fontFamily="@font/poppins_medium"
+                android:maxLines="1"
+                android:ellipsize="end" />
+
+            <TextView
+                android:id="@+id/tvServiceCategory"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Conectividad"
+                android:textSize="11sp"
+                android:textColor="@color/text_secondary"
+                android:fontFamily="@font/inter_regular"
+                android:alpha="0.7"
+                android:layout_marginTop="2dp" />
+
+        </LinearLayout>
+
+        <!-- Contenedor del checkbox -->
+        <FrameLayout
+            android:id="@+id/checkboxContainer"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent">
+
+            <CheckBox
+                android:id="@+id/cbService"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:buttonTint="@color/orange"
+                android:layout_gravity="center" />
+
+        </FrameLayout>
+
+        <!-- Badge de "Nuevo" (opcional) -->
+        <TextView
+            android:id="@+id/tvNewBadge"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="NUEVO"
+            android:textSize="9sp"
+            android:textStyle="bold"
+            android:textColor="@android:color/white"
+            android:background="@drawable/bg_new_badge"
+            android:paddingHorizontal="6dp"
+            android:paddingVertical="2dp"
+            android:visibility="gone"
+            app:layout_constraintEnd_toEndOf="@id/iconContainer"
+            app:layout_constraintTop_toTopOf="@id/iconContainer"
+            android:layout_marginTop="-4dp"
+            android:layout_marginEnd="-4dp" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</com.google.android.material.card.MaterialCardView>
