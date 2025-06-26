@@ -1,6 +1,5 @@
 package com.example.proyecto_final_hoteleros.adminhotel.adapters;
 
-import android.content.Context;
 import android.net.Uri;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -8,19 +7,22 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.resource.bitmap.CenterCrop;
+import com.bumptech.glide.load.resource.bitmap.RoundedCorners;
 import com.example.proyecto_final_hoteleros.R;
 import java.util.List;
 
 public class ServicePhotosAdapter extends RecyclerView.Adapter<ServicePhotosAdapter.PhotoViewHolder> {
 
-    public interface OnPhotoRemovedListener {
-        void onPhotoRemoved(int position);
+    public interface OnPhotoActionListener {
+        void onRemovePhoto(int position);
     }
 
     private List<Uri> photos;
-    private OnPhotoRemovedListener listener;
+    private OnPhotoActionListener listener;
 
-    public ServicePhotosAdapter(List<Uri> photos, OnPhotoRemovedListener listener) {
+    public ServicePhotosAdapter(List<Uri> photos, OnPhotoActionListener listener) {
         this.photos = photos;
         this.listener = listener;
     }
@@ -28,15 +30,13 @@ public class ServicePhotosAdapter extends RecyclerView.Adapter<ServicePhotosAdap
     @NonNull
     @Override
     public PhotoViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(parent.getContext())
-                .inflate(R.layout.admin_hotel_item_service_photo, parent, false);
+        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.admin_hotel_item_service_photo, parent, false);
         return new PhotoViewHolder(view);
     }
 
     @Override
     public void onBindViewHolder(@NonNull PhotoViewHolder holder, int position) {
-        Uri photoUri = photos.get(position);
-        holder.bind(photoUri, position);
+        holder.bind(photos.get(position), position);
     }
 
     @Override
@@ -54,11 +54,18 @@ public class ServicePhotosAdapter extends RecyclerView.Adapter<ServicePhotosAdap
         }
 
         public void bind(Uri photoUri, int position) {
-            ivPhoto.setImageURI(photoUri);
+            // Cargar imagen con Glide
+            Glide.with(itemView.getContext())
+                    .load(photoUri)
+                    .transform(new CenterCrop(), new RoundedCorners(16))
+                    .placeholder(R.drawable.ic_photo)
+                    .error(R.drawable.ic_photo)
+                    .into(ivPhoto);
 
+            // Click para remover
             ivRemove.setOnClickListener(v -> {
                 if (listener != null) {
-                    listener.onPhotoRemoved(position);
+                    listener.onRemovePhoto(position);
                 }
             });
         }

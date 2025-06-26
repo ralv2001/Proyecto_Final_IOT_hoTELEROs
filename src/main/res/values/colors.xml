@@ -201,5 +201,15 @@
     <color name="orange_50">#FFF7ED</color>
     <color name="blue_50">#EFF6FF</color>
     <color name="green_50">#ECFDF5</color>
+    <!-- Añadir estos colores a tu archivo colors.xml existente -->
+
+    <!-- Colores para switches -->
+    <color name="switch_track_color">#E0E0E0</color>
+    <color name="switch_track_color_checked">#FFB74D</color>
+
+    <!-- Colores adicionales que pueden ser útiles -->
+    <color name="purple_dark">#7B1FA2</color>
+    <color name="icon_color">#F4EFEF</color>
+
 
 </resources>

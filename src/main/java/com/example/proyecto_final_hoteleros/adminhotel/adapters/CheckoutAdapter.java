@@ -46,6 +46,18 @@ public class CheckoutAdapter extends RecyclerView.Adapter<CheckoutAdapter.Checko
         this.listener = listener;
     }
 
+    public void updateItem(CheckoutItem updatedCheckout) {
+        for (int i = 0; i < checkoutList.size(); i++) {
+            CheckoutItem currentItem = checkoutList.get(i);
+            if (currentItem.getNombreHuesped().equals(updatedCheckout.getNombreHuesped()) &&
+                    currentItem.getNumeroHabitacion().equals(updatedCheckout.getNumeroHabitacion())) {
+                checkoutList.set(i, updatedCheckout);
+                notifyItemChanged(i);
+                break;
+            }
+        }
+    }
+
     @NonNull
     @Override
     public CheckoutViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
@@ -76,6 +88,8 @@ public class CheckoutAdapter extends RecyclerView.Adapter<CheckoutAdapter.Checko
         private TextView tvNoches;
         private TextView tvServiciosCount;
         private TextView tvDanosCount;
+        private View llDanosSection; // Referencia a la sección completa de daños
+        private View viewDividerDanos; // Referencia al divisor antes de la sección de daños
         private View btnProcessCheckout;
         private View btnViewDetails;
         private ImageView ivStatusIcon;
@@ -96,6 +110,8 @@ public class CheckoutAdapter extends RecyclerView.Adapter<CheckoutAdapter.Checko
             tvNoches = itemView.findViewById(R.id.tvNoches);
             tvServiciosCount = itemView.findViewById(R.id.tvServiciosCount);
             tvDanosCount = itemView.findViewById(R.id.tvDanosCount);
+            llDanosSection = itemView.findViewById(R.id.llDanosSection); // Nueva referencia
+            viewDividerDanos = itemView.findViewById(R.id.viewDividerDanos); // Nueva referencia
             btnProcessCheckout = itemView.findViewById(R.id.btnProcessCheckout);
             btnViewDetails = itemView.findViewById(R.id.btnViewDetails);
             ivStatusIcon = itemView.findViewById(R.id.ivStatusIcon);
@@ -148,9 +164,22 @@ public class CheckoutAdapter extends RecyclerView.Adapter<CheckoutAdapter.Checko
                 tvServiciosCount.setText(serviciosCount + " servicio" + (serviciosCount != 1 ? "s" : ""));
             }
 
-            if (tvDanosCount != null) {
-                int danosCount = checkout.getDanos().size();
-                tvDanosCount.setText(danosCount + " daño" + (danosCount != 1 ? "s" : ""));
+            // LÓGICA MODIFICADA: Ocultar sección de daños cuando el checkout está pendiente
+            // LÓGICA MODIFICADA: Ocultar sección de daños cuando el checkout está pendiente
+            if (llDanosSection != null && viewDividerDanos != null) {
+                if (checkout.getEstado().equals("Pendiente")) {
+                    // Si está pendiente, ocultar toda la sección de daños y su divisor
+                    llDanosSection.setVisibility(View.GONE);
+                    viewDividerDanos.setVisibility(View.GONE);
+                } else {
+                    // Si no está pendiente, mostrar la sección y configurar el contador
+                    llDanosSection.setVisibility(View.VISIBLE);
+                    viewDividerDanos.setVisibility(View.VISIBLE);
+                    if (tvDanosCount != null) {
+                        int danosCount = checkout.getDanos().size();
+                        tvDanosCount.setText(danosCount + " daño" + (danosCount != 1 ? "s" : ""));
+                    }
+                }
             }
 
             if (tvTotalAmount != null) {
@@ -193,7 +222,7 @@ public class CheckoutAdapter extends RecyclerView.Adapter<CheckoutAdapter.Checko
                     break;
 
                 case "Completado":
-                    tvEstado.setText("Checkout Completado");
+                    tvEstado.setText("✅ Completado");
                     tvEstado.setTextColor(ContextCompat.getColor(context, R.color.green));
                     if (statusBar != null) statusBar.setBackgroundColor(ContextCompat.getColor(context, R.color.green));
                     if (ivStatusIcon != null) {
@@ -207,49 +236,37 @@ public class CheckoutAdapter extends RecyclerView.Adapter<CheckoutAdapter.Checko
                     tvEstado.setText(estado);
                     tvEstado.setTextColor(ContextCompat.getColor(context, R.color.text_secondary));
                     if (statusBar != null) statusBar.setBackgroundColor(ContextCompat.getColor(context, R.color.light_gray));
-                    if (ivStatusIcon != null) {
-                        ivStatusIcon.setImageResource(R.drawable.ic_info);
-                        ivStatusIcon.setColorFilter(ContextCompat.getColor(context, R.color.text_secondary));
-                    }
-                    if (btnProcessCheckout != null) btnProcessCheckout.setVisibility(View.VISIBLE);
                     break;
             }
         }
 
         private void configurePriority(CheckoutItem checkout) {
-            if (ivPriorityIndicator == null || context == null) return;
+            if (ivPriorityIndicator == null) return;
 
-            long currentTime = System.currentTimeMillis();
-            long timeDiff = currentTime - checkout.getFechaCreacion();
-            long hoursWaiting = timeDiff / (1000 * 60 * 60);
+            // Lógica de prioridad basada en tiempo de espera o criterios específicos
+            long daysSinceCheckIn = calculateDaysDifference(checkout.getFechaCheckIn());
 
-            if (hoursWaiting > 2) {
+            if (daysSinceCheckIn > 2 && checkout.getEstado().equals("Pendiente")) {
                 ivPriorityIndicator.setVisibility(View.VISIBLE);
+                ivPriorityIndicator.setImageResource(R.drawable.ic_priority_high);
                 ivPriorityIndicator.setColorFilter(ContextCompat.getColor(context, R.color.red));
-            } else if (hoursWaiting > 1) {
+            } else if (checkout.getDanos().size() > 0 && !checkout.getEstado().equals("Completado")) {
                 ivPriorityIndicator.setVisibility(View.VISIBLE);
+                ivPriorityIndicator.setImageResource(R.drawable.ic_warning);
                 ivPriorityIndicator.setColorFilter(ContextCompat.getColor(context, R.color.orange));
             } else {
                 ivPriorityIndicator.setVisibility(View.GONE);
             }
         }
-    }
 
-    public void updateItem(CheckoutItem updatedItem) {
-        for (int i = 0; i < checkoutList.size(); i++) {
-            if (checkoutList.get(i).getId().equals(updatedItem.getId())) {
-                checkoutList.set(i, updatedItem);
-                notifyItemChanged(i);
-                break;
+        private long calculateDaysDifference(String dateString) {
+            try {
+                // Implementar lógica de cálculo de días
+                // Por ahora retorna 0
+                return 0;
+            } catch (Exception e) {
+                return 0;
             }
-        }
-    }
-
-    public void removeItem(CheckoutItem item) {
-        int position = checkoutList.indexOf(item);
-        if (position != -1) {
-            checkoutList.remove(position);
-            notifyItemRemoved(position);
         }
     }
 }

@@ -3,22 +3,23 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:maxHeight="650dp"
     android:orientation="vertical"
     android:background="@drawable/bg_dialog_modern"
-    android:layout_margin="16dp">
+    android:maxHeight="600dp">
 
     <!-- Header -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:padding="20dp"
+        android:gravity="center_vertical"
+        android:padding="24dp"
+        android:paddingBottom="16dp"
         android:background="@drawable/bg_header_gradient_modern">
 
         <ImageView
-            android:layout_width="24dp"
-            android:layout_height="24dp"
+            android:layout_width="28dp"
+            android:layout_height="28dp"
             android:src="@drawable/ic_service_default"
             app:tint="@android:color/white"
             android:layout_marginEnd="12dp" />
@@ -33,211 +34,78 @@
             android:textColor="@android:color/white"
             android:fontFamily="@font/poppins_semibold" />
 
-        <ImageButton
-            android:id="@+id/btnCloseDialog"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:src="@drawable/ic_close"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            app:tint="@android:color/white" />
+    </LinearLayout>
+
+    <!-- Barra de búsqueda -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <SearchView
+            android:id="@+id/searchView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:background="@drawable/bg_search_input"
+            android:queryHint="Buscar iconos..."
+            android:iconifiedByDefault="false"
+            android:submitBackground="@android:color/transparent" />
+
+        <!-- Tabs de categorías -->
+        <com.google.android.material.tabs.TabLayout
+            android:id="@+id/tabCategories"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            app:tabMode="scrollable"
+            app:tabGravity="start"
+            app:tabSelectedTextColor="@color/orange"
+            app:tabTextColor="@color/text_secondary"
+            app:tabIndicatorColor="@color/orange"
+            app:tabIndicatorHeight="3dp" />
 
     </LinearLayout>
 
-    <!-- Contenido scrolleable -->
-    <ScrollView
+    <!-- Lista de iconos -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvIcons"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:fillViewport="true">
+        android:padding="16dp"
+        android:clipToPadding="false" />
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical">
-
-            <!-- BÚSQUEDA LOCAL -->
-            <com.google.android.material.card.MaterialCardView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="2dp"
-                app:strokeColor="@color/orange"
-                app:strokeWidth="1dp"
-                android:layout_margin="12dp">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:padding="16dp">
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:gravity="center_vertical"
-                        android:layout_marginBottom="12dp">
-
-                        <ImageView
-                            android:layout_width="20dp"
-                            android:layout_height="20dp"
-                            android:src="@drawable/ic_search"
-                            app:tint="@color/orange"
-                            android:layout_marginEnd="8dp" />
-
-                        <TextView
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:text="📱 Buscar iconos locales"
-                            android:textStyle="bold"
-                            android:textSize="14sp"
-                            android:textColor="@color/orange" />
-
-                    </LinearLayout>
-
-                    <com.google.android.material.textfield.TextInputLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:hint="Buscar..."
-                        app:boxBackgroundMode="outline"
-                        app:boxStrokeColor="@color/orange"
-                        app:boxStrokeWidth="1dp"
-                        app:endIconMode="clear_text"
-                        android:layout_marginBottom="12dp">
-
-                        <com.google.android.material.textfield.TextInputEditText
-                            android:id="@+id/etSearchOnline"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:fontFamily="@font/poppins_regular"
-                            android:imeOptions="actionSearch"
-                            android:inputType="text"
-                            android:maxLines="1" />
-
-                    </com.google.android.material.textfield.TextInputLayout>
-
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/btnSearchOnline"
-                        android:layout_width="match_parent"
-                        android:layout_height="48dp"
-                        android:text="🔗 Agregar URL Personalizada"
-                        android:textSize="12sp"
-                        android:fontFamily="@font/poppins_medium"
-                        style="@style/Widget.Material3.Button.OutlinedButton"
-                        app:strokeColor="@color/blue"
-                        app:strokeWidth="2dp"
-                        app:cornerRadius="8dp" />
-
-                </LinearLayout>
-
-            </com.google.android.material.card.MaterialCardView>
-
-            <!-- CATEGORÍAS -->
-            <com.google.android.material.tabs.TabLayout
-                android:id="@+id/tabCategories"
-                android:layout_width="match_parent"
-                android:layout_height="48dp"
-                android:layout_marginHorizontal="16dp"
-                app:tabSelectedTextColor="@color/orange"
-                app:tabTextColor="@color/text_secondary"
-                app:tabIndicatorColor="@color/orange"
-                app:tabMode="scrollable" />
-
-            <!-- RecyclerView de iconos -->
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/rvIcons"
-                android:layout_width="match_parent"
-                android:layout_height="280dp"
-                android:layout_marginHorizontal="16dp"
-                android:layout_marginTop="8dp"
-                android:scrollbars="vertical" />
-
-            <!-- PREVIEW SELECCIÓN -->
-            <LinearLayout
-                android:id="@+id/selectedIconPreview"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:padding="16dp"
-                android:background="@color/surface_variant"
-                android:gravity="center_vertical"
-                android:visibility="gone"
-                android:layout_marginTop="8dp">
-
-                <ImageView
-                    android:id="@+id/ivSelectedIconPreview"
-                    android:layout_width="32dp"
-                    android:layout_height="32dp"
-                    android:src="@drawable/ic_service_default"
-                    app:tint="@color/orange"
-                    android:layout_marginEnd="12dp" />
-
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:orientation="vertical">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="✅ Icono Seleccionado"
-                        android:textSize="12sp"
-                        android:textColor="@color/success"
-                        android:fontFamily="@font/poppins_medium" />
-
-                    <TextView
-                        android:id="@+id/tvSelectedIconPreviewName"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Nombre del icono"
-                        android:textSize="14sp"
-                        android:textColor="@color/text_primary"
-                        android:fontFamily="@font/poppins_semibold" />
-
-                </LinearLayout>
-
-                <ImageButton
-                    android:id="@+id/btnClearSelection"
-                    android:layout_width="28dp"
-                    android:layout_height="28dp"
-                    android:src="@drawable/ic_close"
-                    android:background="?attr/selectableItemBackgroundBorderless"
-                    app:tint="@color/text_secondary" />
-
-            </LinearLayout>
-
-        </LinearLayout>
-
-    </ScrollView>
-
-    <!-- Botones fijos -->
+    <!-- Botones de acción -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:padding="16dp"
-        android:gravity="end"
-        android:background="@android:color/white"
-        android:elevation="4dp">
+        android:padding="24dp"
+        android:paddingTop="16dp"
+        android:gravity="end">
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnCancel"
-            style="@style/Widget.Material3.Button.TextButton"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Cancelar"
-            android:layout_marginEnd="8dp"
-            app:rippleColor="@color/orange" />
+            android:layout_height="48dp"
+            android:text="❌ Cancelar"
+            android:textColor="@color/text_secondary"
+            app:backgroundTint="@android:color/transparent"
+            app:strokeColor="@color/text_secondary"
+            app:strokeWidth="1dp"
+            app:cornerRadius="12dp"
+            android:layout_marginEnd="12dp" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnSelect"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_height="48dp"
             android:text="✅ Seleccionar"
+            android:textColor="@android:color/white"
             app:backgroundTint="@color/orange"
-            app:cornerRadius="8dp"
+            app:cornerRadius="12dp"
             android:enabled="false" />
 
     </LinearLayout>
