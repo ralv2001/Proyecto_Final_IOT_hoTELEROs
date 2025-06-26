@@ -25,6 +25,7 @@ import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.snackbar.Snackbar;
+import android.os.Handler;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -269,7 +270,10 @@ public class AddHotelAdminFragment extends Fragment {
                         " ha sido creado exitosamente y guardado en Firebase.")
                 .setPositiveButton("Continuar", (dialog, which) -> {
                     if (getActivity() instanceof SuperAdminActivity) {
-                        ((SuperAdminActivity) getActivity()).navigateBackToDashboard();
+                        // 🔥 AGREGAR DELAY PARA SINCRONIZACIÓN
+                        new Handler().postDelayed(() -> {
+                            ((SuperAdminActivity) getActivity()).navigateBackToDashboardWithRefresh();
+                        }, 1500); // 1.5 segundos de delay
                     }
                 })
                 .setIcon(R.drawable.ic_check)
@@ -280,7 +284,6 @@ public class AddHotelAdminFragment extends Fragment {
         sendLocalNotification("Nuevo Admin de Hotel",
                 "Se ha registrado " + fullName);
     }
-
     private void showErrorMessage(String error) {
         new MaterialAlertDialogBuilder(requireContext())
                 .setTitle("Error")

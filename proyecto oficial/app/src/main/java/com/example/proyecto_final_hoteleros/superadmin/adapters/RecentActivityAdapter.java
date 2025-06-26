@@ -64,6 +64,35 @@ public class RecentActivityAdapter extends RecyclerView.Adapter<RecentActivityAd
             tvTitle.setText(activity.getTitle());
             tvDescription.setText(activity.getDescription());
             tvTime.setText(activity.getTime());
+
+            // ⚡ ANIMACIÓN DE ENTRADA SUAVE
+            int position = getAdapterPosition();
+            long delay = (position + 10) * 60L; // Delay después de botones
+
+            itemView.setAlpha(0f);
+            itemView.setTranslationX(-50f);
+
+            itemView.animate()
+                    .alpha(1.0f)
+                    .translationX(0f)
+                    .setDuration(300)
+                    .setStartDelay(delay)
+                    .setInterpolator(new android.view.animation.DecelerateInterpolator())
+                    .start();
+
+            // ⚡ EFECTO HOVER SUTIL
+            itemView.setOnTouchListener((v, event) -> {
+                switch (event.getAction()) {
+                    case android.view.MotionEvent.ACTION_DOWN:
+                        v.animate().alpha(0.7f).setDuration(100).start();
+                        break;
+                    case android.view.MotionEvent.ACTION_UP:
+                    case android.view.MotionEvent.ACTION_CANCEL:
+                        v.animate().alpha(1.0f).setDuration(100).start();
+                        break;
+                }
+                return false;
+            });
         }
     }
 }
