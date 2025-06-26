@@ -188,6 +188,54 @@ public class FirebaseManager {
                 });
     }
 
+    // ========== NUEVO MÉTODO: BUSCAR USUARIO EN CUALQUIER COLECCIÓN ==========
+    public void getUserDataFromAnyCollection(String userId, UserCallback callback) {
+        Log.d(TAG, "Buscando usuario en todas las colecciones: " + userId);
+
+        // 1. Primero buscar en la colección 'users' (usuarios activos)
+        firestore.collection(USERS_COLLECTION)
+                .document(userId)
+                .get()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful() && task.getResult() != null && task.getResult().exists()) {
+                        Log.d(TAG, "✅ Usuario encontrado en colección 'users'");
+                        // Usuario encontrado en 'users'
+                        UserModel user = UserModel.fromMap(task.getResult().getData());
+                        user.setUserId(userId);
+                        callback.onUserFound(user);
+                    } else {
+                        Log.d(TAG, "Usuario no encontrado en 'users', buscando en 'pending_drivers'...");
+
+                        // 2. Si no está en 'users', buscar en 'pending_drivers'
+                        firestore.collection(PENDING_DRIVERS_COLLECTION)
+                                .document(userId)
+                                .get()
+                                .addOnCompleteListener(pendingTask -> {
+                                    if (pendingTask.isSuccessful() && pendingTask.getResult() != null && pendingTask.getResult().exists()) {
+                                        Log.d(TAG, "✅ Usuario encontrado en colección 'pending_drivers'");
+                                        // Usuario encontrado en 'pending_drivers'
+                                        UserModel user = UserModel.fromMap(pendingTask.getResult().getData());
+                                        user.setUserId(userId);
+                                        // Los pending drivers tienen isActive = false por defecto
+                                        user.setActive(false);
+                                        callback.onUserFound(user);
+                                    } else {
+                                        Log.d(TAG, "❌ Usuario no encontrado en ninguna colección");
+                                        callback.onUserNotFound();
+                                    }
+                                })
+                                .addOnFailureListener(e -> {
+                                    Log.e(TAG, "❌ Error buscando en pending_drivers: " + e.getMessage());
+                                    callback.onError(e.getMessage());
+                                });
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "❌ Error buscando en users: " + e.getMessage());
+                    callback.onError(e.getMessage());
+                });
+    }
+
     // ========== EMAIL VERIFICATION ==========
 
     public void sendEmailVerification(FirebaseUser user, DataCallback callback) {
