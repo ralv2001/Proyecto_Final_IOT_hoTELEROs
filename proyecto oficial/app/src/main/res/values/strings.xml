@@ -68,4 +68,7 @@
     <string name="back_button_desc" />
     <string name="google_maps_key">AIzaSyBdghOu6DZktjZcg0_PJzffH72NC-nR0ok</string>
 
+    <!-- Google Sign-In -->
+    <string name="default_web_client_id">366577529035-drve6pgt7ap8kgs757ek48qf4ud49093.apps.googleusercontent.com</string>
+
 </resources>

@@ -24,14 +24,22 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.proyecto_final_hoteleros.MainActivity;
 import com.example.proyecto_final_hoteleros.utils.FirebaseManager;
 import com.example.proyecto_final_hoteleros.models.UserModel;
+
+import android.app.Activity;
+import com.example.proyecto_final_hoteleros.utils.GoogleSignInHelper;
+import com.google.firebase.auth.FirebaseUser;
 
 import com.example.proyecto_final_hoteleros.AuthActivity;
 import com.example.proyecto_final_hoteleros.R;
 
 import java.util.Arrays;
 import java.util.List;
+
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 
 public class LoginFragment extends Fragment {
 
@@ -52,8 +60,12 @@ public class LoginFragment extends Fragment {
 
     private boolean isPasswordVisible = false;
 
+    // ========== NUEVAS VARIABLES PARA GOOGLE SIGN-IN ==========
+    private GoogleSignInHelper googleSignInHelper;
+
     private View passwordLayoutContainer;
     private TextView tvGeneralError;
+    private ActivityResultLauncher<Intent> googleSignInLauncher;
 
     public static LoginFragment newInstance() {
         return new LoginFragment();
@@ -73,6 +85,26 @@ public class LoginFragment extends Fragment {
         btnFacebookLogin = view.findViewById(R.id.btnFacebookLogin);
         btnGoogleLogin = view.findViewById(R.id.btnGoogleLogin);
         tvRegisterPrompt = view.findViewById(R.id.tvRegisterPrompt);
+
+        // ========== INICIALIZAR GOOGLE SIGN-IN ==========
+        googleSignInHelper = new GoogleSignInHelper(getActivity());
+
+        // ========== CONFIGURAR ACTIVITY RESULT LAUNCHER ==========
+        googleSignInLauncher = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                result -> {
+                    Log.d(TAG, "=== ACTIVITY RESULT LAUNCHER ===");
+                    Log.d(TAG, "Result Code: " + result.getResultCode());
+                    Log.d(TAG, "Data: " + (result.getData() != null ? "presente" : "null"));
+
+                    if (result.getData() != null) {
+                        googleSignInHelper.handleSignInResult(result.getData());
+                    } else {
+                        Log.e(TAG, "No se recibieron datos del Google Sign-In");
+                        resetGoogleLoginButton();
+                    }
+                }
+        );
 
         passwordLayoutContainer = view.findViewById(R.id.passwordLayout);
         tvGeneralError = view.findViewById(R.id.tvGeneralError);
@@ -162,8 +194,7 @@ public class LoginFragment extends Fragment {
         btnGoogleLogin.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Toast.makeText(getContext(), "Iniciar sesión con Google", Toast.LENGTH_SHORT).show();
-                // Implementar inicio de sesión con Google
+                initiateGoogleSignIn();
             }
         });
 
@@ -451,6 +482,196 @@ public class LoginFragment extends Fragment {
         layoutGeneralError.setVisibility(View.GONE);
 
         Log.d(TAG, "Errores de login limpiados");
+    }
+
+
+    private void initiateGoogleSignIn() {
+        Log.d(TAG, "Iniciando Google Sign-In");
+
+        // Deshabilitar botón mientras se procesa
+        btnGoogleLogin.setEnabled(false);
+        btnGoogleLogin.setText("Conectando...");
+        btnGoogleLogin.setAlpha(0.6f);
+
+        googleSignInHelper.signIn(new GoogleSignInHelper.GoogleSignInCallback() {
+            @Override
+            public void onSignInSuccess(FirebaseUser user) {
+                Log.d(TAG, "✅ Google Sign-In exitoso: " + user.getEmail());
+                handleGoogleSignInSuccess(user);
+            }
+
+            @Override
+            public void onSignInFailure(String error) {
+                Log.e(TAG, "❌ Error en Google Sign-In: " + error);
+                if (getActivity() != null) {
+                    getActivity().runOnUiThread(() -> {
+                        Toast.makeText(getContext(), error, Toast.LENGTH_LONG).show();
+                        resetGoogleLoginButton();
+                    });
+                }
+            }
+
+            @Override
+            public void onSignInCanceled() {
+                Log.d(TAG, "Google Sign-In cancelado por el usuario");
+                if (getActivity() != null) {
+                    getActivity().runOnUiThread(() -> {
+                        resetGoogleLoginButton();
+                    });
+                }
+            }
+        }, googleSignInLauncher);  // ← Aquí agregamos el launcher
+    }
+
+    private void handleGoogleSignInSuccess(FirebaseUser firebaseUser) {
+        if (getActivity() != null) {
+            getActivity().runOnUiThread(() -> {
+                Log.d(TAG, "Procesando usuario de Google: " + firebaseUser.getEmail());
+
+                // Buscar si el usuario ya existe en Firestore
+                FirebaseManager firebaseManager = FirebaseManager.getInstance();
+                firebaseManager.getUserDataFromAnyCollection(firebaseUser.getUid(), new FirebaseManager.UserCallback() {
+                    @Override
+                    public void onUserFound(UserModel user) {
+                        if (getActivity() != null) {
+                            getActivity().runOnUiThread(() -> {
+                                Log.d(TAG, "✅ Usuario encontrado en Firestore: " + user.getFullName());
+
+                                // Verificar el estado del usuario
+                                String userType = user.getUserType();
+                                boolean isActive = user.isActive(); // Usar el método correcto
+
+                                if ("superadmin".equals(userType)) {
+                                    Toast.makeText(getContext(),
+                                            "¡Bienvenido Superadmin " + user.getNombres() + "!",
+                                            Toast.LENGTH_SHORT).show();
+
+                                    // Navegar a SuperAdminActivity
+                                    Intent intent = new Intent(getActivity(), com.example.proyecto_final_hoteleros.superadmin.activity.SuperAdminActivity.class);
+                                    intent.putExtra("userId", firebaseUser.getUid());
+                                    intent.putExtra("userEmail", user.getEmail());
+                                    intent.putExtra("userName", user.getFullName());
+                                    intent.putExtra("userType", user.getUserType());
+                                    startActivity(intent);
+                                    getActivity().finish();
+
+                                } else if ("client".equals(userType)) {
+                                    // Verificar si el cliente está activo
+                                    if (isActive) {
+                                        Toast.makeText(getContext(),
+                                                "¡Bienvenido " + user.getNombres() + "!",
+                                                Toast.LENGTH_SHORT).show();
+                                        // Navegar a HomeActivity de cliente
+                                        Intent intent = new Intent(getActivity(), com.example.proyecto_final_hoteleros.client.ui.activity.HomeActivity.class);
+                                        intent.putExtra("userId", firebaseUser.getUid());
+                                        intent.putExtra("userEmail", user.getEmail());
+                                        intent.putExtra("userName", user.getFullName());
+                                        intent.putExtra("userType", user.getUserType());
+                                        startActivity(intent);
+                                        getActivity().finish();
+                                    } else {
+                                        Toast.makeText(getContext(),
+                                                "Tu cuenta ha sido desactivada. Contacta al administrador para más información.",
+                                                Toast.LENGTH_LONG).show();
+                                        googleSignInHelper.signOut();
+                                        resetGoogleLoginButton();
+                                    }
+
+                                } else if ("driver".equals(userType)) {
+                                    // Para taxistas, verificar si está activo
+                                    if (isActive) {
+                                        Toast.makeText(getContext(),
+                                                "¡Bienvenido conductor " + user.getNombres() + "!",
+                                                Toast.LENGTH_SHORT).show();
+                                        // Navegar a DriverActivity
+                                        Intent intent = new Intent(getActivity(), com.example.proyecto_final_hoteleros.taxista.activity.DriverActivity.class);
+                                        intent.putExtra("userId", firebaseUser.getUid());
+                                        intent.putExtra("userEmail", user.getEmail());
+                                        intent.putExtra("userName", user.getFullName());
+                                        intent.putExtra("userType", user.getUserType());
+                                        startActivity(intent);
+                                        getActivity().finish();
+                                    } else {
+                                        Toast.makeText(getContext(),
+                                                "Tu cuenta de conductor está pendiente de aprobación o ha sido desactivada. Te notificaremos por email cuando sea aprobada.",
+                                                Toast.LENGTH_LONG).show();
+                                        googleSignInHelper.signOut();
+                                        resetGoogleLoginButton();
+                                    }
+
+                                } else if ("admin_hotel".equals(userType)) {
+                                    // Verificar si el administrador de hotel está activo
+                                    if (isActive) {
+                                        Toast.makeText(getContext(),
+                                                "¡Bienvenido " + user.getNombres() + "!",
+                                                Toast.LENGTH_SHORT).show();
+                                        // Navegar a AdminHotelActivity
+                                        Intent intent = new Intent(getActivity(), com.example.proyecto_final_hoteleros.adminhotel.activity.AdminHotelActivity.class);
+                                        intent.putExtra("userId", firebaseUser.getUid());
+                                        intent.putExtra("userEmail", user.getEmail());
+                                        intent.putExtra("userName", user.getFullName());
+                                        intent.putExtra("userType", user.getUserType());
+                                        startActivity(intent);
+                                        getActivity().finish();
+                                    } else {
+                                        Toast.makeText(getContext(),
+                                                "Tu cuenta ha sido desactivada. Contacta al administrador.",
+                                                Toast.LENGTH_LONG).show();
+                                        googleSignInHelper.signOut();
+                                        resetGoogleLoginButton();
+                                    }
+
+                                } else {
+                                    Toast.makeText(getContext(),
+                                            "Tipo de usuario no válido para inicio de sesión.",
+                                            Toast.LENGTH_SHORT).show();
+                                    googleSignInHelper.signOut();
+                                    resetGoogleLoginButton();
+                                }
+                            });
+                        }
+                    }
+
+                    @Override
+                    public void onUserNotFound() {
+                        if (getActivity() != null) {
+                            getActivity().runOnUiThread(() -> {
+                                Log.w(TAG, "Usuario no encontrado en Firestore. Debe registrarse primero.");
+                                Toast.makeText(getContext(),
+                                        "No tienes una cuenta registrada con este correo. Por favor regístrate primero usando el formulario de registro.",
+                                        Toast.LENGTH_LONG).show();
+
+                                // Cerrar sesión de Google/Firebase ya que no está registrado en nuestro sistema
+                                googleSignInHelper.signOut();
+                                resetGoogleLoginButton();
+                            });
+                        }
+                    }
+
+                    @Override
+                    public void onError(String error) {
+                        if (getActivity() != null) {
+                            getActivity().runOnUiThread(() -> {
+                                Log.e(TAG, "❌ Error obteniendo datos de usuario: " + error);
+                                Toast.makeText(getContext(),
+                                        "Error verificando tu cuenta. Por favor inténtalo de nuevo.",
+                                        Toast.LENGTH_LONG).show();
+                                googleSignInHelper.signOut();
+                                resetGoogleLoginButton();
+                            });
+                        }
+                    }
+                });
+            });
+        }
+    }
+
+    private void resetGoogleLoginButton() {
+        if (btnGoogleLogin != null) {
+            btnGoogleLogin.setEnabled(true);
+            btnGoogleLogin.setText("Continuar con Google");
+            btnGoogleLogin.setAlpha(1.0f);
+        }
     }
 
 }
