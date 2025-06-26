@@ -6,6 +6,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
+import android.os.Handler;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -25,7 +26,6 @@ import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.snackbar.Snackbar;
-import android.os.Handler;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -270,7 +270,7 @@ public class AddHotelAdminFragment extends Fragment {
                         " ha sido creado exitosamente y guardado en Firebase.")
                 .setPositiveButton("Continuar", (dialog, which) -> {
                     if (getActivity() instanceof SuperAdminActivity) {
-                        // 🔥 AGREGAR DELAY PARA SINCRONIZACIÓN
+                        // 🔥 SOLUCIÓN: Agregar delay para sincronización de Firebase
                         new Handler().postDelayed(() -> {
                             ((SuperAdminActivity) getActivity()).navigateBackToDashboardWithRefresh();
                         }, 1500); // 1.5 segundos de delay

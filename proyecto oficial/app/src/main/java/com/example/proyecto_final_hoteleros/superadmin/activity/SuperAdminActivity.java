@@ -332,6 +332,7 @@ public class SuperAdminActivity extends AppCompatActivity {
         DashboardFragment dashboardFragment = new DashboardFragment();
         loadFragment(dashboardFragment, "DASHBOARD", false);
     }
+
     public void navigateBackToDashboardWithRefresh() {
         Log.d(TAG, "Navegando de vuelta al Dashboard con refresh forzado");
 
