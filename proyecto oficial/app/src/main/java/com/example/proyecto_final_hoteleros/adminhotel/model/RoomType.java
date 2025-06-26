@@ -9,15 +9,17 @@ public class RoomType {
     private double pricePerNight;
     private List<String> includedServices;
     private int availableRooms;
+    private int capacity; // ✅ NUEVO CAMPO
 
     public RoomType(String name, String description, double area, double pricePerNight,
-                    List<String> includedServices, int availableRooms) {
+                    List<String> includedServices, int availableRooms, int capacity) {
         this.name = name;
         this.description = description;
         this.area = area;
         this.pricePerNight = pricePerNight;
         this.includedServices = includedServices;
         this.availableRooms = availableRooms;
+        this.capacity = capacity; // ✅ NUEVO
     }
 
     // Getters y Setters
@@ -38,4 +40,8 @@ public class RoomType {
 
     public int getAvailableRooms() { return availableRooms; }
     public void setAvailableRooms(int availableRooms) { this.availableRooms = availableRooms; }
+
+    // ✅ NUEVO getter/setter para capacidad
+    public int getCapacity() { return capacity; }
+    public void setCapacity(int capacity) { this.capacity = capacity; }
 }

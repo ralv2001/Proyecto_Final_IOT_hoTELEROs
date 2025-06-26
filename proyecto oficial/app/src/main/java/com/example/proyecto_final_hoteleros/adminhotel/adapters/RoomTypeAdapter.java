@@ -8,6 +8,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.proyecto_final_hoteleros.R;
@@ -56,34 +57,39 @@ public class RoomTypeAdapter extends RecyclerView.Adapter<RoomTypeAdapter.RoomVi
 
     class RoomViewHolder extends RecyclerView.ViewHolder {
         private TextView tvRoomName;
-        private TextView tvRoomDescription;
         private TextView tvRoomArea;
         private TextView tvRoomPrice;
+        private TextView tvRoomCapacity; // ✅ NUEVO
         private TextView tvAvailableRooms;
-        private TextView tvServicesCount;
         private ImageView ivEdit;
         private ImageView ivDelete;
+        private RecyclerView rvServices;
 
-        public RoomViewHolder(@NonNull View itemView) {
+        RoomViewHolder(@NonNull View itemView) {
             super(itemView);
             tvRoomName = itemView.findViewById(R.id.tvRoomName);
-            tvRoomDescription = itemView.findViewById(R.id.tvRoomDescription);
             tvRoomArea = itemView.findViewById(R.id.tvRoomArea);
             tvRoomPrice = itemView.findViewById(R.id.tvRoomPrice);
+            tvRoomCapacity = itemView.findViewById(R.id.tvRoomCapacity); // ✅ NUEVO
             tvAvailableRooms = itemView.findViewById(R.id.tvAvailableRooms);
-            tvServicesCount = itemView.findViewById(R.id.tvServicesCount);
             ivEdit = itemView.findViewById(R.id.ivEdit);
             ivDelete = itemView.findViewById(R.id.ivDelete);
+            rvServices = itemView.findViewById(R.id.rvServices);
         }
 
-        public void bind(RoomType roomType, int position) {
+        void bind(RoomType roomType, int position) {
             tvRoomName.setText(roomType.getName());
-            tvRoomDescription.setText(roomType.getDescription());
             tvRoomArea.setText(String.format("%.0f m²", roomType.getArea()));
-            tvRoomPrice.setText(currencyFormat.format(roomType.getPricePerNight()) + "/noche");
+            tvRoomPrice.setText(String.format("S/ %.0f", roomType.getPricePerNight()));
+            tvRoomCapacity.setText(String.valueOf(roomType.getCapacity())); // ✅ NUEVO
             tvAvailableRooms.setText(roomType.getAvailableRooms() + " disponibles");
-            tvServicesCount.setText(roomType.getIncludedServices().size() + " servicios incluidos");
 
+            // Setup services RecyclerView
+            ServiceChipAdapter servicesAdapter = new ServiceChipAdapter(roomType.getIncludedServices());
+            rvServices.setLayoutManager(new LinearLayoutManager(itemView.getContext(), LinearLayoutManager.HORIZONTAL, false));
+            rvServices.setAdapter(servicesAdapter);
+
+            // Setup click listeners
             ivEdit.setOnClickListener(v -> {
                 if (editListener != null) {
                     editListener.onEditRoom(roomType, position);

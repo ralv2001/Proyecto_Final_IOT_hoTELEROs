@@ -4,126 +4,203 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_margin="8dp"
+    android:layout_marginHorizontal="4dp"
+    android:layout_marginVertical="6dp"
     app:cardCornerRadius="12dp"
-    app:cardElevation="4dp"
-    app:cardBackgroundColor="@android:color/white">
+    app:cardElevation="3dp"
+    app:strokeWidth="1dp"
+    android:clickable="true"
+    android:focusable="true"
+    app:rippleColor="@color/orange_50">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:padding="16dp">
 
-        <!-- Indicador de tipo -->
-        <View
-            android:id="@+id/typeIndicator"
-            android:layout_width="4dp"
-            android:layout_height="0dp"
-            android:background="@color/green"
+        <!-- Icono del Servicio -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/cardServiceIcon"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            app:cardCornerRadius="24dp"
+            app:cardElevation="2dp"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent" />
+            app:layout_constraintTop_toTopOf="parent">
 
-        <!-- Icono del servicio -->
-        <ImageView
-            android:id="@+id/ivServiceIcon"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:src="@drawable/ic_wifi"
-            android:background="@drawable/bg_circle_orange_light"
-            android:padding="8dp"
-            app:tint="@color/orange"
-            app:layout_constraintStart_toEndOf="@id/typeIndicator"
-            app:layout_constraintTop_toTopOf="parent"
-            android:layout_marginStart="12dp" />
+            <ImageView
+                android:id="@+id/ivServiceIcon"
+                android:layout_width="28dp"
+                android:layout_height="28dp"
+                android:layout_gravity="center"
+                android:src="@drawable/ic_service_default"
+                app:tint="@color/orange"
+                android:scaleType="centerInside" />
 
-        <!-- Nombre del servicio -->
-        <TextView
-            android:id="@+id/tvServiceName"
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Información Principal -->
+        <LinearLayout
+            android:id="@+id/layoutServiceInfo"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:text="WiFi Gratuito"
-            android:textSize="16sp"
-            android:textStyle="bold"
-            android:textColor="@color/text_primary"
-            app:layout_constraintStart_toEndOf="@id/ivServiceIcon"
-            app:layout_constraintTop_toTopOf="@id/ivServiceIcon"
-            app:layout_constraintEnd_toStartOf="@id/ivEdit"
-            android:layout_marginStart="12dp"
-            android:layout_marginEnd="8dp" />
+            android:orientation="vertical"
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="8dp"
+            app:layout_constraintStart_toEndOf="@id/cardServiceIcon"
+            app:layout_constraintEnd_toStartOf="@id/layoutServiceActions"
+            app:layout_constraintTop_toTopOf="@id/cardServiceIcon">
 
-        <!-- Descripción -->
-        <TextView
-            android:id="@+id/tvServiceDescription"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:text="Internet de alta velocidad"
-            android:textSize="14sp"
-            android:textColor="@color/text_secondary"
-            android:maxLines="2"
-            android:ellipsize="end"
-            app:layout_constraintStart_toEndOf="@id/ivServiceIcon"
-            app:layout_constraintTop_toBottomOf="@id/tvServiceName"
-            app:layout_constraintEnd_toStartOf="@id/ivEdit"
-            android:layout_marginStart="12dp"
-            android:layout_marginTop="4dp"
-            android:layout_marginEnd="8dp" />
+            <!-- Nombre y Etiqueta -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="4dp">
 
-        <!-- Precio -->
-        <TextView
-            android:id="@+id/tvServicePrice"
+                <TextView
+                    android:id="@+id/tvServiceName"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Nombre del Servicio"
+                    android:textSize="15sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/text_primary"
+                    android:fontFamily="@font/poppins_semibold"
+                    android:maxLines="1"
+                    android:ellipsize="end" />
+
+                <!-- Etiqueta del Tipo de Servicio -->
+                <TextView
+                    android:id="@+id/tvServiceTypeLabel"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Incluido"
+                    android:textSize="10sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/green"
+                    android:background="@drawable/bg_chip_green"
+                    android:paddingHorizontal="6dp"
+                    android:paddingVertical="3dp"
+                    android:layout_marginStart="8dp" />
+
+            </LinearLayout>
+
+            <!-- Descripción -->
+            <TextView
+                android:id="@+id/tvServiceDescription"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Descripción del servicio"
+                android:textSize="12sp"
+                android:textColor="@color/text_secondary"
+                android:fontFamily="@font/inter_regular"
+                android:maxLines="2"
+                android:ellipsize="end"
+                android:layout_marginBottom="6dp" />
+
+            <!-- Precio / Información Adicional -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <TextView
+                    android:id="@+id/tvServicePrice"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Gratis"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/green"
+                    android:fontFamily="@font/poppins_semibold" />
+
+                <!-- Información condicional -->
+                <TextView
+                    android:id="@+id/tvConditionalInfo"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Activo desde S/ 500"
+                    android:textSize="10sp"
+                    android:textColor="@color/purple"
+                    android:textStyle="bold"
+                    android:background="@drawable/bg_chip_purple_light"
+                    android:paddingHorizontal="6dp"
+                    android:paddingVertical="2dp"
+                    android:visibility="gone" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+        <!-- Acciones -->
+        <LinearLayout
+            android:id="@+id/layoutServiceActions"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="S/ 25.00"
-            android:textSize="14sp"
-            android:textStyle="bold"
-            android:textColor="@color/green"
-            app:layout_constraintStart_toEndOf="@id/ivServiceIcon"
-            app:layout_constraintTop_toBottomOf="@id/tvServiceDescription"
-            android:layout_marginStart="12dp"
-            android:layout_marginTop="4dp" />
-
-        <!-- Tipo de servicio -->
-        <TextView
-            android:id="@+id/tvServiceType"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="INCLUIDO"
-            android:textSize="12sp"
-            android:textStyle="bold"
-            android:textColor="@android:color/white"
-            android:background="@drawable/bg_included_badge"
-            android:paddingHorizontal="8dp"
-            android:paddingVertical="4dp"
-            app:layout_constraintStart_toEndOf="@id/tvServicePrice"
-            app:layout_constraintTop_toTopOf="@id/tvServicePrice"
-            app:layout_constraintBottom_toBottomOf="@id/tvServicePrice"
-            android:layout_marginStart="8dp" />
-
-        <!-- Botón editar -->
-        <ImageView
-            android:id="@+id/ivEdit"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:src="@drawable/ic_edit"
-            android:background="@drawable/bg_circle_orange_light"
-            android:padding="8dp"
-            app:tint="@color/orange"
-            app:layout_constraintEnd_toStartOf="@id/ivDelete"
-            app:layout_constraintTop_toTopOf="parent"
-            android:layout_marginEnd="8dp" />
-
-        <!-- Botón eliminar -->
-        <ImageView
-            android:id="@+id/ivDelete"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:src="@drawable/ic_delete"
-            android:background="@drawable/circle_red"
-            android:padding="8dp"
-            app:tint="@android:color/white"
+            android:orientation="vertical"
+            android:gravity="center"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent">
+
+            <!-- Switch para Activar/Desactivar -->
+            <com.google.android.material.switchmaterial.SwitchMaterial
+                android:id="@+id/switchServiceActive"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:checked="true"
+                app:thumbTint="@color/white"
+                app:trackTint="@color/switch_track_color"
+                android:layout_marginBottom="8dp" />
+
+            <!-- Menú de opciones -->
+            <ImageView
+                android:id="@+id/ivServiceMenu"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@drawable/ic_more_vert"
+                app:tint="@color/text_secondary"
+                android:background="?android:attr/selectableItemBackgroundBorderless"
+                android:padding="4dp"
+                android:clickable="true"
+                android:focusable="true" />
+
+        </LinearLayout>
+
+        <!-- Indicador de Fotos -->
+        <LinearLayout
+            android:id="@+id/layoutPhotoIndicator"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:visibility="gone"
+            app:layout_constraintStart_toStartOf="@id/layoutServiceInfo"
+            app:layout_constraintTop_toBottomOf="@id/layoutServiceInfo"
+            app:layout_constraintBottom_toBottomOf="parent">
+
+            <ImageView
+                android:layout_width="12dp"
+                android:layout_height="12dp"
+                android:src="@drawable/ic_photo"
+                app:tint="@color/blue"
+                android:layout_marginEnd="4dp" />
+
+            <TextView
+                android:id="@+id/tvPhotoCount"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="3 fotos"
+                android:textSize="10sp"
+                android:textColor="@color/blue"
+                android:fontFamily="@font/inter_medium" />
+
+        </LinearLayout>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

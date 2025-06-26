@@ -1,4 +1,3 @@
-
 package com.example.proyecto_final_hoteleros.adminhotel.dialog;
 
 import android.app.Dialog;
@@ -7,16 +6,20 @@ import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.view.ViewGroup;
 import android.view.Window;
+import android.widget.ArrayAdapter;
+import android.widget.AutoCompleteTextView;
+import android.widget.Button;
+import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.appcompat.widget.AppCompatButton;
+import androidx.core.content.ContextCompat;
+import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.proyecto_final_hoteleros.R;
 import com.example.proyecto_final_hoteleros.adminhotel.adapters.ServiceSelectionAdapter;
 import com.example.proyecto_final_hoteleros.adminhotel.model.RoomType;
-import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
 
 import java.util.ArrayList;
@@ -29,23 +32,55 @@ public class AddRoomTypeDialog extends Dialog {
         void onRoomTypeAdded(RoomType roomType);
     }
 
-    private Context context;
-    private OnRoomTypeAddedListener listener;
-    private TextInputEditText etRoomName, etRoomDescription, etRoomArea, etRoomPrice, etAvailableRooms;
+    private AutoCompleteTextView spinnerRoomType;
+    private TextInputEditText etRoomArea, etRoomPrice, etAvailableRooms, etRoomCapacity; // ✅ AGREGADO etRoomCapacity
     private RecyclerView rvServices;
-    private AppCompatButton btnSave, btnCancel;
+    private Button btnSave, btnCancel;
+    private TextView tvSelectedCount;
+
+    private OnRoomTypeAddedListener listener;
     private List<String> selectedServices;
+    private List<String> basicServices;
+
+    // Lista predefinida de tipos de habitación
+    private final String[] roomTypesArray = {
+            "Habitación Individual",
+            "Habitación Doble",
+            "Habitación Twin",
+            "Habitación Triple",
+            "Habitación Cuádruple",
+            "Habitación Familiar",
+            "Habitación Standard",
+            "Habitación Superior",
+            "Habitación Deluxe",
+            "Habitación Premium",
+            "Junior Suite",
+            "Suite Ejecutiva",
+            "Suite Familiar",
+            "Suite Presidencial",
+            "Suite Penthouse",
+            "Habitación con Balcón",
+            "Habitación con Vista al Mar",
+            "Habitación con Vista a la Ciudad",
+            "Habitación con Vista al Jardín",
+            "Habitación Accesible",
+            "Habitación Económica",
+            "Habitación de Lujo",
+            "Villa",
+            "Bungalow",
+            "Cabaña"
+    };
 
     public AddRoomTypeDialog(Context context, OnRoomTypeAddedListener listener) {
         super(context);
-        this.context = context;
         this.listener = listener;
         this.selectedServices = new ArrayList<>();
+        this.basicServices = createBasicServices();
+
         setupDialog();
     }
 
     private void setupDialog() {
-        requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.admin_hotel_dialog_add_room_type);
 
         Window window = getWindow();
@@ -55,75 +90,187 @@ public class AddRoomTypeDialog extends Dialog {
         }
 
         initViews();
+        setupRoomTypeSpinner();
         setupServicesList();
         setupClickListeners();
     }
 
     private void initViews() {
-        etRoomName = findViewById(R.id.etRoomName);
-        etRoomDescription = findViewById(R.id.etRoomDescription);
+        spinnerRoomType = findViewById(R.id.spinnerRoomType);
         etRoomArea = findViewById(R.id.etRoomArea);
         etRoomPrice = findViewById(R.id.etRoomPrice);
         etAvailableRooms = findViewById(R.id.etAvailableRooms);
+        etRoomCapacity = findViewById(R.id.etRoomCapacity); // ✅ NUEVO
         rvServices = findViewById(R.id.rvServices);
-        btnSave = findViewById(R.id.btnSave);  // Ya no hace cast a MaterialButton
-        btnCancel = findViewById(R.id.btnCancel);  // Ya no hace cast a MaterialButton
+        btnSave = findViewById(R.id.btnSave);
+        btnCancel = findViewById(R.id.btnCancel);
+        tvSelectedCount = findViewById(R.id.tvSelectedCount);
+    }
+
+    private void setupRoomTypeSpinner() {
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(getContext(),
+                android.R.layout.simple_dropdown_item_1line, roomTypesArray);
+        spinnerRoomType.setAdapter(adapter);
     }
 
     private void setupServicesList() {
-        List<String> availableServices = Arrays.asList(
-                "WiFi Gratuito", "Aire Acondicionado", "TV Cable", "Teléfono",
-                "Minibar", "Caja Fuerte", "Balcón", "Sala de Estar",
-                "Escritorio", "Bañera de Hidromasaje", "Mayordomo Personal",
-                "Cocina Equipada", "Terraza Privada"
+        List<String> additionalServices = Arrays.asList(
+                "Minibar",
+                "Caja Fuerte",
+                "Balcón",
+                "Terraza",
+                "Vista al Mar",
+                "Vista a la Ciudad",
+                "Vista al Jardín",
+                "Sala de Estar",
+                "Escritorio",
+                "Bañera de Hidromasaje",
+                "Jacuzzi",
+                "Chimenea",
+                "Cocina Equipada",
+                "Kitchenette",
+                "Comedor",
+                "Sala de Reuniones",
+                "Mayordomo Personal",
+                "Servicio de Habitaciones 24h",
+                "Servicio de Lavandería",
+                "Plancha y Tabla de Planchar",
+                "Secador de Cabello",
+                "Artículos de Aseo Premium",
+                "Batas y Pantuflas",
+                "Almohadas Adicionales",
+                "Servicio de Despertador"
         );
 
-        // Agregar servicios básicos por defecto
-        selectedServices.addAll(Arrays.asList("WiFi Gratuito", "Aire Acondicionado", "TV Cable", "Teléfono"));
+        ServiceSelectionAdapter adapter = new ServiceSelectionAdapter(getContext(), additionalServices, selectedServices);
 
-        ServiceSelectionAdapter adapter = new ServiceSelectionAdapter(availableServices, selectedServices);
-        rvServices.setLayoutManager(new LinearLayoutManager(context));
+        // ✅ MÉTODO CORRECTO usando tu adapter existente
+        adapter.setOnSelectionChangedListener(this::updateSelectedCount);
+
+        rvServices.setLayoutManager(new LinearLayoutManager(getContext()));
         rvServices.setAdapter(adapter);
+
+        updateSelectedCount();
+    }
+
+    private List<String> createBasicServices() {
+        return Arrays.asList(
+                "WiFi Gratuito",
+                "Aire Acondicionado",
+                "TV Cable",
+                "Teléfono",
+                "Baño Privado"
+        );
+    }
+
+    private void updateSelectedCount() {
+        if (tvSelectedCount != null) {
+            int count = selectedServices.size();
+            String text = count + (count == 1 ? " seleccionado" : " seleccionados");
+            tvSelectedCount.setText(text);
+
+            if (count > 0) {
+                tvSelectedCount.setBackgroundResource(R.drawable.bg_count_badge_active);
+                tvSelectedCount.setTextColor(ContextCompat.getColor(getContext(), R.color.orange));
+            } else {
+                tvSelectedCount.setBackgroundResource(R.drawable.bg_count_badge);
+                tvSelectedCount.setTextColor(ContextCompat.getColor(getContext(), R.color.text_secondary));
+            }
+        }
     }
 
     private void setupClickListeners() {
-        btnSave.setOnClickListener(v -> saveRoomType());
         btnCancel.setOnClickListener(v -> dismiss());
+
+        btnSave.setOnClickListener(v -> {
+            if (validateInputs()) {
+                createRoomType();
+            }
+        });
     }
 
-    private void saveRoomType() {
-        String name = etRoomName.getText().toString().trim();
-        String description = etRoomDescription.getText().toString().trim();
-        String areaStr = etRoomArea.getText().toString().trim();
-        String priceStr = etRoomPrice.getText().toString().trim();
-        String roomsStr = etAvailableRooms.getText().toString().trim();
+    private boolean validateInputs() {
+        String roomTypeName = spinnerRoomType.getText().toString().trim();
+        String area = etRoomArea.getText().toString().trim();
+        String price = etRoomPrice.getText().toString().trim();
+        String available = etAvailableRooms.getText().toString().trim();
+        String capacity = etRoomCapacity.getText().toString().trim(); // ✅ NUEVO
 
-        if (name.isEmpty() || description.isEmpty() || areaStr.isEmpty() || priceStr.isEmpty() || roomsStr.isEmpty()) {
-            Toast.makeText(context, "Por favor completa todos los campos", Toast.LENGTH_SHORT).show();
-            return;
+        if (roomTypeName.isEmpty()) {
+            Toast.makeText(getContext(), "❌ Selecciona un tipo de habitación", Toast.LENGTH_SHORT).show();
+            return false;
+        }
+
+        if (area.isEmpty()) {
+            Toast.makeText(getContext(), "❌ Ingresa el área de la habitación", Toast.LENGTH_SHORT).show();
+            etRoomArea.requestFocus();
+            return false;
+        }
+
+        if (price.isEmpty()) {
+            Toast.makeText(getContext(), "❌ Ingresa el precio por noche", Toast.LENGTH_SHORT).show();
+            etRoomPrice.requestFocus();
+            return false;
+        }
+
+        if (available.isEmpty()) {
+            Toast.makeText(getContext(), "❌ Ingresa la cantidad disponible", Toast.LENGTH_SHORT).show();
+            etAvailableRooms.requestFocus();
+            return false;
+        }
+
+        // ✅ NUEVO: Validar capacidad
+        if (capacity.isEmpty()) {
+            Toast.makeText(getContext(), "❌ Ingresa la capacidad de personas", Toast.LENGTH_SHORT).show();
+            etRoomCapacity.requestFocus();
+            return false;
         }
 
         try {
-            double area = Double.parseDouble(areaStr);
-            double price = Double.parseDouble(priceStr);
-            int availableRooms = Integer.parseInt(roomsStr);
+            Double.parseDouble(area);
+            Double.parseDouble(price);
+            Integer.parseInt(available);
 
-            if (area <= 0 || price <= 0 || availableRooms <= 0) {
-                Toast.makeText(context, "Los valores deben ser mayores a 0", Toast.LENGTH_SHORT).show();
-                return;
+            // ✅ NUEVO: Validar capacidad
+            int capacityInt = Integer.parseInt(capacity);
+            if (capacityInt <= 0 || capacityInt > 10) {
+                Toast.makeText(getContext(), "❌ La capacidad debe ser entre 1 y 10 personas", Toast.LENGTH_SHORT).show();
+                return false;
             }
-
-            RoomType roomType = new RoomType(name, description, area, price, new ArrayList<>(selectedServices), availableRooms);
-
-            if (listener != null) {
-                listener.onRoomTypeAdded(roomType);
-            }
-
-            dismiss();
-
         } catch (NumberFormatException e) {
-            Toast.makeText(context, "Ingresa valores numéricos válidos", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getContext(), "❌ Verifica que los números sean válidos", Toast.LENGTH_SHORT).show();
+            return false;
         }
+
+        return true;
+    }
+
+    private void createRoomType() {
+        String roomTypeName = spinnerRoomType.getText().toString().trim();
+        double area = Double.parseDouble(etRoomArea.getText().toString().trim());
+        double price = Double.parseDouble(etRoomPrice.getText().toString().trim());
+        int available = Integer.parseInt(etAvailableRooms.getText().toString().trim());
+        int capacity = Integer.parseInt(etRoomCapacity.getText().toString().trim()); // ✅ NUEVO
+
+        // Combinar servicios básicos con los seleccionados
+        List<String> allServices = new ArrayList<>(basicServices);
+        allServices.addAll(selectedServices);
+
+        // ✅ ACTUALIZADO: Pasar capacidad al constructor
+        RoomType roomType = new RoomType(
+                roomTypeName,
+                "", // Sin descripción
+                area,
+                price,
+                allServices,
+                available,
+                capacity // ✅ NUEVO parámetro
+        );
+
+        if (listener != null) {
+            listener.onRoomTypeAdded(roomType);
+        }
+
+        dismiss();
     }
 }
-

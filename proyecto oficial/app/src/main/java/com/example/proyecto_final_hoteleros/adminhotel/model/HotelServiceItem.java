@@ -6,9 +6,10 @@ import java.util.List;
 public class HotelServiceItem {
 
     public enum ServiceType {
-        INCLUDED,  // Servicios incluidos (sin costo)
-        PAID,      // Servicios pagados
-        SPECIAL    // Servicio especial (taxi gratis)
+        BASIC,       // Servicios básicos creados desde el perfil del hotel
+        INCLUDED,    // Servicios incluidos creados desde gestión de servicios
+        PAID,        // Servicios pagados
+        CONDITIONAL  // Servicios condicionales (como taxi gratis por monto)
     }
 
     private String name;
@@ -18,6 +19,7 @@ public class HotelServiceItem {
     private ServiceType type;
     private List<Uri> photos;
     private boolean active;
+    private double conditionalAmount; // Para servicios condicionales
 
     public HotelServiceItem(String name, String description, double price, String iconKey,
                             ServiceType type, List<Uri> photos) {
@@ -28,6 +30,20 @@ public class HotelServiceItem {
         this.type = type;
         this.photos = photos;
         this.active = true;
+        this.conditionalAmount = 0.0;
+    }
+
+    // Constructor para servicios condicionales
+    public HotelServiceItem(String name, String description, double price, String iconKey,
+                            ServiceType type, List<Uri> photos, double conditionalAmount) {
+        this.name = name;
+        this.description = description;
+        this.price = price;
+        this.iconKey = iconKey;
+        this.type = type;
+        this.photos = photos;
+        this.active = true;
+        this.conditionalAmount = conditionalAmount;
     }
 
     // Getters y Setters
@@ -51,4 +67,29 @@ public class HotelServiceItem {
 
     public boolean isActive() { return active; }
     public void setActive(boolean active) { this.active = active; }
+
+    public double getConditionalAmount() { return conditionalAmount; }
+    public void setConditionalAmount(double conditionalAmount) { this.conditionalAmount = conditionalAmount; }
+
+    // Método para obtener la etiqueta del tipo de servicio
+    public String getTypeLabel() {
+        switch (type) {
+            case BASIC:
+                return "Incluido - Básico";
+            case INCLUDED:
+                return "Incluido";
+            case PAID:
+                return "Pagado";
+            case CONDITIONAL:
+                return "Condicional";
+            default:
+                return "Servicio";
+        }
+    }
+
+    // Método para verificar si es un servicio gratuito
+    public boolean isFree() {
+        return type == ServiceType.BASIC || type == ServiceType.INCLUDED ||
+                (type == ServiceType.CONDITIONAL && price == 0.0);
+    }
 }

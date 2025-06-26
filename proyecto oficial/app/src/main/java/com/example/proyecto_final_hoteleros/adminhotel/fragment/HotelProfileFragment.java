@@ -1,5 +1,6 @@
 package com.example.proyecto_final_hoteleros.adminhotel.fragment;
 
+import android.app.Activity;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
@@ -20,6 +21,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.proyecto_final_hoteleros.R;
 import com.example.proyecto_final_hoteleros.adminhotel.adapters.HotelPhotosAdapter;
 import com.example.proyecto_final_hoteleros.adminhotel.adapters.BasicServicesAdapter;
+import com.example.proyecto_final_hoteleros.adminhotel.dialog.BasicServiceDialog;
 import com.example.proyecto_final_hoteleros.adminhotel.model.HotelProfile;
 import com.example.proyecto_final_hoteleros.adminhotel.model.BasicService;
 import com.google.android.material.button.MaterialButton;
@@ -30,57 +32,93 @@ import java.util.List;
 
 public class HotelProfileFragment extends Fragment {
 
-    private TextInputEditText etHotelName, etHotelDescription, etHotelAddress, etHotelPhone;
+    private TextInputEditText etHotelName, etHotelAddress;
     private RecyclerView rvHotelPhotos, rvBasicServices;
     private MaterialButton btnSaveProfile, btnAddPhoto, btnAddBasicService;
     private ImageView ivBack;
+    private TextView tvPhotosStatus, tvPhotosCounter;
 
     private HotelPhotosAdapter photosAdapter;
     private BasicServicesAdapter servicesAdapter;
     private List<Uri> hotelPhotos;
     private List<BasicService> basicServices;
+    private ActivityResultLauncher<Intent> servicePhotoPickerLauncher; // NUEVA LÍNEA
 
     private ActivityResultLauncher<Intent> photoPickerLauncher;
+    private BasicServiceDialog currentBasicServiceDialog;
+
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.admin_hotel_fragment_profile_management, container, false);
 
         initViews(rootView);
-        setupPhotoLauncher();
+        initLaunchers();
         setupRecyclerViews();
-        loadHotelProfile();
         setupClickListeners();
+
+        // IMPORTANTE: Cargar datos después de que todo esté configurado
+        // y usar post() para asegurar que el layout esté completo
+        rootView.post(() -> {
+            loadHotelProfile();
+            forceRecyclerViewUpdate(); // Nueva función
+        });
 
         return rootView;
     }
+    // NUEVA FUNCIÓN: Forzar actualización del RecyclerView
+    private void forceRecyclerViewUpdate() {
+        if (servicesAdapter != null && rvBasicServices != null) {
+            // Forzar recálculo de dimensiones
+            servicesAdapter.notifyDataSetChanged();
 
+            // Asegurar que el RecyclerView recalcule su altura
+            rvBasicServices.post(() -> {
+                if (rvBasicServices.getLayoutManager() != null) {
+                    rvBasicServices.getLayoutManager().requestLayout();
+                }
+            });
+        }
+    }
     private void initViews(View rootView) {
-        ivBack = rootView.findViewById(R.id.ivBack);
         etHotelName = rootView.findViewById(R.id.etHotelName);
-        etHotelDescription = rootView.findViewById(R.id.etHotelDescription);
         etHotelAddress = rootView.findViewById(R.id.etHotelAddress);
-        etHotelPhone = rootView.findViewById(R.id.etHotelPhone);
-
         rvHotelPhotos = rootView.findViewById(R.id.rvHotelPhotos);
         rvBasicServices = rootView.findViewById(R.id.rvBasicServices);
-
         btnSaveProfile = rootView.findViewById(R.id.btnSaveProfile);
         btnAddPhoto = rootView.findViewById(R.id.btnAddPhoto);
         btnAddBasicService = rootView.findViewById(R.id.btnAddBasicService);
+        ivBack = rootView.findViewById(R.id.ivBack);
+        tvPhotosStatus = rootView.findViewById(R.id.tvPhotosStatus);
+        tvPhotosCounter = rootView.findViewById(R.id.tvPhotosCounter);
+
+        hotelPhotos = new ArrayList<>();
+        basicServices = new ArrayList<>();
     }
 
-    private void setupPhotoLauncher() {
+    private void initLaunchers() {
+        // Launcher para fotos del hotel
         photoPickerLauncher = registerForActivityResult(
                 new ActivityResultContracts.StartActivityForResult(),
                 result -> {
-                    if (result.getResultCode() == getActivity().RESULT_OK && result.getData() != null) {
-                        Uri photoUri = result.getData().getData();
-                        if (photoUri != null && hotelPhotos.size() < 8) {
-                            hotelPhotos.add(photoUri);
-                            photosAdapter.notifyDataSetChanged();
-                        } else if (hotelPhotos.size() >= 8) {
-                            Toast.makeText(getContext(), "Máximo 8 fotos permitidas", Toast.LENGTH_SHORT).show();
+                    if (result.getResultCode() == Activity.RESULT_OK && result.getData() != null) {
+                        Uri selectedImageUri = result.getData().getData();
+                        if (selectedImageUri != null) {
+                            addHotelPhoto(selectedImageUri);
+                        }
+                    }
+                }
+        );
+
+        // NUEVO: Launcher separado para fotos de servicios básicos
+        servicePhotoPickerLauncher = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                result -> {
+                    if (result.getResultCode() == Activity.RESULT_OK && result.getData() != null) {
+                        Uri selectedImageUri = result.getData().getData();
+                        if (selectedImageUri != null && currentBasicServiceDialog != null) {
+                            // Agregar foto al diálogo del servicio, NO al hotel
+                            currentBasicServiceDialog.addPhoto(selectedImageUri);
                         }
                     }
                 }
@@ -88,84 +126,169 @@ public class HotelProfileFragment extends Fragment {
     }
 
     private void setupRecyclerViews() {
-        // Photos RecyclerView
-        hotelPhotos = new ArrayList<>();
+        // RecyclerView para fotos del hotel
         photosAdapter = new HotelPhotosAdapter(hotelPhotos, this::removePhoto);
         rvHotelPhotos.setLayoutManager(new GridLayoutManager(getContext(), 2));
         rvHotelPhotos.setAdapter(photosAdapter);
 
-        // Basic Services RecyclerView
-        basicServices = new ArrayList<>();
+        // RecyclerView para servicios básicos - CONFIGURACIÓN MEJORADA
         servicesAdapter = new BasicServicesAdapter(basicServices, this::removeBasicService);
-        rvBasicServices.setLayoutManager(new LinearLayoutManager(getContext()));
+        LinearLayoutManager layoutManager = new LinearLayoutManager(getContext());
+        rvBasicServices.setLayoutManager(layoutManager);
         rvBasicServices.setAdapter(servicesAdapter);
+
+        // IMPORTANTE: Configurar para mejor comportamiento en ScrollView
+        rvBasicServices.setNestedScrollingEnabled(false);
+        rvBasicServices.setHasFixedSize(false); // Permite que cambie de tamaño
     }
 
     private void setupClickListeners() {
         ivBack.setOnClickListener(v -> getParentFragmentManager().popBackStack());
+        btnSaveProfile.setOnClickListener(v -> saveHotelProfile());
 
+        // CORRECCIÓN: Permitir subir fotos SIEMPRE que no se haya alcanzado el máximo
         btnAddPhoto.setOnClickListener(v -> {
-            if (hotelPhotos.size() >= 8) {
+            if (hotelPhotos.size() < 8) { // Máximo 8 fotos
+                selectPhoto();
+            } else {
                 Toast.makeText(getContext(), "Máximo 8 fotos permitidas", Toast.LENGTH_SHORT).show();
-                return;
             }
-            Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
-            intent.setType("image/*");
-            photoPickerLauncher.launch(intent);
         });
 
-
-        btnSaveProfile.setOnClickListener(v -> saveHotelProfile());
+        btnAddBasicService.setOnClickListener(v -> showAddBasicServiceDialog());
     }
 
 
+    private void addHotelPhoto(Uri photoUri) {
+        if (hotelPhotos.size() < 8) {
+            hotelPhotos.add(photoUri);
+            photosAdapter.notifyItemInserted(hotelPhotos.size() - 1);
+            updatePhotosStatus();
+
+            // AGREGAR: Refrescar el RecyclerView de servicios para evitar inconsistencias visuales
+            forceRecyclerViewUpdate();
+
+            Toast.makeText(getContext(), "Foto del hotel agregada (" + hotelPhotos.size() + "/8)", Toast.LENGTH_SHORT).show();
+        } else {
+            Toast.makeText(getContext(), "Máximo 8 fotos permitidas", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void updatePhotosStatus() {
+        int photoCount = hotelPhotos.size();
+        tvPhotosCounter.setText(photoCount + "/8 fotos");
+
+        if (photoCount == 0) {
+            tvPhotosStatus.setText("📷 No hay fotos subidas");
+            tvPhotosStatus.setTextColor(getResources().getColor(R.color.text_secondary));
+            btnAddPhoto.setText("📷 Subir Primera Foto");
+        } else if (photoCount < 4) {
+            tvPhotosStatus.setText("⚠️ Se requieren mínimo 4 fotos (" + (4 - photoCount) + " faltantes)");
+            tvPhotosStatus.setTextColor(getResources().getColor(R.color.warning));
+            btnAddPhoto.setText("📷 Agregar Foto (" + photoCount + "/4 requeridas)");
+        } else if (photoCount >= 4 && photoCount < 8) {
+            tvPhotosStatus.setText("✅ Fotos del hotel (" + photoCount + " fotos)");
+            tvPhotosStatus.setTextColor(getResources().getColor(R.color.success));
+            btnAddPhoto.setText("📷 Agregar Más Fotos");
+        } else {
+            tvPhotosStatus.setText("✅ Máximo de fotos alcanzado (8/8)");
+            tvPhotosStatus.setTextColor(getResources().getColor(R.color.success));
+            btnAddPhoto.setText("📷 Máximo Alcanzado");
+            btnAddPhoto.setEnabled(false);
+        }
+
+        // Mostrar/ocultar RecyclerView según si hay fotos
+        rvHotelPhotos.setVisibility(photoCount > 0 ? View.VISIBLE : View.GONE);
+
+        // Habilitar/deshabilitar el botón según el límite
+        btnAddPhoto.setEnabled(photoCount < 8);
+    }
+
+    private void selectPhoto() {
+        Intent intent = new Intent(Intent.ACTION_PICK);
+        intent.setType("image/*");
+        photoPickerLauncher.launch(intent);
+    }
+
+    private void showAddBasicServiceDialog() {
+        // CAMBIO: Usar el launcher específico para servicios
+        currentBasicServiceDialog = new BasicServiceDialog(getContext(), servicePhotoPickerLauncher, service -> {
+            basicServices.add(service);
+            servicesAdapter.notifyItemInserted(basicServices.size() - 1);
+
+            // AGREGAR: Forzar actualización después de agregar servicio
+            forceRecyclerViewUpdate();
+
+            currentBasicServiceDialog = null;
+            Toast.makeText(getContext(), "✅ Servicio básico agregado", Toast.LENGTH_SHORT).show();
+        });
+        currentBasicServiceDialog.show();
+
+        currentBasicServiceDialog.setOnDismissListener(dialog -> {
+            currentBasicServiceDialog = null;
+        });
+    }
 
     private void removePhoto(int position) {
         hotelPhotos.remove(position);
         photosAdapter.notifyItemRemoved(position);
+        updatePhotosStatus();
     }
 
     private void removeBasicService(int position) {
         basicServices.remove(position);
         servicesAdapter.notifyItemRemoved(position);
+
+        // AGREGAR: Forzar actualización después de remover servicio
+        forceRecyclerViewUpdate();
     }
 
     private void loadHotelProfile() {
-        // Cargar datos existentes del hotel
+        // Cargar datos básicos del hotel
         etHotelName.setText("Hotel Belmond");
-        etHotelDescription.setText("Hotel de lujo ubicado en el corazón de la ciudad");
-        etHotelAddress.setText("Av. Principal 123, Centro");
-        etHotelPhone.setText("+51 987 654 321");
+        etHotelAddress.setText("Av. Principal 123, Centro, Lima, Perú");
+
+        // Limpiar lista existente
+        basicServices.clear();
 
         // Agregar servicios básicos por defecto
-        basicServices.add(new BasicService("WiFi Gratuito", "Internet de alta velocidad", "ic_wifi"));
-        basicServices.add(new BasicService("Aire Acondicionado", "Climatización en todas las habitaciones", "ic_ac"));
-        basicServices.add(new BasicService("TV Cable", "Televisión por cable con canales premium", "ic_tv"));
-        basicServices.add(new BasicService("Teléfono", "Línea telefónica directa", "ic_phone"));
+        basicServices.add(new BasicService("WiFi Gratuito", "Internet de alta velocidad incluido en todas las habitaciones", "ic_wifi"));
+        basicServices.add(new BasicService("Aire Acondicionado", "Climatización individual en cada habitación", "ic_ac"));
+        basicServices.add(new BasicService("TV por Cable", "Televisión por cable con canales premium", "ic_tv"));
+        basicServices.add(new BasicService("Agua Caliente 24h", "Agua caliente disponible las 24 horas", "ic_water"));
+        basicServices.add(new BasicService("Servicio de Limpieza", "Limpieza diaria de habitaciones incluida", "ic_cleaning"));
 
-        servicesAdapter.notifyDataSetChanged();
+        // MEJORAR: Notificar cambios después de agregar todos los elementos
+        if (servicesAdapter != null) {
+            servicesAdapter.notifyDataSetChanged();
+        }
+
+        updatePhotosStatus();
     }
 
     private void saveHotelProfile() {
         String name = etHotelName.getText().toString().trim();
-        String description = etHotelDescription.getText().toString().trim();
         String address = etHotelAddress.getText().toString().trim();
-        String phone = etHotelPhone.getText().toString().trim();
 
-        if (name.isEmpty() || description.isEmpty() || address.isEmpty() || phone.isEmpty()) {
-            Toast.makeText(getContext(), "Por favor completa todos los campos", Toast.LENGTH_SHORT).show();
+        if (name.isEmpty() || address.isEmpty()) {
+            Toast.makeText(getContext(), "Por favor completa la información básica", Toast.LENGTH_SHORT).show();
             return;
         }
 
         if (hotelPhotos.size() < 4) {
-            Toast.makeText(getContext(), "Se requieren mínimo 4 fotos del hotel", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getContext(), "Se requieren mínimo 4 fotos del hotel para continuar", Toast.LENGTH_LONG).show();
+            return;
+        }
+
+        if (basicServices.isEmpty()) {
+            Toast.makeText(getContext(), "Debe agregar al menos un servicio básico", Toast.LENGTH_SHORT).show();
             return;
         }
 
         // TODO: Guardar en Firebase/base de datos
-        HotelProfile profile = new HotelProfile(name, description, address, phone, hotelPhotos, basicServices);
+        HotelProfile profile = new HotelProfile(name, address, hotelPhotos, basicServices);
 
-        Toast.makeText(getContext(), "✅ Perfil del hotel actualizado", Toast.LENGTH_LONG).show();
+        Toast.makeText(getContext(), "✅ Perfil del hotel actualizado exitosamente", Toast.LENGTH_LONG).show();
         getParentFragmentManager().popBackStack();
     }
 }

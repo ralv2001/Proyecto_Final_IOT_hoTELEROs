@@ -18,28 +18,29 @@ import android.widget.Toast;
 import androidx.fragment.app.Fragment;
 
 import com.example.proyecto_final_hoteleros.R;
+import com.example.proyecto_final_hoteleros.adminhotel.fragment.HotelProfileFragment;
+import com.example.proyecto_final_hoteleros.adminhotel.fragment.RoomManagementFragment;
+import com.example.proyecto_final_hoteleros.adminhotel.fragment.ServiceManagementFragment;
 import com.google.android.material.card.MaterialCardView;
 
 public class AdminHotelFragment extends Fragment {
 
-    // Header TextViews - IDs CORREGIDOS
+    // Header TextViews
     private TextView tvMainTitle;
     private TextView tvSubtitle;
 
-    // Management Cards - USANDO MaterialCardView
+    // Management Cards - REMOVIDO cardEstadisticas
     private MaterialCardView cardHabitaciones;
     private MaterialCardView cardServicios;
     private MaterialCardView cardPerfilHotel;
-    private MaterialCardView cardEstadisticas;
 
-    // Stats Cards - USANDO MaterialCardView
+    // Stats Cards
     private MaterialCardView cardOcupacion;
     private MaterialCardView cardIngresos;
     private MaterialCardView cardHuespedes;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        // USANDO EL NUEVO LAYOUT
         View rootView = inflater.inflate(R.layout.admin_hotel_fragment_hotel_management, container, false);
 
         initViews(rootView);
@@ -50,15 +51,14 @@ public class AdminHotelFragment extends Fragment {
     }
 
     private void initViews(View rootView) {
-        // HEADER - IDs ACTUALIZADOS
+        // HEADER
         tvMainTitle = rootView.findViewById(R.id.tvMainTitle);
         tvSubtitle = rootView.findViewById(R.id.tvSubtitle);
 
-        // Management cards
+        // Management cards - REMOVIDO cardEstadisticas
         cardHabitaciones = rootView.findViewById(R.id.cardHabitaciones);
         cardServicios = rootView.findViewById(R.id.cardServicios);
         cardPerfilHotel = rootView.findViewById(R.id.cardPerfilHotel);
-        cardEstadisticas = rootView.findViewById(R.id.cardEstadisticas);
 
         // Stats cards
         cardOcupacion = rootView.findViewById(R.id.cardOcupacion);
@@ -69,8 +69,6 @@ public class AdminHotelFragment extends Fragment {
         int hour = java.util.Calendar.getInstance().get(java.util.Calendar.HOUR_OF_DAY);
         String greeting = hour < 12 ? "Buenos días" : hour < 18 ? "Buenas tardes" : "Buenas noches";
         tvMainTitle.setText(greeting + ", Admin");
-
-        // Actualizar subtitle también
         tvSubtitle.setText("Hotel Belmond • Dashboard Administrativo");
     }
 
@@ -90,10 +88,7 @@ public class AdminHotelFragment extends Fragment {
             navigateToHotelProfile();
         });
 
-        cardEstadisticas.setOnClickListener(v -> {
-            animatePress(cardEstadisticas);
-            Toast.makeText(getContext(), "📊 Función de estadísticas en desarrollo", Toast.LENGTH_SHORT).show();
-        });
+        // ❌ REMOVIDO: setupClickListeners para cardEstadisticas
 
         // Stats cards - solo muestran información
         cardOcupacion.setOnClickListener(v -> {
@@ -112,7 +107,6 @@ public class AdminHotelFragment extends Fragment {
         });
     }
 
-
     private void navigateToRoomManagement() {
         RoomManagementFragment fragment = new RoomManagementFragment();
         getParentFragmentManager().beginTransaction()
@@ -129,9 +123,6 @@ public class AdminHotelFragment extends Fragment {
                 .commit();
     }
 
-
-
-
     private void navigateToHotelProfile() {
         HotelProfileFragment fragment = new HotelProfileFragment();
         getParentFragmentManager().beginTransaction()
@@ -141,110 +132,73 @@ public class AdminHotelFragment extends Fragment {
     }
 
     private void startWelcomeAnimation() {
-        // Ocultar todo inicialmente - USANDO IDs CORRECTOS
-        tvMainTitle.setAlpha(0f);
-        tvMainTitle.setTranslationY(-50f);
-        tvMainTitle.setScaleX(0.8f);
-        tvMainTitle.setScaleY(0.8f);
-
-        tvSubtitle.setAlpha(0f);
-        tvSubtitle.setTranslationX(-100f);
-
-        // Animación chévere para el título principal
         new Handler().postDelayed(() -> {
-            // Animación de entrada con bounce
-            ObjectAnimator fadeIn = ObjectAnimator.ofFloat(tvMainTitle, "alpha", 0f, 1f);
-            ObjectAnimator slideDown = ObjectAnimator.ofFloat(tvMainTitle, "translationY", -50f, 0f);
-            ObjectAnimator scaleX = ObjectAnimator.ofFloat(tvMainTitle, "scaleX", 0.8f, 1.1f, 1f);
-            ObjectAnimator scaleY = ObjectAnimator.ofFloat(tvMainTitle, "scaleY", 0.8f, 1.1f, 1f);
-
-            AnimatorSet welcomeAnim = new AnimatorSet();
-            welcomeAnim.playTogether(fadeIn, slideDown, scaleX, scaleY);
-            welcomeAnim.setDuration(800);
-            welcomeAnim.setInterpolator(new OvershootInterpolator(1.2f));
-            welcomeAnim.start();
-
-            // Efecto de typewriter para el subtitle
-            new Handler().postDelayed(() -> {
-                ObjectAnimator subtitleFade = ObjectAnimator.ofFloat(tvSubtitle, "alpha", 0f, 1f);
-                ObjectAnimator subtitleSlide = ObjectAnimator.ofFloat(tvSubtitle, "translationX", -100f, 0f);
-
-                AnimatorSet subtitleAnim = new AnimatorSet();
-                subtitleAnim.playTogether(subtitleFade, subtitleSlide);
-                subtitleAnim.setDuration(600);
-                subtitleAnim.setInterpolator(new DecelerateInterpolator());
-                subtitleAnim.start();
-            }, 400);
-
-        }, 200);
-
-        // Animar cards después del saludo
-        new Handler().postDelayed(() -> {
-            animateCards();
-        }, 1000);
+            if (getActivity() != null && isAdded()) {
+                animateStatsCards();
+                animateManagementCards();
+            }
+        }, 300);
     }
 
-    private void animateCards() {
-        MaterialCardView[] cards = {cardOcupacion, cardIngresos, cardHuespedes,
-                cardHabitaciones, cardServicios, cardPerfilHotel, cardEstadisticas};
+    private void animateStatsCards() {
+        MaterialCardView[] statsCards = {cardOcupacion, cardIngresos, cardHuespedes};
 
-        for (int i = 0; i < cards.length; i++) {
-            if (cards[i] != null) { // Verificación de seguridad
-                cards[i].setAlpha(0f);
-                cards[i].setTranslationY(100f);
-                cards[i].setScaleX(0.8f);
-                cards[i].setScaleY(0.8f);
+        for (int i = 0; i < statsCards.length; i++) {
+            if (statsCards[i] != null) {
+                statsCards[i].setAlpha(0f);
+                statsCards[i].setTranslationY(100f);
 
-                final int index = i;
-                new Handler().postDelayed(() -> {
-                    if (cards[index] != null) {
-                        ObjectAnimator fadeIn = ObjectAnimator.ofFloat(cards[index], "alpha", 0f, 1f);
-                        ObjectAnimator slideUp = ObjectAnimator.ofFloat(cards[index], "translationY", 100f, 0f);
-                        ObjectAnimator scaleX = ObjectAnimator.ofFloat(cards[index], "scaleX", 0.8f, 1f);
-                        ObjectAnimator scaleY = ObjectAnimator.ofFloat(cards[index], "scaleY", 0.8f, 1f);
+                statsCards[i].animate()
+                        .alpha(1f)
+                        .translationY(0f)
+                        .setDuration(800)
+                        .setStartDelay(i * 150)
+                        .setInterpolator(new DecelerateInterpolator())
+                        .start();
+            }
+        }
+    }
 
-                        AnimatorSet cardAnim = new AnimatorSet();
-                        cardAnim.playTogether(fadeIn, slideUp, scaleX, scaleY);
-                        cardAnim.setDuration(500);
-                        cardAnim.setInterpolator(new DecelerateInterpolator());
-                        cardAnim.start();
-                    }
-                }, i * 100);
+    private void animateManagementCards() {
+        MaterialCardView[] managementCards = {cardHabitaciones, cardServicios, cardPerfilHotel};
+
+        for (int i = 0; i < managementCards.length; i++) {
+            if (managementCards[i] != null) {
+                managementCards[i].setAlpha(0f);
+                managementCards[i].setScaleX(0.8f);
+                managementCards[i].setScaleY(0.8f);
+
+                managementCards[i].animate()
+                        .alpha(1f)
+                        .scaleX(1f)
+                        .scaleY(1f)
+                        .setDuration(600)
+                        .setStartDelay(800 + (i * 100))
+                        .setInterpolator(new OvershootInterpolator())
+                        .start();
             }
         }
     }
 
     private void animatePress(MaterialCardView card) {
-        if (card == null) return; // Verificación de seguridad
+        AnimatorSet animatorSet = new AnimatorSet();
 
-        // Animación de pulso al tocar - MEJORADA para MaterialCardView
-        ObjectAnimator scaleX1 = ObjectAnimator.ofFloat(card, "scaleX", 1f, 0.95f);
-        ObjectAnimator scaleY1 = ObjectAnimator.ofFloat(card, "scaleY", 1f, 0.95f);
-        ObjectAnimator elevation1 = ObjectAnimator.ofFloat(card, "cardElevation", 12f, 6f);
+        ObjectAnimator scaleDownX = ObjectAnimator.ofFloat(card, "scaleX", 0.95f);
+        ObjectAnimator scaleDownY = ObjectAnimator.ofFloat(card, "scaleY", 0.95f);
+        scaleDownX.setDuration(100);
+        scaleDownY.setDuration(100);
+        scaleDownX.setInterpolator(new AccelerateDecelerateInterpolator());
+        scaleDownY.setInterpolator(new AccelerateDecelerateInterpolator());
 
-        ObjectAnimator scaleX2 = ObjectAnimator.ofFloat(card, "scaleX", 0.95f, 1.05f);
-        ObjectAnimator scaleY2 = ObjectAnimator.ofFloat(card, "scaleY", 0.95f, 1.05f);
-        ObjectAnimator elevation2 = ObjectAnimator.ofFloat(card, "cardElevation", 6f, 16f);
+        ObjectAnimator scaleUpX = ObjectAnimator.ofFloat(card, "scaleX", 1f);
+        ObjectAnimator scaleUpY = ObjectAnimator.ofFloat(card, "scaleY", 1f);
+        scaleUpX.setDuration(100);
+        scaleUpY.setDuration(100);
+        scaleUpX.setInterpolator(new AccelerateDecelerateInterpolator());
+        scaleUpY.setInterpolator(new AccelerateDecelerateInterpolator());
 
-        ObjectAnimator scaleX3 = ObjectAnimator.ofFloat(card, "scaleX", 1.05f, 1f);
-        ObjectAnimator scaleY3 = ObjectAnimator.ofFloat(card, "scaleY", 1.05f, 1f);
-        ObjectAnimator elevation3 = ObjectAnimator.ofFloat(card, "cardElevation", 16f, 12f);
-
-        AnimatorSet press = new AnimatorSet();
-        press.playTogether(scaleX1, scaleY1, elevation1);
-        press.setDuration(100);
-
-        AnimatorSet bounce = new AnimatorSet();
-        bounce.playTogether(scaleX2, scaleY2, elevation2);
-        bounce.setDuration(150);
-        bounce.setInterpolator(new BounceInterpolator());
-
-        AnimatorSet normal = new AnimatorSet();
-        normal.playTogether(scaleX3, scaleY3, elevation3);
-        normal.setDuration(100);
-
-        AnimatorSet fullAnim = new AnimatorSet();
-        fullAnim.playSequentially(press, bounce, normal);
-        fullAnim.start();
+        animatorSet.play(scaleDownX).with(scaleDownY);
+        animatorSet.play(scaleUpX).with(scaleUpY).after(scaleDownX);
+        animatorSet.start();
     }
 }
