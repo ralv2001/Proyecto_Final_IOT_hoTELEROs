@@ -1,5 +1,7 @@
 package com.example.proyecto_final_hoteleros;
 
+import com.example.proyecto_final_hoteleros.adminhotel.utils.FirebaseServiceManager;
+import com.example.proyecto_final_hoteleros.adminhotel.utils.ServiceSyncManager;
 import com.google.firebase.auth.FirebaseAuth;
 import android.app.AlertDialog;
 import android.content.Intent;
@@ -44,6 +46,8 @@ public class MainActivity extends AppCompatActivity {
 
         // Inicializar Firebase Auth  <-- AGREGAR ESTA LÍNEA
         firebaseAuth = FirebaseAuth.getInstance();
+        FirebaseServiceManager firebaseServiceManager = FirebaseServiceManager.getInstance(this);
+        ServiceSyncManager serviceSyncManager = ServiceSyncManager.getInstance(this);
 
         // Verificar si hay vinculación pendiente de GitHub
         //checkPendingGitHubLink();
@@ -128,17 +132,20 @@ public class MainActivity extends AppCompatActivity {
         });
 
         // Configuración de "Continuar como admin de hotel"
+        // Configuración de "Continuar como admin de hotel"
+        // Configuración de "Continuar como admin de hotel"
         LinearLayout layoutContinueAsAdminHotel = findViewById(R.id.layoutContinueAsAdminHotel);
         layoutContinueAsAdminHotel.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Toast.makeText(MainActivity.this, "Continuando como admin de hotel ...", Toast.LENGTH_SHORT).show();
 
-                // Iniciar la HomeActivity que contiene el contenedor de fragmentos
-                Intent intent = new Intent(MainActivity.this, AdminHotelActivity.class);
-                startActivity(intent);
+                // Autenticar o crear usuario de prueba para admin de hotel
+                authenticateTestHotelAdmin();
             }
         });
+
+
         LinearLayout layoutContinueAsTaxiDriver = findViewById(R.id.layoutContinueAsTaxiDriver);
         layoutContinueAsTaxiDriver.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -167,7 +174,94 @@ public class MainActivity extends AppCompatActivity {
         */
 
     }
+    // ✅ MÉTODO PARA AUTENTICAR ADMIN DE HOTEL DE PRUEBA
+    private void authenticateTestHotelAdmin() {
+        String testEmail = "adminhotel@test.com";
+        String testPassword = "AdminHotel123!";
 
+        // Intentar hacer login primero
+        firebaseAuth.signInWithEmailAndPassword(testEmail, testPassword)
+                .addOnSuccessListener(authResult -> {
+                    Log.d("MainActivity", "✅ Admin de hotel autenticado exitosamente");
+                    Toast.makeText(MainActivity.this, "✅ Autenticado como Admin de Hotel", Toast.LENGTH_SHORT).show();
+
+                    // Ir al AdminHotelActivity
+                    Intent intent = new Intent(MainActivity.this, AdminHotelActivity.class);
+                    startActivity(intent);
+                })
+                .addOnFailureListener(e -> {
+                    Log.d("MainActivity", "Usuario no existe, creándolo...");
+
+                    // Si falla el login, crear el usuario
+                    createTestHotelAdmin(testEmail, testPassword);
+                });
+    }
+
+    private void createTestHotelAdmin(String email, String password) {
+        firebaseAuth.createUserWithEmailAndPassword(email, password)
+                .addOnSuccessListener(authResult -> {
+                    Log.d("MainActivity", "✅ Usuario admin de hotel creado exitosamente");
+
+                    // Crear perfil del usuario en Firestore
+                    String userId = authResult.getUser().getUid();
+                    createHotelAdminProfile(userId, email);
+                })
+                .addOnFailureListener(e -> {
+                    Log.e("MainActivity", "❌ Error creando admin de hotel: " + e.getMessage());
+
+                    if (e.getMessage() != null && e.getMessage().contains("email address is already in use")) {
+                        // Si el email ya existe, intentar login otra vez
+                        Toast.makeText(MainActivity.this,
+                                "Usuario ya existe, reintentando login...",
+                                Toast.LENGTH_SHORT).show();
+                        authenticateTestHotelAdmin();
+                    } else {
+                        Toast.makeText(MainActivity.this,
+                                "Error: " + e.getMessage(),
+                                Toast.LENGTH_LONG).show();
+                    }
+                });
+    }
+
+    private void createHotelAdminProfile(String userId, String email) {
+        FirebaseManager firebaseManager = FirebaseManager.getInstance();
+
+        // Crear el modelo de usuario para admin de hotel
+        com.example.proyecto_final_hoteleros.models.UserModel adminUser = new com.example.proyecto_final_hoteleros.models.UserModel();
+        adminUser.setEmail(email);
+        adminUser.setNombres("Admin");
+        adminUser.setApellidos("Hotel Test");
+        adminUser.setUserType("hotel_admin");  // ¡IMPORTANTE: Este es el rol que necesita!
+        adminUser.setTelefono("999888777");
+        adminUser.setDireccion("Hotel Central Lima");
+        adminUser.setNumeroDocumento("12345678");
+        adminUser.setTipoDocumento("DNI");
+        adminUser.setFechaNacimiento("01/01/1985");
+        adminUser.setActive(true);
+
+        // Guardar en Firestore
+        firebaseManager.saveUserData(userId, adminUser, new FirebaseManager.DataCallback() {
+            @Override
+            public void onSuccess() {
+                Log.d("MainActivity", "✅ Perfil de admin hotel creado");
+                Toast.makeText(MainActivity.this,
+                        "✅ Admin de Hotel creado y autenticado",
+                        Toast.LENGTH_LONG).show();
+
+                // Ir al AdminHotelActivity
+                Intent intent = new Intent(MainActivity.this, AdminHotelActivity.class);
+                startActivity(intent);
+            }
+
+            @Override
+            public void onError(String error) {
+                Log.e("MainActivity", "❌ Error creando perfil: " + error);
+                Toast.makeText(MainActivity.this,
+                        "Error creando perfil: " + error,
+                        Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
     @Override
     public void onConfigurationChanged(Configuration newConfig) {
         super.onConfigurationChanged(newConfig);

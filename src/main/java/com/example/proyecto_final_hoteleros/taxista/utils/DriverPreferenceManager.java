@@ -211,9 +211,17 @@ public class DriverPreferenceManager {
         return sharedPreferences.getString(KEY_LICENSE_PLATE, "ABC-123");
     }
 
-    // === LIMPIAR DATOS ===
+    // 🔥 LIMPIAR TODOS LOS DATOS DEL CONDUCTOR (CORREGIDO)
     public void clearAllData() {
-        sharedPreferences.edit().clear().apply();
+        try {
+            SharedPreferences.Editor editor = sharedPreferences.edit();
+            editor.clear();
+            editor.apply();
+
+            android.util.Log.d("DriverPreferenceManager", "✅ Todos los datos del conductor limpiados");
+        } catch (Exception e) {
+            android.util.Log.e("DriverPreferenceManager", "❌ Error limpiando datos: " + e.getMessage());
+        }
     }
 
     public void logout() {

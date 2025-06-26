@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
+import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.widget.ArrayAdapter;
@@ -15,6 +16,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.appcompat.app.AppCompatDialog;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import com.example.proyecto_final_hoteleros.R;
@@ -134,7 +136,22 @@ public class EditServiceDialog extends AppCompatDialog {
             updateFieldsVisibilityByType(selectedType);
         });
     }
+    private void setupServiceTypeBasedOnOriginal(HotelServiceItem service) {
+        // Si es un servicio básico editado desde gestión, mantener restricciones especiales
+        if (service.getType() == HotelServiceItem.ServiceType.BASIC) {
+            etServiceType.setText("Básico (Desde Perfil)");
+            etServiceType.setEnabled(false);
+            tilServicePrice.setVisibility(View.GONE);
+            tilConditionalAmount.setVisibility(View.GONE);
 
+            // Mostrar mensaje informativo
+            TextView tvBasicInfo = new TextView(context);
+            tvBasicInfo.setText("💡 Este servicio se sincroniza automáticamente con el perfil del hotel");
+            tvBasicInfo.setTextSize(12);
+            tvBasicInfo.setTextColor(ContextCompat.getColor(context, R.color.text_secondary));
+            // Agregar al layout según sea necesario
+        }
+    }
     private void updateFieldsVisibilityByType(String serviceType) {
         switch (serviceType) {
             case "Incluido":

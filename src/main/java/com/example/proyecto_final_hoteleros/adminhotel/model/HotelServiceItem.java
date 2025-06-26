@@ -20,6 +20,7 @@ public class HotelServiceItem {
     private List<Uri> photos;
     private boolean active;
     private double conditionalAmount; // Para servicios condicionales
+    private String firebaseId; // ID del documento en Firebase
 
     public HotelServiceItem(String name, String description, double price, String iconKey,
                             ServiceType type, List<Uri> photos) {
@@ -45,7 +46,9 @@ public class HotelServiceItem {
         this.active = true;
         this.conditionalAmount = conditionalAmount;
     }
-
+    // Getter y Setter
+    public String getFirebaseId() { return firebaseId; }
+    public void setFirebaseId(String firebaseId) { this.firebaseId = firebaseId; }
     // Getters y Setters
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }

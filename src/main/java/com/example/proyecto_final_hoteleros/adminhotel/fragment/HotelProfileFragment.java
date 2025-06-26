@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -24,62 +25,178 @@ import com.example.proyecto_final_hoteleros.adminhotel.adapters.BasicServicesAda
 import com.example.proyecto_final_hoteleros.adminhotel.dialog.BasicServiceDialog;
 import com.example.proyecto_final_hoteleros.adminhotel.model.HotelProfile;
 import com.example.proyecto_final_hoteleros.adminhotel.model.BasicService;
+import com.example.proyecto_final_hoteleros.adminhotel.model.HotelServiceModel;
+import com.example.proyecto_final_hoteleros.adminhotel.utils.FirebaseServiceManager;
+import com.example.proyecto_final_hoteleros.adminhotel.utils.ServiceSyncManager;
+import com.example.proyecto_final_hoteleros.utils.AwsFileManager;
+import com.example.proyecto_final_hoteleros.utils.UniqueIdGenerator;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
-public class HotelProfileFragment extends Fragment {
+public class HotelProfileFragment extends Fragment implements FirebaseServiceManager.OnServicesChangedListener {
 
+    private static final String TAG = "HotelProfileFragment";
+
+    // Views
     private TextInputEditText etHotelName, etHotelAddress;
     private RecyclerView rvHotelPhotos, rvBasicServices;
     private MaterialButton btnSaveProfile, btnAddPhoto, btnAddBasicService;
     private ImageView ivBack;
     private TextView tvPhotosStatus, tvPhotosCounter;
+    private MaterialButton btnRefreshServices;
 
+    // Adapters y datos
     private HotelPhotosAdapter photosAdapter;
     private BasicServicesAdapter servicesAdapter;
     private List<Uri> hotelPhotos;
     private List<BasicService> basicServices;
-    private ActivityResultLauncher<Intent> servicePhotoPickerLauncher; // NUEVA LÍNEA
 
+    // Launchers
+    private ActivityResultLauncher<Intent> servicePhotoPickerLauncher;
     private ActivityResultLauncher<Intent> photoPickerLauncher;
-    private BasicServiceDialog currentBasicServiceDialog;
 
+    // Managers y servicios
+    private FirebaseServiceManager firebaseServiceManager;
+    private ServiceSyncManager serviceSyncManager;
+    private AwsFileManager awsFileManager;
+    private UniqueIdGenerator idGenerator;
+    private BasicServiceDialog currentBasicServiceDialog;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        Log.d(TAG, "🚀 onCreateView iniciado");
+
         View rootView = inflater.inflate(R.layout.admin_hotel_fragment_profile_management, container, false);
+
+        // Inicializar managers
+        firebaseServiceManager = FirebaseServiceManager.getInstance(requireContext());
+        serviceSyncManager = ServiceSyncManager.getInstance(requireContext());
+        awsFileManager = new AwsFileManager(requireContext());
+        idGenerator = UniqueIdGenerator.getInstance(requireContext());
 
         initViews(rootView);
         initLaunchers();
         setupRecyclerViews();
         setupClickListeners();
 
-        // IMPORTANTE: Cargar datos después de que todo esté configurado
-        // y usar post() para asegurar que el layout esté completo
-        rootView.post(() -> {
-            loadHotelProfile();
-            forceRecyclerViewUpdate(); // Nueva función
-        });
+        // ✅ SOLUCIÓN: Registrar listener de Firebase ANTES de cargar datos
+        Log.d(TAG, "📡 Registrando listener de Firebase");
+        firebaseServiceManager.addListener(this);
+
+        // ✅ MEJORADO: Cargar datos básicos inmediatamente
+        loadHotelProfile();
 
         return rootView;
     }
-    // NUEVA FUNCIÓN: Forzar actualización del RecyclerView
-    private void forceRecyclerViewUpdate() {
-        if (servicesAdapter != null && rvBasicServices != null) {
-            // Forzar recálculo de dimensiones
-            servicesAdapter.notifyDataSetChanged();
 
-            // Asegurar que el RecyclerView recalcule su altura
-            rvBasicServices.post(() -> {
-                if (rvBasicServices.getLayoutManager() != null) {
-                    rvBasicServices.getLayoutManager().requestLayout();
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        if (firebaseServiceManager != null) {
+            firebaseServiceManager.removeListener(this);
+        }
+        if (currentBasicServiceDialog != null && currentBasicServiceDialog.isShowing()) {
+            currentBasicServiceDialog.dismiss();
+        }
+    }
+
+    // ========== IMPLEMENTACIÓN DE FIREBASE LISTENER ==========
+
+    @Override
+    public void onBasicServicesUpdated(List<HotelServiceModel> basicServiceModels) {
+        Log.d(TAG, "🔄 onBasicServicesUpdated llamado con " + basicServiceModels.size() + " servicios");
+
+        // Imprimir detalles de cada servicio
+        for (int i = 0; i < basicServiceModels.size(); i++) {
+            HotelServiceModel model = basicServiceModels.get(i);
+            Log.d(TAG, "  📋 Servicio " + i + ": " + model.getName() + " (Fotos: " +
+                    (model.getPhotoUrls() != null ? model.getPhotoUrls().size() : 0) + ")");
+        }
+
+        if (getActivity() != null) {
+            getActivity().runOnUiThread(() -> {
+                Log.d(TAG, "🎯 Ejecutando actualización en UI Thread");
+
+                int oldSize = basicServices.size();
+                basicServices.clear();
+                Log.d(TAG, "🧹 Lista limpiada (antes: " + oldSize + " servicios)");
+
+                for (HotelServiceModel model : basicServiceModels) {
+                    BasicService basicService = convertFirebaseToBasicService(model);
+                    basicServices.add(basicService);
+                    Log.d(TAG, "➕ Agregado: " + basicService.getName() + " con " +
+                            basicService.getPhotos().size() + " fotos");
                 }
+
+                Log.d(TAG, "📊 Lista actualizada: " + basicServices.size() + " servicios");
+
+                // ✅ MEJORA: Verificar que el adapter y RecyclerView existan antes de actualizar
+                if (servicesAdapter != null && rvBasicServices != null) {
+                    Log.d(TAG, "🔄 Notificando adapter...");
+                    servicesAdapter.notifyDataSetChanged();
+
+                    // ✅ Forzar layout del RecyclerView
+                    rvBasicServices.post(() -> {
+                        if (rvBasicServices.getLayoutManager() != null) {
+                            rvBasicServices.getLayoutManager().requestLayout();
+                        }
+                    });
+
+                    Log.d(TAG, "✅ Adapter notificado y RecyclerView actualizado");
+                } else {
+                    Log.e(TAG, "❌ ERROR: adapter=" + (servicesAdapter != null ? "OK" : "NULL") +
+                            ", recyclerView=" + (rvBasicServices != null ? "OK" : "NULL"));
+                }
+            });
+        } else {
+            Log.e(TAG, "❌ ERROR: getActivity() es null!");
+        }
+    }
+
+    @Override
+    public void onAllServicesUpdated(List<HotelServiceModel> allServices) {
+        // Filtrar solo los servicios básicos
+        List<HotelServiceModel> basicServiceModels = new ArrayList<>();
+        for (HotelServiceModel service : allServices) {
+            if ("basic".equals(service.getServiceType())) {
+                basicServiceModels.add(service);
+            }
+        }
+        onBasicServicesUpdated(basicServiceModels);
+    }
+
+    @Override
+    public void onError(String error) {
+        Log.e(TAG, "Error desde Firebase: " + error);
+        if (getActivity() != null) {
+            getActivity().runOnUiThread(() -> {
+                Toast.makeText(getContext(), "Error cargando servicios: " + error, Toast.LENGTH_LONG).show();
             });
         }
     }
+    @Override
+    public void onResume() {
+        super.onResume();
+
+        // ✅ SOLUCIÓN: Verificar y recargar datos cuando se regresa a la pantalla
+        Log.d(TAG, "🔄 onResume - Verificando servicios...");
+
+        if (firebaseServiceManager != null) {
+            // Forzar recarga si la lista está vacía
+            if (basicServices.isEmpty()) {
+                Log.d(TAG, "📋 Lista vacía, forzando recarga de servicios básicos");
+                loadHotelProfile();
+            }
+        }
+    }
+    // ========== INICIALIZACIÓN ==========
+
     private void initViews(View rootView) {
         etHotelName = rootView.findViewById(R.id.etHotelName);
         etHotelAddress = rootView.findViewById(R.id.etHotelAddress);
@@ -91,7 +208,6 @@ public class HotelProfileFragment extends Fragment {
         ivBack = rootView.findViewById(R.id.ivBack);
         tvPhotosStatus = rootView.findViewById(R.id.tvPhotosStatus);
         tvPhotosCounter = rootView.findViewById(R.id.tvPhotosCounter);
-
         hotelPhotos = new ArrayList<>();
         basicServices = new ArrayList<>();
     }
@@ -110,14 +226,13 @@ public class HotelProfileFragment extends Fragment {
                 }
         );
 
-        // NUEVO: Launcher separado para fotos de servicios básicos
+        // Launcher separado para fotos de servicios básicos
         servicePhotoPickerLauncher = registerForActivityResult(
                 new ActivityResultContracts.StartActivityForResult(),
                 result -> {
                     if (result.getResultCode() == Activity.RESULT_OK && result.getData() != null) {
                         Uri selectedImageUri = result.getData().getData();
                         if (selectedImageUri != null && currentBasicServiceDialog != null) {
-                            // Agregar foto al diálogo del servicio, NO al hotel
                             currentBasicServiceDialog.addPhoto(selectedImageUri);
                         }
                     }
@@ -126,29 +241,31 @@ public class HotelProfileFragment extends Fragment {
     }
 
     private void setupRecyclerViews() {
+        Log.d(TAG, "🔧 Configurando RecyclerViews");
+
         // RecyclerView para fotos del hotel
         photosAdapter = new HotelPhotosAdapter(hotelPhotos, this::removePhoto);
         rvHotelPhotos.setLayoutManager(new GridLayoutManager(getContext(), 2));
         rvHotelPhotos.setAdapter(photosAdapter);
 
-        // RecyclerView para servicios básicos - CONFIGURACIÓN MEJORADA
+        // ✅ RecyclerView para servicios básicos mejorado
         servicesAdapter = new BasicServicesAdapter(basicServices, this::removeBasicService);
         LinearLayoutManager layoutManager = new LinearLayoutManager(getContext());
         rvBasicServices.setLayoutManager(layoutManager);
         rvBasicServices.setAdapter(servicesAdapter);
-
-        // IMPORTANTE: Configurar para mejor comportamiento en ScrollView
         rvBasicServices.setNestedScrollingEnabled(false);
-        rvBasicServices.setHasFixedSize(false); // Permite que cambie de tamaño
+        rvBasicServices.setHasFixedSize(false);
+
+        Log.d(TAG, "✅ RecyclerView configurado con adapter: " + (servicesAdapter != null ? "OK" : "NULL"));
+        Log.d(TAG, "📋 Lista inicial de servicios: " + basicServices.size());
     }
 
     private void setupClickListeners() {
         ivBack.setOnClickListener(v -> getParentFragmentManager().popBackStack());
         btnSaveProfile.setOnClickListener(v -> saveHotelProfile());
 
-        // CORRECCIÓN: Permitir subir fotos SIEMPRE que no se haya alcanzado el máximo
         btnAddPhoto.setOnClickListener(v -> {
-            if (hotelPhotos.size() < 8) { // Máximo 8 fotos
+            if (hotelPhotos.size() < 8) {
                 selectPhoto();
             } else {
                 Toast.makeText(getContext(), "Máximo 8 fotos permitidas", Toast.LENGTH_SHORT).show();
@@ -156,51 +273,44 @@ public class HotelProfileFragment extends Fragment {
         });
 
         btnAddBasicService.setOnClickListener(v -> showAddBasicServiceDialog());
+
+        // ✅ Botón de recarga (temporal para debug)
+        if (btnRefreshServices != null) {
+            btnRefreshServices.setOnClickListener(v -> {
+                Log.d(TAG, "🔄 Recarga manual de servicios solicitada");
+                Toast.makeText(getContext(), "Recargando servicios...", Toast.LENGTH_SHORT).show();
+                loadHotelProfile();
+            });
+        }
     }
 
+    // ========== GESTIÓN DE FOTOS DEL HOTEL ==========
 
     private void addHotelPhoto(Uri photoUri) {
         if (hotelPhotos.size() < 8) {
             hotelPhotos.add(photoUri);
             photosAdapter.notifyItemInserted(hotelPhotos.size() - 1);
             updatePhotosStatus();
-
-            // AGREGAR: Refrescar el RecyclerView de servicios para evitar inconsistencias visuales
-            forceRecyclerViewUpdate();
-
-            Toast.makeText(getContext(), "Foto del hotel agregada (" + hotelPhotos.size() + "/8)", Toast.LENGTH_SHORT).show();
-        } else {
-            Toast.makeText(getContext(), "Máximo 8 fotos permitidas", Toast.LENGTH_SHORT).show();
         }
     }
 
     private void updatePhotosStatus() {
         int photoCount = hotelPhotos.size();
+
         tvPhotosCounter.setText(photoCount + "/8 fotos");
 
         if (photoCount == 0) {
-            tvPhotosStatus.setText("📷 No hay fotos subidas");
-            tvPhotosStatus.setTextColor(getResources().getColor(R.color.text_secondary));
+            tvPhotosStatus.setText("📷 Sin fotos del hotel");
             btnAddPhoto.setText("📷 Subir Primera Foto");
         } else if (photoCount < 4) {
-            tvPhotosStatus.setText("⚠️ Se requieren mínimo 4 fotos (" + (4 - photoCount) + " faltantes)");
-            tvPhotosStatus.setTextColor(getResources().getColor(R.color.warning));
-            btnAddPhoto.setText("📷 Agregar Foto (" + photoCount + "/4 requeridas)");
-        } else if (photoCount >= 4 && photoCount < 8) {
-            tvPhotosStatus.setText("✅ Fotos del hotel (" + photoCount + " fotos)");
-            tvPhotosStatus.setTextColor(getResources().getColor(R.color.success));
-            btnAddPhoto.setText("📷 Agregar Más Fotos");
+            tvPhotosStatus.setText("⚠️ Mínimo 4 fotos requeridas");
+            btnAddPhoto.setText("📷 Agregar Foto (" + photoCount + "/8)");
         } else {
-            tvPhotosStatus.setText("✅ Máximo de fotos alcanzado (8/8)");
-            tvPhotosStatus.setTextColor(getResources().getColor(R.color.success));
-            btnAddPhoto.setText("📷 Máximo Alcanzado");
-            btnAddPhoto.setEnabled(false);
+            tvPhotosStatus.setText("✅ Fotos del hotel configuradas");
+            btnAddPhoto.setText("📷 Agregar Más Fotos (" + photoCount + "/8)");
         }
 
-        // Mostrar/ocultar RecyclerView según si hay fotos
         rvHotelPhotos.setVisibility(photoCount > 0 ? View.VISIBLE : View.GONE);
-
-        // Habilitar/deshabilitar el botón según el límite
         btnAddPhoto.setEnabled(photoCount < 8);
     }
 
@@ -210,17 +320,40 @@ public class HotelProfileFragment extends Fragment {
         photoPickerLauncher.launch(intent);
     }
 
-    private void showAddBasicServiceDialog() {
-        // CAMBIO: Usar el launcher específico para servicios
-        currentBasicServiceDialog = new BasicServiceDialog(getContext(), servicePhotoPickerLauncher, service -> {
-            basicServices.add(service);
-            servicesAdapter.notifyItemInserted(basicServices.size() - 1);
+    private void removePhoto(int position) {
+        if (position >= 0 && position < hotelPhotos.size()) {
+            hotelPhotos.remove(position);
+            photosAdapter.notifyItemRemoved(position);
+            updatePhotosStatus();
+        }
+    }
 
-            // AGREGAR: Forzar actualización después de agregar servicio
-            forceRecyclerViewUpdate();
+    // ========== GESTIÓN DE SERVICIOS BÁSICOS ==========
+
+    private void showAddBasicServiceDialog() {
+        currentBasicServiceDialog = new BasicServiceDialog(getContext(), servicePhotoPickerLauncher, service -> {
+            Log.d(TAG, "🔧 Servicio básico recibido del diálogo: " + service.getName() +
+                    " con " + service.getPhotos().size() + " fotos");
+
+            // ✅ Crear modelo para Firebase - SIN pasar photoUris porque ya están las URLs
+            HotelServiceModel firebaseService = convertBasicServiceToFirebase(service);
+
+            // ✅ Las fotos ya están subidas en AWS, solo pasar null para photoUris
+            firebaseServiceManager.createService(firebaseService, null, new FirebaseServiceManager.ServiceCallback() {
+                @Override
+                public void onSuccess(HotelServiceModel createdService) {
+                    Log.d(TAG, "✅ Servicio básico creado en Firebase: " + createdService.getId());
+                    Toast.makeText(getContext(), "✅ Servicio básico agregado y sincronizado", Toast.LENGTH_SHORT).show();
+                }
+
+                @Override
+                public void onError(String error) {
+                    Log.e(TAG, "❌ Error creando servicio básico: " + error);
+                    Toast.makeText(getContext(), "Error creando servicio: " + error, Toast.LENGTH_LONG).show();
+                }
+            });
 
             currentBasicServiceDialog = null;
-            Toast.makeText(getContext(), "✅ Servicio básico agregado", Toast.LENGTH_SHORT).show();
         });
         currentBasicServiceDialog.show();
 
@@ -229,39 +362,70 @@ public class HotelProfileFragment extends Fragment {
         });
     }
 
-    private void removePhoto(int position) {
-        hotelPhotos.remove(position);
-        photosAdapter.notifyItemRemoved(position);
-        updatePhotosStatus();
-    }
-
     private void removeBasicService(int position) {
-        basicServices.remove(position);
-        servicesAdapter.notifyItemRemoved(position);
+        if (position >= 0 && position < basicServices.size()) {
+            BasicService serviceToRemove = basicServices.get(position);
 
-        // AGREGAR: Forzar actualización después de remover servicio
-        forceRecyclerViewUpdate();
+            // Encontrar el servicio en Firebase y eliminarlo
+            String serviceId = findFirebaseServiceId(serviceToRemove);
+            if (serviceId != null) {
+                firebaseServiceManager.deleteService(serviceId, new FirebaseServiceManager.ServiceCallback() {
+                    @Override
+                    public void onSuccess(HotelServiceModel service) {
+                        Toast.makeText(getContext(), "🗑️ Servicio básico eliminado y sincronizado", Toast.LENGTH_SHORT).show();
+                    }
+
+                    @Override
+                    public void onError(String error) {
+                        Toast.makeText(getContext(), "Error eliminando servicio: " + error, Toast.LENGTH_SHORT).show();
+                    }
+                });
+            } else {
+                Toast.makeText(getContext(), "Error: No se pudo encontrar el servicio para eliminar", Toast.LENGTH_SHORT).show();
+            }
+        }
     }
+
+    // ========== GUARDAR PERFIL DEL HOTEL ==========
 
     private void loadHotelProfile() {
+        Log.d(TAG, "📋 Cargando perfil del hotel");
+
         // Cargar datos básicos del hotel
         etHotelName.setText("Hotel Belmond");
         etHotelAddress.setText("Av. Principal 123, Centro, Lima, Perú");
 
-        // Limpiar lista existente
-        basicServices.clear();
+        // ✅ SOLUCIÓN: Forzar carga de servicios desde Firebase
+        Log.d(TAG, "🔄 Forzando carga explícita de servicios básicos");
+        firebaseServiceManager.getServicesByType("basic", new FirebaseServiceManager.ServicesListCallback() {
+            @Override
+            public void onSuccess(List<HotelServiceModel> services) {
+                Log.d(TAG, "✅ Servicios básicos obtenidos: " + services.size());
 
-        // Agregar servicios básicos por defecto
-        basicServices.add(new BasicService("WiFi Gratuito", "Internet de alta velocidad incluido en todas las habitaciones", "ic_wifi"));
-        basicServices.add(new BasicService("Aire Acondicionado", "Climatización individual en cada habitación", "ic_ac"));
-        basicServices.add(new BasicService("TV por Cable", "Televisión por cable con canales premium", "ic_tv"));
-        basicServices.add(new BasicService("Agua Caliente 24h", "Agua caliente disponible las 24 horas", "ic_water"));
-        basicServices.add(new BasicService("Servicio de Limpieza", "Limpieza diaria de habitaciones incluida", "ic_cleaning"));
+                if (getActivity() != null) {
+                    getActivity().runOnUiThread(() -> {
+                        // Actualizar lista de servicios básicos
+                        basicServices.clear();
+                        for (HotelServiceModel model : services) {
+                            BasicService basicService = convertFirebaseToBasicService(model);
+                            basicServices.add(basicService);
+                            Log.d(TAG, "➕ Servicio básico cargado: " + basicService.getName());
+                        }
 
-        // MEJORAR: Notificar cambios después de agregar todos los elementos
-        if (servicesAdapter != null) {
-            servicesAdapter.notifyDataSetChanged();
-        }
+                        // Forzar actualización del adapter
+                        if (servicesAdapter != null) {
+                            servicesAdapter.notifyDataSetChanged();
+                            Log.d(TAG, "🔄 Adapter de servicios básicos actualizado");
+                        }
+                    });
+                }
+            }
+
+            @Override
+            public void onError(String error) {
+                Log.e(TAG, "❌ Error cargando servicios básicos: " + error);
+            }
+        });
 
         updatePhotosStatus();
     }
@@ -285,10 +449,134 @@ public class HotelProfileFragment extends Fragment {
             return;
         }
 
-        // TODO: Guardar en Firebase/base de datos
-        HotelProfile profile = new HotelProfile(name, address, hotelPhotos, basicServices);
+        // Deshabilitar botón mientras se guarda
+        btnSaveProfile.setEnabled(false);
+        btnSaveProfile.setText("Guardando...");
+
+        // Subir fotos del hotel a AWS
+        uploadHotelPhotos(name, address);
+    }
+
+    private void uploadHotelPhotos(String hotelName, String hotelAddress) {
+        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        if (currentUser == null) {
+            showSaveError("Usuario no autenticado");
+            return;
+        }
+
+        String userId = currentUser.getUid();
+        String folder = "hotel_profile/" + userId;
+
+        List<String> uploadedPhotoUrls = new ArrayList<>();
+        AtomicInteger uploadedCount = new AtomicInteger(0);
+        AtomicInteger totalUploads = new AtomicInteger(hotelPhotos.size());
+
+        for (int i = 0; i < hotelPhotos.size(); i++) {
+            Uri photoUri = hotelPhotos.get(i);
+            String fileName = idGenerator.generateUniqueFileName("hotel", hotelName + "_" + i + ".jpg");
+
+            awsFileManager.uploadFile(photoUri, userId, folder, new AwsFileManager.UploadCallback() {
+                @Override
+                public void onSuccess(AwsFileManager.AwsFileInfo fileInfo) {
+                    synchronized (uploadedPhotoUrls) {
+                        uploadedPhotoUrls.add(fileInfo.fileUrl);
+                        int completed = uploadedCount.incrementAndGet();
+
+                        // Actualizar progreso
+                        int progress = (completed * 100) / totalUploads.get();
+                        btnSaveProfile.setText("Subiendo fotos... " + progress + "%");
+
+                        if (completed == totalUploads.get()) {
+                            // Todas las fotos subidas, guardar perfil
+                            saveHotelProfileToFirebase(hotelName, hotelAddress, uploadedPhotoUrls);
+                        }
+                    }
+                }
+
+                @Override
+                public void onError(String error) {
+                    Log.e(TAG, "Error subiendo foto del hotel: " + error);
+                    showSaveError("Error subiendo fotos: " + error);
+                }
+
+                @Override
+                public void onProgress(int percentage) {
+                    // Progreso individual
+                }
+            });
+        }
+    }
+
+    private void saveHotelProfileToFirebase(String hotelName, String hotelAddress, List<String> photoUrls) {
+        // TODO: Implementar guardado del perfil del hotel en Firebase
+        btnSaveProfile.setEnabled(true);
+        btnSaveProfile.setText("💾 Guardar Perfil del Hotel");
 
         Toast.makeText(getContext(), "✅ Perfil del hotel actualizado exitosamente", Toast.LENGTH_LONG).show();
         getParentFragmentManager().popBackStack();
+    }
+
+    private void showSaveError(String error) {
+        btnSaveProfile.setEnabled(true);
+        btnSaveProfile.setText("💾 Guardar Perfil del Hotel");
+        Toast.makeText(getContext(), error, Toast.LENGTH_LONG).show();
+    }
+
+    // ========== MÉTODOS DE CONVERSIÓN ==========
+
+    private BasicService convertFirebaseToBasicService(HotelServiceModel model) {
+        Log.d(TAG, "🔄 Convirtiendo servicio Firebase a BasicService: " + model.getName());
+
+        BasicService basicService = new BasicService(
+                model.getName(),
+                model.getDescription(),
+                model.getIconKey()
+        );
+
+        // ✅ Convertir URLs de fotos
+        List<String> photoPaths = new ArrayList<>();
+        if (model.getPhotoUrls() != null) {
+            photoPaths.addAll(model.getPhotoUrls());
+            Log.d(TAG, "📷 Fotos convertidas: " + photoPaths.size());
+            for (String url : photoPaths) {
+                Log.d(TAG, "  📸 URL: " + url);
+            }
+        }
+        basicService.setPhotos(photoPaths);
+
+        // Guardar ID de Firebase para referencia
+        basicService.setFirebaseId(model.getId());
+
+        Log.d(TAG, "✅ Servicio convertido: " + basicService.getName() + " con " +
+                basicService.getPhotos().size() + " fotos");
+        return basicService;
+    }
+
+    private HotelServiceModel convertBasicServiceToFirebase(BasicService basicService) {
+        Log.d(TAG, "🔄 Convirtiendo BasicService a Firebase: " + basicService.getName() +
+                " con " + basicService.getPhotos().size() + " fotos");
+
+        HotelServiceModel firebaseService = new HotelServiceModel(
+                basicService.getName(),
+                basicService.getDescription(),
+                basicService.getIconKey(),
+                "basic"
+        );
+
+        // ✅ Establecer las URLs de fotos directamente (ya subidas en AWS)
+        firebaseService.setPhotoUrls(basicService.getPhotos());
+
+        Log.d(TAG, "✅ URLs de fotos establecidas en Firebase model: " +
+                firebaseService.getPhotoUrls().size());
+
+        return firebaseService;
+    }
+
+    private String findFirebaseServiceId(BasicService basicService) {
+        if (basicService.getFirebaseId() != null) {
+            return basicService.getFirebaseId();
+        }
+        Log.w(TAG, "No se pudo encontrar ID de Firebase para: " + basicService.getName());
+        return null;
     }
 }

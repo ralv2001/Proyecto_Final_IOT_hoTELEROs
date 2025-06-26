@@ -5,9 +5,9 @@ import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
+import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.Window;
 import android.view.WindowManager;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
@@ -15,22 +15,35 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
+
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.appcompat.app.AppCompatDialog;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+
 import com.example.proyecto_final_hoteleros.R;
 import com.example.proyecto_final_hoteleros.adminhotel.adapters.ServicePhotosAdapter;
+import com.example.proyecto_final_hoteleros.adminhotel.dialog.IconSelectorDialog;
 import com.example.proyecto_final_hoteleros.adminhotel.model.HotelServiceItem;
+import com.example.proyecto_final_hoteleros.adminhotel.model.HotelServiceModel;
+import com.example.proyecto_final_hoteleros.adminhotel.utils.FirebaseServiceManager;
 import com.example.proyecto_final_hoteleros.adminhotel.utils.IconHelper;
+import com.example.proyecto_final_hoteleros.utils.AwsFileManager;
+import com.example.proyecto_final_hoteleros.utils.UniqueIdGenerator;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class AddServiceDialog extends AppCompatDialog {
+
+    private static final String TAG = "AddServiceDialog";
 
     public interface OnServiceAddedListener {
         void onServiceAdded(HotelServiceItem service);
@@ -53,6 +66,12 @@ public class AddServiceDialog extends AppCompatDialog {
     private ActivityResultLauncher<Intent> photoPickerLauncher;
     private OnServiceAddedListener listener;
 
+    // ✅ Managers para Firebase y AWS
+    private FirebaseServiceManager firebaseServiceManager;
+    private AwsFileManager awsFileManager;
+    private UniqueIdGenerator idGenerator;
+    private List<String> uploadedPhotoUrls;
+
     // Tipos de servicio disponibles
     private final String[] serviceTypes = {
             "Incluido",
@@ -66,6 +85,13 @@ public class AddServiceDialog extends AppCompatDialog {
         this.listener = listener;
         this.photoPickerLauncher = photoLauncher;
         this.servicePhotos = new ArrayList<>();
+        this.uploadedPhotoUrls = new ArrayList<>();
+
+        // ✅ Inicializar managers
+        this.firebaseServiceManager = FirebaseServiceManager.getInstance(context);
+        this.awsFileManager = new AwsFileManager(context);
+        this.idGenerator = UniqueIdGenerator.getInstance(context);
+
         setupDialog();
     }
 
@@ -111,14 +137,11 @@ public class AddServiceDialog extends AppCompatDialog {
     }
 
     private void setupRecyclerView() {
-        photosAdapter = new ServicePhotosAdapter(servicePhotos, new ServicePhotosAdapter.OnPhotoActionListener() {
-            @Override
-            public void onRemovePhoto(int position) {
-                servicePhotos.remove(position);
-                photosAdapter.notifyItemRemoved(position);
-                updatePhotoCount();
-                updatePhotosVisibility();
-            }
+        photosAdapter = new ServicePhotosAdapter(servicePhotos, position -> {
+            servicePhotos.remove(position);
+            photosAdapter.notifyItemRemoved(position);
+            updatePhotoCount();
+            updatePhotosVisibility();
         });
 
         rvServicePhotos.setLayoutManager(new LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false));
@@ -214,6 +237,8 @@ public class AddServiceDialog extends AppCompatDialog {
 
         if (servicePhotos.size() >= 3) {
             Toast.makeText(context, "✅ Máximo de fotos alcanzado", Toast.LENGTH_SHORT).show();
+        } else {
+            Toast.makeText(context, "📷 Foto agregada (" + servicePhotos.size() + "/3)", Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -229,11 +254,13 @@ public class AddServiceDialog extends AppCompatDialog {
         }
     }
 
+    // ========== ✅ MÉTODO PRINCIPAL PARA GUARDAR SERVICIO ==========
     private void saveService() {
         String name = etServiceName.getText().toString().trim();
         String description = etServiceDescription.getText().toString().trim();
         String typeStr = etServiceType.getText().toString().trim();
 
+        // Validaciones básicas
         if (name.isEmpty()) {
             Toast.makeText(context, "⚠️ Ingresa el nombre del servicio", Toast.LENGTH_SHORT).show();
             etServiceName.requestFocus();
@@ -308,14 +335,152 @@ public class AddServiceDialog extends AppCompatDialog {
                 return;
         }
 
-        // Crear servicio
-        HotelServiceItem service = new HotelServiceItem(name, description, price, selectedIconKey, serviceType, new ArrayList<>(servicePhotos), conditionalAmount);
+        // ✅ Deshabilitar botón mientras se guarda
+        btnSave.setEnabled(false);
+        btnSave.setText("Guardando...");
 
-        if (listener != null) {
-            listener.onServiceAdded(service);
+        Log.d(TAG, "🔧 Creando servicio: " + name + " (Tipo: " + typeStr + ")");
+
+        if (!servicePhotos.isEmpty()) {
+            // ✅ Subir fotos primero, luego crear servicio
+            uploadPhotosToAws(name, description, serviceType, price, conditionalAmount);
+        } else {
+            // ✅ Sin fotos, crear servicio directamente
+            createServiceInFirebase(name, description, serviceType, price, conditionalAmount, new ArrayList<>());
+        }
+    }
+
+    // ✅ SUBIR FOTOS A AWS
+    private void uploadPhotosToAws(String serviceName, String serviceDescription,
+                                   HotelServiceItem.ServiceType serviceType, double price, double conditionalAmount) {
+        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        if (currentUser == null) {
+            showError("Usuario no autenticado");
+            return;
         }
 
-        Toast.makeText(context, "✅ Servicio agregado exitosamente", Toast.LENGTH_SHORT).show();
-        dismiss();
+        String userId = currentUser.getUid();
+        String folder = "hotel_services/" + userId;
+
+        uploadedPhotoUrls.clear();
+        AtomicInteger uploadedCount = new AtomicInteger(0);
+        AtomicInteger totalUploads = new AtomicInteger(servicePhotos.size());
+
+        Log.d(TAG, "🔄 Subiendo " + servicePhotos.size() + " fotos a AWS para servicio: " + serviceName);
+
+        for (int i = 0; i < servicePhotos.size(); i++) {
+            Uri photoUri = servicePhotos.get(i);
+            String fileName = idGenerator.generateUniqueFileName("service", serviceName + "_" + i + ".jpg");
+
+            awsFileManager.uploadFile(photoUri, userId, folder, new AwsFileManager.UploadCallback() {
+                @Override
+                public void onSuccess(AwsFileManager.AwsFileInfo fileInfo) {
+                    synchronized (uploadedPhotoUrls) {
+                        uploadedPhotoUrls.add(fileInfo.fileUrl);
+                        int completed = uploadedCount.incrementAndGet();
+
+                        Log.d(TAG, "✅ Foto subida " + completed + "/" + totalUploads.get() + " - URL: " + fileInfo.fileUrl);
+
+                        // Ejecutar en UI Thread
+                        ((android.app.Activity) context).runOnUiThread(() -> {
+                            int progress = (completed * 100) / totalUploads.get();
+                            btnSave.setText("Subiendo fotos... " + progress + "%");
+
+                            if (completed == totalUploads.get()) {
+                                // ✅ Todas las fotos subidas, crear servicio
+                                Log.d(TAG, "✅ Todas las fotos subidas. Creando servicio con " + uploadedPhotoUrls.size() + " URLs");
+                                createServiceInFirebase(serviceName, serviceDescription, serviceType, price, conditionalAmount, uploadedPhotoUrls);
+                            }
+                        });
+                    }
+                }
+
+                @Override
+                public void onError(String error) {
+                    Log.e(TAG, "❌ Error subiendo foto: " + error);
+                    ((android.app.Activity) context).runOnUiThread(() -> {
+                        showError("Error subiendo fotos: " + error);
+                    });
+                }
+
+                @Override
+                public void onProgress(int percentage) {
+                    // Progreso individual
+                }
+            });
+        }
+    }
+
+    // ✅ CREAR SERVICIO EN FIREBASE
+    private void createServiceInFirebase(String name, String description, HotelServiceItem.ServiceType serviceType,
+                                         double price, double conditionalAmount, List<String> photoUrls) {
+        Log.d(TAG, "🔧 Creando servicio en Firebase: " + name + " con " + photoUrls.size() + " fotos");
+
+        // ✅ Crear modelo de Firebase
+        String firebaseServiceType = convertServiceTypeToFirebase(serviceType);
+        HotelServiceModel firebaseService = new HotelServiceModel(name, description, selectedIconKey, firebaseServiceType);
+        firebaseService.setPrice(price);
+        firebaseService.setConditionalAmount(conditionalAmount);
+        firebaseService.setPhotoUrls(photoUrls); // ✅ URLs de AWS
+        firebaseService.setActive(true);
+
+        // ✅ Crear en Firebase (sin URIs adicionales porque ya están subidas)
+        firebaseServiceManager.createService(firebaseService, null, new FirebaseServiceManager.ServiceCallback() {
+            @Override
+            public void onSuccess(HotelServiceModel createdService) {
+                Log.d(TAG, "✅ Servicio creado exitosamente en Firebase: " + createdService.getId());
+
+                ((android.app.Activity) context).runOnUiThread(() -> {
+                    // ✅ Crear HotelServiceItem para callback
+                    List<Uri> photoUris = new ArrayList<>();
+                    for (String url : photoUrls) {
+                        photoUris.add(Uri.parse(url));
+                    }
+
+                    HotelServiceItem serviceItem = new HotelServiceItem(
+                            name, description, price, selectedIconKey, serviceType, photoUris, conditionalAmount
+                    );
+                    serviceItem.setFirebaseId(createdService.getId());
+
+                    // ✅ Notificar al listener
+                    if (listener != null) {
+                        listener.onServiceAdded(serviceItem);
+                    }
+
+                    String photoText = photoUrls.isEmpty() ? "" : " con " + photoUrls.size() + " foto(s)";
+                    Toast.makeText(context, "✅ Servicio '" + name + "' creado exitosamente" + photoText, Toast.LENGTH_LONG).show();
+                    dismiss();
+                });
+            }
+
+            @Override
+            public void onError(String error) {
+                Log.e(TAG, "❌ Error creando servicio en Firebase: " + error);
+                ((android.app.Activity) context).runOnUiThread(() -> {
+                    showError("Error creando servicio: " + error);
+                });
+            }
+        });
+    }
+
+    // ✅ CONVERTIR TIPO DE SERVICIO
+    private String convertServiceTypeToFirebase(HotelServiceItem.ServiceType serviceType) {
+        switch (serviceType) {
+            case BASIC: return "basic";
+            case INCLUDED: return "included";
+            case PAID: return "paid";
+            case CONDITIONAL: return "conditional";
+            default: return "included";
+        }
+    }
+
+    private void showError(String error) {
+        if (context instanceof android.app.Activity) {
+            ((android.app.Activity) context).runOnUiThread(() -> {
+                btnSave.setEnabled(true);
+                btnSave.setText("✅ Guardar Servicio");
+                Toast.makeText(context, error, Toast.LENGTH_LONG).show();
+            });
+        }
     }
 }

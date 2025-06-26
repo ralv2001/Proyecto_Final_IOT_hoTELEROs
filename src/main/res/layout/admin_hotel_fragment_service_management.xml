@@ -232,7 +232,33 @@
                         android:layout_height="wrap_content"
                         android:nestedScrollingEnabled="false"
                         android:layout_marginBottom="12dp" />
+                    <!-- Agregar este estado vacío -->
+                    <LinearLayout
+                        android:id="@+id/layoutIncludedServicesEmpty"
+                        android:layout_width="match_parent"
+                        android:layout_height="80dp"
+                        android:orientation="vertical"
+                        android:gravity="center"
+                        android:visibility="gone">
 
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="✅ No hay servicios incluidos configurados"
+                            android:textSize="14sp"
+                            android:textColor="@color/text_secondary"
+                            android:gravity="center" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Usa el botón + para agregar servicios gratuitos"
+                            android:textSize="11sp"
+                            android:textColor="@color/text_secondary"
+                            android:gravity="center"
+                            android:layout_marginTop="4dp" />
+
+                    </LinearLayout>
                 </LinearLayout>
 
             </com.google.android.material.card.MaterialCardView>
@@ -306,7 +332,33 @@
                         android:layout_height="wrap_content"
                         android:nestedScrollingEnabled="false"
                         android:layout_marginBottom="12dp" />
+                    <!-- Agregar este estado vacío -->
+                    <LinearLayout
+                        android:id="@+id/layoutPaidServicesEmpty"
+                        android:layout_width="match_parent"
+                        android:layout_height="80dp"
+                        android:orientation="vertical"
+                        android:gravity="center"
+                        android:visibility="gone">
 
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="💰 No hay servicios pagados configurados"
+                            android:textSize="14sp"
+                            android:textColor="@color/text_secondary"
+                            android:gravity="center" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Agrega servicios premium con costo adicional"
+                            android:textSize="11sp"
+                            android:textColor="@color/text_secondary"
+                            android:gravity="center"
+                            android:layout_marginTop="4dp" />
+
+                    </LinearLayout>
                 </LinearLayout>
 
             </com.google.android.material.card.MaterialCardView>
@@ -437,7 +489,33 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:nestedScrollingEnabled="false" />
+                    <LinearLayout
+                        android:id="@+id/layoutConditionalServicesEmpty"
+                        android:layout_width="match_parent"
+                        android:layout_height="80dp"
+                        android:orientation="vertical"
+                        android:gravity="center"
+                        android:visibility="gone"
+                        android:layout_marginTop="12dp">
 
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="🎯 Solo está disponible el taxi condicional"
+                            android:textSize="14sp"
+                            android:textColor="@color/text_secondary"
+                            android:gravity="center" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Configura el monto mínimo arriba para activarlo"
+                            android:textSize="11sp"
+                            android:textColor="@color/text_secondary"
+                            android:gravity="center"
+                            android:layout_marginTop="4dp" />
+
+                    </LinearLayout>
                 </LinearLayout>
 
             </com.google.android.material.card.MaterialCardView>

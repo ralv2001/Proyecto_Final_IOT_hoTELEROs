@@ -9,6 +9,7 @@ import android.net.Uri;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
@@ -28,25 +29,30 @@ import com.example.proyecto_final_hoteleros.adminhotel.adapters.ServicePhotosAda
 import com.example.proyecto_final_hoteleros.adminhotel.dialog.IconSelectorDialog;
 import com.example.proyecto_final_hoteleros.adminhotel.model.BasicService;
 import com.example.proyecto_final_hoteleros.adminhotel.utils.IconHelper;
+import com.example.proyecto_final_hoteleros.utils.AwsFileManager;
+import com.example.proyecto_final_hoteleros.utils.UniqueIdGenerator;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class BasicServiceDialog extends Dialog {
     private TextInputEditText etServiceName, etServiceDescription;
     private ImageView ivSelectedIcon;
     private TextView tvSelectedIconName, tvPhotoCount;
-    private MaterialButton btnAddPhoto, btnSave, btnCancel;
+    private MaterialButton btnAddPhoto, btnAddMorePhotos, btnSave, btnCancel;
     private RecyclerView rvServicePhotos;
-    private LinearLayout layoutIconPreview;
-    private LinearLayout layoutPhotoPlaceholder; // NUEVA LÍNEA
-    private LinearLayout  layoutPhotosContainer;
-    private MaterialButton btnAddMorePhotos;
+    private LinearLayout layoutIconPreview, layoutPhotoPlaceholder, layoutPhotosContainer;
+    private AwsFileManager awsFileManager;
+    private UniqueIdGenerator idGenerator;
+    private List<String> uploadedPhotoUrls; // ✅ URLs de fotos ya subidas a AWS
     private Context context;
     private String selectedIconKey = "ic_service_default";
-    private List<Uri> servicePhotos;
+    private List<Uri> servicePhotos; // ✅ URIs locales para mostrar en UI
     private ServicePhotosAdapter photosAdapter;
     private ActivityResultLauncher<Intent> photoPickerLauncher;
     private OnServiceAddedListener listener;
@@ -55,13 +61,15 @@ public class BasicServiceDialog extends Dialog {
         void onServiceAdded(BasicService service);
     }
 
-    // CONSTRUCTOR MODIFICADO - Recibe el launcher desde el Fragment/Activity
     public BasicServiceDialog(Context context, ActivityResultLauncher<Intent> photoLauncher, OnServiceAddedListener listener) {
         super(context, R.style.DialogTheme);
         this.context = context;
         this.listener = listener;
-        this.photoPickerLauncher = photoLauncher; // Usar el launcher pasado desde fuera
+        this.photoPickerLauncher = photoLauncher;
         this.servicePhotos = new ArrayList<>();
+        this.awsFileManager = new AwsFileManager(context);
+        this.idGenerator = UniqueIdGenerator.getInstance(context);
+        this.uploadedPhotoUrls = new ArrayList<>(); // ✅ Inicializar lista de URLs
         setupDialog();
     }
 
@@ -90,6 +98,7 @@ public class BasicServiceDialog extends Dialog {
         setupClickListeners();
         updateIconDisplay();
         updatePhotoCount();
+        updatePhotosVisibility();
     }
 
     private void initViews() {
@@ -98,47 +107,95 @@ public class BasicServiceDialog extends Dialog {
         ivSelectedIcon = findViewById(R.id.ivSelectedIcon);
         tvSelectedIconName = findViewById(R.id.tvSelectedIconName);
         tvPhotoCount = findViewById(R.id.tvPhotoCount);
+        btnAddPhoto = findViewById(R.id.btnAddPhoto);
+        btnAddMorePhotos = findViewById(R.id.btnAddMorePhotos);
         btnSave = findViewById(R.id.btnSave);
         btnCancel = findViewById(R.id.btnCancel);
         rvServicePhotos = findViewById(R.id.rvServicePhotos);
         layoutIconPreview = findViewById(R.id.layoutIconPreview);
         layoutPhotoPlaceholder = findViewById(R.id.layoutPhotoPlaceholder);
         layoutPhotosContainer = findViewById(R.id.layoutPhotosContainer);
-        btnAddMorePhotos = findViewById(R.id.btnAddMorePhotos);
     }
-
 
     private void setupRecyclerView() {
         photosAdapter = new ServicePhotosAdapter(servicePhotos, this::removePhoto);
         rvServicePhotos.setLayoutManager(new GridLayoutManager(context, 3));
         rvServicePhotos.setAdapter(photosAdapter);
-        updatePhotosVisibility();
     }
 
     private void setupClickListeners() {
-        // Botón seleccionar icono
-        layoutIconPreview.setOnClickListener(v -> openIconSelector());
+        btnCancel.setOnClickListener(v -> dismiss());
+        btnSave.setOnClickListener(v -> saveService());
 
-        // Placeholder clickeable para añadir primera foto
-        layoutPhotoPlaceholder.setOnClickListener(v -> addPhotoAction());
+        layoutIconPreview.setOnClickListener(v -> showIconSelector());
 
-        // Botón para añadir más fotos cuando ya hay algunas
-        btnAddMorePhotos.setOnClickListener(v -> addPhotoAction());
+        btnAddPhoto.setOnClickListener(v -> selectPhoto());
+        btnAddMorePhotos.setOnClickListener(v -> selectPhoto());
+        layoutPhotoPlaceholder.setOnClickListener(v -> selectPhoto());
 
-        findViewById(R.id.btnCancel).setOnClickListener(v -> dismiss());
-        findViewById(R.id.btnSave).setOnClickListener(v -> saveService());
+        // Validación en tiempo real
+        etServiceName.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                validateForm();
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {}
+        });
+
+        etServiceDescription.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                validateForm();
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {}
+        });
     }
-    private void addPhotoAction() {
-        if (servicePhotos.size() < 3) {
-            Intent intent = new Intent(Intent.ACTION_PICK);
-            intent.setType("image/*");
-            photoPickerLauncher.launch(intent);
-        } else {
+
+    private void validateForm() {
+        boolean isValid = !etServiceName.getText().toString().trim().isEmpty() &&
+                !etServiceDescription.getText().toString().trim().isEmpty();
+        btnSave.setEnabled(isValid);
+        btnSave.setAlpha(isValid ? 1.0f : 0.5f);
+    }
+
+    private void showIconSelector() {
+        IconSelectorDialog iconDialog = new IconSelectorDialog(context, selectedIconKey, new IconSelectorDialog.OnIconSelectedListener() {
+            @Override
+            public void onIconSelected(String iconKey, String iconName) {
+                selectedIconKey = iconKey;
+                updateIconDisplay();
+            }
+        });
+        iconDialog.show();
+    }
+
+    private void updateIconDisplay() {
+        int iconResource = IconHelper.getIconResource(selectedIconKey);
+        ivSelectedIcon.setImageResource(iconResource);
+        tvSelectedIconName.setText(IconHelper.getIconName(selectedIconKey));
+    }
+
+    private void selectPhoto() {
+        if (servicePhotos.size() >= 3) {
             Toast.makeText(context, "Máximo 3 fotos permitidas", Toast.LENGTH_SHORT).show();
+            return;
         }
+
+        Intent intent = new Intent(Intent.ACTION_PICK);
+        intent.setType("image/*");
+        photoPickerLauncher.launch(intent);
     }
 
-    // Método para agregar foto desde el launcher externo
     public void addPhoto(Uri photoUri) {
         if (servicePhotos.size() < 3) {
             servicePhotos.add(photoUri);
@@ -149,62 +206,50 @@ public class BasicServiceDialog extends Dialog {
         }
     }
 
-    private void openIconSelector() {
-        IconSelectorDialog iconDialog = new IconSelectorDialog(context, selectedIconKey,
-                (iconKey, iconName) -> {
-                    selectedIconKey = iconKey;
-                    updateIconDisplay();
-                    Toast.makeText(context, "✅ Icono seleccionado: " + iconName, Toast.LENGTH_SHORT).show();
-                });
-        iconDialog.show();
-    }
-
-    private void updateIconDisplay() {
-        try {
-            int iconResource = IconHelper.getIconResource(selectedIconKey);
-            ivSelectedIcon.setImageResource(iconResource);
-
-            String iconName = IconHelper.getIconName(selectedIconKey);
-            tvSelectedIconName.setText(iconName);
-            tvSelectedIconName.setTextColor(ContextCompat.getColor(context, R.color.text_primary));
-
-        } catch (Exception e) {
-            ivSelectedIcon.setImageResource(R.drawable.ic_service_default);
-            tvSelectedIconName.setText("Icono por defecto");
-        }
-    }
-
     private void updatePhotoCount() {
-        tvPhotoCount.setText(servicePhotos.size() + "/3");
-        updatePhotosVisibility(); // Usar el método que ya maneja la visibilidad correctamente
+        tvPhotoCount.setText(servicePhotos.size() + "/3 fotos");
     }
 
     private void updatePhotosVisibility() {
         boolean hasPhotos = !servicePhotos.isEmpty();
 
-        // Mostrar container de fotos solo cuando hay fotos
-        if (layoutPhotosContainer != null) {
-            layoutPhotosContainer.setVisibility(hasPhotos ? View.VISIBLE : View.GONE);
+        if (rvServicePhotos != null) {
+            rvServicePhotos.setVisibility(hasPhotos ? View.VISIBLE : View.GONE);
         }
 
-        // Mostrar placeholder solo cuando NO hay fotos
         if (layoutPhotoPlaceholder != null) {
             layoutPhotoPlaceholder.setVisibility(hasPhotos ? View.GONE : View.VISIBLE);
         }
 
-        // Habilitar/deshabilitar botón de más fotos según el límite
-        if (btnAddMorePhotos != null) {
-            btnAddMorePhotos.setEnabled(servicePhotos.size() < 3);
-            btnAddMorePhotos.setVisibility(servicePhotos.size() >= 3 ? View.GONE : View.VISIBLE);
+        if (btnAddPhoto != null && btnAddMorePhotos != null) {
+            if (servicePhotos.size() == 0) {
+                btnAddPhoto.setVisibility(View.VISIBLE);
+                btnAddMorePhotos.setVisibility(View.GONE);
+            } else if (servicePhotos.size() < 3) {
+                btnAddPhoto.setVisibility(View.GONE);
+                btnAddMorePhotos.setVisibility(View.VISIBLE);
+                btnAddMorePhotos.setEnabled(true);
+            } else {
+                btnAddPhoto.setVisibility(View.GONE);
+                btnAddMorePhotos.setVisibility(View.VISIBLE);
+                btnAddMorePhotos.setEnabled(false);
+                btnAddMorePhotos.setText("Máximo alcanzado");
+            }
         }
     }
 
     private void removePhoto(int position) {
-        servicePhotos.remove(position);
-        photosAdapter.notifyItemRemoved(position);
-        updatePhotoCount();
-        updatePhotosVisibility();
-        Toast.makeText(context, "Foto eliminada", Toast.LENGTH_SHORT).show();
+        if (position >= 0 && position < servicePhotos.size()) {
+            servicePhotos.remove(position);
+            // ✅ También remover de URLs subidas si existe
+            if (position < uploadedPhotoUrls.size()) {
+                uploadedPhotoUrls.remove(position);
+            }
+            photosAdapter.notifyItemRemoved(position);
+            updatePhotoCount();
+            updatePhotosVisibility();
+            Toast.makeText(context, "Foto eliminada", Toast.LENGTH_SHORT).show();
+        }
     }
 
     private void saveService() {
@@ -230,16 +275,109 @@ public class BasicServiceDialog extends Dialog {
             return;
         }
 
-        // Crear servicio con fotos
+        if (description.length() < 10) {
+            etServiceDescription.setError("Mínimo 10 caracteres");
+            etServiceDescription.requestFocus();
+            return;
+        }
+
+        // Deshabilitar botón de guardar
+        btnSave.setEnabled(false);
+        btnSave.setText("Guardando...");
+
+        if (!servicePhotos.isEmpty()) {
+            // ✅ Subir fotos primero a AWS, luego crear servicio con URLs
+            uploadPhotosToAws(name, description);
+        } else {
+            // Sin fotos, crear servicio directamente
+            createBasicService(name, description, new ArrayList<>());
+        }
+    }
+
+    private void uploadPhotosToAws(String serviceName, String serviceDescription) {
+        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        if (currentUser == null) {
+            showError("Usuario no autenticado");
+            return;
+        }
+
+        String userId = currentUser.getUid();
+        String folder = "hotel_services/" + userId;
+
+        uploadedPhotoUrls.clear(); // ✅ Limpiar URLs anteriores
+        AtomicInteger uploadedCount = new AtomicInteger(0);
+        AtomicInteger totalUploads = new AtomicInteger(servicePhotos.size());
+
+        Log.d("BasicServiceDialog", "🔄 Iniciando subida de " + servicePhotos.size() + " fotos a AWS");
+
+        for (int i = 0; i < servicePhotos.size(); i++) {
+            Uri photoUri = servicePhotos.get(i);
+            String fileName = idGenerator.generateUniqueFileName("service", serviceName + "_" + i + ".jpg");
+
+            awsFileManager.uploadFile(photoUri, userId, folder, new AwsFileManager.UploadCallback() {
+                @Override
+                public void onSuccess(AwsFileManager.AwsFileInfo fileInfo) {
+                    synchronized (uploadedPhotoUrls) {
+                        uploadedPhotoUrls.add(fileInfo.fileUrl); // ✅ Guardar URL de AWS
+                        int completed = uploadedCount.incrementAndGet();
+
+                        Log.d("BasicServiceDialog", "✅ Foto subida " + completed + "/" + totalUploads.get() +
+                                " - URL: " + fileInfo.fileUrl);
+
+                        // ✅ EJECUTAR EN UI THREAD
+                        ((android.app.Activity) context).runOnUiThread(() -> {
+                            int progress = (completed * 100) / totalUploads.get();
+                            btnSave.setText("Subiendo fotos... " + progress + "%");
+
+                            if (completed == totalUploads.get()) {
+                                // ✅ Todas las fotos subidas, crear servicio con URLs
+                                Log.d("BasicServiceDialog", "✅ Todas las fotos subidas. Creando servicio con " +
+                                        uploadedPhotoUrls.size() + " URLs");
+                                createBasicService(serviceName, serviceDescription, uploadedPhotoUrls);
+                            }
+                        });
+                    }
+                }
+
+                @Override
+                public void onError(String error) {
+                    Log.e("BasicServiceDialog", "❌ Error subiendo foto: " + error);
+                    ((android.app.Activity) context).runOnUiThread(() -> {
+                        showError("Error subiendo fotos: " + error);
+                    });
+                }
+
+                @Override
+                public void onProgress(int percentage) {
+                    // Progreso individual
+                }
+            });
+        }
+    }
+
+    private void createBasicService(String name, String description, List<String> photoUrls) {
+        Log.d("BasicServiceDialog", "🔧 Creando servicio básico: " + name + " con " + photoUrls.size() + " fotos");
+
+        // ✅ Crear servicio con URLs de fotos de AWS
         BasicService service = new BasicService(name, description, selectedIconKey);
-        service.setPhotos(new ArrayList<>(servicePhotos)); // Agregar fotos al servicio
+        service.setPhotos(photoUrls); // ✅ Establecer URLs directamente
 
         if (listener != null) {
             listener.onServiceAdded(service);
         }
 
-        String photoText = servicePhotos.isEmpty() ? "" : " con " + servicePhotos.size() + " foto(s)";
+        String photoText = photoUrls.isEmpty() ? "" : " con " + photoUrls.size() + " foto(s)";
         Toast.makeText(context, "✅ Servicio '" + name + "' agregado" + photoText, Toast.LENGTH_LONG).show();
         dismiss();
+    }
+
+    private void showError(String error) {
+        if (context instanceof android.app.Activity) {
+            ((android.app.Activity) context).runOnUiThread(() -> {
+                btnSave.setEnabled(true);
+                btnSave.setText("✅ Guardar Servicio");
+                Toast.makeText(context, error, Toast.LENGTH_LONG).show();
+            });
+        }
     }
 }

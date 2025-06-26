@@ -54,7 +54,8 @@
                 android:layout_marginBottom="16dp"
                 app:boxStrokeColor="@color/orange"
                 app:hintTextColor="@color/orange"
-                app:startIconDrawable="@drawable/ic_label">
+                app:startIconDrawable="@drawable/ic_label"
+                app:startIconTint="@color/orange">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/etServiceName"
@@ -73,7 +74,8 @@
                 android:layout_marginBottom="20dp"
                 app:boxStrokeColor="@color/orange"
                 app:hintTextColor="@color/orange"
-                app:startIconDrawable="@drawable/ic_description">
+                app:startIconDrawable="@drawable/ic_description"
+                app:startIconTint="@color/orange">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/etServiceDescription"
@@ -86,6 +88,114 @@
                     android:maxLength="200" />
 
             </com.google.android.material.textfield.TextInputLayout>
+
+            <!-- Sección de Fotos -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginBottom="20dp">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="📷 Fotos del Servicio (Opcional)"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/text_primary"
+                    android:layout_marginBottom="8dp" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Puedes agregar hasta 3 fotos para mostrar mejor este servicio"
+                    android:textSize="12sp"
+                    android:textColor="@color/text_secondary"
+                    android:layout_marginBottom="12dp" />
+
+                <!-- Placeholder cuando no hay fotos -->
+                <LinearLayout
+                    android:id="@+id/layoutPhotoPlaceholder"
+                    android:layout_width="match_parent"
+                    android:layout_height="80dp"
+                    android:orientation="vertical"
+                    android:gravity="center"
+                    android:background="@drawable/bg_dashed_border"
+                    android:layout_marginBottom="12dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="📷"
+                        android:textSize="24sp"
+                        android:layout_marginBottom="4dp" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Agregar fotos del servicio"
+                        android:textSize="12sp"
+                        android:textColor="@color/text_secondary" />
+
+                </LinearLayout>
+
+                <!-- RecyclerView para fotos del servicio -->
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/rvServicePhotos"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="12dp"
+                    android:visibility="gone" />
+
+                <!-- Contenedor de botones de fotos -->
+                <LinearLayout
+                    android:id="@+id/layoutPhotosContainer"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center">
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnAddPhoto"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="📷 Agregar Foto"
+                        android:textColor="@color/orange"
+                        app:backgroundTint="@android:color/transparent"
+                        app:strokeColor="@color/orange"
+                        app:strokeWidth="1dp"
+                        app:cornerRadius="8dp"
+                        android:layout_marginEnd="8dp" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnAddMorePhotos"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="➕ Más Fotos"
+                        android:textColor="@color/green"
+                        app:backgroundTint="@android:color/transparent"
+                        app:strokeColor="@color/green"
+                        app:strokeWidth="1dp"
+                        app:cornerRadius="8dp"
+                        android:layout_marginStart="8dp"
+                        android:visibility="gone" />
+
+                </LinearLayout>
+
+                <!-- Contador de fotos -->
+                <TextView
+                    android:id="@+id/tvPhotoCount"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="0/3 fotos"
+                    android:textSize="11sp"
+                    android:textColor="@color/text_secondary"
+                    android:layout_gravity="center"
+                    android:layout_marginTop="8dp" />
+
+            </LinearLayout>
 
             <!-- Sección de Icono -->
             <LinearLayout
@@ -103,146 +213,64 @@
                     android:textColor="@color/text_primary"
                     android:layout_marginBottom="8dp" />
 
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Selecciona un icono que represente este servicio"
+                    android:textSize="12sp"
+                    android:textColor="@color/text_secondary"
+                    android:layout_marginBottom="12dp" />
+
+                <!-- Preview del icono seleccionado -->
                 <LinearLayout
                     android:id="@+id/layoutIconPreview"
                     android:layout_width="match_parent"
-                    android:layout_height="48dp"
+                    android:layout_height="wrap_content"
                     android:orientation="horizontal"
                     android:gravity="center_vertical"
-                    android:background="@drawable/bg_icon_preview"
-                    android:padding="12dp"
+                    android:background="@drawable/bg_service_card"
+                    android:padding="16dp"
+                    android:layout_marginBottom="12dp"
                     android:clickable="true"
                     android:focusable="true">
 
                     <ImageView
                         android:id="@+id/ivSelectedIcon"
-                        android:layout_width="24dp"
-                        android:layout_height="24dp"
+                        android:layout_width="32dp"
+                        android:layout_height="32dp"
                         android:src="@drawable/ic_service_default"
                         app:tint="@color/orange"
                         android:layout_marginEnd="12dp" />
 
-                    <TextView
-                        android:id="@+id/tvSelectedIconName"
+                    <LinearLayout
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:text="Seleccionar icono"
-                        android:textSize="14sp"
-                        android:textColor="@color/text_secondary" />
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:id="@+id/tvSelectedIconName"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Servicio por defecto"
+                            android:textSize="14sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/text_primary" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Toca para cambiar el icono"
+                            android:textSize="12sp"
+                            android:textColor="@color/text_secondary" />
+
+                    </LinearLayout>
 
                     <ImageView
-                        android:layout_width="20dp"
-                        android:layout_height="20dp"
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
                         android:src="@drawable/ic_edit"
                         app:tint="@color/orange" />
-
-                </LinearLayout>
-
-            </LinearLayout>
-
-            <!-- Sección de Fotos -->
-            <!-- Sección de Fotos -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:layout_marginBottom="16dp">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:gravity="center_vertical"
-                    android:layout_marginBottom="8dp">
-
-                    <TextView
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:text="📷 Fotos del Servicio"
-                        android:textSize="14sp"
-                        android:textStyle="bold"
-                        android:textColor="@color/text_primary" />
-
-                    <TextView
-                        android:id="@+id/tvPhotoCount"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="0/3"
-                        android:textSize="12sp"
-                        android:textColor="@color/text_secondary"
-                        android:background="@drawable/bg_counter"
-                        android:paddingHorizontal="8dp"
-                        android:paddingVertical="2dp" />
-
-                </LinearLayout>
-
-                <!-- Placeholder clickeable cuando no hay fotos -->
-                <LinearLayout
-                    android:id="@+id/layoutPhotoPlaceholder"
-                    android:layout_width="match_parent"
-                    android:layout_height="100dp"
-                    android:orientation="vertical"
-                    android:gravity="center"
-                    android:background="@drawable/bg_dashed_border_clickable"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:visibility="visible">
-
-                    <ImageView
-                        android:layout_width="32dp"
-                        android:layout_height="32dp"
-                        android:src="@drawable/ic_add_photo"
-                        app:tint="@color/blue"
-                        android:layout_marginBottom="6dp" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Toca para añadir fotos del servicio"
-                        android:textSize="12sp"
-                        android:textColor="@color/blue"
-                        android:textStyle="bold" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Máximo 3 fotos"
-                        android:textSize="10sp"
-                        android:textColor="@color/text_secondary"
-                        android:layout_marginTop="2dp" />
-
-                </LinearLayout>
-
-                <!-- RecyclerView para mostrar fotos -->
-                <LinearLayout
-                    android:id="@+id/layoutPhotosContainer"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:visibility="gone">
-
-                    <androidx.recyclerview.widget.RecyclerView
-                        android:id="@+id/rvServicePhotos"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:nestedScrollingEnabled="false"
-                        android:layout_marginBottom="8dp" />
-
-                    <!-- Botón pequeño para añadir más fotos cuando ya hay algunas -->
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/btnAddMorePhotos"
-                        android:layout_width="wrap_content"
-                        android:layout_height="36dp"
-                        android:layout_gravity="center"
-                        android:text="+ Añadir más fotos"
-                        style="@style/Widget.MaterialComponents.Button.TextButton"
-                        android:textColor="@color/blue"
-                        android:textSize="12sp"
-                        app:icon="@drawable/ic_add_photo"
-                        app:iconSize="16dp"
-                        app:iconTint="@color/blue" />
 
                 </LinearLayout>
 
@@ -252,40 +280,37 @@
 
     </ScrollView>
 
-    <!-- Botones fijos -->
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:background="@color/orange_light"
-        android:layout_marginHorizontal="24dp" />
-
+    <!-- Botones fijos en la parte inferior -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:gravity="end"
         android:padding="24dp"
-        android:paddingTop="16dp">
+        android:gravity="center">
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnCancel"
-            android:layout_width="wrap_content"
-            android:layout_height="48dp"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
             android:text="Cancelar"
-            style="@style/Widget.MaterialComponents.Button.TextButton"
             android:textColor="@color/text_secondary"
-            android:layout_marginEnd="12dp"
-            android:paddingHorizontal="24dp" />
+            app:backgroundTint="@android:color/transparent"
+            app:strokeColor="@color/text_secondary"
+            app:strokeWidth="1dp"
+            app:cornerRadius="12dp"
+            android:layout_marginEnd="8dp" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnSave"
-            android:layout_width="wrap_content"
-            android:layout_height="48dp"
-            android:text="💾 Guardar"
-            app:backgroundTint="@color/orange"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="✅ Guardar Servicio"
             android:textColor="@android:color/white"
-            app:cornerRadius="8dp"
-            android:paddingHorizontal="24dp" />
+            app:backgroundTint="@color/orange"
+            app:cornerRadius="12dp"
+            android:layout_marginStart="8dp" />
 
     </LinearLayout>
 

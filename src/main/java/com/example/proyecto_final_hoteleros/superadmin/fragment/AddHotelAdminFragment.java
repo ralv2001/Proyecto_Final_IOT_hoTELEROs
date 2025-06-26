@@ -270,10 +270,10 @@ public class AddHotelAdminFragment extends Fragment {
                         " ha sido creado exitosamente y guardado en Firebase.")
                 .setPositiveButton("Continuar", (dialog, which) -> {
                     if (getActivity() instanceof SuperAdminActivity) {
-                        // 🔥 SOLUCIÓN: Agregar delay para sincronización de Firebase
+                        // 🔥 INCREMENTAR DELAY para mejor sincronización
                         new Handler().postDelayed(() -> {
                             ((SuperAdminActivity) getActivity()).navigateBackToDashboardWithRefresh();
-                        }, 1500); // 1.5 segundos de delay
+                        }, 2500); // 2.5 segundos de delay
                     }
                 })
                 .setIcon(R.drawable.ic_check)

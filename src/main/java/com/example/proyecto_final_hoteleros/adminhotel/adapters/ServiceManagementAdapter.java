@@ -4,15 +4,19 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.PopupMenu;
 import android.widget.TextView;
+
 import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
+
 import com.example.proyecto_final_hoteleros.R;
 import com.example.proyecto_final_hoteleros.adminhotel.model.HotelServiceItem;
 import com.example.proyecto_final_hoteleros.adminhotel.utils.IconHelper;
 import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.switchmaterial.SwitchMaterial;
+
 import java.text.NumberFormat;
 import java.util.List;
 import java.util.Locale;
@@ -76,16 +80,28 @@ public class ServiceManagementAdapter extends RecyclerView.Adapter<ServiceManage
         }
 
         public void bind(HotelServiceItem service, int position) {
-            // Información básica
+            // ✅ Información básica del servicio
             tvServiceName.setText(service.getName());
             tvServiceDescription.setText(service.getDescription());
 
-            // Icono
+            // ✅ Icono del servicio
             int iconResource = IconHelper.getIconResource(service.getIconKey());
             ivServiceIcon.setImageResource(iconResource);
 
-            // Estado del switch
-            switchServiceActive.setOnCheckedChangeListener(null);
+            // ✅ Configurar apariencia según tipo de servicio
+            setupServiceTypeAppearance(service);
+
+            // ✅ Precio del servicio
+            setupPriceDisplay(service);
+
+            // ✅ Información condicional
+            setupConditionalInfo(service);
+
+            // ✅ Contador de fotos
+            setupPhotoIndicator(service);
+
+            // ✅ Switch de activación
+            switchServiceActive.setOnCheckedChangeListener(null); // Evitar callbacks durante el setup
             switchServiceActive.setChecked(service.isActive());
             switchServiceActive.setOnCheckedChangeListener((buttonView, isChecked) -> {
                 if (listener != null) {
@@ -93,21 +109,10 @@ public class ServiceManagementAdapter extends RecyclerView.Adapter<ServiceManage
                 }
             });
 
-            // Configurar apariencia según tipo de servicio
-            setupServiceTypeAppearance(service);
-
-            // Precio
-            setupPriceDisplay(service);
-
-            // Información condicional
-            setupConditionalInfo(service);
-
-            // Fotos
-            setupPhotoIndicator(service);
-
-            // Click listeners
+            // ✅ Menú de opciones
             ivServiceMenu.setOnClickListener(v -> showServiceMenu(service, position));
 
+            // ✅ Click en la card para editar
             itemView.setOnClickListener(v -> {
                 if (listener != null) {
                     listener.onEditService(service, position);
@@ -116,7 +121,7 @@ public class ServiceManagementAdapter extends RecyclerView.Adapter<ServiceManage
         }
 
         private void setupServiceTypeAppearance(HotelServiceItem service) {
-            int strokeColor, labelColor, iconBackgroundColor;
+            int strokeColor, labelColor, iconBackgroundColor, chipBackground;
             String labelText = service.getTypeLabel();
 
             switch (service.getType()) {
@@ -124,101 +129,94 @@ public class ServiceManagementAdapter extends RecyclerView.Adapter<ServiceManage
                     strokeColor = ContextCompat.getColor(itemView.getContext(), R.color.orange);
                     labelColor = R.color.orange;
                     iconBackgroundColor = R.color.orange_light;
+                    chipBackground = R.drawable.bg_chip_orange;
                     break;
                 case INCLUDED:
                     strokeColor = ContextCompat.getColor(itemView.getContext(), R.color.green);
                     labelColor = R.color.green;
                     iconBackgroundColor = R.color.green_light;
+                    chipBackground = R.drawable.bg_chip_green;
                     break;
                 case PAID:
                     strokeColor = ContextCompat.getColor(itemView.getContext(), R.color.blue);
                     labelColor = R.color.blue;
                     iconBackgroundColor = R.color.blue_light;
+                    chipBackground = R.drawable.bg_chip_blue;
                     break;
                 case CONDITIONAL:
                     strokeColor = ContextCompat.getColor(itemView.getContext(), R.color.purple);
                     labelColor = R.color.purple;
                     iconBackgroundColor = R.color.purple_light;
+                    chipBackground = R.drawable.bg_chip_purple;
                     break;
                 default:
                     strokeColor = ContextCompat.getColor(itemView.getContext(), R.color.text_secondary);
                     labelColor = R.color.text_secondary;
                     iconBackgroundColor = R.color.background_light;
+                    chipBackground = R.drawable.bg_chip_green;
                     break;
             }
 
-            // Aplicar colores
+            // ✅ Aplicar colores
             ((MaterialCardView) itemView).setStrokeColor(strokeColor);
             cardServiceIcon.setCardBackgroundColor(ContextCompat.getColor(itemView.getContext(), iconBackgroundColor));
             tvServiceTypeLabel.setText(labelText);
             tvServiceTypeLabel.setTextColor(ContextCompat.getColor(itemView.getContext(), labelColor));
-
-            // Cambiar background del chip según tipo
-            int chipBackground = getChipBackground(service.getType());
             tvServiceTypeLabel.setBackgroundResource(chipBackground);
         }
 
-        private int getChipBackground(HotelServiceItem.ServiceType type) {
-            switch (type) {
-                case BASIC:
-                    return R.drawable.bg_chip_orange;
-                case INCLUDED:
-                    return R.drawable.bg_chip_green;
-                case PAID:
-                    return R.drawable.bg_chip_blue;
-                case CONDITIONAL:
-                    return R.drawable.bg_chip_purple;
-                default:
-                    return R.drawable.bg_chip_gray;
-            }
-        }
-
         private void setupPriceDisplay(HotelServiceItem service) {
-            if (service.isFree()) {
-                tvServicePrice.setText("Gratis");
-                tvServicePrice.setTextColor(ContextCompat.getColor(itemView.getContext(), R.color.green));
-            } else {
+            if (service.getPrice() > 0) {
                 tvServicePrice.setText(currencyFormat.format(service.getPrice()));
-                tvServicePrice.setTextColor(ContextCompat.getColor(itemView.getContext(), R.color.blue));
+                tvServicePrice.setVisibility(View.VISIBLE);
+            } else {
+                tvServicePrice.setVisibility(View.GONE);
             }
         }
 
         private void setupConditionalInfo(HotelServiceItem service) {
             if (service.getType() == HotelServiceItem.ServiceType.CONDITIONAL && service.getConditionalAmount() > 0) {
+                tvConditionalInfo.setText("Activo con compras > " + currencyFormat.format(service.getConditionalAmount()));
                 tvConditionalInfo.setVisibility(View.VISIBLE);
-                tvConditionalInfo.setText("Activo desde " + currencyFormat.format(service.getConditionalAmount()));
             } else {
                 tvConditionalInfo.setVisibility(View.GONE);
             }
         }
 
         private void setupPhotoIndicator(HotelServiceItem service) {
-            if (service.getPhotos() != null && !service.getPhotos().isEmpty()) {
+            int photoCount = service.getPhotos().size();
+            if (photoCount > 0) {
+                tvPhotoCount.setText(photoCount + " foto" + (photoCount > 1 ? "s" : ""));
                 layoutPhotoIndicator.setVisibility(View.VISIBLE);
-                int photoCount = service.getPhotos().size();
-                tvPhotoCount.setText(photoCount + (photoCount == 1 ? " foto" : " fotos"));
             } else {
                 layoutPhotoIndicator.setVisibility(View.GONE);
             }
         }
 
         private void showServiceMenu(HotelServiceItem service, int position) {
-            android.widget.PopupMenu popup = new android.widget.PopupMenu(itemView.getContext(), ivServiceMenu);
+            PopupMenu popup = new PopupMenu(itemView.getContext(), ivServiceMenu);
             popup.getMenuInflater().inflate(R.menu.service_management_menu, popup.getMenu());
 
-            // Deshabilitar eliminar para servicios básicos si hay muy pocos
-            if (service.getType() == HotelServiceItem.ServiceType.BASIC &&
-                    countBasicServices() <= 3) {
+            // ✅ Deshabilitar edición/eliminación para servicios básicos
+            if (service.getType() == HotelServiceItem.ServiceType.BASIC) {
+                popup.getMenu().findItem(R.id.action_edit).setEnabled(false);
+                popup.getMenu().findItem(R.id.action_delete).setEnabled(false);
+            }
+
+            // ✅ Deshabilitar eliminación para taxi condicional
+            if (service.getType() == HotelServiceItem.ServiceType.CONDITIONAL &&
+                    service.getName().toLowerCase().contains("taxi")) {
                 popup.getMenu().findItem(R.id.action_delete).setEnabled(false);
             }
 
             popup.setOnMenuItemClickListener(item -> {
-                if (item.getItemId() == R.id.action_edit) {
+                int id = item.getItemId();
+                if (id == R.id.action_edit) {
                     if (listener != null) {
                         listener.onEditService(service, position);
                     }
                     return true;
-                } else if (item.getItemId() == R.id.action_delete) {
+                } else if (id == R.id.action_delete) {
                     if (listener != null) {
                         listener.onDeleteService(service, position);
                     }
@@ -228,16 +226,6 @@ public class ServiceManagementAdapter extends RecyclerView.Adapter<ServiceManage
             });
 
             popup.show();
-        }
-
-        private int countBasicServices() {
-            int count = 0;
-            for (HotelServiceItem service : services) {
-                if (service.getType() == HotelServiceItem.ServiceType.BASIC) {
-                    count++;
-                }
-            }
-            return count;
         }
     }
 }
