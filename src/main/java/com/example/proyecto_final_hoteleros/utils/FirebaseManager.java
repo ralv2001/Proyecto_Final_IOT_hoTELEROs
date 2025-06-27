@@ -631,7 +631,7 @@ public class FirebaseManager {
     }
     // ========== MÉTODO PARA OBTENER ADMINISTRADORES DE HOTEL ==========
     public void getHotelAdmins(DriverListCallback callback) {
-        Log.d(TAG, "Obteniendo administradores de hotel...");
+        Log.d(TAG, "📋 Obteniendo administradores de hotel... [timestamp: " + System.currentTimeMillis() + "]");
 
         firestore.collection(USERS_COLLECTION)
                 .whereEqualTo("userType", "hotel_admin")
@@ -645,12 +645,17 @@ public class FirebaseManager {
                                 UserModel admin = UserModel.fromMap(document.getData());
                                 admin.setUserId(document.getId());
                                 admins.add(admin);
+
+                                // 🔥 LOG DETALLADO DE CADA ADMIN ENCONTRADO
+                                Log.d(TAG, "👤 Admin encontrado: " + admin.getEmail() +
+                                        " | ID: " + document.getId() +
+                                        " | Created: " + admin.getCreatedAt());
                             } catch (Exception e) {
                                 Log.e(TAG, "Error parseando admin de hotel: " + e.getMessage());
                             }
                         }
 
-                        Log.d(TAG, "✅ " + admins.size() + " administradores de hotel obtenidos");
+                        Log.d(TAG, "✅ " + admins.size() + " administradores de hotel obtenidos [timestamp: " + System.currentTimeMillis() + "]");
                         callback.onSuccess(admins);
 
                     } else {

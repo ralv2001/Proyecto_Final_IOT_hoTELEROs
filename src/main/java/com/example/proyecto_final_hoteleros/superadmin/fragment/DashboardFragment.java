@@ -376,27 +376,46 @@ public class DashboardFragment extends Fragment {
         }
     }
     // 🔥 NUEVO: Método público para forzar refresh de datos
+    // 🔥 REEMPLAZAR el método forceDataRefresh() COMPLETO
     public void forceDataRefresh() {
         Log.d(TAG, "🔄 Forzando refresh de datos del Dashboard...");
 
         if (getActivity() != null) {
             getActivity().runOnUiThread(() -> {
-                // Recargar todos los datos
-                loadRealTimeData();
-                loadQuickAccess();
-                loadRecentActivity();
-                updateLastUpdateTime();
-                startLiveIndicatorAnimation();
+                // 🔥 DELAY MÁS LARGO PARA SINCRONIZACIÓN
+                new Handler().postDelayed(() -> {
+                    Log.d(TAG, "⚡ Ejecutando refresh después de delay de sincronización...");
 
-                // 🔥 NUEVO: Notificar a SuperAdminActivity que refresh todos los fragments
-                if (getActivity() instanceof SuperAdminActivity) {
-                    ((SuperAdminActivity) getActivity()).refreshAllFragments();
-                }
+                    // Recargar datos con múltiples intentos
+                    loadRealTimeDataWithRetry(0);
+                    loadQuickAccess();
+                    loadRecentActivity();
+                    updateLastUpdateTime();
+                    startLiveIndicatorAnimation();
 
-                // Mostrar toast de confirmación
-                android.widget.Toast.makeText(getContext(),
-                        "✅ Dashboard actualizado", android.widget.Toast.LENGTH_SHORT).show();
+                    android.widget.Toast.makeText(getContext(),
+                            "✅ Dashboard actualizado", android.widget.Toast.LENGTH_SHORT).show();
+
+                }, 3000); // 🔥 3 segundos de delay
             });
+        }
+    }
+
+    // 🔥 NUEVO: Método con reintentos automáticos
+    private void loadRealTimeDataWithRetry(int attemptCount) {
+        final int MAX_ATTEMPTS = 3;
+
+        Log.d(TAG, "📊 Cargando datos (intento " + (attemptCount + 1) + ")...");
+
+        loadPendingDriversFromSuperAdmin();
+        loadUserStatistics();
+
+        // Si es el primer intento, programar reintentos
+        if (attemptCount < MAX_ATTEMPTS) {
+            new Handler().postDelayed(() -> {
+                Log.d(TAG, "🔄 Reintento automático " + (attemptCount + 2));
+                loadRealTimeDataWithRetry(attemptCount + 1);
+            }, 2000 * (attemptCount + 1)); // Delay incremental
         }
     }
 

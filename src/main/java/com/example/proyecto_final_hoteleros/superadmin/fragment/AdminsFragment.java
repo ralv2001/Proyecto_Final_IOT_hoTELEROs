@@ -2,6 +2,7 @@ package com.example.proyecto_final_hoteleros.superadmin.fragment;
 
 
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -566,18 +567,84 @@ public class AdminsFragment extends Fragment {
                 .setNegativeButton("Cancelar", (dialog, which) -> dialog.dismiss())
                 .show();
     }
-    @Override
-    public void onResume() {
-        super.onResume();
-        Log.d("AdminsFragment", "📱 AdminsFragment onResume() - Refrescando lista de admins...");
 
-        // Recargar datos cada vez que se vuelve al fragment
-        loadData();
-    }
 
     // 🔥 NUEVO: Método público para refrescar desde SuperAdminActivity
     public void refreshAdminsList() {
         Log.d("AdminsFragment", "🔄 Refresh forzado de administradores...");
         loadData();
     }
+    // 🔥 NUEVO: Refresh con delay para sincronización
+    public void refreshAdminsListWithDelay() {
+        Log.d("AdminsFragment", "🔄 Iniciando refresh con delay para sincronización...");
+
+        // Delay para asegurar que Firebase esté sincronizado
+        new Handler().postDelayed(() -> {
+            Log.d("AdminsFragment", "⚡ Ejecutando refresh después del delay...");
+            refreshAdminsListWithRetry(0);
+        }, 1500); // 1.5 segundos de delay
+    }
+
+    // 🔥 NUEVO: Refresh con reintentos automáticos
+    private void refreshAdminsListWithRetry(int attemptCount) {
+        final int MAX_ATTEMPTS = 3;
+
+        Log.d("AdminsFragment", "📋 Cargando admins (intento " + (attemptCount + 1) + "/" + MAX_ATTEMPTS + ")...");
+
+        showLoading(true);
+
+        FirebaseManager.getInstance().getHotelAdmins(new FirebaseManager.DriverListCallback() {
+            @Override
+            public void onSuccess(List<UserModel> hotelAdmins) {
+                Log.d("AdminsFragment", "✅ " + hotelAdmins.size() + " administradores obtenidos (intento " + (attemptCount + 1) + ")");
+
+                if (getActivity() != null) {
+                    getActivity().runOnUiThread(() -> {
+                        List<AdminUser> admins = convertUserModelsToAdminUsers(hotelAdmins);
+                        updateAdminsList(admins);
+                        showLoading(false);
+
+                        // Mostrar confirmación con número de intento
+                        android.widget.Toast.makeText(getContext(),
+                                "🔄 Lista actualizada: " + admins.size() + " admins (intento " + (attemptCount + 1) + ")",
+                                android.widget.Toast.LENGTH_SHORT).show();
+                    });
+                }
+            }
+
+            @Override
+            public void onError(String error) {
+                Log.e("AdminsFragment", "❌ Error obteniendo administradores (intento " + (attemptCount + 1) + "): " + error);
+
+                if (getActivity() != null) {
+                    getActivity().runOnUiThread(() -> {
+                        // Si no es el último intento, reintentar
+                        if (attemptCount < MAX_ATTEMPTS - 1) {
+                            Log.d("AdminsFragment", "🔄 Reintentando en 2 segundos... (intento " + (attemptCount + 2) + ")");
+
+                            new Handler().postDelayed(() -> {
+                                refreshAdminsListWithRetry(attemptCount + 1);
+                            }, 2000);
+                        } else {
+                            // Último intento falló
+                            Log.e("AdminsFragment", "❌ Todos los intentos fallaron");
+                            showError("Error cargando administradores después de " + MAX_ATTEMPTS + " intentos: " + error);
+                            showLoading(false);
+                        }
+                    });
+                }
+            }
+        });
+    }
+
+    // 🔥 MEJORAR onResume() existente
+    @Override
+    public void onResume() {
+        super.onResume();
+        Log.d("AdminsFragment", "📱 AdminsFragment onResume() - Refrescando con delay...");
+
+        // 🔥 USAR REFRESH CON DELAY EN VEZ DEL INMEDIATO
+        refreshAdminsListWithDelay();
+    }
+
 }

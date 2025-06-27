@@ -369,6 +369,34 @@ public class SuperAdminActivity extends AppCompatActivity {
         }
     }
 
+    // 🔥 NUEVO: Refresh con delay específico para sincronización
+    public void refreshAllFragmentsDelayed() {
+        Log.d(TAG, "🔄 Refrescando fragments con delay para sincronización...");
+
+        // Delay adicional para asegurar sincronización
+        new Handler().postDelayed(() -> {
+            Log.d(TAG, "⚡ Ejecutando refresh de fragments después del delay...");
+
+            // Si hay un AdminsFragment activo, refrescarlo
+            Fragment adminsFragment = getSupportFragmentManager().findFragmentByTag("ADMINS");
+            if (adminsFragment instanceof AdminsFragment) {
+                Log.d(TAG, "🔄 Refrescando AdminsFragment encontrado...");
+                ((AdminsFragment) adminsFragment).refreshAdminsListWithDelay();
+            }
+
+            // Si hay un UsuariosFragment activo, refrescarlo también
+            Fragment usuariosFragment = getSupportFragmentManager().findFragmentByTag("USUARIOS");
+            if (usuariosFragment instanceof UsuariosFragment) {
+                Log.d(TAG, "🔄 UsuariosFragment encontrado - refresh pendiente");
+                // Aquí puedes agregar refresh para UsuariosFragment si es necesario
+            }
+
+            // Recargar taxistas pendientes también
+            loadPendingDrivers();
+
+        }, 2000); // 2 segundos adicionales
+    }
+
     private void showProfileOptions() {
         String[] options;
         if (userEmail != null) {
