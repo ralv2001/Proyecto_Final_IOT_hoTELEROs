@@ -2,202 +2,191 @@
 <com.google.android.material.card.MaterialCardView
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginHorizontal="4dp"
-    android:layout_marginVertical="6dp"
-    app:cardCornerRadius="12dp"
-    app:cardElevation="3dp"
+    android:layout_marginBottom="12dp"
+    app:cardCornerRadius="16dp"
+    app:cardElevation="4dp"
     app:strokeWidth="1dp"
+    app:strokeColor="#F0F0F0"
+    app:cardBackgroundColor="@android:color/white"
     android:clickable="true"
     android:focusable="true"
     app:rippleColor="@color/orange_50">
 
-    <androidx.constraintlayout.widget.ConstraintLayout
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:padding="16dp">
+        android:orientation="vertical"
+        android:background="@android:color/white">
 
-        <!-- Icono del Servicio -->
-        <com.google.android.material.card.MaterialCardView
-            android:id="@+id/cardServiceIcon"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            app:cardCornerRadius="24dp"
-            app:cardElevation="2dp"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent">
-
-            <ImageView
-                android:id="@+id/ivServiceIcon"
-                android:layout_width="28dp"
-                android:layout_height="28dp"
-                android:layout_gravity="center"
-                android:src="@drawable/ic_service_default"
-                app:tint="@color/orange"
-                android:scaleType="centerInside" />
-
-        </com.google.android.material.card.MaterialCardView>
-
-        <!-- Información Principal -->
-        <LinearLayout
-            android:id="@+id/layoutServiceInfo"
-            android:layout_width="0dp"
+        <!-- Contenido Principal del Servicio -->
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:layout_marginStart="16dp"
-            android:layout_marginEnd="8dp"
-            app:layout_constraintStart_toEndOf="@id/cardServiceIcon"
-            app:layout_constraintEnd_toStartOf="@id/layoutServiceActions"
-            app:layout_constraintTop_toTopOf="@id/cardServiceIcon">
+            android:padding="20dp">
 
-            <!-- Nombre del servicio -->
-            <TextView
-                android:id="@+id/tvServiceName"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Wi-Fi Gratuito"
-                android:textSize="16sp"
-                android:textStyle="bold"
-                android:textColor="@color/text_primary"
-                android:fontFamily="@font/inter_semibold"
-                android:maxLines="1"
-                android:ellipsize="end" />
-
-            <!-- Descripción del servicio -->
-            <TextView
-                android:id="@+id/tvServiceDescription"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Internet de alta velocidad en todas las habitaciones"
-                android:textSize="14sp"
-                android:textColor="@color/text_secondary"
-                android:fontFamily="@font/inter_regular"
-                android:maxLines="2"
-                android:ellipsize="end"
-                android:layout_marginTop="2dp" />
-
-            <!-- Fila de información adicional -->
+            <!-- Ícono del Servicio con Background Circular -->
             <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:layout_marginTop="8dp"
-                android:gravity="center_vertical">
+                android:id="@+id/serviceIconContainer"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:background="@drawable/bg_circle_orange"
+                android:gravity="center"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="@id/serviceInfoContainer">
 
-                <!-- Etiqueta del tipo de servicio -->
-                <TextView
-                    android:id="@+id/tvServiceTypeLabel"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Incluido"
-                    android:textSize="11sp"
-                    android:textStyle="bold"
-                    android:textColor="@color/green"
-                    android:background="@drawable/bg_chip_green"
-                    android:paddingHorizontal="8dp"
-                    android:paddingVertical="3dp"
-                    android:fontFamily="@font/inter_medium" />
-
-                <!-- Precio del servicio -->
-                <TextView
-                    android:id="@+id/tvServicePrice"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="S/ 25.00"
-                    android:textSize="14sp"
-                    android:textStyle="bold"
-                    android:textColor="@color/orange"
-                    android:fontFamily="@font/inter_semibold"
-                    android:layout_marginStart="8dp"
-                    android:visibility="gone" />
-
-                <!-- Spacer -->
-                <View
-                    android:layout_width="0dp"
-                    android:layout_height="1dp"
-                    android:layout_weight="1" />
+                <ImageView
+                    android:id="@+id/ivServiceIcon"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/ic_service_default"
+                    app:tint="@android:color/white"
+                    android:scaleType="centerInside"
+                    tools:src="@drawable/ic_wifi" />
 
             </LinearLayout>
 
-            <!-- Información condicional -->
-            <TextView
-                android:id="@+id/tvConditionalInfo"
-                android:layout_width="match_parent"
+            <!-- Contenido de Información -->
+            <LinearLayout
+                android:id="@+id/serviceInfoContainer"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:text="Activo con compras > S/ 500.00"
-                android:textSize="12sp"
-                android:textColor="@color/purple"
-                android:fontFamily="@font/inter_medium"
-                android:layout_marginTop="4dp"
-                android:visibility="gone" />
+                android:orientation="vertical"
+                android:layout_marginStart="16dp"
+                android:layout_marginEnd="8dp"
+                app:layout_constraintStart_toEndOf="@id/serviceIconContainer"
+                app:layout_constraintEnd_toStartOf="@id/optionsButton"
+                app:layout_constraintTop_toTopOf="parent">
 
-        </LinearLayout>
+                <!-- Nombre del Servicio -->
+                <TextView
+                    android:id="@+id/tvServiceName"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="WiFi Gratuito"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/text_primary"
+                    android:fontFamily="@font/poppins_semibold"
+                    android:maxLines="1"
+                    android:ellipsize="end"
+                    tools:text="WiFi Gratuito" />
 
-        <!-- Acciones del servicio (Switch y Menú) -->
-        <LinearLayout
-            android:id="@+id/layoutServiceActions"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:gravity="center_horizontal"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="@id/cardServiceIcon">
+                <!-- Descripción del Servicio -->
+                <TextView
+                    android:id="@+id/tvServiceDescription"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Conexión Wi-Fi gratuita en todas las áreas"
+                    android:textSize="13sp"
+                    android:textColor="@color/text_secondary"
+                    android:fontFamily="@font/inter_regular"
+                    android:layout_marginTop="2dp"
+                    android:maxLines="2"
+                    android:ellipsize="end"
+                    tools:text="Conexión Wi-Fi gratuita en todas las áreas" />
 
-            <!-- Switch de activación -->
-            <com.google.android.material.switchmaterial.SwitchMaterial
-                android:id="@+id/switchServiceActive"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:checked="true"
-                app:thumbTint="@color/white"
-                app:trackTint="@color/switch_track_color"
-                android:layout_marginBottom="8dp" />
+                <!-- Información de Precio/Tipo -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginTop="8dp"
+                    android:gravity="center_vertical">
 
-            <!-- Menú de opciones -->
+                    <!-- Badge de Tipo -->
+                    <TextView
+                        android:id="@+id/tvServiceType"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Incluido"
+                        android:textSize="11sp"
+                        android:textColor="@color/green"
+                        android:textStyle="bold"
+                        android:background="@drawable/bg_chip_green"
+                        android:paddingHorizontal="8dp"
+                        android:paddingVertical="3dp"
+                        tools:text="Incluido" />
+
+                    <!-- Precio (solo para servicios de pago) -->
+                    <TextView
+                        android:id="@+id/tvServicePrice"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="$25.00"
+                        android:textSize="14sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/text_primary"
+                        android:fontFamily="@font/poppins_semibold"
+                        android:layout_marginStart="8dp"
+                        android:visibility="gone"
+                        tools:text="$25.00"
+                        tools:visibility="visible" />
+
+                    <!-- Información condicional -->
+                    <TextView
+                        android:id="@+id/tvConditionalInfo"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Más de 2 huéspedes"
+                        android:textSize="11sp"
+                        android:textColor="@color/purple"
+                        android:textStyle="bold"
+                        android:background="@drawable/bg_chip_purple"
+                        android:paddingHorizontal="8dp"
+                        android:paddingVertical="3dp"
+                        android:layout_marginStart="8dp"
+                        android:visibility="gone"
+                        tools:text="Más de 2 huéspedes"
+                        tools:visibility="visible" />
+
+                </LinearLayout>
+
+            </LinearLayout>
+
+            <!-- Botón de Opciones (Menú) -->
             <ImageView
-                android:id="@+id/ivServiceMenu"
-                android:layout_width="24dp"
-                android:layout_height="24dp"
+                android:id="@+id/optionsButton"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
                 android:src="@drawable/ic_more_vert"
+                android:background="@drawable/bg_circle_light_gray"
+                android:padding="6dp"
                 app:tint="@color/text_secondary"
-                android:background="?android:attr/selectableItemBackgroundBorderless"
-                android:padding="4dp"
                 android:clickable="true"
-                android:focusable="true" />
+                android:focusable="true"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="@id/serviceInfoContainer" />
 
-        </LinearLayout>
+        </androidx.constraintlayout.widget.ConstraintLayout>
 
-        <!-- Indicador de Fotos -->
-        <LinearLayout
-            android:id="@+id/layoutPhotoIndicator"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
+        <!-- Galería de Fotos (cuando existen) -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvServicePhotos"
+            android:layout_width="match_parent"
+            android:layout_height="80dp"
+            android:layout_marginHorizontal="20dp"
+            android:layout_marginBottom="16dp"
+            android:clipToPadding="false"
+            android:paddingHorizontal="4dp"
             android:visibility="gone"
-            app:layout_constraintStart_toStartOf="@id/layoutServiceInfo"
-            app:layout_constraintTop_toBottomOf="@id/layoutServiceInfo"
-            app:layout_constraintBottom_toBottomOf="parent">
+            tools:visibility="visible"
+            tools:listitem="@layout/admin_hotel_item_basic_service_photo" />
 
-            <ImageView
-                android:layout_width="12dp"
-                android:layout_height="12dp"
-                android:src="@drawable/ic_photo"
-                app:tint="@color/blue"
-                android:layout_marginEnd="4dp" />
+        <!-- Línea divisoria sutil -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="@color/divider_light"
+            android:layout_marginHorizontal="20dp"
+            android:layout_marginBottom="16dp"
+            android:visibility="gone"
+            android:id="@+id/dividerLine" />
 
-            <TextView
-                android:id="@+id/tvPhotoCount"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="3 fotos"
-                android:textSize="10sp"
-                android:textColor="@color/blue"
-                android:fontFamily="@font/inter_medium" />
-
-        </LinearLayout>
-
-    </androidx.constraintlayout.widget.ConstraintLayout>
+    </LinearLayout>
 
 </com.google.android.material.card.MaterialCardView>

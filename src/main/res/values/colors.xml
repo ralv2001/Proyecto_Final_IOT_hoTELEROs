@@ -11,7 +11,7 @@
     <color name="colorTextSecondary">#545454</color>
     <color name="colorTextTertiary">#989898</color>
     <color name="orange_button">#F35D38</color>
-
+    <color name="background">#FAFAFA</color>
     <!-- Color principal -->
     <color name="primary_FF6B35">#FF6B35</color>
 
@@ -190,6 +190,7 @@
 
 
     <!-- ========== COLORES TEMÁTICOS PARA DASHBOARD ========== -->
+    <color name="blue">#2196F3</color>
 
     <!-- 🔵 AZUL - Usuarios y Gestión General -->
     <color name="theme_blue_primary">#2196F3</color>

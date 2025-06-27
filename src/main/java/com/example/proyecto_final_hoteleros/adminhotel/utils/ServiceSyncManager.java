@@ -65,7 +65,27 @@ public class ServiceSyncManager implements FirebaseServiceManager.OnServicesChan
         }
         return instance;
     }
+    @Override
+    public void onServiceAdded(HotelServiceModel service) {
+        Log.d(TAG, "➕ Servicio agregado: " + service.getName());
+        if ("basic".equals(service.getServiceType())) {
+            loadInitialBasicServices();
+        }
+    }
+    @Override
+    public void onServiceUpdated(HotelServiceModel service) {
+        Log.d(TAG, "🔄 Servicio actualizado: " + service.getName());
+        if ("basic".equals(service.getServiceType())) {
+            loadInitialBasicServices();
+        }
+    }
 
+    @Override
+    public void onServiceDeleted(String serviceId) {
+        Log.d(TAG, "🗑️ Servicio eliminado: " + serviceId);
+        // Recargar servicios básicos para actualizar la lista
+        loadInitialBasicServices();
+    }
     // ========== IMPLEMENTACIÓN DE FIREBASE LISTENER ==========
 
     @Override

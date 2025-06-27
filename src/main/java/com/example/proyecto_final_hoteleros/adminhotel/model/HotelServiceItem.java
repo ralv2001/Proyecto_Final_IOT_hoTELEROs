@@ -1,9 +1,11 @@
 package com.example.proyecto_final_hoteleros.adminhotel.model;
 
 import android.net.Uri;
+
+import java.io.Serializable;
 import java.util.List;
 
-public class HotelServiceItem {
+public class HotelServiceItem implements Serializable {
 
     public enum ServiceType {
         BASIC,       // Servicios básicos creados desde el perfil del hotel
@@ -11,6 +13,7 @@ public class HotelServiceItem {
         PAID,        // Servicios pagados
         CONDITIONAL  // Servicios condicionales (como taxi gratis por monto)
     }
+    private static final long serialVersionUID = 1L;
 
     private String name;
     private String description;

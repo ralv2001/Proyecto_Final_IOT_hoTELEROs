@@ -38,6 +38,9 @@ public class FirebaseServiceManager {
     public interface OnServicesChangedListener {
         void onBasicServicesUpdated(List<HotelServiceModel> basicServices);
         void onAllServicesUpdated(List<HotelServiceModel> allServices);
+        void onServiceAdded(HotelServiceModel service);
+        void onServiceUpdated(HotelServiceModel service);
+        void onServiceDeleted(String serviceId);
         void onError(String error);
     }
 
