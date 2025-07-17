@@ -1,7 +1,6 @@
 package com.example.proyecto_final_hoteleros;
 
 import com.example.proyecto_final_hoteleros.adminhotel.utils.FirebaseServiceManager;
-import com.example.proyecto_final_hoteleros.adminhotel.utils.ServiceSyncManager;
 import com.google.firebase.auth.FirebaseAuth;
 import android.app.AlertDialog;
 import android.content.Intent;
@@ -14,11 +13,8 @@ import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import com.example.proyecto_final_hoteleros.client.ui.activity.HomeActivity;
-import com.example.proyecto_final_hoteleros.superadmin.activity.SuperAdminActivity;
 import com.example.proyecto_final_hoteleros.taxista.activity.DriverActivity;
 import com.example.proyecto_final_hoteleros.utils.AwsFileManager;
-import com.example.proyecto_final_hoteleros.utils.ConcurrencyTestHelper;
-import com.example.proyecto_final_hoteleros.utils.DatabaseTestHelper;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -28,7 +24,6 @@ import androidx.core.view.WindowInsetsCompat;
 
 import com.example.proyecto_final_hoteleros.adminhotel.activity.AdminHotelActivity;
 import com.example.proyecto_final_hoteleros.utils.FirebaseManager;
-import com.example.proyecto_final_hoteleros.utils.FirebaseTestHelper;
 import com.example.proyecto_final_hoteleros.utils.GitHubSignInHelper;
 import com.google.android.material.button.MaterialButton;
 import com.google.firebase.FirebaseApp;
@@ -47,8 +42,6 @@ public class MainActivity extends AppCompatActivity {
         // Inicializar Firebase Auth  <-- AGREGAR ESTA LÍNEA
         firebaseAuth = FirebaseAuth.getInstance();
         FirebaseServiceManager firebaseServiceManager = FirebaseServiceManager.getInstance(this);
-        ServiceSyncManager serviceSyncManager = ServiceSyncManager.getInstance(this);
-
         // Verificar si hay vinculación pendiente de GitHub
         //checkPendingGitHubLink();
 
@@ -92,7 +85,7 @@ public class MainActivity extends AppCompatActivity {
 
                 Intent intent = new Intent(MainActivity.this, HomeActivity.class);
                 startActivity(intent);
-                finish(); // Opcional: cerrar MainActivity
+                finish();
             }
         });
         LinearLayout layoutContinueAsSuperadmin = findViewById(R.id.layoutContinueAsSuperadmin);
@@ -145,7 +138,6 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-
         LinearLayout layoutContinueAsTaxiDriver = findViewById(R.id.layoutContinueAsTaxiDriver);
         layoutContinueAsTaxiDriver.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -157,7 +149,6 @@ public class MainActivity extends AppCompatActivity {
                 startActivity(intent);
             }
         });
-
         // ========== TESTS DE CONCURRENCIA - COMENTADO PARA PRODUCCIÓN ==========
         /*
         findViewById(R.id.btnLogin).setOnLongClickListener(v -> {
@@ -196,7 +187,6 @@ public class MainActivity extends AppCompatActivity {
                     createTestHotelAdmin(testEmail, testPassword);
                 });
     }
-
     private void createTestHotelAdmin(String email, String password) {
         firebaseAuth.createUserWithEmailAndPassword(email, password)
                 .addOnSuccessListener(authResult -> {
@@ -231,7 +221,7 @@ public class MainActivity extends AppCompatActivity {
         adminUser.setEmail(email);
         adminUser.setNombres("Admin");
         adminUser.setApellidos("Hotel Test");
-        adminUser.setUserType("hotel_admin");  // ¡IMPORTANTE: Este es el rol que necesita!
+        adminUser.setUserType("hotel_admin");  // IMPORTANTE: Este es el rol que necesita!
         adminUser.setTelefono("999888777");
         adminUser.setDireccion("Hotel Central Lima");
         adminUser.setNumeroDocumento("12345678");

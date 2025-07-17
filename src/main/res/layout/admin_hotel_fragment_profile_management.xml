@@ -45,26 +45,26 @@
                 android:orientation="vertical"
                 app:layout_constraintStart_toEndOf="@id/ivBack"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toTopOf="@id/ivBack"
-                app:layout_constraintBottom_toBottomOf="@id/ivBack">
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent">
 
                 <TextView
-                    android:layout_width="match_parent"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:ellipsize="end"
-                    android:fontFamily="@font/poppins_semibold"
-                    android:maxLines="1"
-                    android:text="🏨 Perfil del Hotel"
+                    android:text="✨ Gestión del Perfil"
+                    android:textSize="24sp"
+                    android:textStyle="bold"
                     android:textColor="@android:color/white"
-                    android:textSize="20sp"
-                    android:textStyle="bold" />
+                    android:fontFamily="@font/poppins_bold"
+                    android:maxLines="1"
+                    android:ellipsize="end" />
 
                 <TextView
-                    android:layout_width="match_parent"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="2dp"
-                    android:text="Gestiona la información y servicios"
-                    android:textSize="12sp"
+                    android:text="Configura la información de tu hotel"
+                    android:textSize="14sp"
                     android:textColor="#E8EAED"
                     android:fontFamily="@font/inter_regular"
                     android:maxLines="1"
@@ -74,18 +74,18 @@
 
         </androidx.constraintlayout.widget.ConstraintLayout>
 
-        <!-- Contenido Principal -->
+        <!-- Contenido principal -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
             android:padding="20dp">
 
-            <!-- Sección 1: Información Básica del Hotel -->
+            <!-- Sección 1: Información del Hotel -->
             <androidx.cardview.widget.CardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="24dp"
+                android:layout_marginBottom="32dp"
                 app:cardCornerRadius="16dp"
                 app:cardElevation="4dp"
                 app:cardBackgroundColor="@android:color/white">
@@ -208,7 +208,7 @@
                                 android:inputType="textPostalAddress"
                                 android:maxLines="3"
                                 android:imeOptions="actionDone"
-                                tools:text="Av. José Larco 1301, Miraflores, Lima, Perú" />
+                                tools:text="Av. José Larco 1301, Miraflores, Lima" />
 
                         </com.google.android.material.textfield.TextInputLayout>
 
@@ -221,7 +221,7 @@
             <androidx.cardview.widget.CardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="24dp"
+                android:layout_marginBottom="32dp"
                 app:cardCornerRadius="16dp"
                 app:cardElevation="4dp"
                 app:cardBackgroundColor="@android:color/white">
@@ -232,7 +232,7 @@
                     android:orientation="vertical"
                     android:padding="24dp">
 
-                    <!-- Header SIN BOTÓN - Más limpio -->
+                    <!-- Header con contador y botón inline -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
@@ -243,14 +243,14 @@
                         <LinearLayout
                             android:layout_width="48dp"
                             android:layout_height="48dp"
-                            android:background="@drawable/bg_circle_accent"
+                            android:background="@drawable/bg_circle_orange_light"
                             android:gravity="center">
 
                             <ImageView
                                 android:layout_width="24dp"
                                 android:layout_height="24dp"
-                                android:src="@drawable/ic_photo"
-                                app:tint="@android:color/white" />
+                                android:src="@drawable/ic_camera"
+                                app:tint="@color/orange" />
 
                         </LinearLayout>
 
@@ -314,20 +314,20 @@
                         android:orientation="vertical"
                         android:background="@drawable/bg_rounded_light_gray"
                         android:padding="16dp"
+                        android:minHeight="120dp"
                         android:layout_marginBottom="16dp">
 
-                        <!-- RecyclerView para fotos - SE MUESTRA CUANDO HAY FOTOS -->
+                        <!-- RecyclerView para fotos del hotel - SE MUESTRA CUANDO HAY FOTOS -->
                         <androidx.recyclerview.widget.RecyclerView
                             android:id="@+id/rvHotelPhotos"
                             android:layout_width="match_parent"
-                            android:layout_height="120dp"
-                            android:orientation="horizontal"
+                            android:layout_height="wrap_content"
                             android:clipToPadding="false"
                             android:visibility="gone"
                             tools:visibility="gone"
                             tools:listitem="@layout/admin_hotel_item_photo" />
 
-                        <!-- Estado vacío - SE OCULTA CUANDO HAY FOTOS -->
+                        <!-- Estado vacío para fotos - SE OCULTA CUANDO HAY FOTOS -->
                         <LinearLayout
                             android:id="@+id/emptyPhotosState"
                             android:layout_width="match_parent"
@@ -340,7 +340,7 @@
                             <ImageView
                                 android:layout_width="48dp"
                                 android:layout_height="48dp"
-                                android:src="@drawable/ic_add_photo"
+                                android:src="@drawable/ic_camera_placeholder"
                                 android:alpha="0.3"
                                 app:tint="#BDBDBD" />
 
@@ -348,9 +348,9 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_marginTop="8dp"
-                                android:text="Agrega fotos de tu hotel"
+                                android:text="Sin fotos del hotel"
                                 android:textSize="14sp"
-                                android:textColor="#757575"
+                                android:textColor="#9E9E9E"
                                 android:fontFamily="@font/inter_medium"
                                 android:gravity="center" />
 
@@ -436,7 +436,7 @@
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 
-            <!-- Sección 3: Servicios Básicos MEJORADA -->
+            <!-- Sección 3: Servicios Básicos MODIFICADA -->
             <androidx.cardview.widget.CardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -544,28 +544,38 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_marginTop="8dp"
-                                android:text="Agrega servicios básicos"
+                                android:text="Sin servicios básicos configurados"
                                 android:textSize="14sp"
-                                android:textColor="#757575"
+                                android:textColor="#9E9E9E"
                                 android:fontFamily="@font/inter_medium"
+                                android:gravity="center" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="4dp"
+                                android:text="Configúralos desde gestión de servicios"
+                                android:textSize="12sp"
+                                android:textColor="#9E9E9E"
+                                android:fontFamily="@font/inter_regular"
                                 android:gravity="center" />
 
                         </LinearLayout>
 
                     </LinearLayout>
 
-                    <!-- Botón DEBAJO del container - ALTURA CORREGIDA -->
+                    <!-- Botón DEBAJO del container - MODIFICADO PARA IR A GESTIÓN -->
                     <com.google.android.material.button.MaterialButton
-                        android:id="@+id/btnAddBasicService"
+                        android:id="@+id/btnManageServices"
                         android:layout_width="match_parent"
                         android:layout_height="61dp"
-                        android:text="Agregar Servicios Básicos"
+                        android:text="Ir a Gestión de Servicios"
                         android:textSize="14sp"
                         android:textColor="@android:color/white"
                         android:fontFamily="@font/poppins_medium"
                         app:backgroundTint="@color/green"
                         app:cornerRadius="12dp"
-                        app:icon="@drawable/ic_add_service"
+                        app:icon="@drawable/ic_arrow_forward"
                         app:iconSize="18dp"
                         app:iconTint="@android:color/white"
                         app:iconGravity="textStart"

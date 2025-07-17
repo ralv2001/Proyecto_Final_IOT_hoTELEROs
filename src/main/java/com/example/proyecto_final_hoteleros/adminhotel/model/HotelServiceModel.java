@@ -1,5 +1,6 @@
 package com.example.proyecto_final_hoteleros.adminhotel.model;
 
+import com.google.firebase.Timestamp;
 import com.google.firebase.firestore.ServerTimestamp;
 import java.util.Date;
 import java.util.HashMap;
@@ -59,7 +60,7 @@ public class HotelServiceModel {
         return map;
     }
 
-    // Crear desde Map de Firebase
+    // ✅ MÉTODO CORREGIDO: Crear desde Map de Firebase con manejo de Timestamp
     public static HotelServiceModel fromMap(Map<String, Object> map, String documentId) {
         HotelServiceModel service = new HotelServiceModel();
         service.id = documentId;
@@ -72,14 +73,37 @@ public class HotelServiceModel {
         service.active = map.get("active") != null ? (Boolean) map.get("active") : true;
         service.photoUrls = (List<String>) map.get("photoUrls");
         service.hotelAdminId = (String) map.get("hotelAdminId");
-        service.createdAt = (Date) map.get("createdAt");
-        service.updatedAt = (Date) map.get("updatedAt");
+
+        // ✅ CORREGIDO: Manejar Timestamp y Date correctamente
+        service.createdAt = convertToDate(map.get("createdAt"));
+        service.updatedAt = convertToDate(map.get("updatedAt"));
 
         if (service.photoUrls == null) {
             service.photoUrls = new ArrayList<>();
         }
 
         return service;
+    }
+
+    // ✅ NUEVO MÉTODO: Convertir Timestamp o Date a Date
+    private static Date convertToDate(Object dateObject) {
+        if (dateObject == null) {
+            return new Date(); // Fecha actual por defecto
+        }
+
+        if (dateObject instanceof Timestamp) {
+            // Convertir Firebase Timestamp a Date
+            return ((Timestamp) dateObject).toDate();
+        } else if (dateObject instanceof Date) {
+            // Ya es un Date
+            return (Date) dateObject;
+        } else if (dateObject instanceof Long) {
+            // Timestamp en millisegundos
+            return new Date((Long) dateObject);
+        } else {
+            // Tipo desconocido, usar fecha actual
+            return new Date();
+        }
     }
 
     // Getters y Setters

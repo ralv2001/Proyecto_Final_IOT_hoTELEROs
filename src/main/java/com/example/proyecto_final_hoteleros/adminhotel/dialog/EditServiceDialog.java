@@ -1,26 +1,23 @@
 package com.example.proyecto_final_hoteleros.adminhotel.dialog;
 
 import android.content.Context;
-import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.Window;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
-import androidx.activity.result.ActivityResultLauncher;
 import androidx.appcompat.app.AppCompatDialog;
-import androidx.core.content.ContextCompat;
-import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import com.example.proyecto_final_hoteleros.R;
 import com.example.proyecto_final_hoteleros.adminhotel.adapters.ServicePhotosAdapter;
+import com.example.proyecto_final_hoteleros.adminhotel.dialog.IconSelectorDialog;
 import com.example.proyecto_final_hoteleros.adminhotel.model.HotelServiceItem;
 import com.example.proyecto_final_hoteleros.adminhotel.utils.IconHelper;
 import com.google.android.material.button.MaterialButton;
@@ -55,13 +52,12 @@ public class EditServiceDialog extends AppCompatDialog {
     private String selectedIconKey;
     private List<Uri> servicePhotos;
     private ServicePhotosAdapter photosAdapter;
-    private ActivityResultLauncher<Intent> photoPickerLauncher;
 
-    // Service types
+    // ✅ CORREGIDO: Solo 3 tipos - Taxi condicional tiene su propia sección
     private final String[] serviceTypes = {
+            "Básico",
             "Incluido",
-            "Pagado",
-            "Condicional"
+            "Pagado"
     };
 
     public EditServiceDialog(Context context, HotelServiceItem service, OnServiceEditedListener listener) {
@@ -116,242 +112,227 @@ public class EditServiceDialog extends AppCompatDialog {
     }
 
     private void setupRecyclerView() {
-        photosAdapter = new ServicePhotosAdapter(servicePhotos, position -> {
-            servicePhotos.remove(position);
-            photosAdapter.notifyItemRemoved(position);
-            updatePhotoCount();
-            updatePhotosVisibility();
-        });
-
-        rvServicePhotos.setLayoutManager(new LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false));
+        // ✅ CORREGIDO: Usar exactamente el mismo patrón que BasicServiceDialog
+        photosAdapter = new ServicePhotosAdapter(servicePhotos, this::removePhoto);
+        rvServicePhotos.setLayoutManager(new GridLayoutManager(context, 3));
         rvServicePhotos.setAdapter(photosAdapter);
     }
 
+    // ✅ NUEVO: Método para remover foto (como en BasicServiceDialog)
+    private void removePhoto(int position) {
+        if (position >= 0 && position < servicePhotos.size()) {
+            servicePhotos.remove(position);
+            photosAdapter.notifyItemRemoved(position);
+            updatePhotoCount();
+            Toast.makeText(context, "📷 Foto eliminada", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    // ✅ CORREGIDO: Configurar dropdown con todos los tipos de servicio
     private void setupServiceTypeDropdown() {
         ArrayAdapter<String> adapter = new ArrayAdapter<>(context, android.R.layout.simple_dropdown_item_1line, serviceTypes);
         etServiceType.setAdapter(adapter);
 
+        // ✅ Listener para mostrar/ocultar campos según el tipo
         etServiceType.setOnItemClickListener((parent, view, position, id) -> {
             String selectedType = serviceTypes[position];
-            updateFieldsVisibilityByType(selectedType);
+            updateFieldsVisibility(selectedType);
         });
     }
-    private void setupServiceTypeBasedOnOriginal(HotelServiceItem service) {
-        // Si es un servicio básico editado desde gestión, mantener restricciones especiales
-        if (service.getType() == HotelServiceItem.ServiceType.BASIC) {
-            etServiceType.setText("Básico (Desde Perfil)");
-            etServiceType.setEnabled(false);
-            tilServicePrice.setVisibility(View.GONE);
-            tilConditionalAmount.setVisibility(View.GONE);
 
-            // Mostrar mensaje informativo
-            TextView tvBasicInfo = new TextView(context);
-            tvBasicInfo.setText("💡 Este servicio se sincroniza automáticamente con el perfil del hotel");
-            tvBasicInfo.setTextSize(12);
-            tvBasicInfo.setTextColor(ContextCompat.getColor(context, R.color.text_secondary));
-            // Agregar al layout según sea necesario
-        }
-    }
-    private void updateFieldsVisibilityByType(String serviceType) {
+    // ✅ NUEVO: Método para mostrar/ocultar campos según el tipo de servicio
+    private void updateFieldsVisibility(String serviceType) {
         switch (serviceType) {
+            case "Básico":
+                tilServicePrice.setVisibility(View.GONE);
+                tilConditionalAmount.setVisibility(View.GONE);
+                etServicePrice.setText("0");
+                break;
+
             case "Incluido":
-                tilServicePrice.setVisibility(LinearLayout.GONE);
-                tilConditionalAmount.setVisibility(LinearLayout.GONE);
+                tilServicePrice.setVisibility(View.GONE);
+                tilConditionalAmount.setVisibility(View.GONE);
+                etServicePrice.setText("0");
                 break;
+
             case "Pagado":
-                tilServicePrice.setVisibility(LinearLayout.VISIBLE);
-                tilConditionalAmount.setVisibility(LinearLayout.GONE);
+                tilServicePrice.setVisibility(View.VISIBLE);
+                tilConditionalAmount.setVisibility(View.GONE);
+                if (etServicePrice.getText().toString().trim().equals("0")) {
+                    etServicePrice.setText("");
+                }
                 break;
+
             case "Condicional":
-                tilServicePrice.setVisibility(LinearLayout.GONE);
-                tilConditionalAmount.setVisibility(LinearLayout.VISIBLE);
+                tilServicePrice.setVisibility(View.VISIBLE);
+                tilConditionalAmount.setVisibility(View.VISIBLE);
+                if (etServicePrice.getText().toString().trim().equals("0")) {
+                    etServicePrice.setText("");
+                }
                 break;
         }
     }
 
     private void setupClickListeners() {
-        layoutIconPreview.setOnClickListener(v -> showIconSelectorDialog());
+        btnCancel.setOnClickListener(v -> dismiss());
+        btnSave.setOnClickListener(v -> saveChanges());
 
-        cardAddPhoto.setOnClickListener(v -> {
-            if (servicePhotos.size() >= 3) {
-                Toast.makeText(context, "⚠️ Máximo 3 fotos permitidas", Toast.LENGTH_SHORT).show();
-                return;
-            }
-            openPhotoSelector();
+        layoutIconPreview.setOnClickListener(v -> {
+            IconSelectorDialog iconDialog = new IconSelectorDialog(context, selectedIconKey, new IconSelectorDialog.OnIconSelectedListener() {
+                @Override
+                public void onIconSelected(String iconKey, String iconName) {
+                    selectedIconKey = iconKey;
+                    updateIconDisplay();
+                }
+            });
+            iconDialog.show();
         });
 
-        btnCancel.setOnClickListener(v -> dismiss());
-        btnSave.setOnClickListener(v -> saveService());
+        cardAddPhoto.setOnClickListener(v -> {
+            if (servicePhotos.size() < 5) {
+                // Lógica para agregar foto
+                Toast.makeText(context, "Funcionalidad de fotos en desarrollo", Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(context, "Máximo 5 fotos permitidas", Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     private void loadCurrentData() {
         etServiceName.setText(originalService.getName());
         etServiceDescription.setText(originalService.getDescription());
 
-        // Set service type
-        String typeText = getServiceTypeText(originalService.getType());
-        etServiceType.setText(typeText, false);
-        updateFieldsVisibilityByType(typeText);
+        // ✅ CORREGIDO: Configurar tipo de servicio correctamente
+        String serviceTypeText = getServiceTypeText(originalService.getType());
+        etServiceType.setText(serviceTypeText, false);
 
-        // Set price if applicable
+        // Configurar precio
         if (originalService.getPrice() > 0) {
             etServicePrice.setText(String.valueOf(originalService.getPrice()));
         }
 
-        // Set conditional amount if applicable
+        // ✅ NUEVO: Configurar monto condicional
         if (originalService.getConditionalAmount() > 0) {
             etConditionalAmount.setText(String.valueOf(originalService.getConditionalAmount()));
         }
 
-        updatePhotosVisibility();
+        // Actualizar visibilidad de campos
+        updateFieldsVisibility(serviceTypeText);
     }
 
-    private String getServiceTypeText(HotelServiceItem.ServiceType type) {
-        switch (type) {
+    // ✅ CORREGIDO: Solo para los 3 tipos disponibles
+    private String getServiceTypeText(HotelServiceItem.ServiceType serviceType) {
+        switch (serviceType) {
             case BASIC:
+                return "Básico";
             case INCLUDED:
                 return "Incluido";
             case PAID:
                 return "Pagado";
             case CONDITIONAL:
-                return "Condicional";
+                // ✅ Si es condicional, mostrar como "Incluido" (no se puede editar desde aquí)
+                return "Incluido";
             default:
                 return "Incluido";
         }
     }
 
-    private void showIconSelectorDialog() {
-        IconSelectorDialog iconDialog = new IconSelectorDialog(context, selectedIconKey, (iconKey, iconName) -> {
-            selectedIconKey = iconKey;
-            updateIconDisplay();
-        });
-        iconDialog.show();
-    }
-
-    private void updateIconDisplay() {
-        int iconResource = IconHelper.getIconResource(selectedIconKey);
-        ivSelectedIcon.setImageResource(iconResource);
-
-        String iconName = IconHelper.getIconName(selectedIconKey);
-        tvSelectedIconName.setText(iconName);
-    }
-
-    private void openPhotoSelector() {
-        Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
-        intent.setType("image/*");
-        intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
-        // Note: Since we don't have photoPickerLauncher in edit mode, we'll skip photo functionality for now
-        Toast.makeText(context, "Funcionalidad de fotos disponible solo al crear servicios nuevos", Toast.LENGTH_SHORT).show();
-    }
-
-    private void updatePhotoCount() {
-        tvPhotoCount.setText(servicePhotos.size() + " / 3 fotos");
-    }
-
-    private void updatePhotosVisibility() {
-        if (servicePhotos.isEmpty()) {
-            rvServicePhotos.setVisibility(LinearLayout.GONE);
-        } else {
-            rvServicePhotos.setVisibility(LinearLayout.VISIBLE);
+    // ✅ CORREGIDO: Solo para los 3 tipos disponibles
+    private HotelServiceItem.ServiceType convertTextToServiceType(String serviceTypeText) {
+        switch (serviceTypeText) {
+            case "Básico":
+                return HotelServiceItem.ServiceType.BASIC;
+            case "Incluido":
+                return HotelServiceItem.ServiceType.INCLUDED;
+            case "Pagado":
+                return HotelServiceItem.ServiceType.PAID;
+            default:
+                return HotelServiceItem.ServiceType.INCLUDED;
         }
     }
 
-    private void saveService() {
+    private void updateIconDisplay() {
+        if (ivSelectedIcon != null && tvSelectedIconName != null) {
+            int iconResource = IconHelper.getIconResource(selectedIconKey);
+            ivSelectedIcon.setImageResource(iconResource);
+            tvSelectedIconName.setText(IconHelper.getIconName(selectedIconKey));
+        }
+    }
+
+    private void updatePhotoCount() {
+        if (tvPhotoCount != null) {
+            tvPhotoCount.setText(servicePhotos.size() + "/5 fotos");
+        }
+        if (rvServicePhotos != null) {
+            rvServicePhotos.setVisibility(servicePhotos.isEmpty() ? View.GONE : View.VISIBLE);
+        }
+    }
+
+    private void saveChanges() {
         String name = etServiceName.getText().toString().trim();
         String description = etServiceDescription.getText().toString().trim();
-        String typeStr = etServiceType.getText().toString().trim();
+        String serviceTypeText = etServiceType.getText().toString().trim();
+        String priceStr = etServicePrice.getText().toString().trim();
+        String conditionalAmountStr = etConditionalAmount.getText().toString().trim();
 
+        // ✅ Validaciones
         if (name.isEmpty()) {
-            Toast.makeText(context, "⚠️ Ingresa el nombre del servicio", Toast.LENGTH_SHORT).show();
-            etServiceName.requestFocus();
+            etServiceName.setError("Ingresa el nombre del servicio");
             return;
         }
 
         if (description.isEmpty()) {
-            Toast.makeText(context, "⚠️ Ingresa la descripción del servicio", Toast.LENGTH_SHORT).show();
-            etServiceDescription.requestFocus();
+            etServiceDescription.setError("Ingresa la descripción");
             return;
         }
 
-        if (typeStr.isEmpty()) {
-            Toast.makeText(context, "⚠️ Selecciona el tipo de servicio", Toast.LENGTH_SHORT).show();
-            etServiceType.requestFocus();
+        if (serviceTypeText.isEmpty()) {
+            Toast.makeText(context, "Selecciona el tipo de servicio", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        // Determine service type and validate corresponding fields
-        HotelServiceItem.ServiceType serviceType;
+        // ✅ Validar precio solo para servicios pagados
         double price = 0.0;
+        if (serviceTypeText.equals("Pagado")) {
+            if (priceStr.isEmpty()) {
+                etServicePrice.setError("Ingresa el precio");
+                return;
+            }
+            try {
+                price = Double.parseDouble(priceStr);
+                if (price < 0) {
+                    etServicePrice.setError("El precio no puede ser negativo");
+                    return;
+                }
+            } catch (NumberFormatException e) {
+                etServicePrice.setError("Precio inválido");
+                return;
+            }
+        }
+
+        // ✅ No hay servicios condicionales desde el dialog (solo taxi en su sección)
         double conditionalAmount = 0.0;
 
-        switch (typeStr) {
-            case "Incluido":
-                serviceType = originalService.getType() == HotelServiceItem.ServiceType.BASIC ?
-                        HotelServiceItem.ServiceType.BASIC : HotelServiceItem.ServiceType.INCLUDED;
-                break;
-            case "Pagado":
-                serviceType = HotelServiceItem.ServiceType.PAID;
-                String priceStr = etServicePrice.getText().toString().trim();
-                if (priceStr.isEmpty()) {
-                    Toast.makeText(context, "⚠️ Ingresa el precio del servicio", Toast.LENGTH_SHORT).show();
-                    etServicePrice.requestFocus();
-                    return;
-                }
-                try {
-                    price = Double.parseDouble(priceStr);
-                    if (price <= 0) {
-                        Toast.makeText(context, "⚠️ El precio debe ser mayor a 0", Toast.LENGTH_SHORT).show();
-                        etServicePrice.requestFocus();
-                        return;
-                    }
-                } catch (NumberFormatException e) {
-                    Toast.makeText(context, "⚠️ Ingresa un precio válido", Toast.LENGTH_SHORT).show();
-                    etServicePrice.requestFocus();
-                    return;
-                }
-                break;
-            case "Condicional":
-                serviceType = HotelServiceItem.ServiceType.CONDITIONAL;
-                String amountStr = etConditionalAmount.getText().toString().trim();
-                if (amountStr.isEmpty()) {
-                    Toast.makeText(context, "⚠️ Ingresa el monto mínimo para activar", Toast.LENGTH_SHORT).show();
-                    etConditionalAmount.requestFocus();
-                    return;
-                }
-                try {
-                    conditionalAmount = Double.parseDouble(amountStr);
-                    if (conditionalAmount <= 0) {
-                        Toast.makeText(context, "⚠️ El monto debe ser mayor a 0", Toast.LENGTH_SHORT).show();
-                        etConditionalAmount.requestFocus();
-                        return;
-                    }
-                } catch (NumberFormatException e) {
-                    Toast.makeText(context, "⚠️ Ingresa un monto válido", Toast.LENGTH_SHORT).show();
-                    etConditionalAmount.requestFocus();
-                    return;
-                }
-                break;
-            default:
-                Toast.makeText(context, "⚠️ Tipo de servicio no válido", Toast.LENGTH_SHORT).show();
-                return;
-        }
+        // ✅ Crear servicio editado
+        HotelServiceItem.ServiceType serviceType = convertTextToServiceType(serviceTypeText);
 
-        // Create updated service
-        HotelServiceItem updatedService = new HotelServiceItem(
+        HotelServiceItem editedService = new HotelServiceItem(
                 name,
                 description,
                 price,
                 selectedIconKey,
                 serviceType,
-                new ArrayList<>(servicePhotos),
+                servicePhotos,
                 conditionalAmount
         );
+        editedService.setFirebaseId(originalService.getFirebaseId());
 
+        // ✅ Notificar al listener
         if (listener != null) {
-            listener.onServiceEdited(updatedService);
+            listener.onServiceEdited(editedService);
         }
 
-        Toast.makeText(context, "✅ Servicio actualizado exitosamente", Toast.LENGTH_SHORT).show();
+        Toast.makeText(context, "✅ Servicio actualizado: " + name, Toast.LENGTH_SHORT).show();
         dismiss();
     }
 }

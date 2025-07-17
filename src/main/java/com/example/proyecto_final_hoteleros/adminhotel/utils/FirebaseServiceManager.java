@@ -6,7 +6,6 @@ import android.util.Log;
 
 import com.example.proyecto_final_hoteleros.adminhotel.model.HotelServiceModel;
 import com.example.proyecto_final_hoteleros.utils.AwsFileManager;
-import com.example.proyecto_final_hoteleros.utils.FirebaseManager;
 import com.example.proyecto_final_hoteleros.utils.UniqueIdGenerator;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -54,6 +53,7 @@ public class FirebaseServiceManager {
         void onError(String error);
     }
 
+    // ✅ INTERFACE INTERNA PARA CALLBACKS DE UPLOAD (diferente a AwsFileManager.UploadCallback)
     public interface UploadCallback {
         void onProgress(int percentage);
         void onSuccess();
@@ -90,6 +90,7 @@ public class FirebaseServiceManager {
         // ✅ SOLUCIÓN: Forzar carga inicial inmediata
         forceInitialLoad();
     }
+
     private void forceInitialLoad() {
         String currentUserId = getCurrentUserId();
         if (currentUserId == null) return;
@@ -131,6 +132,7 @@ public class FirebaseServiceManager {
                     notifyError("Error cargando servicios: " + e.getMessage());
                 });
     }
+
     public void removeListener(OnServicesChangedListener listener) {
         listeners.remove(listener);
 
@@ -331,13 +333,14 @@ public class FirebaseServiceManager {
 
     // ========== SUBIDA DE FOTOS ==========
 
+    // ✅ CORREGIDO: Método de subida de fotos con parámetros correctos
     private void uploadServicePhotos(HotelServiceModel service, List<Uri> photoUris, UploadCallback callback) {
         if (photoUris == null || photoUris.isEmpty()) {
             callback.onSuccess();
             return;
         }
 
-        Log.d(TAG, "Subiendo " + photoUris.size() + " fotos para servicio: " + service.getName());
+        Log.d(TAG, "📷 Subiendo " + photoUris.size() + " fotos para servicio: " + service.getName());
 
         List<String> uploadedUrls = new ArrayList<>();
         AtomicInteger uploadedCount = new AtomicInteger(0);
@@ -351,9 +354,9 @@ public class FirebaseServiceManager {
 
         for (int i = 0; i < photoUris.size(); i++) {
             Uri photoUri = photoUris.get(i);
-            String fileName = idGenerator.generateUniqueFileName("service", service.getName().replaceAll("[^a-zA-Z0-9]", "_") + "_" + i + ".jpg");
             String folder = "hotel_services/" + currentUserId;
 
+            // ✅ CORREGIDO: Usar el método uploadFile con los parámetros correctos (Uri, userId, folder, callback)
             awsFileManager.uploadFile(photoUri, currentUserId, folder, new AwsFileManager.UploadCallback() {
                 @Override
                 public void onSuccess(AwsFileManager.AwsFileInfo fileInfo) {
@@ -365,10 +368,12 @@ public class FirebaseServiceManager {
                         int progress = (completed * 100) / totalUploads.get();
                         callback.onProgress(progress);
 
+                        Log.d(TAG, "📷 Foto subida (" + completed + "/" + totalUploads.get() + "): " + fileInfo.fileUrl);
+
                         if (completed == totalUploads.get()) {
                             // Todas las fotos subidas
                             service.setPhotoUrls(uploadedUrls);
-                            Log.d(TAG, "✅ Todas las fotos subidas exitosamente");
+                            Log.d(TAG, "✅ Todas las fotos subidas exitosamente: " + uploadedUrls.size());
                             callback.onSuccess();
                         }
                     }
@@ -383,6 +388,7 @@ public class FirebaseServiceManager {
                 @Override
                 public void onProgress(int percentage) {
                     // Progreso individual de cada foto
+                    // Aquí podrías calcular el progreso total si lo necesitas
                 }
             });
         }

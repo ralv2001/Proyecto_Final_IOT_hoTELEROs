@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+
+    <!-- Forma principal de la paleta -->
+    <path
+        android:fillColor="#FF000000"
+        android:pathData="M12,3c5,0 9,4 9,9c0,0.83 -0.15,1.65 -0.41,2.4c-0.3,0.8 -1.17,1.2 -1.97,0.9c-0.8,-0.3 -1.2,-1.17 -0.9,-1.97c0.16,-0.43 0.28,-0.9 0.28,-1.33c0,-3.87 -3.13,-7 -7,-7s-7,3.13 -7,7s3.13,7 7,7c0.4,0 0.79,-0.04 1.17,-0.1c0.83,-0.15 1.64,0.4 1.79,1.23c0.15,0.83 -0.4,1.64 -1.23,1.79c-0.55,0.1 -1.12,0.15 -1.73,0.15c-6.08,0 -11,-4.92 -11,-11s4.92,-11 11,-11z"/>
+
+    <!-- Círculo rojo (top left) -->
+    <path
+        android:fillColor="#FF5722"
+        android:pathData="M7.5,8C8.33,8 9,8.67 9,9.5S8.33,11 7.5,11S6,10.33 6,9.5S6.67,8 7.5,8z"/>
+
+    <!-- Círculo naranja (top center) -->
+    <path
+        android:fillColor="#FF9800"
+        android:pathData="M12,6C12.83,6 13.5,6.67 13.5,7.5S12.83,9 12,9S10.5,8.33 10.5,7.5S11.17,6 12,6z"/>
+
+    <!-- Círculo verde (top right) -->
+    <path
+        android:fillColor="#4CAF50"
+        android:pathData="M16.5,8C17.33,8 18,8.67 18,9.5S17.33,11 16.5,11S15,10.33 15,9.5S15.67,8 16.5,8z"/>
+
+    <!-- Círculo azul (bottom left) -->
+    <path
+        android:fillColor="#2196F3"
+        android:pathData="M7.5,15C8.33,15 9,15.67 9,16.5S8.33,18 7.5,18S6,17.33 6,16.5S6.67,15 7.5,15z"/>
+
+    <!-- Círculo púrpura (bottom right) -->
+    <path
+        android:fillColor="#9C27B0"
+        android:pathData="M16.5,15C17.33,15 18,15.67 18,16.5S17.33,18 16.5,18S15,17.33 15,16.5S15.67,15 16.5,15z"/>
+
+</vector>

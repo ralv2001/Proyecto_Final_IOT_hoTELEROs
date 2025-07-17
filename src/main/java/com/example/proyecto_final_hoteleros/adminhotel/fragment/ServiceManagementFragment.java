@@ -1,6 +1,7 @@
 package com.example.proyecto_final_hoteleros.adminhotel.fragment;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
@@ -22,11 +23,13 @@ import com.example.proyecto_final_hoteleros.R;
 import com.example.proyecto_final_hoteleros.adminhotel.adapters.ServiceManagementAdapter;
 import com.example.proyecto_final_hoteleros.adminhotel.dialog.AddServiceDialog;
 import com.example.proyecto_final_hoteleros.adminhotel.dialog.EditServiceDialog;
+import com.example.proyecto_final_hoteleros.adminhotel.dialog.ServicePhotoViewerDialog;
 import com.example.proyecto_final_hoteleros.adminhotel.model.HotelServiceItem;
 import com.example.proyecto_final_hoteleros.adminhotel.model.HotelServiceModel;
 import com.example.proyecto_final_hoteleros.adminhotel.utils.FirebaseServiceManager;
-import com.example.proyecto_final_hoteleros.adminhotel.utils.ServiceSyncManager;
 import com.google.android.material.button.MaterialButton;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.android.material.textfield.TextInputEditText;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -37,17 +40,18 @@ public class ServiceManagementFragment extends Fragment implements FirebaseServi
 
     // Views principales
     private ImageView ivBack;
+    private MaterialButton btnAddService;
+    private FloatingActionButton fabAddService;
 
-    // Botones para agregar servicios por categoría
-    private MaterialButton btnAddIncludedService;
-    private MaterialButton btnAddPaidService;
-    private MaterialButton btnAddConditionalService;
+    // Campos para taxi
+    private TextInputEditText etTaxiMinAmount;
+    private MaterialButton btnSaveTaxiConfig;
 
-    // RecyclerViews para cada tipo de servicio
+    // RecyclerViews para TODOS los tipos de servicio
     private RecyclerView rvBasicServices, rvIncludedServices, rvPaidServices, rvConditionalServices;
     private View layoutBasicServicesEmpty, layoutIncludedServicesEmpty, layoutPaidServicesEmpty, layoutConditionalServicesEmpty;
 
-    // Adapters
+    // Adapters para todos los tipos
     private ServiceManagementAdapter basicServicesAdapter, includedServicesAdapter, paidServicesAdapter, conditionalServicesAdapter;
 
     // Listas de servicios
@@ -58,19 +62,18 @@ public class ServiceManagementFragment extends Fragment implements FirebaseServi
 
     // Managers
     private FirebaseServiceManager firebaseServiceManager;
-    private ServiceSyncManager serviceSyncManager;
 
     // Activity Result Launchers
     private ActivityResultLauncher<Intent> photoPickerLauncher;
+
+    // Referencia al diálogo activo para manejar fotos
+    private AddServiceDialog currentAddServiceDialog;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // Inicializar managers con Context
         firebaseServiceManager = FirebaseServiceManager.getInstance(getContext());
-        firebaseServiceManager.addListener(this);
-        serviceSyncManager = ServiceSyncManager.getInstance(getContext());
 
         setupActivityResultLaunchers();
     }
@@ -88,19 +91,42 @@ public class ServiceManagementFragment extends Fragment implements FirebaseServi
         initializeViews(view);
         initializeLists();
         setupRecyclerViews();
-        setupClickListeners();
+        setupListeners();
 
-        loadServicesFromFirebase();
+        // ✅ CRÍTICO: Registrar listener DESPUÉS de configurar todo
+        if (firebaseServiceManager != null) {
+            firebaseServiceManager.addListener(this);
+        }
+
+        // ✅ FORZAR carga inicial
+        loadAllServicesFromFirebase();
+    }
+
+    private void setupActivityResultLaunchers() {
+        photoPickerLauncher = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                result -> {
+                    if (result.getResultCode() == Activity.RESULT_OK && result.getData() != null) {
+                        Log.d(TAG, "📷 Resultado de foto recibido");
+                        if (currentAddServiceDialog != null) {
+                            Log.d(TAG, "📷 Enviando resultado de fotos al diálogo activo");
+                            currentAddServiceDialog.handlePhotoResult(result.getData());
+                        } else {
+                            Log.w(TAG, "📷 No hay diálogo activo para recibir las fotos");
+                        }
+                    } else {
+                        Log.w(TAG, "📷 Selección de foto cancelada o falló");
+                    }
+                }
+        );
     }
 
     private void initializeViews(View view) {
-        // Header
         ivBack = view.findViewById(R.id.ivBack);
+        fabAddService = view.findViewById(R.id.fabAddService);
 
-        // Botones para agregar servicios
-        btnAddIncludedService = view.findViewById(R.id.btnAddIncludedService);
-        btnAddPaidService = view.findViewById(R.id.btnAddPaidService);
-        btnAddConditionalService = view.findViewById(R.id.btnAddConditionalService);
+        // Taxi fields
+        btnSaveTaxiConfig = view.findViewById(R.id.btnSaveTaxiConfig);
 
         // RecyclerViews
         rvBasicServices = view.findViewById(R.id.rvBasicServices);
@@ -108,7 +134,7 @@ public class ServiceManagementFragment extends Fragment implements FirebaseServi
         rvPaidServices = view.findViewById(R.id.rvPaidServices);
         rvConditionalServices = view.findViewById(R.id.rvConditionalServices);
 
-        // Estados vacíos
+        // Empty states
         layoutBasicServicesEmpty = view.findViewById(R.id.layoutBasicServicesEmpty);
         layoutIncludedServicesEmpty = view.findViewById(R.id.layoutIncludedServicesEmpty);
         layoutPaidServicesEmpty = view.findViewById(R.id.layoutPaidServicesEmpty);
@@ -123,406 +149,453 @@ public class ServiceManagementFragment extends Fragment implements FirebaseServi
     }
 
     private void setupRecyclerViews() {
-        ServiceManagementAdapter.OnServiceActionListener editListener = new ServiceManagementAdapter.OnServiceActionListener() {
+        // CREAR LISTENER DE ACCIONES
+        ServiceManagementAdapter.OnServiceActionListener actionListener = new ServiceManagementAdapter.OnServiceActionListener() {
             @Override
             public void onEditService(HotelServiceItem service, int position) {
-                editService(service, position);
+                showEditServiceDialog(service, position);
             }
 
             @Override
             public void onDeleteService(HotelServiceItem service, int position) {
-                deleteService(service, position);
+                showDeleteServiceDialog(service, position);
             }
 
             @Override
             public void onToggleService(HotelServiceItem service, int position, boolean isActive) {
-                toggleServiceStatus(service, position, isActive);
+                toggleServiceState(service, position, isActive);
             }
         };
 
-        // Setup adapters para todos los tipos de servicios
-        basicServicesAdapter = new ServiceManagementAdapter(basicServices, editListener);
-        includedServicesAdapter = new ServiceManagementAdapter(includedServices, editListener);
-        paidServicesAdapter = new ServiceManagementAdapter(paidServices, editListener);
-        conditionalServicesAdapter = new ServiceManagementAdapter(conditionalServices, editListener);
+        // CREAR LISTENER DE FOTOS
+        ServiceManagementAdapter.OnServicePhotoClickListener photoListener = this::showServicePhotos;
 
-        // Configurar RecyclerViews
-        setupRecyclerView(rvBasicServices, basicServicesAdapter);
-        setupRecyclerView(rvIncludedServices, includedServicesAdapter);
-        setupRecyclerView(rvPaidServices, paidServicesAdapter);
-        setupRecyclerView(rvConditionalServices, conditionalServicesAdapter);
+        // Configurar RecyclerView de servicios básicos
+        basicServicesAdapter = new ServiceManagementAdapter(
+                getContext(),
+                basicServices,
+                actionListener,
+                photoListener
+        );
+        rvBasicServices.setLayoutManager(new LinearLayoutManager(getContext()));
+        rvBasicServices.setAdapter(basicServicesAdapter);
 
-        Log.d(TAG, "✅ Todos los RecyclerViews configurados");
+        // Configurar RecyclerView de servicios incluidos
+        includedServicesAdapter = new ServiceManagementAdapter(
+                getContext(),
+                includedServices,
+                actionListener,
+                photoListener
+        );
+        rvIncludedServices.setLayoutManager(new LinearLayoutManager(getContext()));
+        rvIncludedServices.setAdapter(includedServicesAdapter);
+
+        // Configurar RecyclerView de servicios de pago
+        paidServicesAdapter = new ServiceManagementAdapter(
+                getContext(),
+                paidServices,
+                actionListener,
+                photoListener
+        );
+        rvPaidServices.setLayoutManager(new LinearLayoutManager(getContext()));
+        rvPaidServices.setAdapter(paidServicesAdapter);
+
+        // Configurar RecyclerView de servicios condicionales
+        conditionalServicesAdapter = new ServiceManagementAdapter(
+                getContext(),
+                conditionalServices,
+                actionListener,
+                photoListener
+        );
+        rvConditionalServices.setLayoutManager(new LinearLayoutManager(getContext()));
+        rvConditionalServices.setAdapter(conditionalServicesAdapter);
+
+        Log.d(TAG, "✅ RecyclerViews configurados");
     }
 
-    private void setupRecyclerView(RecyclerView recyclerView, ServiceManagementAdapter adapter) {
-        if (recyclerView != null && adapter != null) {
-            recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-            recyclerView.setAdapter(adapter);
-            recyclerView.setNestedScrollingEnabled(false);
-        }
-    }
-
-    private void setupClickListeners() {
+    private void setupListeners() {
+        // Botón volver
         if (ivBack != null) {
-            ivBack.setOnClickListener(v -> getParentFragmentManager().popBackStack());
+            ivBack.setOnClickListener(v -> {
+                if (getParentFragmentManager().getBackStackEntryCount() > 0) {
+                    getParentFragmentManager().popBackStack();
+                } else {
+                    requireActivity().finish();
+                }
+            });
         }
 
-        if (btnAddIncludedService != null) {
-            btnAddIncludedService.setOnClickListener(v -> showAddServiceDialog("included"));
+        // Botones para agregar servicio
+        if (btnAddService != null) {
+            btnAddService.setOnClickListener(v -> openAddServiceDialog());
+        }
+        if (fabAddService != null) {
+            fabAddService.setOnClickListener(v -> openAddServiceDialog());
         }
 
-        if (btnAddPaidService != null) {
-            btnAddPaidService.setOnClickListener(v -> showAddServiceDialog("paid"));
-        }
-
-        if (btnAddConditionalService != null) {
-            btnAddConditionalService.setOnClickListener(v -> showAddServiceDialog("conditional"));
+        // Configuración de taxi
+        if (btnSaveTaxiConfig != null) {
+            btnSaveTaxiConfig.setOnClickListener(v -> saveTaxiConfiguration());
         }
     }
 
-    private void setupActivityResultLaunchers() {
-        photoPickerLauncher = registerForActivityResult(
-                new ActivityResultContracts.StartActivityForResult(),
-                result -> {
-                    if (result.getResultCode() == Activity.RESULT_OK && result.getData() != null) {
-                        // Manejar resultado de selección de fotos
+    private void loadAllServicesFromFirebase() {
+        Log.d(TAG, "🔄 Cargando todos los servicios desde Firebase...");
+
+        if (firebaseServiceManager != null) {
+            firebaseServiceManager.getAllServices(new FirebaseServiceManager.ServicesListCallback() {
+                @Override
+                public void onSuccess(List<HotelServiceModel> services) {
+                    Log.d(TAG, "✅ Servicios cargados desde Firebase: " + services.size());
+                    if (getActivity() != null) {
+                        getActivity().runOnUiThread(() -> {
+                            classifyAndDisplayServices(services);
+                        });
                     }
                 }
-        );
+
+                @Override
+                public void onError(String error) {
+                    Log.e(TAG, "❌ Error cargando servicios: " + error);
+                    if (getActivity() != null) {
+                        getActivity().runOnUiThread(() -> {
+                            Toast.makeText(getContext(), "Error cargando servicios: " + error, Toast.LENGTH_SHORT).show();
+                        });
+                    }
+                }
+            });
+        } else {
+            Log.e(TAG, "❌ FirebaseServiceManager es null");
+        }
     }
 
-    // ========== CARGA DE SERVICIOS ==========
-
-    private void loadServicesFromFirebase() {
-        Log.d(TAG, "📊 Cargando servicios desde Firebase...");
-
-        firebaseServiceManager.getAllServices(new FirebaseServiceManager.ServicesListCallback() {
-            @Override
-            public void onSuccess(List<HotelServiceModel> allServices) {
-                Log.d(TAG, "✅ Todos los servicios obtenidos: " + allServices.size());
-
-                if (getActivity() != null) {
-                    getActivity().runOnUiThread(() -> {
-                        classifyAndDisplayServices(allServices);
-                    });
-                }
-            }
-
-            @Override
-            public void onError(String error) {
-                Log.e(TAG, "❌ Error cargando servicios: " + error);
-                if (getActivity() != null) {
-                    getActivity().runOnUiThread(() -> {
-                        Toast.makeText(getContext(), "Error cargando servicios: " + error, Toast.LENGTH_SHORT).show();
-                    });
-                }
-            }
-        });
-    }
-
+    // ✅ MÉTODO CORREGIDO: Clasificar y mostrar servicios
     private void classifyAndDisplayServices(List<HotelServiceModel> allServices) {
-        // Limpiar todas las listas
+        Log.d(TAG, "📊 Clasificando " + allServices.size() + " servicios");
+
+        // Limpiar TODAS las listas
         basicServices.clear();
         includedServices.clear();
         paidServices.clear();
         conditionalServices.clear();
 
-        // Clasificar servicios por tipo
-        for (HotelServiceModel model : allServices) {
-            HotelServiceItem item = convertFirebaseToHotelServiceItem(model);
+        // Clasificar servicios correctamente
+        for (HotelServiceModel service : allServices) {
+            try {
+                HotelServiceItem item = convertToServiceItem(service);
 
-            switch (model.getServiceType()) {
-                case "basic":
-                    basicServices.add(item);
-                    break;
-                case "included":
-                    includedServices.add(item);
-                    break;
-                case "paid":
-                    paidServices.add(item);
-                    break;
-                case "conditional":
-                    conditionalServices.add(item);
-                    break;
+                String serviceType = service.getServiceType();
+                if (serviceType == null) serviceType = "included"; // Default
+
+                switch (serviceType.toLowerCase()) {
+                    case "basic":
+                    case "básico":
+                        basicServices.add(item);
+                        Log.d(TAG, "➕ Servicio básico agregado: " + service.getName());
+                        break;
+
+                    case "included":
+                    case "incluido":
+                        includedServices.add(item);
+                        Log.d(TAG, "➕ Servicio incluido agregado: " + service.getName());
+                        break;
+
+                    case "paid":
+                    case "pagado":
+                    case "pago":
+                        paidServices.add(item);
+                        Log.d(TAG, "➕ Servicio de pago agregado: " + service.getName());
+                        break;
+
+                    case "conditional":
+                    case "condicional":
+                        conditionalServices.add(item);
+                        Log.d(TAG, "➕ Servicio condicional agregado: " + service.getName());
+                        break;
+
+                    default:
+                        includedServices.add(item); // Default a incluidos
+                        Log.w(TAG, "⚠️ Tipo de servicio desconocido: " + serviceType + " para " + service.getName() + " - agregado como incluido");
+                        break;
+                }
+            } catch (Exception e) {
+                Log.e(TAG, "❌ Error procesando servicio " + service.getName() + ": " + e.getMessage());
             }
         }
 
-        // Actualizar UI
-        updateAllAdapters();
-        updateEmptyStates();
-    }
-
-    // ========== GESTIÓN DE SERVICIOS ==========
-
-    private void showAddServiceDialog(String serviceType) {
-        AddServiceDialog dialog = new AddServiceDialog(getContext(), photoPickerLauncher, service -> {
-            if (service != null) {
-                addNewService(service);
-            }
-        });
-        dialog.show();
-    }
-
-    private void addNewService(HotelServiceItem service) {
-        Log.d(TAG, "➕ Agregando nuevo servicio: " + service.getName());
-
-        // Convertir a Firebase model
-        HotelServiceModel firebaseModel = convertHotelServiceItemToFirebase(service);
-
-        // Guardar en Firebase
-        firebaseServiceManager.createService(firebaseModel, service.getPhotos(), new FirebaseServiceManager.ServiceCallback() {
-            @Override
-            public void onSuccess(HotelServiceModel serviceModel) {
-                Log.d(TAG, "✅ Servicio guardado en Firebase");
-
-                if (getActivity() != null) {
-                    getActivity().runOnUiThread(() -> {
-                        Toast.makeText(getContext(), "Servicio agregado exitosamente", Toast.LENGTH_SHORT).show();
-                    });
-                }
-            }
-
-            @Override
-            public void onError(String error) {
-                Log.e(TAG, "❌ Error guardando servicio: " + error);
-                if (getActivity() != null) {
-                    getActivity().runOnUiThread(() -> {
-                        Toast.makeText(getContext(), "Error guardando servicio: " + error, Toast.LENGTH_SHORT).show();
-                    });
-                }
-            }
-        });
-    }
-
-    private void editService(HotelServiceItem service, int position) {
-        Log.d(TAG, "✏️ Editando servicio: " + service.getName());
-
-        EditServiceDialog dialog = new EditServiceDialog(getContext(), service, updatedService -> {
-            if (updatedService != null) {
-                updateService(updatedService, position);
-            }
-        });
-        dialog.show();
-    }
-
-    private void updateService(HotelServiceItem updatedService, int position) {
-        Log.d(TAG, "🔄 Actualizando servicio: " + updatedService.getName());
-
-        // Convertir a Firebase model
-        HotelServiceModel firebaseModel = convertHotelServiceItemToFirebase(updatedService);
-
-        // Actualizar en Firebase
-        firebaseServiceManager.updateService(firebaseModel, updatedService.getPhotos(), new FirebaseServiceManager.ServiceCallback() {
-            @Override
-            public void onSuccess(HotelServiceModel serviceModel) {
-                Log.d(TAG, "✅ Servicio actualizado en Firebase");
-
-                if (getActivity() != null) {
-                    getActivity().runOnUiThread(() -> {
-                        Toast.makeText(getContext(), "Servicio actualizado exitosamente", Toast.LENGTH_SHORT).show();
-                    });
-                }
-            }
-
-            @Override
-            public void onError(String error) {
-                Log.e(TAG, "❌ Error actualizando servicio: " + error);
-                if (getActivity() != null) {
-                    getActivity().runOnUiThread(() -> {
-                        Toast.makeText(getContext(), "Error actualizando servicio: " + error, Toast.LENGTH_SHORT).show();
-                    });
-                }
-            }
-        });
-    }
-
-    private void deleteService(HotelServiceItem service, int position) {
-        Log.d(TAG, "🗑️ Eliminando servicio: " + service.getName());
-
-        // Buscar ID en Firebase
-        String firebaseId = findFirebaseServiceId(service);
-        if (firebaseId == null) {
-            Toast.makeText(getContext(), "Error: No se pudo encontrar el servicio en Firebase", Toast.LENGTH_SHORT).show();
-            return;
+        // ✅ ACTUALIZAR ADAPTERS EN EL HILO PRINCIPAL
+        if (getActivity() != null) {
+            getActivity().runOnUiThread(() -> {
+                updateAdapters();
+                updateEmptyStatesVisibility();
+            });
         }
 
-        // Eliminar de Firebase
-        firebaseServiceManager.deleteService(firebaseId, new FirebaseServiceManager.ServiceCallback() {
-            @Override
-            public void onSuccess(HotelServiceModel serviceModel) {
-                Log.d(TAG, "✅ Servicio eliminado de Firebase");
-
-                if (getActivity() != null) {
-                    getActivity().runOnUiThread(() -> {
-                        Toast.makeText(getContext(), "Servicio eliminado exitosamente", Toast.LENGTH_SHORT).show();
-                    });
-                }
-            }
-
-            @Override
-            public void onError(String error) {
-                Log.e(TAG, "❌ Error eliminando servicio: " + error);
-                if (getActivity() != null) {
-                    getActivity().runOnUiThread(() -> {
-                        Toast.makeText(getContext(), "Error eliminando servicio: " + error, Toast.LENGTH_SHORT).show();
-                    });
-                }
-            }
-        });
+        Log.d(TAG, "✅ Servicios clasificados - Básicos: " + basicServices.size() +
+                ", Incluidos: " + includedServices.size() +
+                ", Pagados: " + paidServices.size() +
+                ", Condicionales: " + conditionalServices.size());
     }
 
-    private void toggleServiceStatus(HotelServiceItem service, int position, boolean isActive) {
-        Log.d(TAG, "🔄 Cambiando estado de servicio: " + service.getName() + " a " + isActive);
-        service.setActive(isActive);
-        updateService(service, position);
-    }
-
-    // ========== MÉTODOS DE UTILIDAD ==========
-
-    private void updateAllAdapters() {
-        if (basicServicesAdapter != null) basicServicesAdapter.notifyDataSetChanged();
-        if (includedServicesAdapter != null) includedServicesAdapter.notifyDataSetChanged();
-        if (paidServicesAdapter != null) paidServicesAdapter.notifyDataSetChanged();
-        if (conditionalServicesAdapter != null) conditionalServicesAdapter.notifyDataSetChanged();
-    }
-
-    private void updateEmptyStates() {
-        updateEmptyState(layoutBasicServicesEmpty, rvBasicServices, basicServices.isEmpty());
-        updateEmptyState(layoutIncludedServicesEmpty, rvIncludedServices, includedServices.isEmpty());
-        updateEmptyState(layoutPaidServicesEmpty, rvPaidServices, paidServices.isEmpty());
-        updateEmptyState(layoutConditionalServicesEmpty, rvConditionalServices, conditionalServices.isEmpty());
-    }
-
-    private void updateEmptyState(View emptyLayout, RecyclerView recyclerView, boolean isEmpty) {
-        if (emptyLayout != null) {
-            emptyLayout.setVisibility(isEmpty ? View.VISIBLE : View.GONE);
+    // ✅ NUEVO MÉTODO: Actualizar adapters
+    private void updateAdapters() {
+        if (basicServicesAdapter != null) {
+            basicServicesAdapter.updateServices(basicServices);
+            Log.d(TAG, "🔄 Adapter básicos actualizado con " + basicServices.size() + " servicios");
         }
-        if (recyclerView != null) {
-            recyclerView.setVisibility(isEmpty ? View.GONE : View.VISIBLE);
+        if (includedServicesAdapter != null) {
+            includedServicesAdapter.updateServices(includedServices);
+            Log.d(TAG, "🔄 Adapter incluidos actualizado con " + includedServices.size() + " servicios");
+        }
+        if (paidServicesAdapter != null) {
+            paidServicesAdapter.updateServices(paidServices);
+            Log.d(TAG, "🔄 Adapter pagados actualizado con " + paidServices.size() + " servicios");
+        }
+        if (conditionalServicesAdapter != null) {
+            conditionalServicesAdapter.updateServices(conditionalServices);
+            Log.d(TAG, "🔄 Adapter condicionales actualizado con " + conditionalServices.size() + " servicios");
         }
     }
 
-    // ========== CONVERSIONES ==========
+    // ✅ MÉTODO MEJORADO: Convertir HotelServiceModel a HotelServiceItem
+    private HotelServiceItem convertToServiceItem(HotelServiceModel service) {
+        // Convertir tipo de servicio
+        HotelServiceItem.ServiceType serviceType = convertStringToServiceType(service.getServiceType());
 
-    private HotelServiceItem convertFirebaseToHotelServiceItem(HotelServiceModel model) {
-        HotelServiceItem.ServiceType type;
-        switch (model.getServiceType()) {
-            case "basic": type = HotelServiceItem.ServiceType.BASIC; break;
-            case "included": type = HotelServiceItem.ServiceType.INCLUDED; break;
-            case "paid": type = HotelServiceItem.ServiceType.PAID; break;
-            case "conditional": type = HotelServiceItem.ServiceType.CONDITIONAL; break;
-            default: type = HotelServiceItem.ServiceType.INCLUDED; break;
+        // Crear lista de URIs de fotos
+        List<android.net.Uri> photoUris = new ArrayList<>();
+        if (service.getPhotoUrls() != null) {
+            for (String url : service.getPhotoUrls()) {
+                try {
+                    photoUris.add(android.net.Uri.parse(url));
+                } catch (Exception e) {
+                    Log.w(TAG, "Error parseando URL de foto: " + url);
+                }
+            }
         }
 
-        // Usar el constructor correcto con parámetros requeridos
+        // Crear servicio con datos completos
         HotelServiceItem item = new HotelServiceItem(
-                model.getName(),
-                model.getDescription(),
-                model.getPrice(),
-                model.getIconKey(),
-                type,
-                new ArrayList<>(), // photos - se asignarán después
-                model.getConditionalAmount()
+                service.getName() != null ? service.getName() : "",
+                service.getDescription() != null ? service.getDescription() : "",
+                service.getPrice(),
+                service.getIconKey() != null ? service.getIconKey() : "ic_service_default",
+                serviceType,
+                photoUris,
+                service.getConditionalAmount()
         );
 
-        item.setActive(model.isActive());
+        // Establecer ID de Firebase y estado activo
+        item.setFirebaseId(service.getId());
+        item.setActive(service.isActive());
 
-        // Convertir URLs a URIs
-        List<android.net.Uri> photos = new ArrayList<>();
-        if (model.getPhotoUrls() != null) {
-            for (String url : model.getPhotoUrls()) {
-                photos.add(android.net.Uri.parse(url));
-            }
-        }
-        item.setPhotos(photos);
-
-        if (model.getId() != null) {
-            item.setFirebaseId(model.getId());
-        }
-
+        Log.d(TAG, "🔄 Convertido: " + service.getName() + " (Tipo: " + serviceType + ", Fotos: " + photoUris.size() + ")");
         return item;
     }
 
-    private HotelServiceModel convertHotelServiceItemToFirebase(HotelServiceItem item) {
-        String typeString;
-        switch (item.getType()) {
-            case BASIC: typeString = "basic"; break;
-            case INCLUDED: typeString = "included"; break;
-            case PAID: typeString = "paid"; break;
-            case CONDITIONAL: typeString = "conditional"; break;
-            default: typeString = "included"; break;
+    // MÉTODO PARA CONVERTIR STRING A ServiceType ENUM
+    private HotelServiceItem.ServiceType convertStringToServiceType(String serviceType) {
+        if (serviceType == null) return HotelServiceItem.ServiceType.INCLUDED;
+
+        switch (serviceType.toLowerCase()) {
+            case "basic":
+            case "básico":
+                return HotelServiceItem.ServiceType.BASIC;
+            case "included":
+            case "incluido":
+                return HotelServiceItem.ServiceType.INCLUDED;
+            case "paid":
+            case "pagado":
+            case "pago":
+                return HotelServiceItem.ServiceType.PAID;
+            case "conditional":
+            case "condicional":
+                return HotelServiceItem.ServiceType.CONDITIONAL;
+            default:
+                return HotelServiceItem.ServiceType.INCLUDED;
+        }
+    }
+
+    // Actualizar visibilidad de estados vacíos
+    private void updateEmptyStatesVisibility() {
+        // Básicos
+        if (rvBasicServices != null && layoutBasicServicesEmpty != null) {
+            rvBasicServices.setVisibility(basicServices.isEmpty() ? View.GONE : View.VISIBLE);
+            layoutBasicServicesEmpty.setVisibility(basicServices.isEmpty() ? View.VISIBLE : View.GONE);
         }
 
-        HotelServiceModel model = new HotelServiceModel(
-                item.getName(),
-                item.getDescription(),
-                item.getIconKey(),
-                typeString
-        );
-        model.setPrice(item.getPrice());
-        model.setConditionalAmount(item.getConditionalAmount());
-        model.setActive(item.isActive());
+        // Incluidos
+        if (rvIncludedServices != null && layoutIncludedServicesEmpty != null) {
+            rvIncludedServices.setVisibility(includedServices.isEmpty() ? View.GONE : View.VISIBLE);
+            layoutIncludedServicesEmpty.setVisibility(includedServices.isEmpty() ? View.VISIBLE : View.GONE);
+        }
 
-        // Convertir URIs a URLs
-        List<String> photoUrls = new ArrayList<>();
-        if (item.getPhotos() != null) {
-            for (android.net.Uri uri : item.getPhotos()) {
-                photoUrls.add(uri.toString());
+        // De pago
+        if (rvPaidServices != null && layoutPaidServicesEmpty != null) {
+            rvPaidServices.setVisibility(paidServices.isEmpty() ? View.GONE : View.VISIBLE);
+            layoutPaidServicesEmpty.setVisibility(paidServices.isEmpty() ? View.VISIBLE : View.GONE);
+        }
+
+        // Condicionales
+        if (rvConditionalServices != null && layoutConditionalServicesEmpty != null) {
+            rvConditionalServices.setVisibility(conditionalServices.isEmpty() ? View.GONE : View.VISIBLE);
+            layoutConditionalServicesEmpty.setVisibility(conditionalServices.isEmpty() ? View.VISIBLE : View.GONE);
+        }
+
+        Log.d(TAG, "✅ Estados vacíos actualizados");
+    }
+
+    // MÉTODO CRÍTICO ACTUALIZADO: Ahora usa AddServiceDialog con manejo correcto de fotos
+    private void openAddServiceDialog() {
+        Log.d(TAG, "🚀 Abriendo diálogo para agregar servicio");
+
+        currentAddServiceDialog = new AddServiceDialog(getContext(), photoPickerLauncher, new AddServiceDialog.OnServiceAddedListener() {
+            @Override
+            public void onServiceAdded(HotelServiceItem service) {
+                Log.d(TAG, "✅ Servicio agregado desde diálogo: " + service.getName());
+                Toast.makeText(getContext(), "✅ Servicio agregado: " + service.getName(), Toast.LENGTH_SHORT).show();
+
+                // Limpiar referencia
+                currentAddServiceDialog = null;
+
+                // ✅ RECARGAR servicios después de agregar
+                loadAllServicesFromFirebase();
             }
-        }
-        model.setPhotoUrls(photoUrls);
+        });
 
-        return model;
+        // Configurar listener para limpiar referencia cuando se cierre
+        currentAddServiceDialog.setOnDismissListener(dialog -> {
+            Log.d(TAG, "🚪 Diálogo de agregar servicio cerrado");
+            currentAddServiceDialog = null;
+        });
+
+        currentAddServiceDialog.show();
     }
 
-    private String findFirebaseServiceId(HotelServiceItem service) {
-        if (service.getFirebaseId() != null) {
-            return service.getFirebaseId();
+    private void saveTaxiConfiguration() {
+        if (etTaxiMinAmount == null) return;
+
+        String minAmount = etTaxiMinAmount.getText().toString().trim();
+
+        if (minAmount.isEmpty()) {
+            Toast.makeText(getContext(), "⚠️ Ingresa el monto mínimo", Toast.LENGTH_SHORT).show();
+            return;
         }
-        Log.w(TAG, "No se pudo encontrar ID de Firebase para: " + service.getName());
-        return null;
+
+        try {
+            double amount = Double.parseDouble(minAmount);
+            Toast.makeText(getContext(), "💾 Configuración guardada: S/. " + amount, Toast.LENGTH_SHORT).show();
+            Log.d(TAG, "💾 Configuración de taxi guardada: S/. " + amount);
+        } catch (NumberFormatException e) {
+            Toast.makeText(getContext(), "⚠️ Ingresa un monto válido", Toast.LENGTH_SHORT).show();
+        }
     }
 
-    // ========== CALLBACKS DE FIREBASE ==========
+    private void showEditServiceDialog(HotelServiceItem service, int position) {
+        EditServiceDialog dialog = new EditServiceDialog(getContext(), service,
+                editedService -> {
+                    Log.d(TAG, "🔧 Servicio editado: " + editedService.getName());
+                    loadAllServicesFromFirebase();
+                }
+        );
+        dialog.show();
+    }
+
+    private void showServicePhotos(String photoUrl, int photoPosition, List<String> allPhotos) {
+        ServicePhotoViewerDialog dialog = new ServicePhotoViewerDialog(
+                getContext(),
+                allPhotos,
+                photoPosition,
+                "Fotos del servicio"
+        );
+        dialog.show();
+    }
+
+    private void showDeleteServiceDialog(HotelServiceItem service, int position) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+        builder.setTitle("Eliminar servicio");
+        builder.setMessage("¿Estás seguro de que quieres eliminar el servicio '" + service.getName() + "'?");
+
+        builder.setPositiveButton("Eliminar", (dialog, which) -> {
+            if (firebaseServiceManager != null && service.getFirebaseId() != null) {
+                firebaseServiceManager.deleteService(service.getFirebaseId(), new FirebaseServiceManager.ServiceCallback() {
+                    @Override
+                    public void onSuccess(HotelServiceModel deletedService) {
+                        if (getActivity() != null) {
+                            getActivity().runOnUiThread(() -> {
+                                Toast.makeText(getContext(), "✅ Servicio eliminado: " + service.getName(), Toast.LENGTH_SHORT).show();
+                                // La recarga automática se maneja por el listener
+                            });
+                        }
+                        Log.d(TAG, "✅ Servicio eliminado exitosamente: " + service.getName());
+                    }
+
+                    @Override
+                    public void onError(String error) {
+                        if (getActivity() != null) {
+                            getActivity().runOnUiThread(() -> {
+                                Toast.makeText(getContext(), "❌ Error eliminando servicio: " + error, Toast.LENGTH_SHORT).show();
+                            });
+                        }
+                        Log.e(TAG, "❌ Error eliminando servicio: " + error);
+                    }
+                });
+            } else {
+                Toast.makeText(getContext(), "❌ No se puede eliminar: ID no válido", Toast.LENGTH_SHORT).show();
+                Log.e(TAG, "❌ No se puede eliminar servicio: FirebaseServiceManager o ID es null");
+            }
+        });
+
+        builder.setNegativeButton("Cancelar", null);
+        builder.show();
+    }
+
+    private void toggleServiceState(HotelServiceItem service, int position, boolean isActive) {
+        service.setActive(isActive);
+        String status = isActive ? "activado" : "desactivado";
+        Toast.makeText(getContext(), "🔄 Servicio " + status + ": " + service.getName(), Toast.LENGTH_SHORT).show();
+        Log.d(TAG, "🔄 Estado del servicio cambiado: " + service.getName() + " -> " + status);
+    }
+
+    // ✅ IMPLEMENTANDO TODOS LOS MÉTODOS DE LA INTERFAZ OnServicesChangedListener
 
     @Override
-    public void onBasicServicesUpdated(List<HotelServiceModel> basicServiceModels) {
-        Log.d(TAG, "🔄 Servicios básicos actualizados: " + basicServiceModels.size());
-        loadServicesFromFirebase();
+    public void onBasicServicesUpdated(List<HotelServiceModel> basicServices) {
+        Log.d(TAG, "🔄 Servicios básicos actualizados: " + basicServices.size());
+        // No necesitamos hacer nada aquí, el onAllServicesUpdated se encarga
     }
 
     @Override
-    public void onAllServicesUpdated(List<HotelServiceModel> allServiceModels) {
-        Log.d(TAG, "🔄 Todos los servicios actualizados: " + allServiceModels.size());
+    public void onAllServicesUpdated(List<HotelServiceModel> allServices) {
+        Log.d(TAG, "🔄 Todos los servicios actualizados: " + allServices.size());
         if (getActivity() != null) {
             getActivity().runOnUiThread(() -> {
-                classifyAndDisplayServices(allServiceModels);
+                classifyAndDisplayServices(allServices);
             });
         }
     }
 
     @Override
     public void onServiceAdded(HotelServiceModel service) {
-        Log.d(TAG, "➕ Servicio agregado: " + service.getName());
-        loadServicesFromFirebase();
+        Log.d(TAG, "➕ Servicio agregado desde Firebase: " + service.getName());
+        // El onAllServicesUpdated se encarga de recargar todos
     }
 
     @Override
     public void onServiceUpdated(HotelServiceModel service) {
-        Log.d(TAG, "🔄 Servicio actualizado: " + service.getName());
-        loadServicesFromFirebase();
+        Log.d(TAG, "🔄 Servicio actualizado desde Firebase: " + service.getName());
+        // El onAllServicesUpdated se encarga de recargar todos
     }
 
     @Override
     public void onServiceDeleted(String serviceId) {
-        Log.d(TAG, "🗑️ Servicio eliminado: " + serviceId);
-        loadServicesFromFirebase();
+        Log.d(TAG, "🗑️ Servicio eliminado desde Firebase: " + serviceId);
+        // El onAllServicesUpdated se encarga de recargar todos
     }
 
     @Override
     public void onError(String error) {
-        Log.e(TAG, "❌ Error en servicios: " + error);
+        Log.e(TAG, "❌ Error desde Firebase: " + error);
         if (getActivity() != null) {
             getActivity().runOnUiThread(() -> {
                 Toast.makeText(getContext(), "Error: " + error, Toast.LENGTH_SHORT).show();
@@ -536,5 +609,8 @@ public class ServiceManagementFragment extends Fragment implements FirebaseServi
         if (firebaseServiceManager != null) {
             firebaseServiceManager.removeListener(this);
         }
+        // Limpiar referencia al diálogo
+        currentAddServiceDialog = null;
+        Log.d(TAG, "🧹 Fragment destruido y listeners limpiados");
     }
 }

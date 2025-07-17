@@ -49,16 +49,15 @@
 
             </LinearLayout>
 
-            <!-- Contenido de Información -->
+            <!-- 🔄 MODIFICADO: Contenido de Información ahora va hasta el final -->
             <LinearLayout
                 android:id="@+id/serviceInfoContainer"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
                 android:layout_marginStart="16dp"
-                android:layout_marginEnd="12dp"
                 app:layout_constraintStart_toEndOf="@id/serviceIconContainer"
-                app:layout_constraintEnd_toStartOf="@id/actionButtonsContainer"
+                app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toTopOf="parent">
 
                 <TextView
@@ -87,7 +86,6 @@
                     android:ellipsize="end"
                     tools:text="Internet de alta velocidad en todas las áreas" />
 
-                <!-- Badge de Fotos con Click -->
                 <!-- Badge de Fotos con Click - ESTILO MODERNO -->
                 <LinearLayout
                     android:id="@+id/photoBadgeContainer"
@@ -144,43 +142,11 @@
 
             </LinearLayout>
 
-            <!-- Contenedor de Botones de Acción -->
-            <LinearLayout
-                android:id="@+id/actionButtonsContainer"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toTopOf="@id/serviceIconContainer"
-                app:layout_constraintBottom_toBottomOf="@id/serviceIconContainer">
-
-                <!-- Botón de Eliminar -->
-                <LinearLayout
-                    android:id="@+id/removeButton"
-                    android:layout_width="40dp"
-                    android:layout_height="40dp"
-                    android:background="@drawable/bg_circle_red_light"
-                    android:gravity="center"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:foreground="@drawable/ripple_effect">
-
-                    <ImageView
-                        android:id="@+id/ivRemove"
-                        android:layout_width="18dp"
-                        android:layout_height="18dp"
-                        android:src="@drawable/ic_close"
-                        app:tint="@color/red"
-                        android:scaleType="centerInside" />
-
-                </LinearLayout>
-
-            </LinearLayout>
+            <!-- ❌ ELIMINADO: actionButtonsContainer con removeButton (la "X") -->
 
         </androidx.constraintlayout.widget.ConstraintLayout>
 
-        <!-- Sección de Fotos Expandible -->
+        <!-- ✅ MANTENIDO: Sección de Fotos Expandible - EXACTA como original -->
         <LinearLayout
             android:id="@+id/photosExpandableSection"
             android:layout_width="match_parent"
@@ -199,7 +165,7 @@
                 android:background="#E0E0E0"
                 android:layout_marginBottom="12dp" />
 
-            <!-- Header de la sección de fotos -->
+            <!-- Header de la galería -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -208,11 +174,11 @@
                 android:layout_marginBottom="12dp">
 
                 <ImageView
-                    android:layout_width="16dp"
-                    android:layout_height="16dp"
-                    android:src="@drawable/ic_gallery"
-                    app:tint="@color/blue"
-                    android:layout_marginEnd="6dp" />
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:src="@drawable/ic_photo"
+                    app:tint="@color/green"
+                    android:layout_marginEnd="8dp" />
 
                 <TextView
                     android:layout_width="0dp"
@@ -236,15 +202,29 @@
 
             </LinearLayout>
 
-            <!-- RecyclerView horizontal para las fotos -->
+            <!-- RecyclerView para las fotos en horizontal -->
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/rvServicePhotos"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
+                android:layout_marginBottom="8dp"
                 android:clipToPadding="false"
                 android:paddingHorizontal="4dp"
                 tools:listitem="@layout/admin_hotel_item_basic_service_photo" />
+
+            <!-- Tip informativo -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="💡 Toca cualquier foto para verla en pantalla completa"
+                android:textSize="11sp"
+                android:textColor="#9E9E9E"
+                android:fontFamily="@font/inter_regular"
+                android:textStyle="italic"
+                android:gravity="center"
+                android:layout_marginTop="8dp"
+                android:padding="8dp"
+                android:background="@drawable/bg_tip_light" />
 
         </LinearLayout>
 

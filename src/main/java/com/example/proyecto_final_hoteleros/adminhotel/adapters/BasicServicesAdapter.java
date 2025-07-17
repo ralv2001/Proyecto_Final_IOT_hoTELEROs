@@ -26,35 +26,30 @@ public class BasicServicesAdapter extends RecyclerView.Adapter<BasicServicesAdap
 
     private static final String TAG = "BasicServicesAdapter";
 
-    public interface OnServiceRemovedListener {
-        void onServiceRemoved(int position);
-    }
+    // ❌ ELIMINADO: OnServiceRemovedListener - Ya no se necesita eliminar servicios desde perfil
 
     public interface OnServicePhotoClickListener {
         void onPhotoClick(String photoUrl, int position, List<String> allPhotos);
     }
 
     private List<BasicService> services;
-    private OnServiceRemovedListener removeListener;
     private OnServicePhotoClickListener photoClickListener;
     private Context context;
 
+    // ✅ CONSTRUCTOR PRINCIPAL - Solo para visualización y ver fotos
     public BasicServicesAdapter(Context context, List<BasicService> services,
-                                OnServiceRemovedListener removeListener,
                                 OnServicePhotoClickListener photoClickListener) {
         this.context = context;
         this.services = services;
-        this.removeListener = removeListener;
         this.photoClickListener = photoClickListener;
-        Log.d(TAG, "🔧 Adapter creado con " + services.size() + " servicios");
+        Log.d(TAG, "🔧 Adapter creado con " + services.size() + " servicios (solo visualización)");
     }
 
-    // Constructor de compatibilidad (sin fotos)
-    public BasicServicesAdapter(List<BasicService> services, OnServiceRemovedListener listener) {
+    // ✅ CONSTRUCTOR SIMPLE - Solo para mostrar servicios básicos
+    public BasicServicesAdapter(List<BasicService> services) {
         this.services = services;
-        this.removeListener = listener;
         this.photoClickListener = null;
-        Log.d(TAG, "🔧 Adapter creado (modo compatibilidad) con " + services.size() + " servicios");
+        Log.d(TAG, "🔧 Adapter creado (modo simple) con " + services.size() + " servicios");
     }
 
     @NonNull
@@ -83,10 +78,17 @@ public class BasicServicesAdapter extends RecyclerView.Adapter<BasicServicesAdap
         Log.d(TAG, "📋 Servicios actualizados: " + newServices.size());
     }
 
-    class ServiceViewHolder extends RecyclerView.ViewHolder {
-        private ImageView ivServiceIcon, ivRemove, ivExpandIcon;
-        private TextView tvServiceName, tvServiceDescription, tvPhotoCount, tvPhotosCounter;
+    public class ServiceViewHolder extends RecyclerView.ViewHolder {
+
+        // Views principales
+        private LinearLayout serviceIconContainer;
+        private ImageView ivServiceIcon;
+        private TextView tvServiceName, tvServiceDescription;
+
+        // Views para fotos - EXACTOS como original
         private LinearLayout photoBadgeContainer, photosExpandableSection;
+        private TextView tvPhotoCount, tvPhotosCounter;
+        private ImageView ivExpandIcon;
         private RecyclerView rvServicePhotos;
         private BasicServicePhotosAdapter photosAdapter;
         private boolean isPhotosExpanded = false;
@@ -98,12 +100,13 @@ public class BasicServicesAdapter extends RecyclerView.Adapter<BasicServicesAdap
         }
 
         private void initViews() {
+            // Referencias a las vistas principales
+            serviceIconContainer = itemView.findViewById(R.id.serviceIconContainer);
             ivServiceIcon = itemView.findViewById(R.id.ivServiceIcon);
             tvServiceName = itemView.findViewById(R.id.tvServiceName);
             tvServiceDescription = itemView.findViewById(R.id.tvServiceDescription);
-            ivRemove = itemView.findViewById(R.id.ivRemove);
 
-            // Elementos para fotos
+            // Elementos para fotos - EXACTOS como original
             photoBadgeContainer = itemView.findViewById(R.id.photoBadgeContainer);
             tvPhotoCount = itemView.findViewById(R.id.tvPhotoCount);
             ivExpandIcon = itemView.findViewById(R.id.ivExpandIcon);
@@ -111,7 +114,7 @@ public class BasicServicesAdapter extends RecyclerView.Adapter<BasicServicesAdap
             rvServicePhotos = itemView.findViewById(R.id.rvServicePhotos);
             tvPhotosCounter = itemView.findViewById(R.id.tvPhotosCounter);
 
-            Log.d(TAG, "🔧 ViewHolder inicializado");
+            Log.d(TAG, "🔧 ViewHolder inicializado (modo solo visualización)");
         }
 
         private void setupRecyclerView() {
@@ -127,19 +130,19 @@ public class BasicServicesAdapter extends RecyclerView.Adapter<BasicServicesAdap
 
         public void bind(BasicService service, int position) {
             // Configurar información básica del servicio
-            ivServiceIcon.setImageResource(IconHelper.getIconResource(service.getIconKey()));
+            int iconResource = IconHelper.getIconResource(service.getIconKey());
+            ivServiceIcon.setImageResource(iconResource);
             tvServiceName.setText(service.getName());
-            tvServiceDescription.setText(service.getDescription());
 
-            // Configurar funcionalidad de eliminar
-            ivRemove.setOnClickListener(v -> {
-                if (removeListener != null) {
-                    Log.d(TAG, "🗑️ Eliminando servicio: " + service.getName());
-                    removeListener.onServiceRemoved(position);
-                }
-            });
+            // Configurar descripción
+            if (service.getDescription() != null && !service.getDescription().isEmpty()) {
+                tvServiceDescription.setText(service.getDescription());
+                tvServiceDescription.setVisibility(View.VISIBLE);
+            } else {
+                tvServiceDescription.setVisibility(View.GONE);
+            }
 
-            // Configurar fotos del servicio
+            // Configurar fotos del servicio - EXACTO como original
             setupServicePhotos(service);
 
             Log.d(TAG, "🔧 Servicio vinculado: " + service.getName() +
@@ -160,11 +163,12 @@ public class BasicServicesAdapter extends RecyclerView.Adapter<BasicServicesAdap
                 photoBadgeContainer.setVisibility(View.VISIBLE);
 
                 // Configurar texto del contador
-                String photoText = photos.size() == 1 ? "1 foto" : photos.size() + " fotos";
+                String photoText = photos.size() == 1 ?
+                        "1 foto" : photos.size() + " fotos";
                 tvPhotoCount.setText(photoText);
 
                 if (tvPhotosCounter != null) {
-                    tvPhotosCounter.setText(photos.size() + " de 3");
+                    tvPhotosCounter.setText(photos.size() + " de " + photos.size());
                 }
 
                 // Configurar adapter de fotos
@@ -180,7 +184,7 @@ public class BasicServicesAdapter extends RecyclerView.Adapter<BasicServicesAdap
                     photosAdapter.updatePhotos(photos);
                 }
 
-                // Click listener para expandir/colapsar fotos
+                // Click listener para expandir/colapsar fotos - EXACTO como original
                 photoBadgeContainer.setOnClickListener(v -> togglePhotosSection());
 
                 Log.d(TAG, "📷 Servicio con fotos configurado: " + service.getName() +
@@ -195,11 +199,12 @@ public class BasicServicesAdapter extends RecyclerView.Adapter<BasicServicesAdap
                 expandPhotosSection();
             }
             isPhotosExpanded = !isPhotosExpanded;
-            Log.d(TAG, "📷 Toggle fotos: " + (isPhotosExpanded ? "expandido" : "colapsado"));
+            Log.d(TAG, "📷 Toggle fotos: " + (isPhotosExpanded ?
+                    "expandido" : "colapsado"));
         }
 
         private void expandPhotosSection() {
-            // Animar ícono de expansión
+            // Animar ícono de expansión - EXACTO como original
             RotateAnimation rotateAnimation = new RotateAnimation(0, 180,
                     Animation.RELATIVE_TO_SELF, 0.5f, Animation.RELATIVE_TO_SELF, 0.5f);
             rotateAnimation.setDuration(200);
@@ -215,7 +220,7 @@ public class BasicServicesAdapter extends RecyclerView.Adapter<BasicServicesAdap
         }
 
         private void collapsePhotosSection() {
-            // Animar ícono de expansión
+            // Animar ícono de expansión - EXACTO como original
             RotateAnimation rotateAnimation = new RotateAnimation(180, 0,
                     Animation.RELATIVE_TO_SELF, 0.5f, Animation.RELATIVE_TO_SELF, 0.5f);
             rotateAnimation.setDuration(200);
