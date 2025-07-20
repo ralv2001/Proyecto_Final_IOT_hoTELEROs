@@ -27,7 +27,10 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.proyecto_final_hoteleros.R;
 import com.example.proyecto_final_hoteleros.adminhotel.adapters.HotelPhotosAdapter;
 import com.example.proyecto_final_hoteleros.adminhotel.adapters.BasicServicesAdapter;
+import com.example.proyecto_final_hoteleros.adminhotel.dialog.LocationSelectorDialog;
 import com.example.proyecto_final_hoteleros.adminhotel.dialog.ServicePhotoViewerDialog;
+import com.example.proyecto_final_hoteleros.adminhotel.fragment.ServiceManagementFragment;
+import com.example.proyecto_final_hoteleros.adminhotel.fragment.RoomManagementFragment;
 import com.example.proyecto_final_hoteleros.adminhotel.model.HotelServiceModel;
 import com.example.proyecto_final_hoteleros.adminhotel.model.RoomType;
 import com.example.proyecto_final_hoteleros.adminhotel.model.HotelProfile;
@@ -37,6 +40,7 @@ import com.example.proyecto_final_hoteleros.adminhotel.utils.FirebaseHotelManage
 import com.example.proyecto_final_hoteleros.utils.AwsFileManager;
 import com.example.proyecto_final_hoteleros.utils.UniqueIdGenerator;
 import com.google.android.material.button.MaterialButton;
+import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -61,6 +65,13 @@ public class HotelProfileFragment extends Fragment implements
     private TextInputEditText etHotelName;
     private TextInputEditText etHotelAddress;
 
+    // ✅ NUEVAS Views de ubicación - DECLARADAS
+    private MaterialCardView cardLocationSelector;
+    private MaterialCardView cardCurrentLocation;
+    private TextView tvSelectedLocation;
+    private TextView tvLocationHint;
+    private TextView tvCurrentLocationInfo;
+
     // Views de fotos del hotel
     private RecyclerView rvHotelPhotos;
     private LinearLayout emptyPhotosState;
@@ -72,17 +83,24 @@ public class HotelProfileFragment extends Fragment implements
     private LinearLayout emptyServicesState;
     private MaterialButton btnManageServices;
 
-    // ✅ NUEVAS Views para criterios de activación
+    // Views para criterios de activación
     private ImageView ivCriteriaInfo, ivCriteriaServices, ivCriteriaRooms;
     private TextView tvCriteriaInfoStatus, tvCriteriaServicesStatus, tvCriteriaRoomsStatus;
     private ImageView ivHotelStatus;
     private TextView tvHotelStatusTitle, tvHotelStatusDescription;
     private MaterialButton btnSaveProfile, btnActivateHotel, btnManageRooms;
 
+    // ✅ NUEVAS Variables de ubicación - DECLARADAS
+    private String selectedLocationName = "";
+    private String selectedLocationAddress = "";
+    private double selectedLatitude = 0.0;
+    private double selectedLongitude = 0.0;
+    private boolean hasLocationSelected = false;
+
     // Datos
-    private List<Uri> hotelPhotos;
+    private List<Object> hotelPhotos;
     private List<HotelServiceModel> basicServices;
-    private List<RoomType> roomTypes; // ✅ NUEVO: Lista de tipos de habitaciones
+    private List<RoomType> roomTypes;
 
     // Adapters
     private HotelPhotosAdapter photosAdapter;
@@ -90,21 +108,21 @@ public class HotelProfileFragment extends Fragment implements
 
     // Managers
     private FirebaseServiceManager firebaseServiceManager;
-    private FirebaseRoomManager firebaseRoomManager; // ✅ NUEVO
-    private FirebaseHotelManager firebaseHotelManager; // ✅ NUEVO
+    private FirebaseRoomManager firebaseRoomManager;
+    private FirebaseHotelManager firebaseHotelManager;
     private AwsFileManager awsFileManager;
     private UniqueIdGenerator idGenerator;
 
     // Activity Result Launchers
     private ActivityResultLauncher<Intent> photoPickerLauncher;
 
-    // ✅ NUEVO: Variables de estado para criterios
+    // Variables de estado para criterios
     private boolean isBasicInfoComplete = false;
     private boolean hasEnoughServices = false;
     private boolean hasEnoughRoomTypes = false;
     private boolean isHotelActive = false;
 
-    // ✅ NUEVO: Hotel profile actual
+    // Hotel profile actual
     private HotelProfile currentHotel;
 
     @Override
@@ -113,8 +131,8 @@ public class HotelProfileFragment extends Fragment implements
 
         // Inicializar managers
         firebaseServiceManager = FirebaseServiceManager.getInstance(getContext());
-        firebaseRoomManager = FirebaseRoomManager.getInstance(getContext()); // ✅ NUEVO
-        firebaseHotelManager = FirebaseHotelManager.getInstance(getContext()); // ✅ NUEVO
+        firebaseRoomManager = FirebaseRoomManager.getInstance(getContext());
+        firebaseHotelManager = FirebaseHotelManager.getInstance(getContext());
         awsFileManager = new AwsFileManager(getContext());
         idGenerator = UniqueIdGenerator.getInstance(getContext());
 
@@ -124,57 +142,29 @@ public class HotelProfileFragment extends Fragment implements
 
     @Nullable
     @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.admin_hotel_fragment_profile_management, container, false);
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        View view = inflater.inflate(R.layout.admin_hotel_fragment_profile_management, container, false);
+
+        // ✅ ORDEN CORREGIDO: Primero inicializar todas las views
+        initializeViews(view);
+        initializeLocationViews(view);
+
+        // Luego configurar listeners y cargar datos
+        setupLocationClickListeners();
+        loadCurrentLocationData();
+
+        return view;
     }
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        initializeViews(view);
         initializeLists();
         setupRecyclerViews();
         setupListeners();
-        setupTextWatchers(); // ✅ NUEVO
+        setupTextWatchers();
         loadHotelProfile();
-    }
-
-    @Override
-    public void onResume() {
-        super.onResume();
-        Log.d(TAG, "🔄 onResume - Registrando listeners");
-
-        // Registrar listeners para cambios en tiempo real
-        if (firebaseServiceManager != null) {
-            firebaseServiceManager.addListener(this);
-        }
-        if (firebaseRoomManager != null) {
-            firebaseRoomManager.addListener(this);
-        }
-        if (firebaseHotelManager != null) {
-            firebaseHotelManager.addListener(this);
-        }
-
-        // ✅ NUEVO: Validar criterios al reanudar
-        validateAllCriteria();
-    }
-
-    @Override
-    public void onPause() {
-        super.onPause();
-        Log.d(TAG, "⏸️ onPause - Desregistrando listeners");
-
-        // Desregistrar listeners para evitar memory leaks
-        if (firebaseServiceManager != null) {
-            firebaseServiceManager.removeListener(this);
-        }
-        if (firebaseRoomManager != null) {
-            firebaseRoomManager.removeListener(this);
-        }
-        if (firebaseHotelManager != null) {
-            firebaseHotelManager.removeListener(this);
-        }
     }
 
     // ========== CONFIGURACIÓN INICIAL ==========
@@ -203,9 +193,9 @@ public class HotelProfileFragment extends Fragment implements
     }
 
     private void initializeViews(View view) {
-        // Formulario
+        // Formulario - Solo nombre (la dirección ahora es con selector)
         etHotelName = view.findViewById(R.id.etHotelName);
-        etHotelAddress = view.findViewById(R.id.etHotelAddress);
+        // ✅ REMOVIDO: etHotelAddress ya no existe
 
         // Fotos del hotel
         rvHotelPhotos = view.findViewById(R.id.rvHotelPhotos);
@@ -218,7 +208,7 @@ public class HotelProfileFragment extends Fragment implements
         emptyServicesState = view.findViewById(R.id.emptyServicesState);
         btnManageServices = view.findViewById(R.id.btnManageServices);
 
-        // ✅ NUEVAS: Views de criterios de activación
+        // Views de criterios de activación
         ivCriteriaInfo = view.findViewById(R.id.ivCriteriaInfo);
         ivCriteriaServices = view.findViewById(R.id.ivCriteriaServices);
         ivCriteriaRooms = view.findViewById(R.id.ivCriteriaRooms);
@@ -233,15 +223,25 @@ public class HotelProfileFragment extends Fragment implements
         btnManageRooms = view.findViewById(R.id.btnManageRooms);
     }
 
+
+    // ✅ MÉTODO NUEVO: Inicializar views de ubicación
+    private void initializeLocationViews(View view) {
+        cardLocationSelector = view.findViewById(R.id.cardLocationSelector);
+        cardCurrentLocation = view.findViewById(R.id.cardCurrentLocation);
+        tvSelectedLocation = view.findViewById(R.id.tvSelectedLocation);
+        tvLocationHint = view.findViewById(R.id.tvLocationHint);
+        tvCurrentLocationInfo = view.findViewById(R.id.tvCurrentLocationInfo);
+    }
+
     private void initializeLists() {
         hotelPhotos = new ArrayList<>();
         basicServices = new ArrayList<>();
-        roomTypes = new ArrayList<>(); // ✅ NUEVO
+        roomTypes = new ArrayList<>();
     }
 
     private void setupRecyclerViews() {
         // Adapter de fotos del hotel
-        photosAdapter = new HotelPhotosAdapter(hotelPhotos, this::removePhoto);
+        photosAdapter = new HotelPhotosAdapter(getContext(), hotelPhotos, this::removePhoto);
         rvHotelPhotos.setLayoutManager(new GridLayoutManager(getContext(), 2));
         rvHotelPhotos.setAdapter(photosAdapter);
 
@@ -263,7 +263,7 @@ public class HotelProfileFragment extends Fragment implements
             btnManageServices.setOnClickListener(v -> navigateToServiceManagement());
         }
 
-        // ✅ NUEVO: Gestión de habitaciones
+        // Gestión de habitaciones
         if (btnManageRooms != null) {
             btnManageRooms.setOnClickListener(v -> navigateToRoomManagement());
         }
@@ -273,13 +273,20 @@ public class HotelProfileFragment extends Fragment implements
             btnSaveProfile.setOnClickListener(v -> saveHotelProfile());
         }
 
-        // ✅ NUEVO: Activar hotel
+        // Activar hotel
         if (btnActivateHotel != null) {
             btnActivateHotel.setOnClickListener(v -> activateHotel());
         }
     }
 
-    // ✅ NUEVO: TextWatchers para validación en tiempo real
+    // ✅ MÉTODO NUEVO: Configurar listeners de ubicación
+    private void setupLocationClickListeners() {
+        if (cardLocationSelector != null) {
+            cardLocationSelector.setOnClickListener(v -> openLocationSelector());
+        }
+    }
+
+    // TextWatchers para validación en tiempo real
     private void setupTextWatchers() {
         TextWatcher basicInfoWatcher = new TextWatcher() {
             @Override
@@ -297,9 +304,73 @@ public class HotelProfileFragment extends Fragment implements
         if (etHotelName != null) {
             etHotelName.addTextChangedListener(basicInfoWatcher);
         }
-        if (etHotelAddress != null) {
-            etHotelAddress.addTextChangedListener(basicInfoWatcher);
+        // ✅ REMOVIDO: etHotelAddress TextWatcher ya no es necesario
+    }
+
+    // ========== GESTIÓN DE UBICACIÓN ==========
+
+    // ✅ MÉTODO NUEVO: Abrir diálogo de selección de ubicación
+    private void openLocationSelector() {
+        LocationSelectorDialog dialog = new LocationSelectorDialog();
+
+        // Callback para cuando se selecciona una ubicación
+        dialog.setLocationSelectedListener(new LocationSelectorDialog.LocationSelectedListener() {
+            @Override
+            public void onLocationSelected(String locationName, String fullAddress, double latitude, double longitude) {
+                updateSelectedLocation(locationName, fullAddress, latitude, longitude);
+            }
+        });
+
+        dialog.show(getParentFragmentManager(), "LocationSelectorDialog");
+    }
+
+    // ✅ MÉTODO NUEVO: Actualizar ubicación seleccionada
+    private void updateSelectedLocation(String locationName, String fullAddress, double latitude, double longitude) {
+        // Guardar datos
+        selectedLocationName = locationName;
+        selectedLocationAddress = fullAddress;
+        selectedLatitude = latitude;
+        selectedLongitude = longitude;
+        hasLocationSelected = true;
+
+        // Actualizar UI
+        if (tvSelectedLocation != null) {
+            tvSelectedLocation.setText(locationName);
         }
+        if (tvLocationHint != null) {
+            tvLocationHint.setText(fullAddress);
+        }
+        if (tvCurrentLocationInfo != null) {
+            tvCurrentLocationInfo.setText(fullAddress);
+        }
+
+        // Mostrar card de confirmación
+        if (cardCurrentLocation != null) {
+            cardCurrentLocation.setVisibility(View.VISIBLE);
+        }
+
+        // Cambiar estilo del botón selector para indicar selección
+        if (tvSelectedLocation != null && tvLocationHint != null) {
+            tvSelectedLocation.setTextColor(getResources().getColor(R.color.green));
+            tvLocationHint.setTextColor(getResources().getColor(R.color.green));
+        }
+
+        // Actualizar también el campo de dirección si está vacío
+        if (etHotelAddress != null && etHotelAddress.getText().toString().trim().isEmpty()) {
+            etHotelAddress.setText(fullAddress);
+        }
+
+        // Validar criterios después de seleccionar ubicación
+        validateBasicInfoCriteria();
+
+        Log.d(TAG, "📍 Ubicación seleccionada: " + locationName + " | Coordenadas: " + latitude + ", " + longitude);
+    }
+
+    // ✅ MÉTODO NUEVO: Cargar ubicación actual desde Firebase
+    private void loadCurrentLocationData() {
+        // Este método se ejecutará cuando se cargue el hotel desde Firebase
+        // La ubicación se cargará automáticamente con el resto de datos del hotel
+        Log.d(TAG, "📍 Preparando carga de ubicación desde Firebase...");
     }
 
     // ========== GESTIÓN DE FOTOS ==========
@@ -318,11 +389,13 @@ public class HotelProfileFragment extends Fragment implements
         }
 
         hotelPhotos.add(photoUri);
-        photosAdapter.notifyDataSetChanged();
+        if (photosAdapter != null) {
+            photosAdapter.updatePhotos(hotelPhotos);
+        }
         updatePhotosStatus();
         updatePhotosVisibility();
 
-        // ✅ NUEVO: Validar criterios después de agregar foto
+        // Validar criterios después de agregar foto
         validateBasicInfoCriteria();
 
         Log.d(TAG, "📷 Foto agregada. Total: " + hotelPhotos.size());
@@ -331,11 +404,13 @@ public class HotelProfileFragment extends Fragment implements
     private void removePhoto(int position) {
         if (position >= 0 && position < hotelPhotos.size()) {
             hotelPhotos.remove(position);
-            photosAdapter.notifyItemRemoved(position);
+            if (photosAdapter != null) {
+                photosAdapter.updatePhotos(hotelPhotos);
+            }
             updatePhotosStatus();
             updatePhotosVisibility();
 
-            // ✅ NUEVO: Validar criterios después de eliminar foto
+            // Validar criterios después de eliminar foto
             validateBasicInfoCriteria();
 
             Log.d(TAG, "🗑️ Foto eliminada. Total: " + hotelPhotos.size());
@@ -344,23 +419,14 @@ public class HotelProfileFragment extends Fragment implements
 
     private void updatePhotosStatus() {
         if (tvPhotosStatus != null) {
-            int localPhotoCount = hotelPhotos.size();
-            int totalPhotoCount = localPhotoCount;
-
-            // ✅ NUEVO: Considerar fotos del hotel desde Firebase
-            if (currentHotel != null && currentHotel.hasPhotos()) {
-                totalPhotoCount = Math.max(localPhotoCount, currentHotel.getPhotoCount());
-            }
-
+            int totalPhotoCount = hotelPhotos.size();
             String status = totalPhotoCount + " fotos agregadas (mínimo " + MIN_PHOTOS_REQUIRED + " requeridas)";
             tvPhotosStatus.setText(status);
         }
     }
 
     private void updatePhotosVisibility() {
-        boolean hasLocalPhotos = !hotelPhotos.isEmpty();
-        boolean hasFirebasePhotos = currentHotel != null && currentHotel.hasPhotos();
-        boolean hasPhotos = hasLocalPhotos || hasFirebasePhotos;
+        boolean hasPhotos = !hotelPhotos.isEmpty();
 
         if (rvHotelPhotos != null) {
             rvHotelPhotos.setVisibility(hasPhotos ? View.VISIBLE : View.GONE);
@@ -422,20 +488,16 @@ public class HotelProfileFragment extends Fragment implements
 
     private void validateBasicInfoCriteria() {
         String hotelName = etHotelName != null ? etHotelName.getText().toString().trim() : "";
-        String hotelAddress = etHotelAddress != null ? etHotelAddress.getText().toString().trim() : "";
-
-        // ✅ NUEVO: También considerar fotos del hotel desde Firebase
-        int photoCount = hotelPhotos.size(); // Fotos locales
-        if (currentHotel != null && currentHotel.hasPhotos()) {
-            // Si hay hotel en Firebase, usar el mayor número de fotos
-            photoCount = Math.max(photoCount, currentHotel.getPhotoCount());
-        }
+        // ✅ REMOVIDO: String hotelAddress = etHotelAddress != null ? etHotelAddress.getText().toString().trim() : "";
+        int photoCount = hotelPhotos.size();
 
         boolean hasName = !hotelName.isEmpty();
-        boolean hasAddress = !hotelAddress.isEmpty();
+        // ✅ CAMBIADO: Usar ubicación seleccionada en lugar de campo de dirección
+        boolean hasAddress = hasLocationSelected && !selectedLocationAddress.isEmpty();
         boolean hasEnoughPhotos = photoCount >= MIN_PHOTOS_REQUIRED;
+        boolean hasLocation = hasLocationSelected;
 
-        isBasicInfoComplete = hasName && hasAddress && hasEnoughPhotos;
+        isBasicInfoComplete = hasName && hasAddress && hasEnoughPhotos && hasLocation;
 
         // Actualizar UI
         if (ivCriteriaInfo != null) {
@@ -446,13 +508,13 @@ public class HotelProfileFragment extends Fragment implements
         if (tvCriteriaInfoStatus != null) {
             String status = String.format("Nombre: %s, Ubicación: %s, Fotos: %d/%d",
                     hasName ? "✓" : "✗",
-                    hasAddress ? "✓" : "✗",
+                    hasLocation ? "✓" : "✗",
                     photoCount, MIN_PHOTOS_REQUIRED);
             tvCriteriaInfoStatus.setText(status);
         }
 
         Log.d(TAG, "🔍 Criterio información básica: " + (isBasicInfoComplete ? "✅ COMPLETO" : "❌ INCOMPLETO") +
-                " (Fotos: " + photoCount + "/" + MIN_PHOTOS_REQUIRED + ")");
+                " (Fotos: " + photoCount + "/" + MIN_PHOTOS_REQUIRED + ", Ubicación: " + hasLocation + ")");
         updateHotelStatus();
     }
 
@@ -551,7 +613,8 @@ public class HotelProfileFragment extends Fragment implements
 
     private void saveHotelProfile() {
         String hotelName = etHotelName != null ? etHotelName.getText().toString().trim() : "";
-        String hotelAddress = etHotelAddress != null ? etHotelAddress.getText().toString().trim() : "";
+        // ✅ CAMBIADO: Usar selectedLocationAddress en lugar de etHotelAddress
+        String hotelAddress = hasLocationSelected ? selectedLocationAddress : "";
 
         if (hotelName.isEmpty()) {
             Toast.makeText(getContext(), "Por favor ingresa el nombre del hotel", Toast.LENGTH_SHORT).show();
@@ -563,55 +626,81 @@ public class HotelProfileFragment extends Fragment implements
             return;
         }
 
+        if (!hasLocationSelected) {
+            Toast.makeText(getContext(), "Por favor selecciona la ubicación del hotel", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
         // Deshabilitar botón mientras se guarda
         if (btnSaveProfile != null) {
             btnSaveProfile.setEnabled(false);
             btnSaveProfile.setText("💾 Guardando...");
         }
 
-        // ✅ USAR FIREBASE REAL
+        // Filtrar solo fotos locales (Uri) para subir
+        List<Uri> localPhotosToUpload = new ArrayList<>();
+        for (Object photo : hotelPhotos) {
+            if (photo instanceof Uri) {
+                localPhotosToUpload.add((Uri) photo);
+            }
+        }
+        if (!hasLocationSelected || selectedLocationAddress.isEmpty()) {
+            Toast.makeText(getContext(), "Por favor selecciona la ubicación del hotel", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        Log.d(TAG, "💾 Guardando hotel con " + localPhotosToUpload.size() + " fotos nuevas de " + hotelPhotos.size() + " totales");
+
+        // ✅ USAR FIREBASE CON UBICACIÓN
         if (firebaseHotelManager != null) {
-            firebaseHotelManager.saveHotelProfile(hotelName, hotelAddress, hotelPhotos, new FirebaseHotelManager.HotelCallback() {
-                @Override
-                public void onSuccess(HotelProfile hotel) {
-                    if (getActivity() != null) {
-                        getActivity().runOnUiThread(() -> {
-                            Toast.makeText(getContext(), "✅ Perfil guardado exitosamente", Toast.LENGTH_SHORT).show();
+            firebaseHotelManager.saveHotelProfileWithLocation(
+                    hotelName,
+                    hotelAddress,
+                    selectedLocationName,
+                    selectedLocationAddress,
+                    selectedLatitude,
+                    selectedLongitude,
+                    localPhotosToUpload,
+                    new FirebaseHotelManager.HotelCallback() {
+                        @Override
+                        public void onSuccess(HotelProfile hotel) {
+                            if (getActivity() != null) {
+                                getActivity().runOnUiThread(() -> {
+                                    Toast.makeText(getContext(), "✅ Perfil guardado exitosamente", Toast.LENGTH_SHORT).show();
 
-                            // Restaurar botón
-                            if (btnSaveProfile != null) {
-                                btnSaveProfile.setEnabled(true);
-                                btnSaveProfile.setText("💾 Guardar Cambios");
+                                    // Restaurar botón
+                                    if (btnSaveProfile != null) {
+                                        btnSaveProfile.setEnabled(true);
+                                        btnSaveProfile.setText("💾 Guardar Cambios");
+                                    }
+
+                                    // Actualizar hotel actual
+                                    currentHotel = hotel;
+
+                                    // Validar criterios después de guardar
+                                    validateBasicInfoCriteria();
+
+                                    Log.d(TAG, "💾 Perfil del hotel guardado: " + hotel.getName());
+                                });
                             }
+                        }
 
-                            // Actualizar hotel actual
-                            currentHotel = hotel;
+                        @Override
+                        public void onError(String error) {
+                            if (getActivity() != null) {
+                                getActivity().runOnUiThread(() -> {
+                                    Toast.makeText(getContext(), "❌ Error guardando perfil: " + error, Toast.LENGTH_LONG).show();
 
-                            // Validar criterios después de guardar
-                            validateBasicInfoCriteria();
+                                    // Restaurar botón
+                                    if (btnSaveProfile != null) {
+                                        btnSaveProfile.setEnabled(true);
+                                        btnSaveProfile.setText("💾 Guardar Cambios");
+                                    }
 
-                            Log.d(TAG, "💾 Perfil del hotel guardado: " + hotel.getName());
-                        });
-                    }
-                }
-
-                @Override
-                public void onError(String error) {
-                    if (getActivity() != null) {
-                        getActivity().runOnUiThread(() -> {
-                            Toast.makeText(getContext(), "❌ Error guardando perfil: " + error, Toast.LENGTH_LONG).show();
-
-                            // Restaurar botón
-                            if (btnSaveProfile != null) {
-                                btnSaveProfile.setEnabled(true);
-                                btnSaveProfile.setText("💾 Guardar Cambios");
+                                    Log.e(TAG, "❌ Error guardando perfil: " + error);
+                                });
                             }
-
-                            Log.e(TAG, "❌ Error guardando perfil: " + error);
-                        });
-                    }
-                }
-            });
+                        }
+                    });
         } else {
             Toast.makeText(getContext(), "❌ Error: Servicio de hotel no disponible", Toast.LENGTH_SHORT).show();
 
@@ -635,7 +724,7 @@ public class HotelProfileFragment extends Fragment implements
             btnActivateHotel.setText("🚀 Activando...");
         }
 
-        // ✅ USAR FIREBASE REAL
+        // Usar Firebase real
         if (firebaseHotelManager != null) {
             firebaseHotelManager.activateHotel(new FirebaseHotelManager.ActivationCallback() {
                 @Override
@@ -682,6 +771,45 @@ public class HotelProfileFragment extends Fragment implements
         }
     }
 
+    // ========== LIFECYCLE METHODS ==========
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        Log.d(TAG, "🔄 onResume - Registrando listeners");
+
+        // Registrar listeners para cambios en tiempo real
+        if (firebaseServiceManager != null) {
+            firebaseServiceManager.addListener(this);
+        }
+        if (firebaseRoomManager != null) {
+            firebaseRoomManager.addListener(this);
+        }
+        if (firebaseHotelManager != null) {
+            firebaseHotelManager.addListener(this);
+        }
+
+        // Validar criterios al reanudar
+        validateAllCriteria();
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        Log.d(TAG, "⏸️ onPause - Desregistrando listeners");
+
+        // Desregistrar listeners para evitar memory leaks
+        if (firebaseServiceManager != null) {
+            firebaseServiceManager.removeListener(this);
+        }
+        if (firebaseRoomManager != null) {
+            firebaseRoomManager.removeListener(this);
+        }
+        if (firebaseHotelManager != null) {
+            firebaseHotelManager.removeListener(this);
+        }
+    }
+
     // ========== IMPLEMENTACIÓN DE LISTENERS ==========
 
     // FirebaseServiceManager.OnServicesChangedListener
@@ -698,7 +826,7 @@ public class HotelProfileFragment extends Fragment implements
                     servicesAdapter.updateServices(basicServices);
                 }
                 updateServicesVisibility();
-                validateServicesCriteria(); // ✅ NUEVO
+                validateServicesCriteria();
 
                 Log.d(TAG, "✅ Servicios básicos actualizados en UI: " + basicServices.size());
             });
@@ -721,19 +849,16 @@ public class HotelProfileFragment extends Fragment implements
     @Override
     public void onServiceAdded(HotelServiceModel service) {
         Log.d(TAG, "➕ Servicio agregado: " + service.getName());
-        // onAllServicesUpdated actualizará automáticamente
     }
 
     @Override
     public void onServiceUpdated(HotelServiceModel service) {
         Log.d(TAG, "🔄 Servicio actualizado: " + service.getName());
-        // onAllServicesUpdated actualizará automáticamente
     }
 
     @Override
     public void onServiceDeleted(String serviceId) {
         Log.d(TAG, "🗑️ Servicio eliminado: " + serviceId);
-        // onAllServicesUpdated actualizará automáticamente
     }
 
     @Override
@@ -746,7 +871,7 @@ public class HotelProfileFragment extends Fragment implements
         }
     }
 
-    // ✅ NUEVO: FirebaseRoomManager.OnRoomsChangedListener
+    // FirebaseRoomManager.OnRoomsChangedListener
     @Override
     public void onRoomsLoaded(List<RoomType> rooms) {
         Log.d(TAG, "🔄 onRoomsLoaded llamado con " + rooms.size() + " habitaciones");
@@ -755,7 +880,7 @@ public class HotelProfileFragment extends Fragment implements
             getActivity().runOnUiThread(() -> {
                 roomTypes.clear();
                 roomTypes.addAll(rooms);
-                validateRoomsCriteria(); // ✅ Validar criterios
+                validateRoomsCriteria();
 
                 Log.d(TAG, "✅ Habitaciones cargadas: " + roomTypes.size());
             });
@@ -765,22 +890,19 @@ public class HotelProfileFragment extends Fragment implements
     @Override
     public void onRoomAdded(RoomType room) {
         Log.d(TAG, "➕ Habitación agregada: " + room.getName());
-        // onRoomsLoaded actualizará automáticamente
     }
 
     @Override
     public void onRoomUpdated(RoomType room) {
         Log.d(TAG, "🔄 Habitación actualizada: " + room.getName());
-        // onRoomsLoaded actualizará automáticamente
     }
 
     @Override
     public void onRoomDeleted(String roomId) {
         Log.d(TAG, "🗑️ Habitación eliminada: " + roomId);
-        // onRoomsLoaded actualizará automáticamente
     }
 
-    // ✅ NUEVO: FirebaseHotelManager.OnHotelChangedListener
+    // FirebaseHotelManager.OnHotelChangedListener
     @Override
     public void onHotelLoaded(HotelProfile hotel) {
         Log.d(TAG, "🔄 onHotelLoaded llamado: " + hotel.toString());
@@ -797,15 +919,77 @@ public class HotelProfileFragment extends Fragment implements
                     etHotelAddress.setText(hotel.getAddress());
                 }
 
-                // ✅ PENDIENTE: Cargar fotos desde URLs
-                // TODO: Implementar carga de fotos desde hotel.getPhotoUrls()
+                // ✅ CARGAR UBICACIÓN DESDE FIREBASE
+                loadHotelLocationFromFirebase(hotel);
+
+                // Cargar fotos desde Firebase
+                loadHotelPhotosFromFirebase(hotel);
 
                 isHotelActive = hotel.isActive();
-                validateBasicInfoCriteria(); // Validar con los nuevos datos
+                validateBasicInfoCriteria();
 
                 Log.d(TAG, "✅ Hotel cargado en UI: " + hotel.getName() + " (Activo: " + hotel.isActive() + ")");
             });
         }
+    }
+
+    // ✅ NUEVO MÉTODO: Cargar ubicación desde Firebase
+    private void loadHotelLocationFromFirebase(HotelProfile hotel) {
+        if (hotel == null || !hotel.hasValidLocation()) {
+            Log.d(TAG, "📍 No hay ubicación válida en Firebase para cargar");
+            return;
+        }
+
+        Log.d(TAG, "📍 Cargando ubicación desde Firebase: " + hotel.getLocationName());
+
+        updateSelectedLocation(
+                hotel.getLocationName(),
+                hotel.getFullAddress(),
+                hotel.getLatitude(),
+                hotel.getLongitude()
+        );
+    }
+
+    // Método existente: Cargar fotos desde Firebase
+    private void loadHotelPhotosFromFirebase(HotelProfile hotel) {
+        if (hotel == null || !hotel.hasPhotos()) {
+            Log.d(TAG, "📷 No hay fotos en Firebase para cargar");
+            return;
+        }
+
+        Log.d(TAG, "📷 Cargando " + hotel.getPhotoCount() + " fotos desde Firebase");
+
+        List<Object> allPhotos = new ArrayList<>();
+
+        // Agregar fotos de Firebase (URLs)
+        for (String photoUrl : hotel.getPhotoUrls()) {
+            if (photoUrl != null && !photoUrl.trim().isEmpty()) {
+                allPhotos.add(photoUrl);
+                Log.d(TAG, "📷 Foto de Firebase agregada: " + photoUrl);
+            }
+        }
+
+        // Mantener fotos locales existentes (URIs) al final
+        for (Object photo : hotelPhotos) {
+            if (photo instanceof Uri) {
+                allPhotos.add(photo);
+                Log.d(TAG, "📷 Foto local mantenida: " + photo.toString());
+            }
+        }
+
+        // Actualizar lista y adapter
+        hotelPhotos.clear();
+        hotelPhotos.addAll(allPhotos);
+
+        if (photosAdapter != null) {
+            photosAdapter.updatePhotos(hotelPhotos);
+        }
+
+        updatePhotosStatus();
+        updatePhotosVisibility();
+
+        Log.d(TAG, "✅ Fotos cargadas: " + hotelPhotos.size() + " total (" +
+                hotel.getPhotoCount() + " de Firebase)");
     }
 
     @Override

@@ -201,19 +201,27 @@ public class FirebaseHotelManager {
     private void createNewHotel(String name, String address, List<Uri> photoUris, HotelCallback callback) {
         String currentUserId = getCurrentUserId();
 
-        // Crear hotel con fotos vacías inicialmente
-        HotelProfile newHotel = new HotelProfile(
-                null, // ID será generado por Firebase
-                currentUserId,
-                name,
-                address,
-                new ArrayList<>(), // photoUrls vacías inicialmente
-                false, // No activo inicialmente
-                System.currentTimeMillis(),
-                null
-        );
+        // ✅ USAR CONSTRUCTOR VACÍO Y SETTERS
+        HotelProfile newHotel = new HotelProfile();
+        newHotel.setHotelAdminId(currentUserId);
+        newHotel.setName(name);
+        newHotel.setAddress(address);
 
-        Map<String, Object> hotelMap = hotelProfileToMap(newHotel, currentUserId);
+        // Inicializar ubicación vacía
+        newHotel.setLocationName("");
+        newHotel.setFullAddress(address); // Usar address como fallback inicial
+        newHotel.setLatitude(0.0);
+        newHotel.setLongitude(0.0);
+        newHotel.setDepartamento("");
+        newHotel.setProvincia("");
+        newHotel.setDistrito("");
+
+        newHotel.setPhotoUrls(new ArrayList<>());
+        newHotel.setActive(false);
+        newHotel.setCreatedAt(System.currentTimeMillis());
+        newHotel.setActivatedAt(null);
+
+        Map<String, Object> hotelMap = hotelProfileToMapWithLocation(newHotel, currentUserId);
 
         db.collection(HOTELS_COLLECTION)
                 .add(hotelMap)
@@ -464,41 +472,39 @@ public class FirebaseHotelManager {
 
     private HotelProfile documentToHotelProfile(DocumentSnapshot doc) {
         try {
-            String id = doc.getId();
-            String hotelAdminId = doc.getString("hotelAdminId");
-            String name = doc.getString("name");
-            String address = doc.getString("address");
+            if (!doc.exists()) {
+                return null;
+            }
+
+            HotelProfile hotel = new HotelProfile();
+
+            // Datos básicos
+            hotel.setId(doc.getId());
+            hotel.setHotelAdminId(doc.getString("hotelAdminId"));
+            hotel.setName(doc.getString("name"));
+            hotel.setAddress(doc.getString("address"));
+
+            // ✅ DATOS DE UBICACIÓN
+            hotel.setLocationName(doc.getString("locationName"));
+            hotel.setFullAddress(doc.getString("fullAddress"));
+
+            // Coordenadas con valores por defecto
+            hotel.setLatitude(doc.getDouble("latitude") != null ? doc.getDouble("latitude") : 0.0);
+            hotel.setLongitude(doc.getDouble("longitude") != null ? doc.getDouble("longitude") : 0.0);
+
+            hotel.setDepartamento(doc.getString("departamento"));
+            hotel.setProvincia(doc.getString("provincia"));
+            hotel.setDistrito(doc.getString("distrito"));
+
+            // Datos del hotel
             List<String> photoUrls = (List<String>) doc.get("photoUrls");
-            Boolean isActive = doc.getBoolean("isActive");
-            Long createdAt = doc.getLong("createdAt");
-            Long activatedAt = doc.getLong("activatedAt");
+            hotel.setPhotoUrls(photoUrls != null ? photoUrls : new ArrayList<>());
 
-            if (name == null) {
-                name = "";
-            }
-            if (address == null) {
-                address = "";
-            }
-            if (photoUrls == null) {
-                photoUrls = new ArrayList<>();
-            }
-            if (isActive == null) {
-                isActive = false;
-            }
-            if (createdAt == null) {
-                createdAt = System.currentTimeMillis();
-            }
+            hotel.setActive(Boolean.TRUE.equals(doc.getBoolean("isActive")));
+            hotel.setCreatedAt(doc.getLong("createdAt") != null ? doc.getLong("createdAt") : System.currentTimeMillis());
+            hotel.setActivatedAt(doc.getLong("activatedAt"));
 
-            return new HotelProfile(
-                    id,
-                    hotelAdminId,
-                    name,
-                    address,
-                    photoUrls,
-                    isActive,
-                    createdAt,
-                    activatedAt
-            );
+            return hotel;
 
         } catch (Exception e) {
             Log.e(TAG, "Error convirtiendo documento a HotelProfile: " + e.getMessage());
@@ -506,20 +512,304 @@ public class FirebaseHotelManager {
         }
     }
 
-    private HotelProfile createEmptyHotel() {
-        String currentUserId = getCurrentUserId();
-        return new HotelProfile(
-                null,
-                currentUserId,
-                "",
-                "",
-                new ArrayList<>(),
-                false,
-                System.currentTimeMillis(),
-                null
-        );
+    /**
+     * ✅ NUEVO: Busca hoteles por ubicación (para búsquedas geográficas)
+     */
+    public void findHotelsNearLocation(double latitude, double longitude, double radiusKm, HotelsCallback callback) {
+        // Para implementar búsqueda geográfica, necesitarías usar GeoFirestore
+        // Por ahora, implementamos una búsqueda básica por departamento/provincia
+
+        Log.d(TAG, "🔍 Buscando hoteles cerca de: " + latitude + ", " + longitude);
+
+        db.collection(HOTELS_COLLECTION)
+                .whereEqualTo("isActive", true)
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    List<HotelProfile> nearbyHotels = new ArrayList<>();
+
+                    for (DocumentSnapshot doc : queryDocumentSnapshots.getDocuments()) {
+                        HotelProfile hotel = documentToHotelProfile(doc);
+                        if (hotel != null && hotel.hasValidLocation()) {
+                            double distance = hotel.getDistanceTo(latitude, longitude);
+                            if (distance <= radiusKm) {
+                                nearbyHotels.add(hotel);
+                            }
+                        }
+                    }
+
+                    Log.d(TAG, "✅ Encontrados " + nearbyHotels.size() + " hoteles cerca de la ubicación");
+                    callback.onSuccess(nearbyHotels);
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Error buscando hoteles por ubicación: " + e.getMessage());
+                    callback.onError("Error en búsqueda por ubicación: " + e.getMessage());
+                });
     }
 
+    public interface HotelsCallback {
+        void onSuccess(List<HotelProfile> hotels);
+        void onError(String error);
+    }
+
+    private HotelProfile createEmptyHotel() {
+        HotelProfile emptyHotel = new HotelProfile();
+        emptyHotel.setName("");
+        emptyHotel.setAddress("");
+
+        // ✅ INICIALIZAR CAMPOS DE UBICACIÓN
+        emptyHotel.setLocationName("");
+        emptyHotel.setFullAddress("");
+        emptyHotel.setLatitude(0.0);
+        emptyHotel.setLongitude(0.0);
+        emptyHotel.setDepartamento("");
+        emptyHotel.setProvincia("");
+        emptyHotel.setDistrito("");
+
+        emptyHotel.setPhotoUrls(new ArrayList<>());
+        emptyHotel.setActive(false);
+        emptyHotel.setCreatedAt(System.currentTimeMillis());
+        emptyHotel.setActivatedAt(null);
+
+        return emptyHotel;
+    }
+    /**
+     * ✅ NUEVO: Obtiene hoteles por departamento
+     */
+    public void getHotelsByDepartamento(String departamento, HotelsCallback callback) {
+        db.collection(HOTELS_COLLECTION)
+                .whereEqualTo("departamento", departamento)
+                .whereEqualTo("isActive", true)
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    List<HotelProfile> hotels = new ArrayList<>();
+                    for (DocumentSnapshot doc : queryDocumentSnapshots.getDocuments()) {
+                        HotelProfile hotel = documentToHotelProfile(doc);
+                        if (hotel != null) {
+                            hotels.add(hotel);
+                        }
+                    }
+                    callback.onSuccess(hotels);
+                })
+                .addOnFailureListener(e -> callback.onError("Error buscando por departamento: " + e.getMessage()));
+    }
+
+    /**
+     * ✅ NUEVO: Obtiene hoteles por provincia
+     */
+    public void getHotelsByProvincia(String provincia, HotelsCallback callback) {
+        db.collection(HOTELS_COLLECTION)
+                .whereEqualTo("provincia", provincia)
+                .whereEqualTo("isActive", true)
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    List<HotelProfile> hotels = new ArrayList<>();
+                    for (DocumentSnapshot doc : queryDocumentSnapshots.getDocuments()) {
+                        HotelProfile hotel = documentToHotelProfile(doc);
+                        if (hotel != null) {
+                            hotels.add(hotel);
+                        }
+                    }
+                    callback.onSuccess(hotels);
+                })
+                .addOnFailureListener(e -> callback.onError("Error buscando por provincia: " + e.getMessage()));
+    }
+    /**
+     * ✅ NUEVO: Guarda el perfil del hotel con información de ubicación completa
+     */
+    public void saveHotelProfileWithLocation(String name, String address,
+                                             String locationName, String fullAddress,
+                                             double latitude, double longitude,
+                                             List<Uri> photoUris, HotelCallback callback) {
+        String currentUserId = getCurrentUserId();
+        if (currentUserId == null) {
+            callback.onError("Usuario no autenticado");
+            return;
+        }
+
+        Log.d(TAG, "💾 Guardando perfil del hotel con ubicación: " + name +
+                " en " + locationName + " (" + latitude + ", " + longitude + ")");
+
+        // Primero verificar si ya existe un hotel
+        db.collection(HOTELS_COLLECTION)
+                .whereEqualTo("hotelAdminId", currentUserId)
+                .limit(1)
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    if (!queryDocumentSnapshots.isEmpty()) {
+                        // Hotel existe - actualizar con ubicación
+                        DocumentSnapshot doc = queryDocumentSnapshots.getDocuments().get(0);
+                        updateExistingHotelWithLocation(doc.getId(), name, address,
+                                locationName, fullAddress, latitude, longitude, photoUris, callback);
+                    } else {
+                        // Hotel no existe - crear nuevo con ubicación
+                        createNewHotelWithLocation(name, address,
+                                locationName, fullAddress, latitude, longitude, photoUris, callback);
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Error verificando hotel existente: " + e.getMessage());
+                    callback.onError("Error verificando hotel: " + e.getMessage());
+                });
+    }
+
+    /**
+     * ✅ NUEVO: Crea un nuevo hotel con información de ubicación
+     */
+    private void createNewHotelWithLocation(String name, String address,
+                                            String locationName, String fullAddress,
+                                            double latitude, double longitude,
+                                            List<Uri> photoUris, HotelCallback callback) {
+        String currentUserId = getCurrentUserId();
+
+        // Crear hotel con información de ubicación completa
+        HotelProfile newHotel = new HotelProfile();
+        newHotel.setHotelAdminId(currentUserId);
+        newHotel.setName(name);
+        newHotel.setAddress(address);
+
+        // ✅ CONFIGURAR UBICACIÓN
+        newHotel.setLocationName(locationName);
+        newHotel.setFullAddress(fullAddress);
+        newHotel.setLatitude(latitude);
+        newHotel.setLongitude(longitude);
+        // Los componentes de ubicación se parsearán automáticamente en HotelProfile
+
+        newHotel.setPhotoUrls(new ArrayList<>());
+        newHotel.setActive(false);
+        newHotel.setCreatedAt(System.currentTimeMillis());
+        newHotel.setActivatedAt(null);
+
+        Map<String, Object> hotelMap = hotelProfileToMapWithLocation(newHotel, currentUserId);
+
+        db.collection(HOTELS_COLLECTION)
+                .add(hotelMap)
+                .addOnSuccessListener(documentReference -> {
+                    String hotelId = documentReference.getId();
+                    newHotel.setId(hotelId);
+
+                    Log.d(TAG, "✅ Hotel con ubicación creado exitosamente: " + hotelId);
+
+                    // Si hay fotos, subirlas
+                    if (photoUris != null && !photoUris.isEmpty()) {
+                        uploadPhotosAndUpdateHotel(hotelId, photoUris, newHotel, callback);
+                    } else {
+                        callback.onSuccess(newHotel);
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Error creando hotel: " + e.getMessage());
+                    callback.onError("Error creando hotel: " + e.getMessage());
+                });
+    }
+
+    /**
+     * ✅ NUEVO: Actualiza un hotel existente con información de ubicación
+     */
+    private void updateExistingHotelWithLocation(String hotelId, String name, String address,
+                                                 String locationName, String fullAddress,
+                                                 double latitude, double longitude,
+                                                 List<Uri> photoUris, HotelCallback callback) {
+        // Crear map con datos actualizados incluyendo ubicación
+        Map<String, Object> updates = new HashMap<>();
+        updates.put("name", name);
+        updates.put("address", address);
+
+        // ✅ CAMPOS DE UBICACIÓN
+        updates.put("locationName", locationName);
+        updates.put("fullAddress", fullAddress);
+        updates.put("latitude", latitude);
+        updates.put("longitude", longitude);
+
+        // Parsear componentes de ubicación
+        parseAndAddLocationComponents(fullAddress, updates);
+
+        db.collection(HOTELS_COLLECTION)
+                .document(hotelId)
+                .update(updates)
+                .addOnSuccessListener(aVoid -> {
+                    Log.d(TAG, "✅ Hotel actualizado con ubicación exitosamente: " + hotelId);
+
+                    // Obtener hotel actualizado
+                    db.collection(HOTELS_COLLECTION)
+                            .document(hotelId)
+                            .get()
+                            .addOnSuccessListener(documentSnapshot -> {
+                                HotelProfile updatedHotel = documentToHotelProfile(documentSnapshot);
+
+                                if (updatedHotel != null) {
+                                    // Si hay fotos nuevas, subirlas
+                                    if (photoUris != null && !photoUris.isEmpty()) {
+                                        uploadPhotosAndUpdateHotel(hotelId, photoUris, updatedHotel, callback);
+                                    } else {
+                                        callback.onSuccess(updatedHotel);
+                                    }
+                                } else {
+                                    callback.onError("Error procesando hotel actualizado");
+                                }
+                            });
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Error actualizando hotel: " + e.getMessage());
+                    callback.onError("Error actualizando hotel: " + e.getMessage());
+                });
+    }
+
+    /**
+     * ✅ NUEVO: Parsea y agrega componentes de ubicación al Map
+     */
+    private void parseAndAddLocationComponents(String fullAddress, Map<String, Object> updates) {
+        if (fullAddress == null || fullAddress.trim().isEmpty()) {
+            updates.put("departamento", "");
+            updates.put("provincia", "");
+            updates.put("distrito", "");
+            return;
+        }
+
+        // Lógica para extraer departamento, provincia, distrito
+        String[] parts = fullAddress.split(", ");
+        if (parts.length >= 3) {
+            updates.put("distrito", parts[parts.length - 3].trim());
+            updates.put("provincia", parts[parts.length - 2].trim());
+
+            if (parts.length >= 4) {
+                updates.put("departamento", parts[parts.length - 3].trim());
+            } else {
+                updates.put("departamento", parts[parts.length - 2].trim()); // Fallback
+            }
+        } else {
+            updates.put("departamento", "");
+            updates.put("provincia", "");
+            updates.put("distrito", "");
+        }
+    }
+    /**
+     * ✅ ACTUALIZADO: Convierte HotelProfile a Map incluyendo ubicación
+     */
+    private Map<String, Object> hotelProfileToMapWithLocation(HotelProfile hotel, String currentUserId) {
+        Map<String, Object> map = new HashMap<>();
+
+        // Datos básicos
+        map.put("hotelAdminId", currentUserId);
+        map.put("name", hotel.getName() != null ? hotel.getName() : "");
+        map.put("address", hotel.getAddress() != null ? hotel.getAddress() : "");
+
+        // ✅ DATOS DE UBICACIÓN
+        map.put("locationName", hotel.getLocationName() != null ? hotel.getLocationName() : "");
+        map.put("fullAddress", hotel.getFullAddress() != null ? hotel.getFullAddress() : "");
+        map.put("latitude", hotel.getLatitude());
+        map.put("longitude", hotel.getLongitude());
+        map.put("departamento", hotel.getDepartamento() != null ? hotel.getDepartamento() : "");
+        map.put("provincia", hotel.getProvincia() != null ? hotel.getProvincia() : "");
+        map.put("distrito", hotel.getDistrito() != null ? hotel.getDistrito() : "");
+
+        // Datos del hotel
+        map.put("photoUrls", hotel.getPhotoUrls() != null ? hotel.getPhotoUrls() : new ArrayList<>());
+        map.put("isActive", hotel.isActive());
+        map.put("createdAt", hotel.getCreatedAt());
+        map.put("activatedAt", hotel.getActivatedAt());
+
+        return map;
+    }
     // ========== MÉTODOS DE NOTIFICACIÓN ==========
 
     private void notifyHotelLoaded(HotelProfile hotel) {

@@ -175,33 +175,121 @@
 
                     </com.google.android.material.textfield.TextInputLayout>
 
-                    <!-- Campo Dirección -->
-                    <com.google.android.material.textfield.TextInputLayout
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Ubicación del Hotel"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        android:textColor="#1A1A1A"
+                        android:fontFamily="@font/poppins_medium"
+                        android:layout_marginBottom="8dp" />
+
+                    <!-- Botón Selector de Ubicación -->
+                    <com.google.android.material.card.MaterialCardView
+                        android:id="@+id/cardLocationSelector"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="20dp"
-                        app:boxStrokeColor="@color/orange"
-                        app:hintTextColor="@color/orange"
-                        app:boxCornerRadiusTopStart="12dp"
-                        app:boxCornerRadiusTopEnd="12dp"
-                        app:boxCornerRadiusBottomStart="12dp"
-                        app:boxCornerRadiusBottomEnd="12dp"
-                        app:startIconDrawable="@drawable/ic_location"
-                        app:startIconTint="@color/orange"
-                        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+                        app:cardCornerRadius="12dp"
+                        app:cardElevation="2dp"
+                        app:strokeColor="@color/orange"
+                        app:strokeWidth="1dp"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:foreground="?attr/selectableItemBackground">
 
-                        <com.google.android.material.textfield.TextInputEditText
-                            android:id="@+id/etHotelAddress"
+                        <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:hint="Dirección del Hotel"
-                            android:textSize="16sp"
-                            android:fontFamily="@font/inter_regular"
-                            android:textColor="#1A1A1A"
-                            android:inputType="textCapWords"
-                            android:maxLines="2" />
+                            android:orientation="horizontal"
+                            android:padding="16dp"
+                            android:gravity="center_vertical"
+                            android:minHeight="56dp">
 
-                    </com.google.android.material.textfield.TextInputLayout>
+                            <ImageView
+                                android:layout_width="24dp"
+                                android:layout_height="24dp"
+                                android:src="@drawable/ic_location"
+                                app:tint="@color/orange"
+                                android:layout_marginEnd="12dp" />
+
+                            <LinearLayout
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:orientation="vertical">
+
+                                <TextView
+                                    android:id="@+id/tvSelectedLocation"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="Seleccionar ubicación"
+                                    android:textSize="16sp"
+                                    android:textColor="#1A1A1A"
+                                    android:fontFamily="@font/inter_regular" />
+
+                                <TextView
+                                    android:id="@+id/tvLocationHint"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="Toca para elegir la ubicación del hotel"
+                                    android:textSize="12sp"
+                                    android:textColor="#757575"
+                                    android:fontFamily="@font/inter_regular"
+                                    android:layout_marginTop="2dp" />
+
+                            </LinearLayout>
+
+                            <ImageView
+                                android:layout_width="20dp"
+                                android:layout_height="20dp"
+                                android:src="@drawable/ic_arrow_forward"
+                                app:tint="@color/orange" />
+
+                        </LinearLayout>
+
+                    </com.google.android.material.card.MaterialCardView>
+
+                    <!-- Información de ubicación actual (se mostrará cuando ya hay una ubicación seleccionada) -->
+                    <!-- DESPUÉS (CORRECTO): -->
+                    <com.google.android.material.card.MaterialCardView
+                        android:id="@+id/cardCurrentLocation"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="20dp"
+                        app:cardCornerRadius="12dp"
+                        app:cardElevation="2dp"
+                        app:cardBackgroundColor="#E8F5E8"
+                        android:visibility="gone">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:padding="12dp"
+                            android:gravity="center_vertical">
+
+                            <ImageView
+                                android:layout_width="20dp"
+                                android:layout_height="20dp"
+                                android:src="@drawable/ic_check"
+                                app:tint="@color/green"
+                                android:layout_marginEnd="8dp" />
+
+                            <TextView
+                                android:id="@+id/tvCurrentLocationInfo"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:text="Av. José Larco 123, Miraflores, Lima"
+                                android:textSize="14sp"
+                                android:textColor="@color/green"
+                                android:fontFamily="@font/inter_medium" />
+
+                        </LinearLayout>
+
+                    </com.google.android.material.card.MaterialCardView>
 
                     <!-- Sección de Fotos del Hotel -->
                     <TextView
@@ -484,7 +572,7 @@
                             <ImageView
                                 android:layout_width="24dp"
                                 android:layout_height="24dp"
-                                android:src="@drawable/ic_check"
+                                android:src="@drawable/ic_check_circle"
                                 app:tint="@color/blue" />
 
                         </LinearLayout>

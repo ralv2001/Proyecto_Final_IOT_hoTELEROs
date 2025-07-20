@@ -153,6 +153,7 @@
 
 
 
+    <color name="blue">#3F51B5</color>
 
     <!-- Card Gradient Colors -->
     <color name="card_gradient_start">#1565C0</color>
