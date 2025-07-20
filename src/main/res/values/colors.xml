@@ -245,4 +245,147 @@
     <color name="purple_dark">#7B1FA2</color>
     <color name="icon_color">#F4EFEF</color>
 
+
+    <color name="purple_200">#FFBB86FC</color>
+    <color name="purple_500">#FF6200EE</color>
+    <color name="purple_700">#FF3700B3</color>
+    <color name="teal_200">#FF03DAC5</color>
+    <color name="teal_700">#FF018786</color>
+
+
+    <color name="service_type_basic">#2196F3</color>          <!-- Azul Material - Servicios básicos -->
+    <color name="service_type_included">#4CAF50</color>       <!-- Verde Material - Servicios incluidos -->
+    <color name="service_type_paid">#FF9800</color>           <!-- Naranja Material - Servicios pagados -->
+    <color name="service_type_conditional">#9C27B0</color>    <!-- Púrpura Material - Servicios condicionales (taxi) -->
+
+    <!-- Versiones claras para backgrounds -->
+    <color name="service_type_basic_light">#E3F2FD</color>    <!-- Azul muy claro -->
+    <color name="service_type_included_light">#E8F5E8</color> <!-- Verde muy claro -->
+    <color name="service_type_paid_light">#FFF3E0</color>     <!-- Naranja muy claro -->
+    <color name="service_type_conditional_light">#F3E5F5</color> <!-- Púrpura muy claro -->
+
+    <!-- Estados de servicio -->
+    <color name="service_active">#E8F5E8</color>              <!-- Verde claro - Servicio activo -->
+    <color name="service_inactive">#FFEBEE</color>            <!-- Rojo claro - Servicio inactivo -->
+    <color name="service_active_icon">#4CAF50</color>         <!-- Verde - Icono activo -->
+    <color name="service_inactive_icon">#F44336</color>       <!-- Rojo - Icono inactivo -->
+
+
+    <color name="card_background_dark">#F5F5F5</color>
+    <color name="card_elevation_shadow">#1A000000</color>
+
+    <!-- Botones y acciones -->
+    <color name="button_primary">#1976D2</color>              <!-- Azul primario -->
+    <color name="button_primary_dark">#1565C0</color>         <!-- Azul primario oscuro -->
+    <color name="button_secondary">#757575</color>            <!-- Gris secundario -->
+    <color name="button_success">#388E3C</color>              <!-- Verde éxito -->
+    <color name="button_danger">#D32F2F</color>               <!-- Rojo peligro -->
+    <color name="button_warning">#F57C00</color>              <!-- Naranja advertencia -->
+
+    <color name="text_on_primary">#FFFFFF</color>             <!-- Blanco sobre primario -->
+
+    <!-- ========== COLORES PARA FOTOS Y MEDIA ========== -->
+
+    <!-- Placeholders y estados de imagen -->
+    <color name="image_placeholder">#F0F0F0</color>           <!-- Gris claro placeholder -->
+    <color name="image_loading">#E0E0E0</color>               <!-- Gris loading -->
+    <color name="image_error">#FFCDD2</color>                 <!-- Rojo claro error -->
+    <color name="image_overlay">#80000000</color>
+
+    <color name="badge_background">#FF5722</color>
+    <color name="badge_text">#FFFFFF</color>                  <!-- Blanco -->
+    <color name="counter_background">#2196F3</color>          <!-- Azul -->
+    <color name="counter_text">#FFFFFF</color>                <!-- Blanco -->
+
+    <!-- ========== COLORES PARA ESTADOS DE INTERFAZ ========== -->
+
+    <!-- Loading y progress -->
+    <color name="loading_background">#80FFFFFF</color>        <!-- Blanco semi-transparente -->
+    <color name="progress_primary">#2196F3</color>            <!-- Azul progreso -->
+    <color name="progress_secondary">#E0E0E0</color>
+
+    <color name="empty_state_background">#FAFAFA</color>
+    <color name="empty_state_icon">#BDBDBD</color>
+    <color name="empty_state_text">#757575</color>
+
+    <color name="divider_thick">#BDBDBD</color>
+
+
+    <color name="validation_success">#4CAF50</color>
+    <color name="validation_error">#F44336</color>
+    <color name="validation_warning">#FF9800</color>
+    <color name="validation_info">#2196F3</color>
+
+
+    <color name="validation_success_bg">#E8F5E8</color>
+    <color name="validation_error_bg">#FFEBEE</color>
+    <color name="validation_warning_bg">#FFF3E0</color>
+    <color name="validation_info_bg">#E3F2FD</color>
+
+
+    <!-- Bottom navigation -->
+    <color name="bottom_nav_background">#FFFFFF</color>       <!-- Blanco fondo -->
+    <color name="bottom_nav_selected">#1976D2</color>         <!-- Azul seleccionado -->
+    <color name="bottom_nav_unselected">#757575</color>       <!-- Gris no seleccionado -->
+
+    <!-- App bar y toolbar -->
+    <color name="app_bar_background">#1976D2</color>
+    <color name="app_bar_text">#FFFFFF</color>
+
+
+    <!-- Rating y estrellas -->
+    <color name="rating_star_filled">#FFD700</color>
+    <color name="rating_star_empty">#E0E0E0</color>
+
+    <!-- Precios y moneda -->
+    <color name="price_text">#1B5E20</color>
+    <color name="price_background">#E8F5E8</color>
+    <color name="discount_text">#D32F2F</color>
+
+    <color name="available">#4CAF50</color>
+    <color name="unavailable">#F44336</color>
+    <color name="limited">#FF9800</color>
+
+
+    <color name="dark_background">#121212</color>             <!-- Negro fondo oscuro -->
+    <color name="dark_surface">#1E1E1E</color>                <!-- Gris superficie oscura -->
+    <color name="dark_card">#2D2D2D</color>                   <!-- Gris card oscura -->
+    <color name="dark_text_primary">#FFFFFF</color>
+    <color name="dark_text_secondary">#B3B3B3</color>
+
+    <!-- ========== COLORES PARA GRADIENTES ========== -->
+
+    <!-- Gradiente principal -->
+    <color name="gradient_start">#1976D2</color>
+    <color name="gradient_end">#1565C0</color>
+
+    <!-- Gradiente éxito -->
+    <color name="gradient_success_start">#4CAF50</color>
+    <color name="gradient_success_end">#388E3C</color>
+
+    <color name="gradient_warning_start">#FF9800</color>
+    <color name="gradient_warning_end">#F57C00</color>
+
+
+    <!-- Overlays con diferentes opacidades -->
+    <color name="overlay_light">#40000000</color>             <!-- Negro 25% -->
+    <color name="overlay_medium">#80000000</color>            <!-- Negro 50% -->
+    <color name="overlay_white_light">#40FFFFFF</color>       <!-- Blanco 25% -->
+    <color name="overlay_white_medium">#80FFFFFF</color>      <!-- Blanco 50% -->
+
+    <!-- ========== COLORES ADICIONALES PARA SERVICIOS ========== -->
+
+    <!-- Iconos de servicios -->
+    <color name="service_icon_wifi">#2196F3</color>           <!-- Azul WiFi -->
+    <color name="service_icon_parking">#4CAF50</color>        <!-- Verde parking -->
+    <color name="service_icon_restaurant">#FF9800</color>     <!-- Naranja restaurante -->
+    <color name="service_icon_spa">#9C27B0</color>            <!-- Púrpura spa -->
+    <color name="service_icon_gym">#F44336</color>            <!-- Rojo gimnasio -->
+    <color name="service_icon_pool">#00BCD4</color>           <!-- Cian piscina -->
+    <color name="service_icon_laundry">#607D8B</color>        <!-- Gris azulado lavandería -->
+    <color name="service_icon_taxi">#FFC107</color>           <!-- Amarillo taxi -->
+
+    <!-- Bordes y líneas -->
+    <color name="border_medium">#BDBDBD</color>               <!-- Gris medio borde -->
+    <color name="border_dark">#757575</color>
 </resources>

@@ -24,7 +24,6 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.proyecto_final_hoteleros.R;
 import com.example.proyecto_final_hoteleros.adminhotel.adapters.ServicePhotosAdapter;
 import com.example.proyecto_final_hoteleros.adminhotel.dialog.IconSelectorDialog;
-import com.example.proyecto_final_hoteleros.adminhotel.model.HotelServiceItem;
 import com.example.proyecto_final_hoteleros.adminhotel.model.HotelServiceModel;
 import com.example.proyecto_final_hoteleros.adminhotel.utils.FirebaseServiceManager;
 import com.example.proyecto_final_hoteleros.adminhotel.utils.IconHelper;
@@ -44,8 +43,10 @@ public class AddServiceDialog extends AppCompatDialog {
 
     private static final String TAG = "AddServiceDialog";
 
+    // ✅ INTERFACE OPTIMIZADA: Usar HotelServiceModel directamente
     public interface OnServiceAddedListener {
-        void onServiceAdded(HotelServiceItem service);
+        void onServiceAdded(HotelServiceModel service);
+        void onError(String error);
     }
 
     private Context context;
@@ -65,7 +66,7 @@ public class AddServiceDialog extends AppCompatDialog {
     private ActivityResultLauncher<Intent> photoPickerLauncher;
     private OnServiceAddedListener listener;
 
-    // ✅ CORREGIDO: Solo FirebaseServiceManager y UniqueIdGenerator
+    // ✅ MANAGERS OPTIMIZADOS
     private FirebaseServiceManager firebaseServiceManager;
     private UniqueIdGenerator idGenerator;
 
@@ -76,7 +77,7 @@ public class AddServiceDialog extends AppCompatDialog {
             "Pagado"
     };
 
-    public AddServiceDialog(Context context, ActivityResultLauncher<Intent> photoLauncher, OnServiceAddedListener listener) {
+    public AddServiceDialog(Context context, OnServiceAddedListener listener, ActivityResultLauncher<Intent> photoLauncher) {
         super(context, R.style.DialogTheme);
         this.context = context;
         this.listener = listener;
@@ -127,6 +128,11 @@ public class AddServiceDialog extends AppCompatDialog {
         // Configurar icono por defecto
         updateIconPreview();
         updatePhotosVisibility();
+
+        // ✅ Ocultar campos condicionales ya que no se usan más
+        if (tilConditionalAmount != null) {
+            tilConditionalAmount.setVisibility(View.GONE);
+        }
     }
 
     private void setupServiceTypeDropdown() {
@@ -141,30 +147,24 @@ public class AddServiceDialog extends AppCompatDialog {
             String selectedType = serviceTypes[position];
             updateFieldsVisibility(selectedType);
         });
-
-        // Configurar campos iniciales
-        updateFieldsVisibility("Incluido");
     }
 
     private void updateFieldsVisibility(String serviceType) {
-        Log.d(TAG, "🎛️ Actualizando visibilidad para tipo: " + serviceType);
+        if (tilServicePrice == null) return;
 
         switch (serviceType) {
             case "Básico":
                 tilServicePrice.setVisibility(View.GONE);
-                tilConditionalAmount.setVisibility(View.GONE);
                 etServicePrice.setText("0");
                 break;
 
             case "Incluido":
                 tilServicePrice.setVisibility(View.GONE);
-                tilConditionalAmount.setVisibility(View.GONE);
                 etServicePrice.setText("0");
                 break;
 
             case "Pagado":
                 tilServicePrice.setVisibility(View.VISIBLE);
-                tilConditionalAmount.setVisibility(View.GONE);
                 if (etServicePrice.getText().toString().trim().equals("0")) {
                     etServicePrice.setText("");
                 }
@@ -173,102 +173,122 @@ public class AddServiceDialog extends AppCompatDialog {
     }
 
     private void setupPhotoRecyclerView() {
-        // ✅ Usar patrón simple que funciona
-        photosAdapter = new ServicePhotosAdapter(servicePhotos, this::removePhoto);
-        rvServicePhotos.setLayoutManager(new GridLayoutManager(context, 3));
-        rvServicePhotos.setAdapter(photosAdapter);
+        if (rvServicePhotos != null) {
+            rvServicePhotos.setLayoutManager(new GridLayoutManager(context, 3));
+            photosAdapter = new ServicePhotosAdapter(servicePhotos, position -> removePhoto(position));
+            rvServicePhotos.setAdapter(photosAdapter);
+        }
     }
 
     private void setupListeners() {
-        btnCancel.setOnClickListener(v -> dismiss());
-        btnSave.setOnClickListener(v -> saveService());
-        layoutIconPreview.setOnClickListener(v -> openIconSelector());
+        // Botón cancelar
+        if (btnCancel != null) {
+            btnCancel.setOnClickListener(v -> dismiss());
+        }
 
-        cardAddPhoto.setOnClickListener(v -> {
-            if (servicePhotos.size() < 5) {
-                selectPhoto();
-            } else {
-                Toast.makeText(context, "Máximo 5 fotos permitidas", Toast.LENGTH_SHORT).show();
-            }
-        });
+        // Botón guardar
+        if (btnSave != null) {
+            btnSave.setOnClickListener(v -> saveService());
+        }
+
+        // Selector de iconos
+        if (layoutIconPreview != null) {
+            layoutIconPreview.setOnClickListener(v -> showIconSelector());
+        }
+
+        // Agregar fotos
+        if (cardAddPhoto != null) {
+            cardAddPhoto.setOnClickListener(v -> selectPhotos());
+        }
     }
 
-    private void openIconSelector() {
-        IconSelectorDialog iconDialog = new IconSelectorDialog(context, selectedIconKey, new IconSelectorDialog.OnIconSelectedListener() {
-            @Override
-            public void onIconSelected(String iconKey, String iconName) {
-                selectedIconKey = iconKey;
-                updateIconPreview();
-                Log.d(TAG, "🎨 Icono seleccionado: " + iconName + " (" + iconKey + ")");
-            }
-        });
+    private void showIconSelector() {
+        IconSelectorDialog iconDialog = new IconSelectorDialog(context, selectedIconKey,
+                new IconSelectorDialog.OnIconSelectedListener() {
+                    @Override
+                    public void onIconSelected(String iconKey, String iconName) {
+                        selectedIconKey = iconKey;
+                        updateIconPreview();
+                    }
+                });
         iconDialog.show();
     }
 
     private void updateIconPreview() {
         if (ivSelectedIcon != null && tvSelectedIconName != null) {
-            int iconResource = IconHelper.getIconResource(selectedIconKey);
-            ivSelectedIcon.setImageResource(iconResource);
-            tvSelectedIconName.setText(IconHelper.getIconName(selectedIconKey));
+            int iconResId = IconHelper.getIconResource(selectedIconKey);
+            if (iconResId != 0) {
+                ivSelectedIcon.setImageResource(iconResId);
+                tvSelectedIconName.setText(IconHelper.getIconName(selectedIconKey));
+            } else {
+                ivSelectedIcon.setImageResource(R.drawable.ic_service_default);
+                tvSelectedIconName.setText("Icono por defecto");
+            }
         }
     }
 
-    private void selectPhoto() {
-        Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
-        intent.setType("image/*");
-        intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
-        photoPickerLauncher.launch(Intent.createChooser(intent, "Seleccionar fotos"));
+    private void selectPhotos() {
+        if (servicePhotos.size() >= 5) {
+            Toast.makeText(context, "Máximo 5 fotos permitidas", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        if (photoPickerLauncher != null) {
+            Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+            intent.setType("image/*");
+            intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
+            photoPickerLauncher.launch(Intent.createChooser(intent, "Seleccionar fotos"));
+        } else {
+            Toast.makeText(context, "Funcionalidad de fotos no disponible", Toast.LENGTH_SHORT).show();
+        }
     }
 
-    // ✅ MÉTODO PÚBLICO PARA MANEJAR RESULTADO DE FOTOS
     public void handlePhotoResult(Intent data) {
-        if (data != null) {
+        if (data == null) return;
+
+        try {
             if (data.getClipData() != null) {
-                // Múltiples fotos
+                // Múltiples fotos seleccionadas
                 int count = data.getClipData().getItemCount();
                 for (int i = 0; i < count && servicePhotos.size() < 5; i++) {
                     Uri photoUri = data.getClipData().getItemAt(i).getUri();
                     addPhoto(photoUri);
                 }
             } else if (data.getData() != null) {
-                // Una sola foto
-                if (servicePhotos.size() < 5) {
-                    addPhoto(data.getData());
-                }
+                // Una sola foto seleccionada
+                addPhoto(data.getData());
             }
-
-            photosAdapter.notifyDataSetChanged();
-            updatePhotosVisibility();
-            Log.d(TAG, "📷 Fotos agregadas. Total: " + servicePhotos.size());
+        } catch (Exception e) {
+            Log.e(TAG, "Error procesando fotos seleccionadas: " + e.getMessage());
+            Toast.makeText(context, "Error seleccionando fotos", Toast.LENGTH_SHORT).show();
         }
     }
 
     private void addPhoto(Uri photoUri) {
-        if (servicePhotos.size() < 5 && photoUri != null) {
+        if (servicePhotos.size() < 5) {
             servicePhotos.add(photoUri);
-
             if (photosAdapter != null) {
                 photosAdapter.notifyItemInserted(servicePhotos.size() - 1);
             }
-
             updatePhotosVisibility();
-            Log.d(TAG, "📷 Foto agregada: " + photoUri.toString() + " (Total: " + servicePhotos.size() + ")");
+            Log.d(TAG, "📷 Foto agregada. Total: " + servicePhotos.size());
         }
     }
 
     private void removePhoto(int position) {
         if (position >= 0 && position < servicePhotos.size()) {
             servicePhotos.remove(position);
-            photosAdapter.notifyItemRemoved(position);
+            if (photosAdapter != null) {
+                photosAdapter.notifyItemRemoved(position);
+            }
             updatePhotosVisibility();
-            Toast.makeText(context, "📷 Foto eliminada", Toast.LENGTH_SHORT).show();
             Log.d(TAG, "📷 Foto eliminada. Total: " + servicePhotos.size());
         }
     }
 
     private void updatePhotosVisibility() {
         if (tvPhotoCount != null) {
-            tvPhotoCount.setText(servicePhotos.size() + "/5 fotos");
+            tvPhotoCount.setText(servicePhotos.size() + "/5");
         }
 
         if (rvServicePhotos != null) {
@@ -276,42 +296,46 @@ public class AddServiceDialog extends AppCompatDialog {
         }
     }
 
+    // ✅ MÉTODO PRINCIPAL OPTIMIZADO: Guardar servicio directamente como HotelServiceModel
     private void saveService() {
-        String name = etServiceName.getText().toString().trim();
-        String description = etServiceDescription.getText().toString().trim();
-        String serviceTypeStr = etServiceType.getText().toString().trim();
-        String priceStr = etServicePrice.getText().toString().trim();
+        Log.d(TAG, "💾 Iniciando guardado de servicio...");
 
-        // ✅ Validaciones
+        // Validaciones
+        String name = etServiceName.getText().toString().trim();
         if (name.isEmpty()) {
-            etServiceName.setError("Ingresa el nombre del servicio");
+            etServiceName.setError("Campo requerido");
             etServiceName.requestFocus();
             return;
         }
 
+        String description = etServiceDescription.getText().toString().trim();
         if (description.isEmpty()) {
-            etServiceDescription.setError("Ingresa la descripción");
+            etServiceDescription.setError("Campo requerido");
             etServiceDescription.requestFocus();
             return;
         }
 
+        String serviceTypeStr = etServiceType.getText().toString().trim();
         if (serviceTypeStr.isEmpty()) {
-            Toast.makeText(context, "Selecciona el tipo de servicio", Toast.LENGTH_SHORT).show();
+            etServiceType.setError("Selecciona un tipo");
+            etServiceType.requestFocus();
             return;
         }
 
-        // ✅ Validar precio solo para servicios pagados
+        // Validar precio si es necesario
         double price = 0.0;
-        if (serviceTypeStr.equals("Pagado")) {
-            if (priceStr.isEmpty()) {
-                etServicePrice.setError("Ingresa el precio");
+        if ("Pagado".equals(serviceTypeStr)) {
+            String priceText = etServicePrice.getText().toString().trim();
+            if (priceText.isEmpty()) {
+                etServicePrice.setError("Campo requerido para servicios pagados");
                 etServicePrice.requestFocus();
                 return;
             }
+
             try {
-                price = Double.parseDouble(priceStr);
-                if (price < 0) {
-                    etServicePrice.setError("El precio no puede ser negativo");
+                price = Double.parseDouble(priceText);
+                if (price <= 0) {
+                    etServicePrice.setError("El precio debe ser mayor a 0");
                     etServicePrice.requestFocus();
                     return;
                 }
@@ -326,17 +350,16 @@ public class AddServiceDialog extends AppCompatDialog {
         btnSave.setEnabled(false);
         btnSave.setText("💾 Guardando...");
 
-        // ✅ CORREGIDO: Crear servicio exactamente como BasicServiceDialog
+        // ✅ CREAR SERVICIO DIRECTAMENTE COMO HotelServiceModel
         createServiceInFirebase(name, description, price, serviceTypeStr);
     }
 
-    // ✅ COMPLETAMENTE REDISEÑADO: Seguir exactamente el patrón de BasicServiceDialog
+    // ✅ MÉTODO OPTIMIZADO: Crear servicio directamente en Firebase
     private void createServiceInFirebase(String name, String description, double price, String serviceTypeStr) {
         Log.d(TAG, "🚀 Creando servicio en Firebase: " + name + " (Tipo: " + serviceTypeStr + ")");
 
-        // ✅ CORREGIDO: Crear servicio exactamente como BasicServiceDialog
+        // ✅ CREAR SERVICIO DIRECTAMENTE COMO HotelServiceModel
         HotelServiceModel service = new HotelServiceModel();
-        // ✅ NO establecer ID - Firebase lo generará automáticamente
         service.setName(name);
         service.setDescription(description);
         service.setIconKey(selectedIconKey);
@@ -344,81 +367,52 @@ public class AddServiceDialog extends AppCompatDialog {
         service.setPrice(price);
         service.setConditionalAmount(0.0); // No hay condicionales desde este dialog
         service.setActive(true);
-        service.setCreatedAt(new Date()); // ✅ Firebase manejará el timestamp
+        service.setCreatedAt(new Date());
 
         // Obtener usuario actual
         FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
-        if (currentUser != null) {
-            service.setHotelAdminId(currentUser.getUid());
+        if (currentUser == null) {
+            restoreButton();
+            if (listener != null) {
+                listener.onError("Usuario no autenticado");
+            }
+            return;
         }
+        service.setHotelAdminId(currentUser.getUid());
 
-        // ✅ CORREGIDO: Usar el MISMO patrón que BasicServiceDialog
+        // ✅ GUARDAR EN FIREBASE
         if (firebaseServiceManager != null) {
             firebaseServiceManager.createService(service, servicePhotos, new FirebaseServiceManager.ServiceCallback() {
                 @Override
-                public void onSuccess(HotelServiceModel savedService) {
-                    Log.d(TAG, "✅ Servicio creado exitosamente: " + savedService.getName());
+                public void onSuccess(HotelServiceModel createdService) {
+                    Log.d(TAG, "✅ Servicio creado exitosamente: " + createdService.getName());
 
-                    // ✅ Crear HotelServiceItem para el listener
-                    HotelServiceItem.ServiceType serviceType = convertStringToServiceType(serviceTypeStr);
-                    HotelServiceItem serviceItem = new HotelServiceItem(
-                            savedService.getName(),
-                            savedService.getDescription(),
-                            savedService.getPrice(),
-                            savedService.getIconKey(),
-                            serviceType,
-                            servicePhotos,
-                            0.0 // No conditional amount
-                    );
-                    serviceItem.setFirebaseId(savedService.getId());
-
-                    // ✅ Notificar al listener
                     if (listener != null) {
-                        listener.onServiceAdded(serviceItem);
+                        listener.onServiceAdded(createdService);
                     }
 
-                    String photoText = servicePhotos.isEmpty() ? "" : " con " + servicePhotos.size() + " foto(s)";
-                    Toast.makeText(context, "✅ Servicio '" + name + "' creado exitosamente" + photoText, Toast.LENGTH_LONG).show();
                     dismiss();
                 }
 
                 @Override
                 public void onError(String error) {
-                    Log.e(TAG, "❌ Error creando servicio en Firebase: " + error);
+                    Log.e(TAG, "❌ Error creando servicio: " + error);
+                    restoreButton();
 
-                    // ✅ Reactivar botón
-                    btnSave.setEnabled(true);
-                    btnSave.setText("✅ Guardar Servicio");
-
-                    Toast.makeText(context, "❌ Error creando servicio: " + error, Toast.LENGTH_LONG).show();
+                    if (listener != null) {
+                        listener.onError(error);
+                    }
                 }
             });
         } else {
-            Log.e(TAG, "❌ FirebaseServiceManager es null");
-
-            // ✅ Reactivar botón
-            btnSave.setEnabled(true);
-            btnSave.setText("✅ Guardar Servicio");
-
-            Toast.makeText(context, "❌ Error: No se pudo conectar con Firebase", Toast.LENGTH_SHORT).show();
+            restoreButton();
+            if (listener != null) {
+                listener.onError("Error: FirebaseServiceManager no disponible");
+            }
         }
     }
 
-    // ✅ Conversión de string a ServiceType
-    private HotelServiceItem.ServiceType convertStringToServiceType(String serviceTypeStr) {
-        switch (serviceTypeStr) {
-            case "Básico":
-                return HotelServiceItem.ServiceType.BASIC;
-            case "Incluido":
-                return HotelServiceItem.ServiceType.INCLUDED;
-            case "Pagado":
-                return HotelServiceItem.ServiceType.PAID;
-            default:
-                return HotelServiceItem.ServiceType.INCLUDED;
-        }
-    }
-
-    // ✅ Conversión para Firebase
+    // ✅ MÉTODO OPTIMIZADO: Convertir categoría a tipo
     private String convertCategoryToType(String category) {
         switch (category) {
             case "Básico":
@@ -428,7 +422,14 @@ public class AddServiceDialog extends AppCompatDialog {
             case "Pagado":
                 return "paid";
             default:
-                return "included";
+                return "included"; // Por defecto
+        }
+    }
+
+    private void restoreButton() {
+        if (btnSave != null) {
+            btnSave.setEnabled(true);
+            btnSave.setText("💾 Guardar Servicio");
         }
     }
 }

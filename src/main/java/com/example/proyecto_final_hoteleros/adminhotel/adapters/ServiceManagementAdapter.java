@@ -6,20 +6,18 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.Animation;
-import android.view.animation.AnimationUtils;
 import android.view.animation.RotateAnimation;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
-import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.proyecto_final_hoteleros.R;
 import com.example.proyecto_final_hoteleros.adminhotel.adapters.BasicServicePhotosAdapter;
-import com.example.proyecto_final_hoteleros.adminhotel.model.HotelServiceItem;
+import com.example.proyecto_final_hoteleros.adminhotel.model.HotelServiceModel;
 import com.example.proyecto_final_hoteleros.adminhotel.utils.IconHelper;
 
 import java.text.NumberFormat;
@@ -32,23 +30,23 @@ public class ServiceManagementAdapter extends RecyclerView.Adapter<ServiceManage
     private static final String TAG = "ServiceManagementAdapter";
 
     public interface OnServiceActionListener {
-        void onEditService(HotelServiceItem service, int position);
-        void onDeleteService(HotelServiceItem service, int position);
-        void onToggleService(HotelServiceItem service, int position, boolean isActive);
+        void onEditService(HotelServiceModel service, int position);
+        void onDeleteService(HotelServiceModel service, int position);
+        void onToggleService(HotelServiceModel service, int position, boolean isActive);
     }
 
     public interface OnServicePhotoClickListener {
         void onPhotoClick(String photoUrl, int position, List<String> allPhotos);
     }
 
-    private List<HotelServiceItem> services;
+    private List<HotelServiceModel> services;
     private OnServiceActionListener actionListener;
     private OnServicePhotoClickListener photoClickListener;
     private NumberFormat currencyFormat;
-    private Context context;
+    public Context context;
 
     // ✅ CONSTRUCTOR PRINCIPAL QUE NECESITA ServiceManagementFragment
-    public ServiceManagementAdapter(Context context, List<HotelServiceItem> services,
+    public ServiceManagementAdapter(Context context, List<HotelServiceModel> services,
                                     OnServiceActionListener actionListener,
                                     OnServicePhotoClickListener photoClickListener) {
         this.context = context;
@@ -59,7 +57,7 @@ public class ServiceManagementAdapter extends RecyclerView.Adapter<ServiceManage
     }
 
     // ✅ CONSTRUCTOR ALTERNATIVO
-    public ServiceManagementAdapter(Context context, List<HotelServiceItem> services,
+    public ServiceManagementAdapter(Context context, List<HotelServiceModel> services,
                                     OnServiceActionListener actionListener) {
         this(context, services, actionListener, null);
     }
@@ -75,7 +73,7 @@ public class ServiceManagementAdapter extends RecyclerView.Adapter<ServiceManage
 
     @Override
     public void onBindViewHolder(@NonNull ServiceViewHolder holder, int position) {
-        HotelServiceItem service = services.get(position);
+        HotelServiceModel service = services.get(position);
         holder.bind(service, position);
     }
 
@@ -84,7 +82,7 @@ public class ServiceManagementAdapter extends RecyclerView.Adapter<ServiceManage
         return services.size();
     }
 
-    public void updateServices(List<HotelServiceItem> newServices) {
+    public void updateServices(List<HotelServiceModel> newServices) {
         this.services = newServices;
         notifyDataSetChanged();
         android.util.Log.d(TAG, "📋 Servicios actualizados: " + newServices.size());
@@ -99,25 +97,26 @@ public class ServiceManagementAdapter extends RecyclerView.Adapter<ServiceManage
         private TextView tvServiceDescription;
         private TextView tvServiceType;
         private TextView tvServicePrice;
-        private TextView tvConditionalInfo;
+        private TextView tvConditionalInfo; // Se mantiene para compatibilidad pero no se usa
         private ImageView optionsButton;
 
-        // Views para fotos (EXACTOS como BasicServicesAdapter)
+        // Views para fotos
         private LinearLayout photoBadgeContainer, photosExpandableSection;
         private TextView tvPhotoCount, tvPhotosCounter;
         private ImageView ivExpandIcon;
         private RecyclerView rvServicePhotos;
+
+        // Variables internas
+        private boolean isExpanded = false;
         private BasicServicePhotosAdapter photosAdapter;
-        private boolean isPhotosExpanded = false;
 
         public ServiceViewHolder(@NonNull View itemView) {
             super(itemView);
-            initViews();
-            setupRecyclerView();
+            initializeViews();
         }
 
-        private void initViews() {
-            // Referencias a las vistas principales
+        private void initializeViews() {
+            // Views principales
             serviceIconContainer = itemView.findViewById(R.id.serviceIconContainer);
             ivServiceIcon = itemView.findViewById(R.id.ivServiceIcon);
             tvServiceName = itemView.findViewById(R.id.tvServiceName);
@@ -125,225 +124,252 @@ public class ServiceManagementAdapter extends RecyclerView.Adapter<ServiceManage
             tvServiceType = itemView.findViewById(R.id.tvServiceType);
             tvServicePrice = itemView.findViewById(R.id.tvServicePrice);
             tvConditionalInfo = itemView.findViewById(R.id.tvConditionalInfo);
+
+            // ✅ BOTÓN DE OPCIONES - ID CORRECTO del layout
             optionsButton = itemView.findViewById(R.id.optionsButton);
 
-            // Elementos para fotos (EXACTOS como BasicServicesAdapter)
+            // Views para fotos
             photoBadgeContainer = itemView.findViewById(R.id.photoBadgeContainer);
-            tvPhotoCount = itemView.findViewById(R.id.tvPhotoCount);
-            ivExpandIcon = itemView.findViewById(R.id.ivExpandIcon);
             photosExpandableSection = itemView.findViewById(R.id.photosExpandableSection);
-            rvServicePhotos = itemView.findViewById(R.id.rvServicePhotos);
+            tvPhotoCount = itemView.findViewById(R.id.tvPhotoCount);
             tvPhotosCounter = itemView.findViewById(R.id.tvPhotosCounter);
+            ivExpandIcon = itemView.findViewById(R.id.ivExpandIcon);
+            rvServicePhotos = itemView.findViewById(R.id.rvServicePhotos);
 
-            android.util.Log.d(TAG, "🔧 ViewHolder inicializado");
-        }
-
-        private void setupRecyclerView() {
+            // Configurar RecyclerView de fotos
             if (rvServicePhotos != null) {
-                LinearLayoutManager layoutManager = new LinearLayoutManager(
-                        context, LinearLayoutManager.HORIZONTAL, false);
-                rvServicePhotos.setLayoutManager(layoutManager);
-                rvServicePhotos.setNestedScrollingEnabled(false);
+                rvServicePhotos.setLayoutManager(new LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false));
                 rvServicePhotos.setHasFixedSize(true);
-                android.util.Log.d(TAG, "📷 RecyclerView de fotos configurado");
             }
         }
 
-        public void bind(HotelServiceItem service, int position) {
-            // Configurar información básica del servicio
-            int iconResource = IconHelper.getIconResource(service.getIconKey());
-            ivServiceIcon.setImageResource(iconResource);
+        public void bind(HotelServiceModel service, int position) {
+            android.util.Log.d(TAG, "🔧 Binding servicio: " + service.getName() +
+                    " (Tipo: " + service.getServiceType() +
+                    ", Precio: " + service.getPrice() +
+                    ", Fotos: " + (service.getPhotoUrls() != null ? service.getPhotoUrls().size() : 0) + ")");
+
+            // ✅ INFORMACIÓN BÁSICA DEL SERVICIO
             tvServiceName.setText(service.getName());
+            tvServiceDescription.setText(service.getDescription());
 
-            // Configurar descripción
-            if (service.getDescription() != null && !service.getDescription().isEmpty()) {
-                tvServiceDescription.setText(service.getDescription());
-                tvServiceDescription.setVisibility(View.VISIBLE);
+            // ✅ TIPO DE SERVICIO CON FORMATO
+            setupServiceType(service);
+
+            // ✅ PRECIO DEL SERVICIO
+            setupServicePrice(service);
+
+            // ✅ ICONO DEL SERVICIO
+            setupServiceIcon(service);
+
+            // ✅ GESTIÓN DE FOTOS
+            setupPhotosSection(service);
+
+            // ✅ BOTÓN DE OPCIONES
+            setupOptionsButton(service, position);
+
+            // ✅ ESTADO ACTIVO/INACTIVO
+            setupServiceState(service);
+        }
+
+        private void setupServiceType(HotelServiceModel service) {
+            String serviceType = service.getServiceType();
+            String displayType;
+            int backgroundColor;
+
+            switch (serviceType.toLowerCase()) {
+                case "basic":
+                case "básico":
+                    displayType = "BÁSICO";
+                    backgroundColor = 0xFF2196F3; // Azul
+                    break;
+                case "included":
+                case "incluido":
+                    displayType = "INCLUIDO";
+                    backgroundColor = 0xFF4CAF50; // Verde
+                    break;
+                case "paid":
+                case "pagado":
+                    displayType = "PAGADO";
+                    backgroundColor = 0xFFFF9800; // Naranja
+                    break;
+                default:
+                    displayType = serviceType.toUpperCase();
+                    backgroundColor = 0xFF757575; // Gris
+                    break;
+            }
+
+            if (tvServiceType != null) {
+                tvServiceType.setText(displayType);
+
+                // ✅ APLICAR COLOR DE FONDO DIRECTO
+                try {
+                    tvServiceType.setBackgroundColor(backgroundColor);
+                    tvServiceType.setTextColor(0xFFFFFFFF); // Texto blanco
+                } catch (Exception e) {
+                    android.util.Log.w(TAG, "Error aplicando color al tipo de servicio: " + e.getMessage());
+                }
+            }
+        }
+
+        private void setupServicePrice(HotelServiceModel service) {
+            double price = service.getPrice();
+
+            if (price > 0) {
+                tvServicePrice.setText(currencyFormat.format(price));
+                tvServicePrice.setVisibility(View.VISIBLE);
             } else {
-                tvServiceDescription.setVisibility(View.GONE);
+                tvServicePrice.setVisibility(View.GONE);
             }
 
-            // Configurar tipo de servicio
-            tvServiceType.setText(service.getTypeLabel());
-
-            // ✅ CORREGIDO: Usar colores que SÍ existen o códigos hex directos
-            switch (service.getType()) {
-                case INCLUDED:
-                case BASIC:
-                    tvServicePrice.setText("Gratuito");
-                    try {
-                        tvServicePrice.setTextColor(ContextCompat.getColor(context, R.color.orange));
-                    } catch (Exception e) {
-                        tvServicePrice.setTextColor(0xFF4CAF50); // Verde directo
-                    }
-                    if (tvConditionalInfo != null) {
-                        tvConditionalInfo.setVisibility(View.GONE);
-                    }
-                    break;
-                case PAID:
-                    tvServicePrice.setText(currencyFormat.format(service.getPrice()));
-                    try {
-                        tvServicePrice.setTextColor(ContextCompat.getColor(context, R.color.orange));
-                    } catch (Exception e) {
-                        tvServicePrice.setTextColor(0xFFFF9800); // Naranja directo
-                    }
-                    if (tvConditionalInfo != null) {
-                        tvConditionalInfo.setVisibility(View.GONE);
-                    }
-                    break;
-                case CONDITIONAL:
-                    tvServicePrice.setText("Condicional");
-                    try {
-                        tvServicePrice.setTextColor(ContextCompat.getColor(context, R.color.orange));
-                    } catch (Exception e) {
-                        tvServicePrice.setTextColor(0xFF2196F3); // Azul directo
-                    }
-                    if (tvConditionalInfo != null && service.getConditionalAmount() > 0) {
-                        tvConditionalInfo.setText("Gratis por compras de " +
-                                currencyFormat.format(service.getConditionalAmount()) + " o más");
-                        tvConditionalInfo.setVisibility(View.VISIBLE);
-                    } else if (tvConditionalInfo != null) {
-                        tvConditionalInfo.setVisibility(View.GONE);
-                    }
-                    break;
+            // Ocultar información condicional ya que no se usa más
+            if (tvConditionalInfo != null) {
+                tvConditionalInfo.setVisibility(View.GONE);
             }
+        }
 
-            // Configurar fotos del servicio
-            setupServicePhotos(service);
+        private void setupServiceIcon(HotelServiceModel service) {
+            if (service.getIconKey() != null && !service.getIconKey().isEmpty()) {
+                int iconResId = IconHelper.getIconResource(service.getIconKey());
+                if (iconResId != 0) {
+                    ivServiceIcon.setImageResource(iconResId);
+                } else {
+                    ivServiceIcon.setImageResource(R.drawable.ic_service_default);
+                    android.util.Log.w(TAG, "⚠️ Icono no encontrado para: " + service.getIconKey());
+                }
+            } else {
+                ivServiceIcon.setImageResource(R.drawable.ic_service_default);
+            }
+        }
 
-            // Configurar botón de opciones
-            if (optionsButton != null) {
+        private void setupPhotosSection(HotelServiceModel service) {
+            List<String> photoUrls = service.getPhotoUrls();
+            boolean hasPhotos = photoUrls != null && !photoUrls.isEmpty();
+
+            android.util.Log.d(TAG, "📷 Configurando fotos para " + service.getName() + ": " +
+                    (hasPhotos ? photoUrls.size() + " fotos" : "sin fotos"));
+
+            if (hasPhotos) {
+                // ✅ MOSTRAR BADGE DE FOTOS
+                photoBadgeContainer.setVisibility(View.VISIBLE);
+                tvPhotoCount.setText(String.valueOf(photoUrls.size()));
+
+                // ✅ CONFIGURAR CLICK PARA EXPANDIR/CONTRAER
+                photoBadgeContainer.setOnClickListener(v -> togglePhotosExpansion(service));
+
+                // ✅ CONFIGURAR ADAPTER DE FOTOS
+                if (photosAdapter == null) {
+                    photosAdapter = new BasicServicePhotosAdapter(context, photoUrls,
+                            (photoUrl, photoPosition, allPhotos) -> {
+                                if (photoClickListener != null) {
+                                    photoClickListener.onPhotoClick(photoUrl, photoPosition, allPhotos);
+                                }
+                            });
+                    rvServicePhotos.setAdapter(photosAdapter);
+                } else {
+                    photosAdapter.updatePhotos(photoUrls);
+                }
+
+                // ✅ ACTUALIZAR CONTADOR EN SECCIÓN EXPANDIBLE
+                if (tvPhotosCounter != null) {
+                    tvPhotosCounter.setText(photoUrls.size() + " fotos");
+                }
+
+            } else {
+                // ✅ OCULTAR BADGE SI NO HAY FOTOS
+                photoBadgeContainer.setVisibility(View.GONE);
+                photosExpandableSection.setVisibility(View.GONE);
+                isExpanded = false;
+            }
+        }
+
+        private void setupOptionsButton(HotelServiceModel service, int position) {
+            if (optionsButton != null && actionListener != null) {
                 optionsButton.setOnClickListener(v -> showOptionsMenu(service, position));
             }
-
-            android.util.Log.d(TAG, "🔧 Servicio vinculado: " + service.getName() +
-                    " - Tipo: " + service.getType() +
-                    " - Fotos: " + (service.getPhotos() != null ? service.getPhotos().size() : 0));
         }
 
-        private void setupServicePhotos(HotelServiceItem service) {
-            // Convertir List<Uri> a List<String>
-            List<String> photos = new ArrayList<>();
-            if (service.getPhotos() != null && !service.getPhotos().isEmpty()) {
-                for (android.net.Uri uri : service.getPhotos()) {
-                    if (uri != null) {
-                        photos.add(uri.toString());
-                    }
-                }
-            }
-
-            if (photos == null || photos.isEmpty()) {
-                // No hay fotos - ocultar badge y sección expandible
-                if (photoBadgeContainer != null) {
-                    photoBadgeContainer.setVisibility(View.GONE);
-                }
-                if (photosExpandableSection != null) {
-                    photosExpandableSection.setVisibility(View.GONE);
-                }
-                isPhotosExpanded = false;
-                android.util.Log.d(TAG, "📷 Servicio sin fotos: " + service.getName());
-            } else {
-                // Hay fotos - mostrar badge y configurar funcionalidad
-                if (photoBadgeContainer != null) {
-                    photoBadgeContainer.setVisibility(View.VISIBLE);
-
-                    // Configurar texto del contador
-                    String photoText = photos.size() == 1 ?
-                            "1 foto" : photos.size() + " fotos";
-                    if (tvPhotoCount != null) {
-                        tvPhotoCount.setText(photoText);
-                    }
-
-                    if (tvPhotosCounter != null) {
-                        tvPhotosCounter.setText(photos.size() + " de " + photos.size());
-                    }
-
-                    // Configurar adapter de fotos
-                    if (rvServicePhotos != null) {
-                        if (photosAdapter == null) {
-                            photosAdapter = new BasicServicePhotosAdapter(context, photos,
-                                    (photoUrl, pos, allPhotos) -> {
-                                        if (photoClickListener != null) {
-                                            photoClickListener.onPhotoClick(photoUrl, pos, allPhotos);
-                                        }
-                                    });
-                            rvServicePhotos.setAdapter(photosAdapter);
-                        } else {
-                            photosAdapter.updatePhotos(photos);
-                        }
-                    }
-
-                    // Click listener para expandir/colapsar fotos
-                    photoBadgeContainer.setOnClickListener(v -> togglePhotosSection());
-                }
-
-                android.util.Log.d(TAG, "📷 Servicio con fotos configurado: " + service.getName() +
-                        " - " + photos.size() + " fotos");
-            }
+        private void setupServiceState(HotelServiceModel service) {
+            float alpha = service.isActive() ? 1.0f : 0.6f;
+            itemView.setAlpha(alpha);
         }
 
-        private void togglePhotosSection() {
-            if (isPhotosExpanded) {
-                collapsePhotosSection();
-            } else {
-                expandPhotosSection();
-            }
-            isPhotosExpanded = !isPhotosExpanded;
-            android.util.Log.d(TAG, "📷 Toggle fotos: " + (isPhotosExpanded ? "expandido" : "colapsado"));
-        }
+        private void togglePhotosExpansion(HotelServiceModel service) {
+            List<String> photoUrls = service.getPhotoUrls();
+            if (photoUrls == null || photoUrls.isEmpty()) return;
 
-        private void expandPhotosSection() {
-            if (photosExpandableSection != null && ivExpandIcon != null) {
+            android.util.Log.d(TAG, "🔄 Toggle expansión de fotos para: " + service.getName());
+
+            isExpanded = !isExpanded;
+
+            // ✅ ANIMACIÓN DEL ICONO
+            RotateAnimation rotation = new RotateAnimation(
+                    isExpanded ? 0f : 180f,
+                    isExpanded ? 180f : 0f,
+                    Animation.RELATIVE_TO_SELF, 0.5f,
+                    Animation.RELATIVE_TO_SELF, 0.5f
+            );
+            rotation.setDuration(300);
+            rotation.setFillAfter(true);
+            ivExpandIcon.startAnimation(rotation);
+
+            // ✅ MOSTRAR/OCULTAR SECCIÓN DE FOTOS CON ANIMACIONES SIMPLES
+            if (isExpanded) {
                 photosExpandableSection.setVisibility(View.VISIBLE);
-
-                // Animar icono
-                RotateAnimation rotate = new RotateAnimation(0, 180,
-                        Animation.RELATIVE_TO_SELF, 0.5f,
-                        Animation.RELATIVE_TO_SELF, 0.5f);
-                rotate.setDuration(200);
-                rotate.setFillAfter(true);
-                ivExpandIcon.startAnimation(rotate);
+                photosExpandableSection.setAlpha(0f);
+                photosExpandableSection.animate()
+                        .alpha(1f)
+                        .setDuration(300)
+                        .start();
+            } else {
+                photosExpandableSection.animate()
+                        .alpha(0f)
+                        .setDuration(300)
+                        .withEndAction(() -> photosExpandableSection.setVisibility(View.GONE))
+                        .start();
             }
         }
 
-        private void collapsePhotosSection() {
-            if (photosExpandableSection != null && ivExpandIcon != null) {
-                photosExpandableSection.setVisibility(View.GONE);
+        private void showOptionsMenu(HotelServiceModel service, int position) {
+            String[] options = {
+                    "✏️ Editar servicio",
+                    service.isActive() ? "⏸️ Desactivar servicio" : "▶️ Activar servicio",
+                    "🗑️ Eliminar servicio"
+            };
 
-                // Animar icono
-                RotateAnimation rotate = new RotateAnimation(180, 0,
-                        Animation.RELATIVE_TO_SELF, 0.5f,
-                        Animation.RELATIVE_TO_SELF, 0.5f);
-                rotate.setDuration(200);
-                rotate.setFillAfter(true);
-                ivExpandIcon.startAnimation(rotate);
-            }
+            new AlertDialog.Builder(context)
+                    .setTitle("Opciones para " + service.getName())
+                    .setItems(options, (dialog, which) -> {
+                        switch (which) {
+                            case 0: // Editar
+                                if (actionListener != null) {
+                                    actionListener.onEditService(service, position);
+                                }
+                                break;
+                            case 1: // Activar/Desactivar
+                                if (actionListener != null) {
+                                    actionListener.onToggleService(service, position, !service.isActive());
+                                }
+                                break;
+                            case 2: // Eliminar
+                                showDeleteConfirmation(service, position);
+                                break;
+                        }
+                    })
+                    .show();
         }
 
-        private void showOptionsMenu(HotelServiceItem service, int position) {
-            AlertDialog.Builder builder = new AlertDialog.Builder(context);
-            builder.setTitle("Opciones del servicio");
-
-            String[] options = {"Editar", "Eliminar", service.isActive() ? "Desactivar" : "Activar"};
-
-            builder.setItems(options, (dialog, which) -> {
-                if (actionListener != null) {
-                    switch (which) {
-                        case 0: // Editar
-                            actionListener.onEditService(service, position);
-                            break;
-                        case 1: // Eliminar
+        private void showDeleteConfirmation(HotelServiceModel service, int position) {
+            new AlertDialog.Builder(context)
+                    .setTitle("⚠️ Confirmar eliminación")
+                    .setMessage("¿Estás seguro de que quieres eliminar el servicio '" + service.getName() + "'?\n\nEsta acción no se puede deshacer.")
+                    .setPositiveButton("🗑️ Eliminar", (dialog, which) -> {
+                        if (actionListener != null) {
                             actionListener.onDeleteService(service, position);
-                            break;
-                        case 2: // Activar/Desactivar
-                            actionListener.onToggleService(service, position, !service.isActive());
-                            break;
-                    }
-                }
-            });
-
-            builder.setNegativeButton("Cancelar", null);
-            builder.show();
+                        }
+                    })
+                    .setNegativeButton("❌ Cancelar", null)
+                    .show();
         }
     }
 }

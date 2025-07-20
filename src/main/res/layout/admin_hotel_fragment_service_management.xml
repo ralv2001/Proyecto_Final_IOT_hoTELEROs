@@ -48,8 +48,6 @@
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintBottom_toBottomOf="parent" />
 
-
-
     </androidx.constraintlayout.widget.ConstraintLayout>
 
     <!-- ScrollView principal -->
@@ -112,13 +110,23 @@
 
                     </LinearLayout>
 
-                    <!-- RecyclerView para servicios básicos -->
+                    <!-- ✅ CORREGIDO: RecyclerView para servicios básicos con configuración mejorada -->
                     <androidx.recyclerview.widget.RecyclerView
                         android:id="@+id/rvBasicServices"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:nestedScrollingEnabled="false"
-                        tools:listitem="@layout/admin_hotel_item_service_management" />
+                        android:clipToPadding="false"
+                        android:clipChildren="false"
+                        android:scrollbars="none"
+                        android:overScrollMode="never"
+                        android:focusable="false"
+                        android:focusableInTouchMode="false"
+                        android:minHeight="60dp"
+                        android:paddingTop="4dp"
+                        android:paddingBottom="4dp"
+                        tools:listitem="@layout/admin_hotel_item_service_management"
+                        tools:itemCount="3" />
 
                     <!-- Empty state para servicios básicos -->
                     <LinearLayout
@@ -194,12 +202,21 @@
 
                     </LinearLayout>
 
-                    <!-- RecyclerView para servicios incluidos -->
+                    <!-- ✅ CORREGIDO: RecyclerView para servicios incluidos con misma configuración -->
                     <androidx.recyclerview.widget.RecyclerView
                         android:id="@+id/rvIncludedServices"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:nestedScrollingEnabled="false"
+                        android:clipToPadding="false"
+                        android:clipChildren="false"
+                        android:scrollbars="none"
+                        android:overScrollMode="never"
+                        android:focusable="false"
+                        android:focusableInTouchMode="false"
+                        android:minHeight="60dp"
+                        android:paddingTop="4dp"
+                        android:paddingBottom="4dp"
                         tools:listitem="@layout/admin_hotel_item_service_management" />
 
                     <!-- Empty state para servicios incluidos -->
@@ -276,12 +293,21 @@
 
                     </LinearLayout>
 
-                    <!-- RecyclerView para servicios de pago -->
+                    <!-- ✅ CORREGIDO: RecyclerView para servicios de pago con misma configuración -->
                     <androidx.recyclerview.widget.RecyclerView
                         android:id="@+id/rvPaidServices"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:nestedScrollingEnabled="false"
+                        android:clipToPadding="false"
+                        android:clipChildren="false"
+                        android:scrollbars="none"
+                        android:overScrollMode="never"
+                        android:focusable="false"
+                        android:focusableInTouchMode="false"
+                        android:minHeight="60dp"
+                        android:paddingTop="4dp"
+                        android:paddingBottom="4dp"
                         tools:listitem="@layout/admin_hotel_item_service_management" />
 
                     <!-- Empty state para servicios de pago -->
@@ -314,110 +340,7 @@
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 
-            <!-- SECCIÓN: SERVICIOS CONDICIONALES -->
-            <androidx.cardview.widget.CardView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
-                app:cardCornerRadius="16dp"
-                app:cardElevation="4dp"
-                app:strokeColor="@color/orange"
-                app:strokeWidth="1dp"
-                app:cardBackgroundColor="@android:color/white">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:padding="20dp">
-
-                    <!-- Header -->
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:gravity="center_vertical"
-                        android:layout_marginBottom="12dp">
-
-                        <ImageView
-                            android:layout_width="24dp"
-                            android:layout_height="24dp"
-                            android:src="@drawable/ic_taxi"
-                            app:tint="@color/orange"
-                            android:layout_marginEnd="8dp" />
-
-                        <TextView
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:text="Servicios Condicionales"
-                            android:textSize="16sp"
-                            android:textStyle="bold"
-                            android:textColor="@color/text_primary"
-                            android:fontFamily="@font/poppins_semibold" />
-
-                    </LinearLayout>
-
-                    <!-- Descripción -->
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="Servicios que se activan según condiciones específicas (ej: taxi gratis por compra mínima)"
-                        android:textSize="12sp"
-                        android:textColor="@color/text_secondary"
-                        android:fontFamily="@font/inter_regular"
-                        android:layout_marginBottom="12dp" />
-
-                    <!-- RecyclerView para servicios condicionales -->
-                    <androidx.recyclerview.widget.RecyclerView
-                        android:id="@+id/rvConditionalServices"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:nestedScrollingEnabled="false"
-                        tools:listitem="@layout/admin_hotel_item_service_management" />
-
-                    <!-- Empty state para servicios condicionales -->
-                    <LinearLayout
-                        android:id="@+id/layoutConditionalServicesEmpty"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:gravity="center"
-                        android:padding="20dp"
-                        android:visibility="gone">
-
-                        <ImageView
-                            android:layout_width="64dp"
-                            android:layout_height="64dp"
-                            android:src="@drawable/ic_taxi"
-                            app:tint="#E0E0E0"
-                            android:layout_marginBottom="8dp" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="No hay servicios condicionales"
-                            android:textSize="14sp"
-                            android:textColor="@color/text_secondary"
-                            android:fontFamily="@font/inter_medium" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Crea servicios que se activen por condiciones específicas"
-                            android:textSize="11sp"
-                            android:textColor="@color/text_tertiary"
-                            android:fontFamily="@font/inter_regular"
-                            android:textAlignment="center"
-                            android:layout_marginTop="4dp" />
-
-                    </LinearLayout>
-
-                </LinearLayout>
-            </androidx.cardview.widget.CardView>
-
-            <!-- ✅ SECCIÓN: CONFIGURACIÓN DE TAXI - OPTIMIZADA -->
-            <!-- ✅ SECCIÓN: CONFIGURACIÓN DE TAXI - ULTRA COMPACTA -->
+            <!-- ✅ SECCIÓN: CONFIGURACIÓN DE TAXI - MANTIENE EL DISEÑO ACTUAL -->
             <androidx.cardview.widget.CardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -538,7 +461,7 @@
         </LinearLayout>
     </ScrollView>
 
-    <!-- FAB para agregar servicio -->
+    <!-- ✅ ÚNICO BOTÓN PARA AGREGAR SERVICIOS - FAB -->
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fabAddService"
         android:layout_width="wrap_content"

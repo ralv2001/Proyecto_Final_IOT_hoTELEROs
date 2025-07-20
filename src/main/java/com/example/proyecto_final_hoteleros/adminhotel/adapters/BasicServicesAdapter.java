@@ -6,7 +6,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.Animation;
-import android.view.animation.AnimationUtils;
 import android.view.animation.RotateAnimation;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -17,7 +16,8 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.proyecto_final_hoteleros.R;
-import com.example.proyecto_final_hoteleros.adminhotel.model.BasicService;
+import com.example.proyecto_final_hoteleros.adminhotel.model.HotelServiceModel;
+import com.example.proyecto_final_hoteleros.adminhotel.adapters.BasicServicePhotosAdapter;
 import com.example.proyecto_final_hoteleros.adminhotel.utils.IconHelper;
 
 import java.util.List;
@@ -26,18 +26,16 @@ public class BasicServicesAdapter extends RecyclerView.Adapter<BasicServicesAdap
 
     private static final String TAG = "BasicServicesAdapter";
 
-    // ❌ ELIMINADO: OnServiceRemovedListener - Ya no se necesita eliminar servicios desde perfil
-
     public interface OnServicePhotoClickListener {
         void onPhotoClick(String photoUrl, int position, List<String> allPhotos);
     }
 
-    private List<BasicService> services;
+    private List<HotelServiceModel> services;
     private OnServicePhotoClickListener photoClickListener;
     private Context context;
 
     // ✅ CONSTRUCTOR PRINCIPAL - Solo para visualización y ver fotos
-    public BasicServicesAdapter(Context context, List<BasicService> services,
+    public BasicServicesAdapter(Context context, List<HotelServiceModel> services,
                                 OnServicePhotoClickListener photoClickListener) {
         this.context = context;
         this.services = services;
@@ -46,7 +44,7 @@ public class BasicServicesAdapter extends RecyclerView.Adapter<BasicServicesAdap
     }
 
     // ✅ CONSTRUCTOR SIMPLE - Solo para mostrar servicios básicos
-    public BasicServicesAdapter(List<BasicService> services) {
+    public BasicServicesAdapter(List<HotelServiceModel> services) {
         this.services = services;
         this.photoClickListener = null;
         Log.d(TAG, "🔧 Adapter creado (modo simple) con " + services.size() + " servicios");
@@ -63,7 +61,7 @@ public class BasicServicesAdapter extends RecyclerView.Adapter<BasicServicesAdap
 
     @Override
     public void onBindViewHolder(@NonNull ServiceViewHolder holder, int position) {
-        BasicService service = services.get(position);
+        HotelServiceModel service = services.get(position);
         holder.bind(service, position);
     }
 
@@ -72,7 +70,7 @@ public class BasicServicesAdapter extends RecyclerView.Adapter<BasicServicesAdap
         return services.size();
     }
 
-    public void updateServices(List<BasicService> newServices) {
+    public void updateServices(List<HotelServiceModel> newServices) {
         this.services = newServices;
         notifyDataSetChanged();
         Log.d(TAG, "📋 Servicios actualizados: " + newServices.size());
@@ -83,168 +81,148 @@ public class BasicServicesAdapter extends RecyclerView.Adapter<BasicServicesAdap
         // Views principales
         private LinearLayout serviceIconContainer;
         private ImageView ivServiceIcon;
-        private TextView tvServiceName, tvServiceDescription;
+        private TextView tvServiceName;
+        private TextView tvServiceDescription;
 
-        // Views para fotos - EXACTOS como original
+        // Views para fotos
         private LinearLayout photoBadgeContainer, photosExpandableSection;
         private TextView tvPhotoCount, tvPhotosCounter;
         private ImageView ivExpandIcon;
         private RecyclerView rvServicePhotos;
+
+        // Variables internas
+        private boolean isExpanded = false;
         private BasicServicePhotosAdapter photosAdapter;
-        private boolean isPhotosExpanded = false;
 
         public ServiceViewHolder(@NonNull View itemView) {
             super(itemView);
-            initViews();
-            setupRecyclerView();
+            initializeViews();
         }
 
-        private void initViews() {
-            // Referencias a las vistas principales
+        private void initializeViews() {
+            // Views principales
             serviceIconContainer = itemView.findViewById(R.id.serviceIconContainer);
             ivServiceIcon = itemView.findViewById(R.id.ivServiceIcon);
             tvServiceName = itemView.findViewById(R.id.tvServiceName);
             tvServiceDescription = itemView.findViewById(R.id.tvServiceDescription);
 
-            // Elementos para fotos - EXACTOS como original
+            // Views para fotos
             photoBadgeContainer = itemView.findViewById(R.id.photoBadgeContainer);
-            tvPhotoCount = itemView.findViewById(R.id.tvPhotoCount);
-            ivExpandIcon = itemView.findViewById(R.id.ivExpandIcon);
             photosExpandableSection = itemView.findViewById(R.id.photosExpandableSection);
-            rvServicePhotos = itemView.findViewById(R.id.rvServicePhotos);
+            tvPhotoCount = itemView.findViewById(R.id.tvPhotoCount);
             tvPhotosCounter = itemView.findViewById(R.id.tvPhotosCounter);
+            ivExpandIcon = itemView.findViewById(R.id.ivExpandIcon);
+            rvServicePhotos = itemView.findViewById(R.id.rvServicePhotos);
 
-            Log.d(TAG, "🔧 ViewHolder inicializado (modo solo visualización)");
-        }
-
-        private void setupRecyclerView() {
+            // Configurar RecyclerView de fotos
             if (rvServicePhotos != null) {
-                LinearLayoutManager layoutManager = new LinearLayoutManager(
-                        context, LinearLayoutManager.HORIZONTAL, false);
-                rvServicePhotos.setLayoutManager(layoutManager);
-                rvServicePhotos.setNestedScrollingEnabled(false);
+                rvServicePhotos.setLayoutManager(new LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false));
                 rvServicePhotos.setHasFixedSize(true);
-                Log.d(TAG, "📷 RecyclerView de fotos configurado");
             }
         }
 
-        public void bind(BasicService service, int position) {
-            // Configurar información básica del servicio
-            int iconResource = IconHelper.getIconResource(service.getIconKey());
-            ivServiceIcon.setImageResource(iconResource);
+        public void bind(HotelServiceModel service, int position) {
+            Log.d(TAG, "🔧 Binding servicio: " + service.getName() + " con " +
+                    (service.getPhotoUrls() != null ? service.getPhotoUrls().size() : 0) + " fotos");
+
+            // ✅ INFORMACIÓN BÁSICA DEL SERVICIO
             tvServiceName.setText(service.getName());
+            tvServiceDescription.setText(service.getDescription());
 
-            // Configurar descripción
-            if (service.getDescription() != null && !service.getDescription().isEmpty()) {
-                tvServiceDescription.setText(service.getDescription());
-                tvServiceDescription.setVisibility(View.VISIBLE);
+            // ✅ ICONO DEL SERVICIO
+            if (service.getIconKey() != null && !service.getIconKey().isEmpty()) {
+                int iconResId = IconHelper.getIconResource(service.getIconKey());
+                if (iconResId != 0) {
+                    ivServiceIcon.setImageResource(iconResId);
+                } else {
+                    ivServiceIcon.setImageResource(R.drawable.ic_service_default);
+                    Log.w(TAG, "⚠️ Icono no encontrado para: " + service.getIconKey());
+                }
             } else {
-                tvServiceDescription.setVisibility(View.GONE);
+                ivServiceIcon.setImageResource(R.drawable.ic_service_default);
             }
 
-            // Configurar fotos del servicio - EXACTO como original
-            setupServicePhotos(service);
-
-            Log.d(TAG, "🔧 Servicio vinculado: " + service.getName() +
-                    " con " + (service.getPhotos() != null ? service.getPhotos().size() : 0) + " fotos");
+            // ✅ GESTIÓN DE FOTOS
+            setupPhotosSection(service);
         }
 
-        private void setupServicePhotos(BasicService service) {
-            List<String> photos = service.getPhotos();
+        private void setupPhotosSection(HotelServiceModel service) {
+            List<String> photoUrls = service.getPhotoUrls();
+            boolean hasPhotos = photoUrls != null && !photoUrls.isEmpty();
 
-            if (photos == null || photos.isEmpty()) {
-                // No hay fotos - ocultar badge y sección expandible
-                photoBadgeContainer.setVisibility(View.GONE);
-                photosExpandableSection.setVisibility(View.GONE);
-                isPhotosExpanded = false;
-                Log.d(TAG, "📷 Servicio sin fotos: " + service.getName());
-            } else {
-                // Hay fotos - mostrar badge y configurar funcionalidad
+            Log.d(TAG, "📷 Configurando fotos para " + service.getName() + ": " +
+                    (hasPhotos ? photoUrls.size() + " fotos" : "sin fotos"));
+
+            if (hasPhotos) {
+                // ✅ MOSTRAR BADGE DE FOTOS
                 photoBadgeContainer.setVisibility(View.VISIBLE);
+                tvPhotoCount.setText(String.valueOf(photoUrls.size()));
 
-                // Configurar texto del contador
-                String photoText = photos.size() == 1 ?
-                        "1 foto" : photos.size() + " fotos";
-                tvPhotoCount.setText(photoText);
+                // ✅ CONFIGURAR CLICK PARA EXPANDIR/CONTRAER
+                photoBadgeContainer.setOnClickListener(v -> togglePhotosExpansion(service));
 
-                if (tvPhotosCounter != null) {
-                    tvPhotosCounter.setText(photos.size() + " de " + photos.size());
-                }
-
-                // Configurar adapter de fotos
+                // ✅ CONFIGURAR ADAPTER DE FOTOS
                 if (photosAdapter == null) {
-                    photosAdapter = new BasicServicePhotosAdapter(context, photos,
-                            (photoUrl, pos, allPhotos) -> {
+                    photosAdapter = new BasicServicePhotosAdapter(context, photoUrls,
+                            (photoUrl, photoPosition, allPhotos) -> {
                                 if (photoClickListener != null) {
-                                    photoClickListener.onPhotoClick(photoUrl, pos, allPhotos);
+                                    photoClickListener.onPhotoClick(photoUrl, photoPosition, allPhotos);
                                 }
                             });
                     rvServicePhotos.setAdapter(photosAdapter);
                 } else {
-                    photosAdapter.updatePhotos(photos);
+                    photosAdapter.updatePhotos(photoUrls);
                 }
 
-                // Click listener para expandir/colapsar fotos - EXACTO como original
-                photoBadgeContainer.setOnClickListener(v -> togglePhotosSection());
+                // ✅ ACTUALIZAR CONTADOR EN SECCIÓN EXPANDIBLE
+                if (tvPhotosCounter != null) {
+                    tvPhotosCounter.setText(photoUrls.size() + " fotos");
+                }
 
-                Log.d(TAG, "📷 Servicio con fotos configurado: " + service.getName() +
-                        " - " + photos.size() + " fotos");
-            }
-        }
-
-        private void togglePhotosSection() {
-            if (isPhotosExpanded) {
-                collapsePhotosSection();
             } else {
-                expandPhotosSection();
-            }
-            isPhotosExpanded = !isPhotosExpanded;
-            Log.d(TAG, "📷 Toggle fotos: " + (isPhotosExpanded ?
-                    "expandido" : "colapsado"));
-        }
-
-        private void expandPhotosSection() {
-            // Animar ícono de expansión - EXACTO como original
-            RotateAnimation rotateAnimation = new RotateAnimation(0, 180,
-                    Animation.RELATIVE_TO_SELF, 0.5f, Animation.RELATIVE_TO_SELF, 0.5f);
-            rotateAnimation.setDuration(200);
-            rotateAnimation.setFillAfter(true);
-            ivExpandIcon.startAnimation(rotateAnimation);
-
-            // Mostrar sección de fotos con animación
-            photosExpandableSection.setVisibility(View.VISIBLE);
-            Animation slideDown = AnimationUtils.loadAnimation(context, android.R.anim.slide_in_left);
-            if (slideDown != null) {
-                photosExpandableSection.startAnimation(slideDown);
-            }
-        }
-
-        private void collapsePhotosSection() {
-            // Animar ícono de expansión - EXACTO como original
-            RotateAnimation rotateAnimation = new RotateAnimation(180, 0,
-                    Animation.RELATIVE_TO_SELF, 0.5f, Animation.RELATIVE_TO_SELF, 0.5f);
-            rotateAnimation.setDuration(200);
-            rotateAnimation.setFillAfter(true);
-            ivExpandIcon.startAnimation(rotateAnimation);
-
-            // Ocultar sección de fotos con animación
-            Animation slideUp = AnimationUtils.loadAnimation(context, android.R.anim.slide_out_right);
-            if (slideUp != null) {
-                slideUp.setAnimationListener(new Animation.AnimationListener() {
-                    @Override
-                    public void onAnimationStart(Animation animation) {}
-
-                    @Override
-                    public void onAnimationEnd(Animation animation) {
-                        photosExpandableSection.setVisibility(View.GONE);
-                    }
-
-                    @Override
-                    public void onAnimationRepeat(Animation animation) {}
-                });
-                photosExpandableSection.startAnimation(slideUp);
-            } else {
+                // ✅ OCULTAR BADGE SI NO HAY FOTOS
+                photoBadgeContainer.setVisibility(View.GONE);
                 photosExpandableSection.setVisibility(View.GONE);
+                isExpanded = false;
+                Log.d(TAG, "🚫 Sin fotos para " + service.getName());
+            }
+        }
+
+        private void togglePhotosExpansion(HotelServiceModel service) {
+            List<String> photoUrls = service.getPhotoUrls();
+            if (photoUrls == null || photoUrls.isEmpty()) return;
+
+            Log.d(TAG, "🔄 Toggle expansión de fotos para: " + service.getName());
+
+            isExpanded = !isExpanded;
+
+            // ✅ ANIMACIÓN DEL ICONO
+            RotateAnimation rotation = new RotateAnimation(
+                    isExpanded ? 0f : 180f,
+                    isExpanded ? 180f : 0f,
+                    Animation.RELATIVE_TO_SELF, 0.5f,
+                    Animation.RELATIVE_TO_SELF, 0.5f
+            );
+            rotation.setDuration(300);
+            rotation.setFillAfter(true);
+            ivExpandIcon.startAnimation(rotation);
+
+            // ✅ MOSTRAR/OCULTAR SECCIÓN DE FOTOS CON ANIMACIONES SIMPLES
+            if (isExpanded) {
+                photosExpandableSection.setVisibility(View.VISIBLE);
+                photosExpandableSection.setAlpha(0f);
+                photosExpandableSection.animate()
+                        .alpha(1f)
+                        .setDuration(300)
+                        .start();
+                Log.d(TAG, "📷 Fotos expandidas para: " + service.getName());
+            } else {
+                photosExpandableSection.animate()
+                        .alpha(0f)
+                        .setDuration(300)
+                        .withEndAction(() -> photosExpandableSection.setVisibility(View.GONE))
+                        .start();
+                Log.d(TAG, "📷 Fotos contraídas para: " + service.getName());
             }
         }
     }
