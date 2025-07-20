@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="120dp"
+    android:layout_height="120dp"
+    app:cardCornerRadius="16dp"
+    app:cardElevation="4dp"
+    android:layout_margin="8dp"
+    android:clickable="true"
+    android:focusable="true"
+    app:rippleColor="@color/orange_light">
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <!-- Imagen de la habitación -->
+        <ImageView
+            android:id="@+id/ivRoomPhoto"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="centerCrop"
+            android:contentDescription="Foto de habitación" />
+
+        <!-- Overlay para click -->
+        <View
+            android:id="@+id/photoOverlay"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="?android:attr/selectableItemBackground"
+            android:clickable="true"
+            android:focusable="true" />
+
+        <!-- Indicador de carga -->
+        <ProgressBar
+            android:id="@+id/progressBarPhoto"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_gravity="center"
+            android:indeterminateTint="@color/orange"
+            android:visibility="gone" />
+
+        <!-- Índice de la foto -->
+        <TextView
+            android:id="@+id/tvPhotoIndex"
+            android:layout_width="28dp"
+            android:layout_height="28dp"
+            android:layout_gravity="top|start"
+            android:layout_margin="8dp"
+            android:background="@drawable/bg_circle_orange"
+            android:text="1"
+            android:textSize="12sp"
+            android:textStyle="bold"
+            android:textColor="@android:color/white"
+            android:fontFamily="@font/poppins_semibold"
+            android:gravity="center" />
+
+        <!-- Botón eliminar -->
+        <ImageView
+            android:id="@+id/ivRemove"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:layout_gravity="top|end"
+            android:layout_margin="4dp"
+            android:src="@drawable/ic_close"
+            android:background="@drawable/bg_circle_red"
+            android:padding="6dp"
+            app:tint="@android:color/white"
+            android:clickable="true"
+            android:focusable="true"
+            android:visibility="visible" />
+
+        <!-- Overlay degradado para mejor legibilidad de textos -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:layout_gravity="top"
+            android:background="@drawable/bg_gradient_top_overlay"
+            android:alpha="0.6" />
+
+    </FrameLayout>
+
+</com.google.android.material.card.MaterialCardView>

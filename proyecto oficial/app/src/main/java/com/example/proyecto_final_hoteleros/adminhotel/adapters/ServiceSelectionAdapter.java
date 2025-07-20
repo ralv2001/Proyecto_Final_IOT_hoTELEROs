@@ -1,6 +1,5 @@
 package com.example.proyecto_final_hoteleros.adminhotel.adapters;
 
-import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -9,126 +8,28 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
-import androidx.cardview.widget.CardView;
 import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.proyecto_final_hoteleros.R;
-import com.example.proyecto_final_hoteleros.adminhotel.utils.IconHelper;
+import com.example.proyecto_final_hoteleros.adminhotel.model.HotelServiceModel;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 public class ServiceSelectionAdapter extends RecyclerView.Adapter<ServiceSelectionAdapter.ServiceViewHolder> {
 
-    public interface OnSelectionChangedListener {
-        void onSelectionChanged();
+    public interface OnServiceSelectedListener {
+        void onServiceSelected(String serviceName, boolean isSelected);
     }
 
-    private List<String> availableServices;
+    private List<HotelServiceModel> services;
     private List<String> selectedServices;
-    private Context context;
-    private OnSelectionChangedListener selectionChangedListener;
-    private Map<String, String> serviceCategories;
-    private Map<String, String> serviceIcons;
+    private OnServiceSelectedListener listener;
 
-    public ServiceSelectionAdapter(Context context, List<String> availableServices, List<String> selectedServices) {
-        this.context = context;
-        this.availableServices = availableServices;
+    public ServiceSelectionAdapter(List<HotelServiceModel> services, List<String> selectedServices, OnServiceSelectedListener listener) {
+        this.services = services;
         this.selectedServices = selectedServices;
-
-        initializeServiceData();
-    }
-
-    private void initializeServiceData() {
-        serviceCategories = new HashMap<>();
-        serviceIcons = new HashMap<>();
-
-        // Comodidades de Habitación
-        serviceCategories.put("Minibar", "Comodidades");
-        serviceIcons.put("Minibar", "minibar");
-
-        serviceCategories.put("Caja Fuerte", "Seguridad");
-        serviceIcons.put("Caja Fuerte", "security");
-
-        serviceCategories.put("Secador de Cabello", "Comodidades");
-        serviceIcons.put("Secador de Cabello", "hair_dryer");
-
-        serviceCategories.put("Plancha y Tabla de Planchar", "Comodidades");
-        serviceIcons.put("Plancha y Tabla de Planchar", "iron");
-
-        serviceCategories.put("Artículos de Aseo Premium", "Comodidades");
-        serviceIcons.put("Artículos de Aseo Premium", "toiletries");
-
-        serviceCategories.put("Batas y Pantuflas", "Comodidades");
-        serviceIcons.put("Batas y Pantuflas", "bathrobe");
-
-        // Vistas y Espacios
-        serviceCategories.put("Balcón", "Espacios");
-        serviceIcons.put("Balcón", "balcony");
-
-        serviceCategories.put("Terraza", "Espacios");
-        serviceIcons.put("Terraza", "terrace");
-
-        serviceCategories.put("Vista al Mar", "Vistas");
-        serviceIcons.put("Vista al Mar", "sea_view");
-
-        serviceCategories.put("Vista a la Ciudad", "Vistas");
-        serviceIcons.put("Vista a la Ciudad", "city_view");
-
-        serviceCategories.put("Vista al Jardín", "Vistas");
-        serviceIcons.put("Vista al Jardín", "garden_view");
-
-        // Espacios Adicionales
-        serviceCategories.put("Sala de Estar", "Espacios");
-        serviceIcons.put("Sala de Estar", "living_room");
-
-        serviceCategories.put("Escritorio", "Espacios");
-        serviceIcons.put("Escritorio", "desk");
-
-        serviceCategories.put("Comedor", "Espacios");
-        serviceIcons.put("Comedor", "dining");
-
-        serviceCategories.put("Kitchenette", "Espacios");
-        serviceIcons.put("Kitchenette", "kitchenette");
-
-        serviceCategories.put("Cocina Equipada", "Espacios");
-        serviceIcons.put("Cocina Equipada", "kitchen");
-
-        // Relajación y Bienestar
-        serviceCategories.put("Bañera de Hidromasaje", "Bienestar");
-        serviceIcons.put("Bañera de Hidromasaje", "jacuzzi");
-
-        serviceCategories.put("Jacuzzi", "Bienestar");
-        serviceIcons.put("Jacuzzi", "spa");
-
-        serviceCategories.put("Chimenea", "Bienestar");
-        serviceIcons.put("Chimenea", "fireplace");
-
-        // Servicios Premium
-        serviceCategories.put("Mayordomo Personal", "Premium");
-        serviceIcons.put("Mayordomo Personal", "concierge");
-
-        serviceCategories.put("Servicio de Habitaciones 24h", "Premium");
-        serviceIcons.put("Servicio de Habitaciones 24h", "room_service");
-
-        serviceCategories.put("Servicio de Lavandería", "Premium");
-        serviceIcons.put("Servicio de Lavandería", "laundry");
-
-        serviceCategories.put("Sala de Reuniones", "Premium");
-        serviceIcons.put("Sala de Reuniones", "meeting");
-
-        // Extras
-        serviceCategories.put("Almohadas Adicionales", "Extras");
-        serviceIcons.put("Almohadas Adicionales", "pillow");
-
-        serviceCategories.put("Servicio de Despertador", "Extras");
-        serviceIcons.put("Servicio de Despertador", "alarm");
-    }
-
-    public void setOnSelectionChangedListener(OnSelectionChangedListener listener) {
-        this.selectionChangedListener = listener;
+        this.listener = listener;
     }
 
     @NonNull
@@ -140,102 +41,128 @@ public class ServiceSelectionAdapter extends RecyclerView.Adapter<ServiceSelecti
 
     @Override
     public void onBindViewHolder(@NonNull ServiceViewHolder holder, int position) {
-        String service = availableServices.get(position);
+        HotelServiceModel service = services.get(position);
         holder.bind(service);
     }
 
     @Override
     public int getItemCount() {
-        return availableServices.size();
+        return services.size();
     }
 
     class ServiceViewHolder extends RecyclerView.ViewHolder {
-        private CardView cardService;
-        private View selectionIndicator;
-        private View iconBackground;
-        private ImageView ivServiceIcon;
-        private TextView tvServiceName;
-        private TextView tvServiceCategory;
         private CheckBox cbService;
+        private TextView tvServiceName;
+        private TextView tvServiceDescription;
+        private ImageView ivServiceIcon;
 
-        public ServiceViewHolder(@NonNull View itemView) {
+        ServiceViewHolder(@NonNull View itemView) {
             super(itemView);
-            cardService = itemView.findViewById(R.id.cardService);
-            selectionIndicator = itemView.findViewById(R.id.selectionIndicator);
-            iconBackground = itemView.findViewById(R.id.iconBackground);
-            ivServiceIcon = itemView.findViewById(R.id.ivServiceIcon);
-            tvServiceName = itemView.findViewById(R.id.tvServiceName);
-            tvServiceCategory = itemView.findViewById(R.id.tvServiceCategory);
             cbService = itemView.findViewById(R.id.cbService);
+            tvServiceName = itemView.findViewById(R.id.tvServiceName);
+            tvServiceDescription = itemView.findViewById(R.id.tvServiceDescription);
+            ivServiceIcon = itemView.findViewById(R.id.ivServiceIcon);
         }
 
-        public void bind(String service) {
-            // Configurar textos
-            tvServiceName.setText(service);
+        void bind(HotelServiceModel service) {
+            tvServiceName.setText(service.getName());
+            tvServiceDescription.setText(service.getDescription());
 
-            String category = serviceCategories.get(service);
-            if (category != null) {
-                tvServiceCategory.setText(category);
-                tvServiceCategory.setVisibility(View.VISIBLE);
-            } else {
-                tvServiceCategory.setText("General");
-                tvServiceCategory.setVisibility(View.VISIBLE);
+            // Configurar icono del servicio
+            setupServiceIcon(service);
+
+            // Verificar si está seleccionado
+            boolean isSelected = selectedServices.contains(service.getName());
+            cbService.setChecked(isSelected);
+
+            // Configurar click listener
+            itemView.setOnClickListener(v -> toggleService(service));
+            cbService.setOnCheckedChangeListener((buttonView, isChecked) -> {
+                if (buttonView.isPressed()) { // Solo procesar si es click del usuario
+                    toggleService(service);
+                }
+            });
+
+            // Estilo visual según selección
+            updateItemStyle(isSelected);
+        }
+
+        private void setupServiceIcon(HotelServiceModel service) {
+            String iconName = service.getIconKey(); // ✅ CORREGIDO: getIconKey() en lugar de getIconName()
+            if (iconName == null || iconName.isEmpty()) {
+                iconName = "hotel_service_default";
             }
 
-            // Configurar icono
-            String iconKey = serviceIcons.get(service);
-            if (iconKey != null) {
-                int iconResource = IconHelper.getIconResource(iconKey);
-                ivServiceIcon.setImageResource(iconResource);
+            // Obtener ID del recurso del icono
+            int iconResourceId = itemView.getContext().getResources().getIdentifier(
+                    "ic_" + iconName,
+                    "drawable",
+                    itemView.getContext().getPackageName()
+            );
+
+            if (iconResourceId != 0) {
+                ivServiceIcon.setImageResource(iconResourceId);
             } else {
                 ivServiceIcon.setImageResource(R.drawable.ic_hotel_service_default);
             }
 
-            // Configurar estado de selección
-            boolean isSelected = selectedServices.contains(service);
-            updateSelectionUI(isSelected);
-            cbService.setChecked(isSelected);
-
-            // Listeners
-            cbService.setOnCheckedChangeListener(null); // Evitar loops
-            cbService.setOnCheckedChangeListener((buttonView, isChecked) -> {
-                handleSelectionChange(service, isChecked);
-            });
-
-            itemView.setOnClickListener(v -> {
-                boolean newState = !selectedServices.contains(service);
-                cbService.setChecked(newState);
-                handleSelectionChange(service, newState);
-            });
+            // Color del icono según selección
+            boolean isSelected = selectedServices.contains(service.getName());
+            int iconColor = isSelected ?
+                    ContextCompat.getColor(itemView.getContext(), R.color.green) :
+                    ContextCompat.getColor(itemView.getContext(), R.color.text_secondary);
+            ivServiceIcon.setColorFilter(iconColor);
         }
 
-        private void handleSelectionChange(String service, boolean isSelected) {
-            if (isSelected) {
-                if (!selectedServices.contains(service)) {
-                    selectedServices.add(service);
-                }
+        private void toggleService(HotelServiceModel service) {
+            String serviceName = service.getName();
+            boolean isCurrentlySelected = selectedServices.contains(serviceName);
+
+            if (isCurrentlySelected) {
+                selectedServices.remove(serviceName);
+                cbService.setChecked(false);
             } else {
-                selectedServices.remove(service);
+                selectedServices.add(serviceName);
+                cbService.setChecked(true);
             }
 
-            updateSelectionUI(isSelected);
+            updateItemStyle(!isCurrentlySelected);
+            setupServiceIcon(service); // Actualizar color del icono
 
-            // Notificar al listener si existe
-            if (selectionChangedListener != null) {
-                selectionChangedListener.onSelectionChanged();
+            if (listener != null) {
+                listener.onServiceSelected(serviceName, !isCurrentlySelected);
             }
         }
 
-        private void updateSelectionUI(boolean isSelected) {
+        private void updateItemStyle(boolean isSelected) {
             if (isSelected) {
-                selectionIndicator.setVisibility(View.VISIBLE);
-                iconBackground.setBackgroundResource(R.drawable.bg_circle_green_light);
-                cardService.setCardElevation(6f);
+                // Estilo seleccionado
+                itemView.setBackgroundResource(R.drawable.bg_chip_green_light);
+                tvServiceName.setTextColor(ContextCompat.getColor(itemView.getContext(), R.color.green));
+                tvServiceDescription.setTextColor(ContextCompat.getColor(itemView.getContext(), R.color.green));
             } else {
-                selectionIndicator.setVisibility(View.GONE);
-                iconBackground.setBackgroundResource(R.drawable.bg_circle_orange_light);
-                cardService.setCardElevation(2f);
+                // Estilo no seleccionado
+                itemView.setBackgroundResource(R.drawable.bg_dialog_rounded);
+                tvServiceName.setTextColor(ContextCompat.getColor(itemView.getContext(), R.color.text_primary));
+                tvServiceDescription.setTextColor(ContextCompat.getColor(itemView.getContext(), R.color.text_secondary));
             }
         }
+    }
+
+    // ========== MÉTODOS PÚBLICOS ==========
+
+    public void updateServices(List<HotelServiceModel> newServices) {
+        this.services.clear();
+        this.services.addAll(newServices);
+        notifyDataSetChanged();
+    }
+
+    public void clearSelection() {
+        selectedServices.clear();
+        notifyDataSetChanged();
+    }
+
+    public List<String> getSelectedServices() {
+        return selectedServices;
     }
 }

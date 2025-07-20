@@ -1,65 +1,233 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+<com.google.android.material.card.MaterialCardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginBottom="8dp"
-    app:cardCornerRadius="12dp"
-    app:cardElevation="2dp">
+    android:layout_marginBottom="12dp"
+    app:cardCornerRadius="16dp"
+    app:cardElevation="4dp"
+    app:strokeWidth="1dp"
+    app:strokeColor="#F0F0F0"
+    app:cardBackgroundColor="@android:color/white"
+    android:clickable="true"
+    android:focusable="true"
+    app:rippleColor="@color/orange_50">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:padding="16dp"
-        android:gravity="center_vertical">
+        android:orientation="vertical"
+        android:background="@android:color/white">
 
-        <ImageView
-            android:id="@+id/ivServiceIcon"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:src="@drawable/ic_wifi"
-            app:tint="@color/green"
-            android:layout_marginEnd="16dp" />
-
-        <LinearLayout
-            android:layout_width="0dp"
+        <!-- Contenido Principal del Servicio -->
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:orientation="vertical">
+            android:padding="20dp">
 
-            <TextView
-                android:id="@+id/tvServiceName"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="WiFi Gratuito"
-                android:textSize="16sp"
-                android:textStyle="bold"
-                android:textColor="@color/text_primary"
-                android:fontFamily="@font/poppins_medium" />
+            <!-- Ícono del Servicio con Background Circular -->
+            <LinearLayout
+                android:id="@+id/serviceIconContainer"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:background="@drawable/bg_circle_green"
+                android:gravity="center"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="@id/serviceInfoContainer">
 
-            <TextView
-                android:id="@+id/tvServiceDescription"
-                android:layout_width="wrap_content"
+                <ImageView
+                    android:id="@+id/ivServiceIcon"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/ic_wifi"
+                    app:tint="@android:color/white"
+                    android:scaleType="centerInside"
+                    tools:src="@drawable/ic_wifi" />
+
+            </LinearLayout>
+
+            <!-- 🔄 MODIFICADO: Contenido de Información ahora va hasta el final -->
+            <LinearLayout
+                android:id="@+id/serviceInfoContainer"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:text="Internet de alta velocidad"
-                android:textSize="14sp"
-                android:textColor="@color/text_secondary"
-                android:fontFamily="@font/inter_regular" />
+                android:orientation="vertical"
+                android:layout_marginStart="16dp"
+                app:layout_constraintStart_toEndOf="@id/serviceIconContainer"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent">
+
+                <TextView
+                    android:id="@+id/tvServiceName"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="WiFi Gratuito"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:textColor="#1A1A1A"
+                    android:fontFamily="@font/poppins_semibold"
+                    android:maxLines="1"
+                    android:ellipsize="end"
+                    tools:text="WiFi Gratuito" />
+
+                <TextView
+                    android:id="@+id/tvServiceDescription"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:text="Internet de alta velocidad"
+                    android:textSize="13sp"
+                    android:textColor="#757575"
+                    android:fontFamily="@font/inter_regular"
+                    android:maxLines="2"
+                    android:ellipsize="end"
+                    tools:text="Internet de alta velocidad en todas las áreas" />
+
+                <!-- Badge de Fotos con Click - ESTILO MODERNO -->
+                <LinearLayout
+                    android:id="@+id/photoBadgeContainer"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginTop="8dp"
+                    android:visibility="gone"
+                    android:background="@drawable/bg_chip_modern_photos"
+                    android:paddingHorizontal="12dp"
+                    android:paddingVertical="7dp"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:foreground="@drawable/ripple_effect_green"
+                    android:elevation="0dp"
+                    tools:visibility="visible">
+
+                    <LinearLayout
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:background="@drawable/bg_circle_white_semi"
+                        android:gravity="center"
+                        android:layout_marginEnd="6dp">
+
+                        <ImageView
+                            android:layout_width="12dp"
+                            android:layout_height="12dp"
+                            android:src="@drawable/ic_photo"
+                            app:tint="@color/green" />
+
+                    </LinearLayout>
+
+                    <TextView
+                        android:id="@+id/tvPhotoCount"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="3 fotos"
+                        android:textSize="13sp"
+                        android:textColor="#1A1A1A"
+                        android:fontFamily="@font/poppins_semibold"
+                        android:textStyle="bold"
+                        tools:text="3 fotos" />
+
+                    <ImageView
+                        android:id="@+id/ivExpandIcon"
+                        android:layout_width="16dp"
+                        android:layout_height="16dp"
+                        android:src="@drawable/ic_expand_more"
+                        app:tint="#1A1A1A"
+                        android:layout_marginStart="6dp" />
+
+                </LinearLayout>
+
+            </LinearLayout>
+
+            <!-- ❌ ELIMINADO: actionButtonsContainer con removeButton (la "X") -->
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <!-- ✅ MANTENIDO: Sección de Fotos Expandible - EXACTA como original -->
+        <LinearLayout
+            android:id="@+id/photosExpandableSection"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:visibility="gone"
+            android:background="#F8F9FA"
+            android:paddingHorizontal="20dp"
+            android:paddingVertical="16dp"
+            tools:visibility="gone">
+
+            <!-- Divisor superior -->
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="#E0E0E0"
+                android:layout_marginBottom="12dp" />
+
+            <!-- Header de la galería -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="12dp">
+
+                <ImageView
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:src="@drawable/ic_photo"
+                    app:tint="@color/green"
+                    android:layout_marginEnd="8dp" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Galería del Servicio"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    android:textColor="#1A1A1A"
+                    android:fontFamily="@font/poppins_medium" />
+
+                <TextView
+                    android:id="@+id/tvPhotosCounter"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="3 de 3"
+                    android:textSize="12sp"
+                    android:textColor="#757575"
+                    android:fontFamily="@font/inter_regular"
+                    tools:text="3 de 3" />
+
+            </LinearLayout>
+
+            <!-- RecyclerView para las fotos en horizontal -->
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvServicePhotos"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:clipToPadding="false"
+                android:paddingHorizontal="4dp"
+                tools:listitem="@layout/admin_hotel_item_basic_service_photo" />
+
+            <!-- Tip informativo -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="💡 Toca cualquier foto para verla en pantalla completa"
+                android:textSize="11sp"
+                android:textColor="#9E9E9E"
+                android:fontFamily="@font/inter_regular"
+                android:textStyle="italic"
+                android:gravity="center"
+                android:layout_marginTop="8dp"
+                android:padding="8dp"
+                android:background="@drawable/bg_tip_light" />
 
         </LinearLayout>
 
-        <ImageView
-            android:id="@+id/ivRemove"
-            android:layout_width="24dp"
-            android:layout_height="24dp"
-            android:src="@drawable/ic_close"
-            app:tint="@color/red"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:padding="4dp"
-            android:clickable="true"
-            android:focusable="true" />
-
     </LinearLayout>
 
-</androidx.cardview.widget.CardView>
+</com.google.android.material.card.MaterialCardView>

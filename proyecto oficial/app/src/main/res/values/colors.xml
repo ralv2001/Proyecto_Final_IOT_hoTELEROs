@@ -11,6 +11,7 @@
     <color name="colorTextSecondary">#545454</color>
     <color name="colorTextTertiary">#989898</color>
     <color name="orange_button">#F35D38</color>
+    <color name="background">#FFFFFF</color>
 
     <!-- Color principal -->
     <color name="primary_FF6B35">#FF6B35</color>
@@ -152,6 +153,7 @@
 
 
 
+    <color name="blue">#3F51B5</color>
 
     <!-- Card Gradient Colors -->
     <color name="card_gradient_start">#1565C0</color>

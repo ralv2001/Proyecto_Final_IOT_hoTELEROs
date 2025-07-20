@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="0dp"
+    android:background="@android:color/white">
+
+    <!-- Header del diálogo -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:padding="24dp"
+        android:background="@color/orange">
+
+        <!-- Ícono de éxito -->
+        <LinearLayout
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="@android:color/white"
+            android:gravity="center"
+            android:layout_marginEnd="16dp">
+
+            <ImageView
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@drawable/ic_taxi"
+                app:tint="@color/orange"
+                android:scaleType="centerInside" />
+
+        </LinearLayout>
+
+        <!-- Información del diálogo -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="🎉 ¡Configuración guardada!"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:textColor="@android:color/white"
+                android:fontFamily="@font/poppins_bold"
+                android:maxLines="1"
+                android:ellipsize="end" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Taxi configurado exitosamente"
+                android:textSize="14sp"
+                android:textColor="@android:color/white"
+                android:fontFamily="@font/inter_regular"
+                android:layout_marginTop="4dp"
+                android:maxLines="2"
+                android:ellipsize="end" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <!-- Contenido del diálogo -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="24dp">
+
+        <!-- Información de la configuración -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="#F5F5F5"
+            android:padding="16dp"
+            android:layout_marginBottom="20dp">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="✅ Configuración aplicada"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:textColor="@color/text_primary"
+                android:fontFamily="@font/inter_semibold"
+                android:layout_marginBottom="8dp" />
+
+            <TextView
+                android:id="@+id/tvConfigDetails"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="• Monto mínimo para taxi gratuito: S/. 50.00\n• Los huéspedes recibirán taxi gratis al superar este monto\n• La configuración se aplicará a todas las futuras reservas"
+                android:textSize="13sp"
+                android:textColor="@color/text_secondary"
+                android:fontFamily="@font/inter_regular"
+                android:lineSpacingExtra="2dp" />
+
+        </LinearLayout>
+
+        <!-- Información adicional -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:background="#E3F2FD"
+            android:padding="12dp"
+            android:layout_marginBottom="24dp">
+
+            <ImageView
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:src="@drawable/ic_info"
+                app:tint="@color/orange"
+                android:layout_marginEnd="8dp" />
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Esta configuración se ha guardado en Firebase y estará disponible para todas las reservas."
+                android:textSize="12sp"
+                android:textColor="@color/text_secondary"
+                android:fontFamily="@font/inter_regular" />
+
+        </LinearLayout>
+
+        <!-- Botón de cerrar -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnClose"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:text="✅ Entendido"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:textColor="@android:color/white"
+            android:backgroundTint="@color/orange"
+            app:cornerRadius="12dp"
+            android:fontFamily="@font/inter_semibold"
+            style="@style/Widget.MaterialComponents.Button" />
+
+    </LinearLayout>
+
+</LinearLayout>
