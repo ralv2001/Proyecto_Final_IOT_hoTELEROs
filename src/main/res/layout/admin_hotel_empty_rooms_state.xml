@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Layout independiente para estado vacío de habitaciones -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:gravity="center"
+    android:padding="32dp">
+
+    <!-- Animación de icono -->
+    <FrameLayout
+        android:layout_width="140dp"
+        android:layout_height="140dp"
+        android:layout_marginBottom="32dp">
+
+        <!-- Círculo de fondo -->
+        <View
+            android:layout_width="140dp"
+            android:layout_height="140dp"
+            android:background="@drawable/bg_circle_orange_light"
+            android:alpha="0.2" />
+
+        <!-- Icono principal -->
+        <ImageView
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:layout_gravity="center"
+            android:src="@drawable/ic_hotel"
+            app:tint="@color/orange"
+            android:alpha="0.8" />
+
+        <!-- Icono pequeño de "add" -->
+        <ImageView
+            android:layout_width="28dp"
+            android:layout_height="28dp"
+            android:layout_gravity="bottom|end"
+            android:layout_marginBottom="16dp"
+            android:layout_marginEnd="16dp"
+            android:src="@drawable/ic_add"
+            android:background="@drawable/bg_circle_orange"
+            android:padding="6dp"
+            app:tint="@android:color/white" />
+
+    </FrameLayout>
+
+    <!-- Título principal -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="¡Configura tus habitaciones!"
+        android:textSize="26sp"
+        android:textStyle="bold"
+        android:textColor="@color/text_primary"
+        android:fontFamily="@font/poppins_semibold"
+        android:gravity="center"
+        android:layout_marginBottom="12dp" />
+
+    <!-- Subtítulo -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Define los tipos de habitaciones disponibles"
+        android:textSize="18sp"
+        android:textColor="@color/text_secondary"
+        android:fontFamily="@font/inter_regular"
+        android:gravity="center"
+        android:layout_marginBottom="24dp" />
+
+    <!-- Descripción -->
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Cada habitación incluirá automáticamente servicios básicos como WiFi, aire acondicionado y TV. Además, podrás agregar servicios adicionales específicos para cada tipo."
+        android:textSize="15sp"
+        android:textColor="@color/text_secondary"
+        android:fontFamily="@font/inter_regular"
+        android:gravity="center"
+        android:lineSpacingExtra="6dp"
+        android:layout_marginBottom="32dp"
+        android:alpha="0.9" />
+
+    <!-- Card de información -->
+    <com.google.android.material.card.MaterialCardView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:cardCornerRadius="16dp"
+        app:cardElevation="4dp"
+        app:cardBackgroundColor="@color/green"
+        android:layout_marginBottom="32dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:padding="20dp"
+            android:gravity="center_vertical">
+
+            <ImageView
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:src="@drawable/ic_info"
+                app:tint="@android:color/white"
+                android:layout_marginEnd="16dp" />
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Servicios incluidos automáticamente:"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    android:textColor="@android:color/white"
+                    android:fontFamily="@font/poppins_semibold"
+                    android:layout_marginBottom="4dp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="• WiFi Gratuito  • Aire Acondicionado\n• TV por Cable  • Recepción 24h"
+                    android:textSize="13sp"
+                    android:textColor="@android:color/white"
+                    android:fontFamily="@font/inter_regular"
+                    android:alpha="0.9" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+    </com.google.android.material.card.MaterialCardView>
+
+    <!-- Botón CTA principal -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnCreateFirstRoom"
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:text="🏨 Crear Primera Habitación"
+        android:textSize="17sp"
+        android:textStyle="bold"
+        android:textColor="@android:color/white"
+        android:fontFamily="@font/poppins_semibold"
+        app:backgroundTint="@color/orange"
+        app:cornerRadius="16dp"
+        app:icon="@drawable/ic_add"
+        app:iconGravity="textStart"
+        app:iconPadding="12dp"
+        app:iconSize="24dp"
+        app:iconTint="@android:color/white"
+        android:elevation="8dp"
+        app:rippleColor="@color/orange" />
+
+    <!-- Texto de ayuda -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="También puedes usar el botón + en cualquier momento"
+        android:textSize="13sp"
+        android:textColor="@color/text_secondary"
+        android:fontFamily="@font/inter_regular"
+        android:gravity="center"
+        android:layout_marginTop="16dp"
+        android:alpha="0.7" />
+
+</LinearLayout>
