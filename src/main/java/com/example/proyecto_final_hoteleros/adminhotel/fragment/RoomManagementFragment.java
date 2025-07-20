@@ -405,7 +405,7 @@ public class RoomManagementFragment extends Fragment implements FirebaseRoomMana
                                         Toast.makeText(getContext(), "❌ Error eliminando habitación: " + error, Toast.LENGTH_LONG).show();
                                     });
                                 }
-                                Log.e(TAG, "❌ Error eliminando habitación: " + error);
+                                Log.e(TAG, "❌ Erroreres eliminando habitación: " + error);
                             }
                         });
                     } else {
