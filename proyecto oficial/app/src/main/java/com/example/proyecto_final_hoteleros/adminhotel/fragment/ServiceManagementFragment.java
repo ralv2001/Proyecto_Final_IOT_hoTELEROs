@@ -1,12 +1,16 @@
 package com.example.proyecto_final_hoteleros.adminhotel.fragment;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.Toast;
+
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
@@ -14,51 +18,67 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+
+import com.android.volley.BuildConfig;
 import com.example.proyecto_final_hoteleros.R;
 import com.example.proyecto_final_hoteleros.adminhotel.adapters.ServiceManagementAdapter;
 import com.example.proyecto_final_hoteleros.adminhotel.dialog.AddServiceDialog;
 import com.example.proyecto_final_hoteleros.adminhotel.dialog.EditServiceDialog;
-import com.example.proyecto_final_hoteleros.adminhotel.model.BasicService;
-import com.example.proyecto_final_hoteleros.adminhotel.model.HotelServiceItem;
+import com.example.proyecto_final_hoteleros.adminhotel.dialog.ServicePhotoViewerDialog;
+import com.example.proyecto_final_hoteleros.adminhotel.dialog.TaxiConfigSuccessDialog;
+import com.example.proyecto_final_hoteleros.adminhotel.model.HotelServiceModel;
+import com.example.proyecto_final_hoteleros.adminhotel.utils.FirebaseServiceManager;
+import com.example.proyecto_final_hoteleros.adminhotel.utils.ScrollableLinearLayoutManager;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
-import com.google.android.material.textfield.TextInputEditText;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.FirebaseFirestore;
+import android.widget.EditText;
+
 import java.util.ArrayList;
 import java.util.List;
-import android.widget.ImageView;
 
-public class ServiceManagementFragment extends Fragment {
+public class ServiceManagementFragment extends Fragment implements FirebaseServiceManager.OnServicesChangedListener {
 
-    // Views
+    private static final String TAG = "ServiceManagementFragment";
+
+    // Views principales
     private ImageView ivBack;
     private FloatingActionButton fabAddService;
-    private MaterialButton btnSaveSpecialOffer;
-    private TextInputEditText etSpecialTaxiAmount;
 
-    // RecyclerViews para cada tipo de servicio
-    private RecyclerView rvBasicServices, rvIncludedServices, rvPaidServices, rvConditionalServices;
-    private View layoutBasicServicesEmpty;
+    // Campos para taxi
+    private EditText etTaxiMinAmount;
+    private MaterialButton btnSaveTaxiConfig;
 
-    // Adapters
-    private ServiceManagementAdapter basicServicesAdapter;
-    private ServiceManagementAdapter includedServicesAdapter;
-    private ServiceManagementAdapter paidServicesAdapter;
-    private ServiceManagementAdapter conditionalServicesAdapter;
+    // RecyclerViews para los 3 tipos de servicio
+    private RecyclerView rvBasicServices, rvIncludedServices, rvPaidServices;
+    private View layoutBasicServicesEmpty, layoutIncludedServicesEmpty, layoutPaidServicesEmpty;
 
-    // Listas de servicios
-    private List<HotelServiceItem> basicServices;
-    private List<HotelServiceItem> includedServices;
-    private List<HotelServiceItem> paidServices;
-    private List<HotelServiceItem> conditionalServices;
+    // Adapters para los 3 tipos
+    private ServiceManagementAdapter basicServicesAdapter, includedServicesAdapter, paidServicesAdapter;
 
-    // Dialog y Launcher
-    private AddServiceDialog currentAddServiceDialog;
+    // ✅ SIMPLIFICADO: Listas de HotelServiceModel directamente
+    private List<HotelServiceModel> basicServices;
+    private List<HotelServiceModel> includedServices;
+    private List<HotelServiceModel> paidServices;
+
+    // Managers
+    private FirebaseServiceManager firebaseServiceManager;
+
+    // Activity Result Launchers
     private ActivityResultLauncher<Intent> photoPickerLauncher;
+
+    // Referencia al diálogo activo para manejar fotos
+    private AddServiceDialog currentAddServiceDialog;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        initializePhotoLauncher();
+
+        firebaseServiceManager = FirebaseServiceManager.getInstance(getContext());
+
+        setupActivityResultLaunchers();
     }
 
     @Nullable
@@ -70,15 +90,57 @@ public class ServiceManagementFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        initViews(view);
+
+        initializeViews(view);
         initializeLists();
         setupRecyclerViews();
-        setupClickListeners();
-        loadServices();
-        updateEmptyStates();
+        setupListeners();
+
+        // ✅ CRÍTICO: Registrar listener DESPUÉS de configurar todo
+        if (firebaseServiceManager != null) {
+            firebaseServiceManager.addListener(this);
+        }
+
+        // ✅ FORZAR carga inicial
+        loadAllServicesFromFirebase();
+
+        // ✅ NUEVO: Debugging automático después de 3 segundos
+        view.postDelayed(() -> {
+            Log.d(TAG, "🕒 === DEBUGGING AUTOMÁTICO DESPUÉS DE 3 SEGUNDOS ===");
+            debugBasicServicesSpecifically();
+
+            // Si no hay servicios básicos visibles, forzar refresh
+            if (rvBasicServices != null && rvBasicServices.getChildCount() == 0 && !basicServices.isEmpty()) {
+                Log.w(TAG, "⚠️ Servicios básicos en lista pero no visibles - FORZANDO REFRESH");
+                forceBasicServicesRefresh();
+            }
+        }, 3000);
     }
 
-    private void initializePhotoLauncher() {
+    @Override
+    public void onResume() {
+        super.onResume();
+        Log.d(TAG, "🔄 onResume - Fragment activo");
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        Log.d(TAG, "⏸️ onPause - Fragment pausado");
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        Log.d(TAG, "🗑️ onDestroyView - Limpiando listeners");
+
+        // Limpiar listener al destruir la vista
+        if (firebaseServiceManager != null) {
+            firebaseServiceManager.removeListener(this);
+        }
+    }
+
+    private void setupActivityResultLaunchers() {
         photoPickerLauncher = registerForActivityResult(
                 new ActivityResultContracts.StartActivityForResult(),
                 result -> {
@@ -91,333 +153,690 @@ public class ServiceManagementFragment extends Fragment {
         );
     }
 
-    private void initViews(View view) {
+    private void initializeViews(View view) {
+        // Views principales
         ivBack = view.findViewById(R.id.ivBack);
         fabAddService = view.findViewById(R.id.fabAddService);
-        btnSaveSpecialOffer = view.findViewById(R.id.btnSaveSpecialOffer);
-        etSpecialTaxiAmount = view.findViewById(R.id.etSpecialTaxiAmount);
+
+        // Campos de taxi
+        etTaxiMinAmount = view.findViewById(R.id.etTaxiMinAmount);
+        btnSaveTaxiConfig = view.findViewById(R.id.btnSaveTaxiConfig);
 
         // RecyclerViews
         rvBasicServices = view.findViewById(R.id.rvBasicServices);
         rvIncludedServices = view.findViewById(R.id.rvIncludedServices);
         rvPaidServices = view.findViewById(R.id.rvPaidServices);
-        rvConditionalServices = view.findViewById(R.id.rvConditionalServices);
 
-        // Empty state
+        // Estados vacíos
         layoutBasicServicesEmpty = view.findViewById(R.id.layoutBasicServicesEmpty);
+        layoutIncludedServicesEmpty = view.findViewById(R.id.layoutIncludedServicesEmpty);
+        layoutPaidServicesEmpty = view.findViewById(R.id.layoutPaidServicesEmpty);
     }
 
     private void initializeLists() {
+        // ✅ SIMPLIFICADO: Solo HotelServiceModel
         basicServices = new ArrayList<>();
         includedServices = new ArrayList<>();
         paidServices = new ArrayList<>();
-        conditionalServices = new ArrayList<>();
     }
 
     private void setupRecyclerViews() {
-        // Listener para editar servicios
-        ServiceManagementAdapter.OnServiceActionListener editListener = new ServiceManagementAdapter.OnServiceActionListener() {
+        // CREAR LISTENER DE ACCIONES
+        ServiceManagementAdapter.OnServiceActionListener actionListener = new ServiceManagementAdapter.OnServiceActionListener() {
             @Override
-            public void onEditService(HotelServiceItem service, int position) {
-                editService(service, position);
+            public void onEditService(HotelServiceModel service, int position) {
+                showEditServiceDialog(service, position);
             }
 
             @Override
-            public void onDeleteService(HotelServiceItem service, int position) {
-                deleteService(service, position);
+            public void onDeleteService(HotelServiceModel service, int position) {
+                showDeleteServiceDialog(service, position);
             }
 
             @Override
-            public void onToggleService(HotelServiceItem service, int position, boolean isActive) {
-                service.setActive(isActive);
-                updateServiceInCorrespondingList(service, position);
-                Toast.makeText(getContext(),
-                        service.getName() + (isActive ? " activado" : " desactivado"),
-                        Toast.LENGTH_SHORT).show();
+            public void onToggleService(HotelServiceModel service, int position, boolean isActive) {
+                toggleServiceState(service, position, isActive);
             }
         };
 
-        // Setup Servicios Básicos
-        basicServicesAdapter = new ServiceManagementAdapter(basicServices, editListener);
-        rvBasicServices.setLayoutManager(new LinearLayoutManager(getContext()));
+        // CREAR LISTENER DE FOTOS
+        ServiceManagementAdapter.OnServicePhotoClickListener photoListener = this::showServicePhotos;
+
+        // ✅ SOLUCIONADO: Usar ScrollableLinearLayoutManager para mostrar TODOS los elementos
+        basicServicesAdapter = new ServiceManagementAdapter(
+                getContext(),
+                basicServices,
+                actionListener,
+                photoListener
+        );
+        ScrollableLinearLayoutManager basicLayoutManager = new ScrollableLinearLayoutManager(getContext());
+        rvBasicServices.setLayoutManager(basicLayoutManager);
         rvBasicServices.setAdapter(basicServicesAdapter);
+        rvBasicServices.setHasFixedSize(false);
         rvBasicServices.setNestedScrollingEnabled(false);
 
-        // Setup Servicios Incluidos
-        includedServicesAdapter = new ServiceManagementAdapter(includedServices, editListener);
-        rvIncludedServices.setLayoutManager(new LinearLayoutManager(getContext()));
+        // ✅ SOLUCIONADO: Usar ScrollableLinearLayoutManager para servicios incluidos
+        includedServicesAdapter = new ServiceManagementAdapter(
+                getContext(),
+                includedServices,
+                actionListener,
+                photoListener
+        );
+        ScrollableLinearLayoutManager includedLayoutManager = new ScrollableLinearLayoutManager(getContext());
+        rvIncludedServices.setLayoutManager(includedLayoutManager);
         rvIncludedServices.setAdapter(includedServicesAdapter);
+        rvIncludedServices.setHasFixedSize(false);
         rvIncludedServices.setNestedScrollingEnabled(false);
 
-        // Setup Servicios Pagados
-        paidServicesAdapter = new ServiceManagementAdapter(paidServices, editListener);
-        rvPaidServices.setLayoutManager(new LinearLayoutManager(getContext()));
+        // ✅ SOLUCIONADO: Usar ScrollableLinearLayoutManager para servicios pagados
+        paidServicesAdapter = new ServiceManagementAdapter(
+                getContext(),
+                paidServices,
+                actionListener,
+                photoListener
+        );
+        ScrollableLinearLayoutManager paidLayoutManager = new ScrollableLinearLayoutManager(getContext());
+        rvPaidServices.setLayoutManager(paidLayoutManager);
         rvPaidServices.setAdapter(paidServicesAdapter);
+        rvPaidServices.setHasFixedSize(false);
         rvPaidServices.setNestedScrollingEnabled(false);
 
-        // Setup Servicios Condicionales
-        conditionalServicesAdapter = new ServiceManagementAdapter(conditionalServices, editListener);
-        rvConditionalServices.setLayoutManager(new LinearLayoutManager(getContext()));
-        rvConditionalServices.setAdapter(conditionalServicesAdapter);
-        rvConditionalServices.setNestedScrollingEnabled(false);
+        Log.d(TAG, "✅ Todos los RecyclerViews configurados con ScrollableLinearLayoutManager");
     }
 
-    private void setupClickListeners() {
-        ivBack.setOnClickListener(v -> getParentFragmentManager().popBackStack());
+    private void setupListeners() {
+        // Botón de volver
+        if (ivBack != null) {
+            ivBack.setOnClickListener(v -> {
+                if (getActivity() != null) {
+                    getActivity().onBackPressed();
+                }
+            });
+        }
 
-        fabAddService.setOnClickListener(v -> showAddServiceDialog());
+        // FAB para agregar servicio
+        if (fabAddService != null) {
+            fabAddService.setOnClickListener(v -> showAddServiceDialog());
+        }
 
-        btnSaveSpecialOffer.setOnClickListener(v -> saveSpecialTaxiOffer());
+        // Botón para guardar configuración de taxi
+        if (btnSaveTaxiConfig != null) {
+            btnSaveTaxiConfig.setOnClickListener(v -> saveTaxiConfiguration());
+        }
+
+        // Cargar configuración de taxi al inicializar
+        loadTaxiConfigurationFromFirebase();
     }
 
-    private void loadServices() {
-        loadBasicServicesFromProfile();
-        loadIncludedServices();
-        loadPaidServices();
-        loadConditionalServices();
+    // ========== MÉTODOS DE CARGA DE DATOS ==========
 
-        // Configurar monto del taxi especial
-        etSpecialTaxiAmount.setText("500.00");
-    }
+    private void loadAllServicesFromFirebase() {
+        Log.d(TAG, "🔄 Cargando todos los servicios desde Firebase...");
 
-    private void loadBasicServicesFromProfile() {
-        // Simular carga de servicios básicos desde el perfil del hotel
-        // En la implementación real, estos vendrían de SharedPreferences o Firebase
-        basicServices.clear();
+        if (firebaseServiceManager != null) {
+            firebaseServiceManager.getAllServices(new FirebaseServiceManager.ServicesListCallback() {
+                @Override
+                public void onSuccess(List<HotelServiceModel> services) {
+                    Log.d(TAG, "✅ Servicios cargados desde Firebase: " + services.size());
 
-        // Servicios básicos por defecto (que normalmente vendrían del perfil)
-        basicServices.add(new HotelServiceItem("WiFi Gratuito", "Internet de alta velocidad en todas las habitaciones", 0.0, "wifi", HotelServiceItem.ServiceType.BASIC, new ArrayList<>()));
-        basicServices.add(new HotelServiceItem("Aire Acondicionado", "Climatización individual en cada habitación", 0.0, "ac", HotelServiceItem.ServiceType.BASIC, new ArrayList<>()));
-        basicServices.add(new HotelServiceItem("TV por Cable", "Televisión por cable con canales premium", 0.0, "tv", HotelServiceItem.ServiceType.BASIC, new ArrayList<>()));
-        basicServices.add(new HotelServiceItem("Recepción 24h", "Atención al cliente las 24 horas del día", 0.0, "reception", HotelServiceItem.ServiceType.BASIC, new ArrayList<>()));
+                    if (getActivity() != null) {
+                        getActivity().runOnUiThread(() -> {
+                            classifyAndDisplayServices(services);
+                        });
+                    }
+                }
 
-        basicServicesAdapter.notifyDataSetChanged();
-    }
-
-    private void loadIncludedServices() {
-        includedServices.clear();
-
-        // Servicios incluidos (sin costo pero no básicos)
-        includedServices.add(new HotelServiceItem("Desayuno Continental", "Desayuno buffet incluido en la estadía", 0.0, "breakfast", HotelServiceItem.ServiceType.INCLUDED, new ArrayList<>()));
-        includedServices.add(new HotelServiceItem("Estacionamiento", "Parqueadero gratuito para huéspedes", 0.0, "parking", HotelServiceItem.ServiceType.INCLUDED, new ArrayList<>()));
-        includedServices.add(new HotelServiceItem("Acceso a Piscina", "Uso libre de la piscina del hotel", 0.0, "pool", HotelServiceItem.ServiceType.INCLUDED, new ArrayList<>()));
-
-        includedServicesAdapter.notifyDataSetChanged();
-    }
-
-    private void loadPaidServices() {
-        paidServices.clear();
-
-        // Servicios pagados
-        paidServices.add(new HotelServiceItem("Spa & Wellness", "Relajación y tratamientos de spa", 120.0, "spa", HotelServiceItem.ServiceType.PAID, new ArrayList<>()));
-        paidServices.add(new HotelServiceItem("Room Service 24h", "Servicio a la habitación las 24 horas", 25.0, "room_service", HotelServiceItem.ServiceType.PAID, new ArrayList<>()));
-        paidServices.add(new HotelServiceItem("Minibar Premium", "Bebidas y snacks de primera calidad", 80.0, "minibar", HotelServiceItem.ServiceType.PAID, new ArrayList<>()));
-        paidServices.add(new HotelServiceItem("Lavandería Express", "Lavado y planchado en 24 horas", 35.0, "laundry", HotelServiceItem.ServiceType.PAID, new ArrayList<>()));
-        paidServices.add(new HotelServiceItem("Gimnasio VIP", "Acceso exclusivo con entrenador personal", 50.0, "gym", HotelServiceItem.ServiceType.PAID, new ArrayList<>()));
-
-        paidServicesAdapter.notifyDataSetChanged();
-    }
-
-    private void loadConditionalServices() {
-        conditionalServices.clear();
-
-        // Servicios condicionales
-        conditionalServices.add(new HotelServiceItem("Taxi Aeropuerto VIP", "Transporte gratuito al aeropuerto", 0.0, "taxi", HotelServiceItem.ServiceType.CONDITIONAL, new ArrayList<>(), 500.0));
-
-        conditionalServicesAdapter.notifyDataSetChanged();
-    }
-
-    private void showAddServiceDialog() {
-        currentAddServiceDialog = new AddServiceDialog(getContext(), photoPickerLauncher, new AddServiceDialog.OnServiceAddedListener() {
-            @Override
-            public void onServiceAdded(HotelServiceItem service) {
-                addServiceToCorrespondingList(service);
-                updateEmptyStates();
-                Toast.makeText(getContext(), "✅ Servicio agregado exitosamente", Toast.LENGTH_SHORT).show();
-                currentAddServiceDialog = null;
-            }
-        });
-        currentAddServiceDialog.show();
-    }
-
-    private void addServiceToCorrespondingList(HotelServiceItem service) {
-        switch (service.getType()) {
-            case BASIC:
-                basicServices.add(service);
-                basicServicesAdapter.notifyItemInserted(basicServices.size() - 1);
-                break;
-            case INCLUDED:
-                includedServices.add(service);
-                includedServicesAdapter.notifyItemInserted(includedServices.size() - 1);
-                break;
-            case PAID:
-                paidServices.add(service);
-                paidServicesAdapter.notifyItemInserted(paidServices.size() - 1);
-                break;
-            case CONDITIONAL:
-                conditionalServices.add(service);
-                conditionalServicesAdapter.notifyItemInserted(conditionalServices.size() - 1);
-                break;
+                @Override
+                public void onError(String error) {
+                    Log.e(TAG, "❌ Error cargando servicios: " + error);
+                    if (getActivity() != null) {
+                        getActivity().runOnUiThread(() -> {
+                            Toast.makeText(getContext(), "Error cargando servicios: " + error, Toast.LENGTH_SHORT).show();
+                        });
+                    }
+                }
+            });
         }
     }
 
-    private void editService(HotelServiceItem service, int position) {
-        EditServiceDialog dialog = new EditServiceDialog(getContext(), service, updatedService -> {
-            updateServiceInCorrespondingList(updatedService, position);
-            Toast.makeText(getContext(), "✅ Servicio actualizado", Toast.LENGTH_SHORT).show();
-        });
+    // ✅ SIMPLIFICADO: Clasificar servicios sin conversiones
+    private void classifyAndDisplayServices(List<HotelServiceModel> allServices) {
+        Log.d(TAG, "📊 === CLASIFICANDO " + allServices.size() + " SERVICIOS ===");
+
+        // Limpiar listas
+        basicServices.clear();
+        includedServices.clear();
+        paidServices.clear();
+
+        // Contadores para debugging
+        int basicCount = 0, includedCount = 0, paidCount = 0, errorCount = 0;
+
+        for (HotelServiceModel service : allServices) {
+            try {
+                String serviceType = service.getServiceType();
+                Log.d(TAG, "🔄 Clasificando: " + service.getName() + " (Tipo: " + serviceType + ")");
+
+                if (serviceType == null || serviceType.trim().isEmpty()) {
+                    Log.w(TAG, "⚠️ Servicio sin tipo: " + service.getName() + ", asignando como INCLUIDO");
+                    serviceType = "included";
+                }
+
+                // ✅ CORRECCIÓN: Usar lógica simple igual a HotelProfileFragment
+                if ("basic".equals(serviceType)) {
+                    basicServices.add(service);
+                    basicCount++;
+                    Log.d(TAG, "➕ BÁSICO agregado: " + service.getName() + " (Total básicos: " + basicCount + ")");
+                } else if ("included".equals(serviceType)) {
+                    includedServices.add(service);
+                    includedCount++;
+                    Log.d(TAG, "➕ INCLUIDO agregado: " + service.getName() + " (Total incluidos: " + includedCount + ")");
+                } else if ("paid".equals(serviceType)) {
+                    paidServices.add(service);
+                    paidCount++;
+                    Log.d(TAG, "➕ PAGADO agregado: " + service.getName() + " (Total pagados: " + paidCount + ")");
+                } else {
+                    // Fallback a incluidos
+                    includedServices.add(service);
+                    includedCount++;
+                    Log.w(TAG, "⚠️ Tipo desconocido para " + service.getName() + ", agregado como INCLUIDO");
+                }
+
+            } catch (Exception e) {
+                errorCount++;
+                Log.e(TAG, "❌ Error procesando servicio " + service.getName() + ": " + e.getMessage());
+            }
+        }
+
+        Log.d(TAG, "📊 === CLASIFICACIÓN COMPLETADA ===");
+        Log.d(TAG, "✅ Servicios Básicos: " + basicCount + " (" + basicServices.size() + " en lista)");
+        Log.d(TAG, "✅ Servicios Incluidos: " + includedCount + " (" + includedServices.size() + " en lista)");
+        Log.d(TAG, "✅ Servicios Pagados: " + paidCount + " (" + paidServices.size() + " en lista)");
+        Log.d(TAG, "❌ Errores: " + errorCount);
+
+        // ✅ ACTUALIZAR UI EN EL HILO PRINCIPAL
+        if (getActivity() != null) {
+            getActivity().runOnUiThread(() -> {
+                Log.d(TAG, "🔄 Actualizando UI con servicios clasificados...");
+                updateAdapters();
+                updateEmptyStatesVisibility();
+
+                // ✅ DEBUGGING INMEDIATO después de actualización
+                debugRecyclerViewsState();
+            });
+        } else {
+            Log.e(TAG, "❌ Activity es null, no se puede actualizar UI");
+        }
+    }
+
+    // ✅ SIMPLIFICADO: Actualizar adapters sin conversiones
+    private void updateAdapters() {
+        Log.d(TAG, "🔄 Iniciando actualización de adapters...");
+
+        if (basicServicesAdapter != null) {
+            Log.d(TAG, "🔄 Actualizando adapter básicos con " + basicServices.size() + " servicios");
+            basicServicesAdapter.updateServices(basicServices);
+
+            if (rvBasicServices != null) {
+                rvBasicServices.post(() -> {
+                    basicServicesAdapter.notifyDataSetChanged();
+                    rvBasicServices.requestLayout();
+                    Log.d(TAG, "📏 RV Básicos - Items visibles: " + rvBasicServices.getChildCount() + "/" + basicServicesAdapter.getItemCount());
+                });
+            }
+        }
+
+        if (includedServicesAdapter != null) {
+            Log.d(TAG, "🔄 Actualizando adapter incluidos con " + includedServices.size() + " servicios");
+            includedServicesAdapter.updateServices(includedServices);
+
+            if (rvIncludedServices != null) {
+                rvIncludedServices.post(() -> {
+                    includedServicesAdapter.notifyDataSetChanged();
+                    rvIncludedServices.requestLayout();
+                    Log.d(TAG, "📏 RV Incluidos - Items visibles: " + rvIncludedServices.getChildCount() + "/" + includedServicesAdapter.getItemCount());
+                });
+            }
+        }
+
+        if (paidServicesAdapter != null) {
+            Log.d(TAG, "🔄 Actualizando adapter pagados con " + paidServices.size() + " servicios");
+            paidServicesAdapter.updateServices(paidServices);
+
+            if (rvPaidServices != null) {
+                rvPaidServices.post(() -> {
+                    paidServicesAdapter.notifyDataSetChanged();
+                    rvPaidServices.requestLayout();
+                    Log.d(TAG, "📏 RV Pagados - Items visibles: " + rvPaidServices.getChildCount() + "/" + paidServicesAdapter.getItemCount());
+                });
+            }
+        }
+
+        Log.d(TAG, "✅ Todos los adapters actualizados");
+    }
+
+    // ✅ SIMPLIFICADO: Estados vacíos para 3 tipos
+    private void updateEmptyStatesVisibility() {
+        // Básicos
+        if (rvBasicServices != null && layoutBasicServicesEmpty != null) {
+            rvBasicServices.setVisibility(basicServices.isEmpty() ? View.GONE : View.VISIBLE);
+            layoutBasicServicesEmpty.setVisibility(basicServices.isEmpty() ? View.VISIBLE : View.GONE);
+        }
+
+        // Incluidos
+        if (rvIncludedServices != null && layoutIncludedServicesEmpty != null) {
+            rvIncludedServices.setVisibility(includedServices.isEmpty() ? View.GONE : View.VISIBLE);
+            layoutIncludedServicesEmpty.setVisibility(includedServices.isEmpty() ? View.VISIBLE : View.GONE);
+        }
+
+        // Pagados
+        if (rvPaidServices != null && layoutPaidServicesEmpty != null) {
+            rvPaidServices.setVisibility(paidServices.isEmpty() ? View.GONE : View.VISIBLE);
+            layoutPaidServicesEmpty.setVisibility(paidServices.isEmpty() ? View.VISIBLE : View.GONE);
+        }
+    }
+
+    // ========== MÉTODOS DE ACCIÓN ==========
+
+    private void showAddServiceDialog() {
+        Log.d(TAG, "➕ Mostrando diálogo para agregar servicio");
+
+        AddServiceDialog dialog = new AddServiceDialog(getContext(), new AddServiceDialog.OnServiceAddedListener() {
+            @Override
+            public void onServiceAdded(HotelServiceModel service) {
+                Log.d(TAG, "✅ Servicio agregado exitosamente: " + service.getName());
+                // No necesitamos hacer nada aquí, el listener automático se encarga
+            }
+
+            @Override
+            public void onError(String error) {
+                Log.e(TAG, "❌ Error agregando servicio: " + error);
+                Toast.makeText(getContext(), "Error: " + error, Toast.LENGTH_SHORT).show();
+            }
+        }, photoPickerLauncher);
+
+        currentAddServiceDialog = dialog;
         dialog.show();
     }
 
-    private void deleteService(HotelServiceItem service, int position) {
-        // Verificar si es un servicio básico y hay mínimo requerido
-        if (service.getType() == HotelServiceItem.ServiceType.BASIC && basicServices.size() <= 3) {
-            Toast.makeText(getContext(), "⚠️ Debe mantener al menos 3 servicios básicos", Toast.LENGTH_LONG).show();
-            return;
-        }
+    private void showEditServiceDialog(HotelServiceModel service, int position) {
+        Log.d(TAG, "✏️ Mostrando diálogo para editar servicio: " + service.getName());
 
-        new androidx.appcompat.app.AlertDialog.Builder(getContext())
-                .setTitle("🗑️ Eliminar Servicio")
-                .setMessage("¿Estás seguro de eliminar '" + service.getName() + "'?\n\nEsta acción no se puede deshacer.")
-                .setPositiveButton("Eliminar", (dialog, which) -> {
-                    removeServiceFromCorrespondingList(service, position);
-                    updateEmptyStates();
-                    Toast.makeText(getContext(), "🗑️ Servicio eliminado", Toast.LENGTH_SHORT).show();
+        EditServiceDialog dialog = new EditServiceDialog(getContext(), service, new EditServiceDialog.OnServiceEditedListener() {
+            @Override
+            public void onServiceEdited(HotelServiceModel editedService) {
+                Log.d(TAG, "✅ Servicio editado exitosamente: " + editedService.getName());
+                // No necesitamos hacer nada aquí, el listener automático se encarga
+            }
+
+            @Override
+            public void onError(String error) {
+                Log.e(TAG, "❌ Error editando servicio: " + error);
+                Toast.makeText(getContext(), "Error: " + error, Toast.LENGTH_SHORT).show();
+            }
+        }, photoPickerLauncher);
+
+        dialog.show();
+    }
+
+    private void showDeleteServiceDialog(HotelServiceModel service, int position) {
+        new AlertDialog.Builder(getContext())
+                .setTitle("⚠️ Confirmar eliminación")
+                .setMessage("¿Estás seguro de que quieres eliminar el servicio '" + service.getName() + "'?\n\nEsta acción no se puede deshacer.")
+                .setPositiveButton("🗑️ Eliminar", (dialog, which) -> {
+                    deleteService(service, position);
                 })
-                .setNegativeButton("Cancelar", null)
+                .setNegativeButton("❌ Cancelar", null)
                 .show();
     }
 
-    private void removeServiceFromCorrespondingList(HotelServiceItem service, int position) {
-        switch (service.getType()) {
-            case BASIC:
-                if (position < basicServices.size()) {
-                    basicServices.remove(position);
-                    basicServicesAdapter.notifyItemRemoved(position);
+    private void deleteService(HotelServiceModel service, int position) {
+        Log.d(TAG, "🗑️ Eliminando servicio: " + service.getName());
+
+        if (firebaseServiceManager != null) {
+            firebaseServiceManager.deleteService(service.getId(), new FirebaseServiceManager.ServiceCallback() {
+                @Override
+                public void onSuccess(HotelServiceModel deletedService) {
+                    // ✅ CORRECCIÓN: Manejar null correctamente
+                    String serviceName = (deletedService != null && deletedService.getName() != null)
+                            ? deletedService.getName()
+                            : service.getName(); // Usar el nombre del servicio original
+
+                    Log.d(TAG, "✅ Servicio eliminado exitosamente: " + serviceName);
+                    if (getActivity() != null) {
+                        getActivity().runOnUiThread(() -> {
+                            Toast.makeText(getContext(), "🗑️ Servicio eliminado: " + serviceName, Toast.LENGTH_SHORT).show();
+                        });
+                    }
                 }
-                break;
-            case INCLUDED:
-                if (position < includedServices.size()) {
-                    includedServices.remove(position);
-                    includedServicesAdapter.notifyItemRemoved(position);
+
+                @Override
+                public void onError(String error) {
+                    Log.e(TAG, "❌ Error eliminando servicio: " + error);
+                    if (getActivity() != null) {
+                        getActivity().runOnUiThread(() -> {
+                            Toast.makeText(getContext(), "Error: " + error, Toast.LENGTH_SHORT).show();
+                        });
+                    }
                 }
-                break;
-            case PAID:
-                if (position < paidServices.size()) {
-                    paidServices.remove(position);
-                    paidServicesAdapter.notifyItemRemoved(position);
-                }
-                break;
-            case CONDITIONAL:
-                if (position < conditionalServices.size()) {
-                    conditionalServices.remove(position);
-                    conditionalServicesAdapter.notifyItemRemoved(position);
-                }
-                break;
+            });
         }
     }
 
-    private void updateServiceInCorrespondingList(HotelServiceItem service, int position) {
-        switch (service.getType()) {
-            case BASIC:
-                if (position < basicServices.size()) {
-                    basicServices.set(position, service);
-                    basicServicesAdapter.notifyItemChanged(position);
+    private void toggleServiceState(HotelServiceModel service, int position, boolean isActive) {
+        Log.d(TAG, "🔄 Cambiando estado del servicio: " + service.getName() + " -> " + (isActive ? "Activo" : "Inactivo"));
+
+        service.setActive(isActive);
+
+        if (firebaseServiceManager != null) {
+            firebaseServiceManager.updateService(service, null, new FirebaseServiceManager.ServiceCallback() {
+                @Override
+                public void onSuccess(HotelServiceModel updatedService) {
+                    Log.d(TAG, "✅ Estado del servicio actualizado: " + updatedService.getName());
+                    // No necesitamos hacer nada aquí, el listener automático se encarga
                 }
-                break;
-            case INCLUDED:
-                if (position < includedServices.size()) {
-                    includedServices.set(position, service);
-                    includedServicesAdapter.notifyItemChanged(position);
+
+                @Override
+                public void onError(String error) {
+                    Log.e(TAG, "❌ Error actualizando estado del servicio: " + error);
+                    if (getActivity() != null) {
+                        getActivity().runOnUiThread(() -> {
+                            Toast.makeText(getContext(), "Error: " + error, Toast.LENGTH_SHORT).show();
+                        });
+                    }
                 }
-                break;
-            case PAID:
-                if (position < paidServices.size()) {
-                    paidServices.set(position, service);
-                    paidServicesAdapter.notifyItemChanged(position);
-                }
-                break;
-            case CONDITIONAL:
-                if (position < conditionalServices.size()) {
-                    conditionalServices.set(position, service);
-                    conditionalServicesAdapter.notifyItemChanged(position);
-                }
-                break;
+            });
         }
+
+        String status = isActive ? "activado" : "desactivado";
+        Toast.makeText(getContext(), "🔄 Servicio " + status + ": " + service.getName(), Toast.LENGTH_SHORT).show();
+        Log.d(TAG, "🔄 Estado del servicio cambiado: " + service.getName() + " -> " + status);
     }
 
-    private void updateEmptyStates() {
-        // Mostrar/ocultar mensaje de servicios básicos vacíos
-        if (basicServices.isEmpty()) {
-            layoutBasicServicesEmpty.setVisibility(View.VISIBLE);
-            rvBasicServices.setVisibility(View.GONE);
-        } else {
-            layoutBasicServicesEmpty.setVisibility(View.GONE);
-            rvBasicServices.setVisibility(View.VISIBLE);
-        }
+    private void showServicePhotos(String photoUrl, int position, List<String> allPhotos) {
+        Log.d(TAG, "📷 Mostrando foto " + (position + 1) + " de " + allPhotos.size());
+
+        ServicePhotoViewerDialog dialog = new ServicePhotoViewerDialog(
+                getContext(),
+                allPhotos,
+                position,
+                "Fotos del servicio"
+        );
+        dialog.show();
     }
 
-    private void saveSpecialTaxiOffer() {
-        String amountStr = etSpecialTaxiAmount.getText().toString().trim();
+    // ========== GESTIÓN DE TAXI ==========
 
-        if (amountStr.isEmpty()) {
-            Toast.makeText(getContext(), "⚠️ Ingresa el monto mínimo para el taxi", Toast.LENGTH_SHORT).show();
-            etSpecialTaxiAmount.requestFocus();
+    private void loadTaxiConfigurationFromFirebase() {
+        Log.d(TAG, "🔄 Cargando configuración de taxi desde Firebase...");
+
+        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        if (currentUser == null) {
+            Log.w(TAG, "⚠️ Usuario no autenticado - no se puede cargar configuración de taxi");
             return;
         }
 
+        FirebaseFirestore.getInstance()
+                .collection("taxi_config")
+                .document(currentUser.getUid())
+                .get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    if (documentSnapshot.exists()) {
+                        Double minAmount = documentSnapshot.getDouble("minAmount");
+                        if (minAmount != null && etTaxiMinAmount != null) {
+                            etTaxiMinAmount.setText(String.valueOf(minAmount.intValue()));
+                            Log.d(TAG, "✅ Configuración de taxi cargada: monto mínimo = " + minAmount);
+                        }
+                    } else {
+                        Log.d(TAG, "ℹ️ No existe configuración de taxi previa");
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "❌ Error cargando configuración de taxi: " + e.getMessage());
+                });
+    }
+
+    private void saveTaxiConfiguration() {
+        Log.d(TAG, "💾 Guardando configuración de taxi...");
+
+        if (etTaxiMinAmount == null) {
+            Log.e(TAG, "❌ Campo de monto mínimo no encontrado");
+            return;
+        }
+
+        String amountText = etTaxiMinAmount.getText().toString().trim();
+        if (amountText.isEmpty()) {
+            etTaxiMinAmount.setError("Campo requerido");
+            etTaxiMinAmount.requestFocus();
+            return;
+        }
+
+        double minAmount;
         try {
-            double amount = Double.parseDouble(amountStr);
-            if (amount <= 0) {
-                Toast.makeText(getContext(), "⚠️ El monto debe ser mayor a 0", Toast.LENGTH_SHORT).show();
+            minAmount = Double.parseDouble(amountText);
+            if (minAmount <= 0) {
+                etTaxiMinAmount.setError("El monto debe ser mayor a 0");
+                etTaxiMinAmount.requestFocus();
                 return;
             }
-
-            // Actualizar el servicio de taxi condicional
-            for (HotelServiceItem service : conditionalServices) {
-                if (service.getName().contains("Taxi") && service.getType() == HotelServiceItem.ServiceType.CONDITIONAL) {
-                    service.setConditionalAmount(amount);
-                    break;
-                }
-            }
-
-            conditionalServicesAdapter.notifyDataSetChanged();
-            Toast.makeText(getContext(), "✅ Oferta de taxi actualizada: S/ " + String.format("%.2f", amount), Toast.LENGTH_LONG).show();
-
         } catch (NumberFormatException e) {
-            Toast.makeText(getContext(), "⚠️ Ingresa un monto válido", Toast.LENGTH_SHORT).show();
-            etSpecialTaxiAmount.requestFocus();
+            etTaxiMinAmount.setError("Monto inválido");
+            etTaxiMinAmount.requestFocus();
+            return;
+        }
+
+        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        if (currentUser == null) {
+            Log.e(TAG, "❌ Usuario no autenticado");
+            Toast.makeText(getContext(), "Error: Usuario no autenticado", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // Deshabilitar botón mientras se guarda
+        if (btnSaveTaxiConfig != null) {
+            btnSaveTaxiConfig.setEnabled(false);
+            btnSaveTaxiConfig.setText("💾 Guardando...");
+        }
+
+        // Guardar en Firebase
+        FirebaseFirestore.getInstance()
+                .collection("taxi_config")
+                .document(currentUser.getUid())
+                .set(new java.util.HashMap<String, Object>() {{
+                    put("minAmount", minAmount);
+                    put("hotelAdminId", currentUser.getUid());
+                    put("updatedAt", new java.util.Date());
+                }})
+                .addOnSuccessListener(aVoid -> {
+                    Log.d(TAG, "✅ Configuración de taxi guardada exitosamente");
+
+                    if (getActivity() != null) {
+                        getActivity().runOnUiThread(() -> {
+                            // Mostrar diálogo de éxito
+                            TaxiConfigSuccessDialog successDialog = new TaxiConfigSuccessDialog(getContext());
+                            successDialog.show();
+
+                            // Restaurar botón
+                            if (btnSaveTaxiConfig != null) {
+                                btnSaveTaxiConfig.setEnabled(true);
+                                btnSaveTaxiConfig.setText("💾 Guardar Configuración");
+                            }
+                        });
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "❌ Error guardando configuración de taxi: " + e.getMessage());
+
+                    if (getActivity() != null) {
+                        getActivity().runOnUiThread(() -> {
+                            Toast.makeText(getContext(), "Error guardando configuración: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+
+                            // Restaurar botón
+                            if (btnSaveTaxiConfig != null) {
+                                btnSaveTaxiConfig.setEnabled(true);
+                                btnSaveTaxiConfig.setText("💾 Guardar Configuración");
+                            }
+                        });
+                    }
+                });
+    }
+
+    // ========== IMPLEMENTACIÓN DE OnServicesChangedListener ==========
+
+    @Override
+    public void onBasicServicesUpdated(List<HotelServiceModel> basicServices) {
+        Log.d(TAG, "🔄 onBasicServicesUpdated llamado con " + basicServices.size() + " servicios");
+        // No necesitamos hacer nada aquí, el onAllServicesUpdated se encarga
+    }
+
+    @Override
+    public void onAllServicesUpdated(List<HotelServiceModel> allServices) {
+        Log.d(TAG, "🔄 onAllServicesUpdated llamado con " + allServices.size() + " servicios");
+        if (getActivity() != null) {
+            getActivity().runOnUiThread(() -> {
+                classifyAndDisplayServices(allServices);
+            });
         }
     }
 
     @Override
-    public void onDestroyView() {
-        super.onDestroyView();
-        if (currentAddServiceDialog != null && currentAddServiceDialog.isShowing()) {
-            currentAddServiceDialog.dismiss();
-            currentAddServiceDialog = null;
+    public void onServiceAdded(HotelServiceModel service) {
+        Log.d(TAG, "➕ Servicio agregado desde Firebase: " + service.getName());
+        // El onAllServicesUpdated se encarga de recargar todos
+    }
+
+    @Override
+    public void onServiceUpdated(HotelServiceModel service) {
+        Log.d(TAG, "🔄 Servicio actualizado desde Firebase: " + service.getName());
+        // El onAllServicesUpdated se encarga de recargar todos
+    }
+
+    @Override
+    public void onServiceDeleted(String serviceId) {
+        Log.d(TAG, "🗑️ Servicio eliminado desde Firebase: " + serviceId);
+        // El onAllServicesUpdated se encarga de recargar todos
+    }
+
+    @Override
+    public void onError(String error) {
+        Log.e(TAG, "❌ Error desde Firebase: " + error);
+        if (getActivity() != null) {
+            getActivity().runOnUiThread(() -> {
+                Toast.makeText(getContext(), "Error: " + error, Toast.LENGTH_SHORT).show();
+            });
         }
     }
 
-    // Método público para recibir servicios básicos desde el perfil del hotel
-    public void updateBasicServicesFromProfile(List<BasicService> profileBasicServices) {
-        basicServices.clear();
+    // ========== MÉTODOS DE DEBUGGING ==========
 
-        for (BasicService basicService : profileBasicServices) {
-            HotelServiceItem serviceItem = new HotelServiceItem(
-                    basicService.getName(),
-                    basicService.getDescription(),
-                    0.0,
-                    basicService.getIconKey(),
-                    HotelServiceItem.ServiceType.BASIC,
-                    basicService.getPhotos()
-            );
-            basicServices.add(serviceItem);
+    private void debugBasicServicesSpecifically() {
+        Log.d(TAG, "🔍 === DEBUGGING ESPECÍFICO DE SERVICIOS BÁSICOS ===");
+
+        if (firebaseServiceManager == null) {
+            Log.e(TAG, "❌ FirebaseServiceManager es NULL");
+            return;
         }
 
-        if (basicServicesAdapter != null) {
-            basicServicesAdapter.notifyDataSetChanged();
+        Log.d(TAG, "📋 Lista básicos - Size: " + basicServices.size());
+        for (int i = 0; i < basicServices.size(); i++) {
+            HotelServiceModel service = basicServices.get(i);
+            Log.d(TAG, "📝 Servicio " + i + ": " + service.getName() +
+                    " (Tipo: " + service.getServiceType() +
+                    ", ID: " + service.getId() +
+                    ", Activo: " + service.isActive() + ")");
         }
-        updateEmptyStates();
+
+        // Verificar RecyclerView
+        if (rvBasicServices == null) {
+            Log.e(TAG, "❌ rvBasicServices es NULL");
+            return;
+        }
+
+        Log.d(TAG, "📏 RV Básicos - Visibilidad: " + getVisibilityString(rvBasicServices.getVisibility()));
+
+        // Verificar Adapter
+        if (basicServicesAdapter == null) {
+            Log.e(TAG, "❌ basicServicesAdapter es NULL");
+            return;
+        }
+
+        Log.d(TAG, "🎯 Adapter Básicos:");
+        Log.d(TAG, "   - Item Count: " + basicServicesAdapter.getItemCount());
+        Log.d(TAG, "   - Context: " + (basicServicesAdapter.context != null ? "OK" : "NULL"));
+
+        // Verificar Estado Empty
+        View emptyState = getView() != null ? getView().findViewById(R.id.layoutBasicServicesEmpty) : null;
+        if (emptyState != null) {
+            Log.d(TAG, "📄 Empty State Básicos: " + getVisibilityString(emptyState.getVisibility()));
+        } else {
+            Log.w(TAG, "⚠️ Empty State Básicos no encontrado");
+        }
+
+        Log.d(TAG, "🔍 === FIN DEBUG ESPECÍFICO BÁSICOS ===");
+    }
+
+    private void forceBasicServicesRefresh() {
+        Log.d(TAG, "🔄 FORZANDO REFRESH DE SERVICIOS BÁSICOS...");
+
+        if (firebaseServiceManager != null) {
+            firebaseServiceManager.getServicesByType("basic", new FirebaseServiceManager.ServicesListCallback() {
+                @Override
+                public void onSuccess(List<HotelServiceModel> services) {
+                    Log.d(TAG, "✅ Servicios básicos obtenidos directamente: " + services.size());
+
+                    if (getActivity() != null) {
+                        getActivity().runOnUiThread(() -> {
+                            basicServices.clear();
+                            basicServices.addAll(services);
+
+                            if (basicServicesAdapter != null) {
+                                basicServicesAdapter.updateServices(basicServices);
+                                basicServicesAdapter.notifyDataSetChanged();
+                            }
+
+                            updateEmptyStatesVisibility();
+                            Log.d(TAG, "✅ Refresh forzado completado");
+                        });
+                    }
+                }
+
+                @Override
+                public void onError(String error) {
+                    Log.e(TAG, "❌ Error obteniendo servicios básicos directamente: " + error);
+                }
+            });
+        }
+    }
+
+    private void debugRecyclerViewsState() {
+        Log.d(TAG, "🔍 === DEBUGGING ESTADO DE RECYCLERVIEWS ===");
+
+        if (rvBasicServices != null) {
+            Log.d(TAG, "📏 RV Básicos - Visibilidad: " + getVisibilityString(rvBasicServices.getVisibility()) +
+                    ", Items: " + rvBasicServices.getChildCount() +
+                    ", Adapter: " + (rvBasicServices.getAdapter() != null ? "OK" : "NULL"));
+        }
+
+        if (rvIncludedServices != null) {
+            Log.d(TAG, "📏 RV Incluidos - Visibilidad: " + getVisibilityString(rvIncludedServices.getVisibility()) +
+                    ", Items: " + rvIncludedServices.getChildCount() +
+                    ", Adapter: " + (rvIncludedServices.getAdapter() != null ? "OK" : "NULL"));
+        }
+
+        if (rvPaidServices != null) {
+            Log.d(TAG, "📏 RV Pagados - Visibilidad: " + getVisibilityString(rvPaidServices.getVisibility()) +
+                    ", Items: " + rvPaidServices.getChildCount() +
+                    ", Adapter: " + (rvPaidServices.getAdapter() != null ? "OK" : "NULL"));
+        }
+
+        Log.d(TAG, "🔍 === FIN DEBUG RECYCLERVIEWS ===");
+    }
+
+    private String getVisibilityString(int visibility) {
+        switch (visibility) {
+            case View.VISIBLE: return "VISIBLE";
+            case View.GONE: return "GONE";
+            case View.INVISIBLE: return "INVISIBLE";
+            default: return "UNKNOWN (" + visibility + ")";
+        }
     }
 }
