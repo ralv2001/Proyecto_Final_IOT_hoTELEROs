@@ -928,7 +928,6 @@ public class RegisterUserActivity extends AppCompatActivity {
     }
 
     // Nuevo método para guardar datos usando Room
-    // Nuevo método para guardar datos usando Room
     private void saveFormDataToDatabase() {
         // Primero guardar en ViewModel para compatibilidad (SOLO UNA VEZ)
         if (mViewModel != null) {
@@ -993,9 +992,19 @@ public class RegisterUserActivity extends AppCompatActivity {
             // Crear nuevo registro - Room auto-generará el ID único
             // NO asignar manualmente registration.id = algo
 
-            userRegistrationRepository.saveUserRegistrationSafe(registration, new UserRegistrationRepository.RegistrationIdCallback() {
+            // 🔍 DEBUGGING: Estado de la base de datos ANTES de guardar
+            Log.d("RegisterUser", "🔍 ═══ DEBUGGING INICIO ═══");
+            Log.d("RegisterUser", "🔍 Email que se va a registrar: " + etEmail.getText().toString().trim());
+            Log.d("RegisterUser", "🔍 UserType: " + userType);
+            userRegistrationRepository.debugDatabaseState("ANTES de guardar nuevo usuario");
+
+            userRegistrationRepository.saveUserRegistration(registration, new UserRegistrationRepository.RegistrationIdCallback() {
                 @Override
                 public void onSuccess(int registrationId) {
+                    // 🔍 DEBUGGING: Estado después de guardar
+                    userRegistrationRepository.debugDatabaseState("DESPUÉS de guardar usuario con ID: " + registrationId);
+                    Log.d("RegisterUser", "🔍 ═══ DEBUGGING FIN ═══");
+
                     currentRegistrationId = registrationId;
                     Log.d("RegisterUser", "✅ Nuevo registro creado con ID único: " + registrationId);
                     runOnUiThread(() -> proceedToNextStep(registrationId));
