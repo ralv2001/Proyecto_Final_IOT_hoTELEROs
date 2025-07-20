@@ -1,9 +1,10 @@
 package com.example.proyecto_final_hoteleros.adminhotel.model;
 
 import java.util.List;
+import java.util.ArrayList;
 
 public class RoomType {
-    private String id; // ✅ NUEVO CAMPO para Firebase
+    private String id; // Campo para Firebase
     private String name;
     private String description;
     private double area; // en m²
@@ -11,6 +12,7 @@ public class RoomType {
     private List<String> includedServices;
     private int availableRooms;
     private int capacity;
+    private List<String> photoUrls; // ✅ NUEVO CAMPO para fotos
 
     // Constructor principal
     public RoomType(String name, String description, double area, double pricePerNight,
@@ -22,6 +24,7 @@ public class RoomType {
         this.includedServices = includedServices;
         this.availableRooms = availableRooms;
         this.capacity = capacity;
+        this.photoUrls = new ArrayList<>(); // ✅ Inicializar lista de fotos
     }
 
     // Constructor con ID (para Firebase)
@@ -35,11 +38,25 @@ public class RoomType {
         this.includedServices = includedServices;
         this.availableRooms = availableRooms;
         this.capacity = capacity;
+        this.photoUrls = new ArrayList<>(); // ✅ Inicializar lista de fotos
+    }
+
+    // ✅ Constructor completo con fotos
+    public RoomType(String id, String name, String description, double area, double pricePerNight,
+                    List<String> includedServices, int availableRooms, int capacity, List<String> photoUrls) {
+        this.id = id;
+        this.name = name;
+        this.description = description;
+        this.area = area;
+        this.pricePerNight = pricePerNight;
+        this.includedServices = includedServices;
+        this.availableRooms = availableRooms;
+        this.capacity = capacity;
+        this.photoUrls = photoUrls != null ? photoUrls : new ArrayList<>();
     }
 
     // ========== GETTERS Y SETTERS ==========
 
-    // ✅ NUEVO getter/setter para ID
     public String getId() { return id; }
     public void setId(String id) { this.id = id; }
 
@@ -64,7 +81,38 @@ public class RoomType {
     public int getCapacity() { return capacity; }
     public void setCapacity(int capacity) { this.capacity = capacity; }
 
+    // ✅ NUEVOS getters/setters para fotos
+    public List<String> getPhotoUrls() { return photoUrls; }
+    public void setPhotoUrls(List<String> photoUrls) { this.photoUrls = photoUrls != null ? photoUrls : new ArrayList<>(); }
+
     // ========== MÉTODOS UTILITARIOS ==========
+
+    // ✅ Método para verificar si tiene fotos
+    public boolean hasPhotos() {
+        return photoUrls != null && !photoUrls.isEmpty();
+    }
+
+    // ✅ Método para obtener número de fotos
+    public int getPhotoCount() {
+        return photoUrls != null ? photoUrls.size() : 0;
+    }
+
+    // ✅ Método para añadir foto
+    public void addPhoto(String photoUrl) {
+        if (photoUrls == null) {
+            photoUrls = new ArrayList<>();
+        }
+        if (photoUrl != null && !photoUrl.trim().isEmpty() && photoUrls.size() < 3) {
+            photoUrls.add(photoUrl);
+        }
+    }
+
+    // ✅ Método para remover foto
+    public void removePhoto(String photoUrl) {
+        if (photoUrls != null) {
+            photoUrls.remove(photoUrl);
+        }
+    }
 
     @Override
     public String toString() {
@@ -76,6 +124,7 @@ public class RoomType {
                 ", capacity=" + capacity +
                 ", availableRooms=" + availableRooms +
                 ", includedServices=" + (includedServices != null ? includedServices.size() : 0) + " services" +
+                ", photoUrls=" + (photoUrls != null ? photoUrls.size() : 0) + " photos" +
                 '}';
     }
 

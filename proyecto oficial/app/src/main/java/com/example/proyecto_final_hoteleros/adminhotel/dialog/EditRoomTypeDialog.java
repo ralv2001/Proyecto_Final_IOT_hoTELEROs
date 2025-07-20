@@ -1,9 +1,12 @@
 package com.example.proyecto_final_hoteleros.adminhotel.dialog;
 
+import android.app.Activity;
 import android.app.Dialog;
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
+import android.net.Uri;
 import android.util.Log;
 import android.view.ViewGroup;
 import android.view.Window;
@@ -13,15 +16,20 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.GridLayoutManager;
+import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.proyecto_final_hoteleros.R;
+import com.example.proyecto_final_hoteleros.adminhotel.adapters.RoomPhotosAdapter;
 import com.example.proyecto_final_hoteleros.adminhotel.adapters.ServiceSelectionAdapter;
 import com.example.proyecto_final_hoteleros.adminhotel.utils.FirebaseServiceManager;
 import com.example.proyecto_final_hoteleros.adminhotel.model.HotelServiceModel;
 import com.example.proyecto_final_hoteleros.adminhotel.model.RoomType;
+import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.textfield.TextInputEditText;
 
 import java.util.ArrayList;
@@ -30,17 +38,19 @@ import java.util.List;
 public class EditRoomTypeDialog extends Dialog {
 
     private static final String TAG = "EditRoomTypeDialog";
+    private static final int MAX_PHOTOS = 3;
 
     public interface OnRoomTypeEditedListener {
-        void onRoomTypeEdited(RoomType roomType);
+        void onRoomTypeEdited(RoomType roomType, List<Uri> newPhotoUris);
     }
 
     // Views
     private AutoCompleteTextView spinnerRoomType;
     private TextInputEditText etRoomArea, etRoomPrice, etAvailableRooms, etRoomCapacity;
-    private RecyclerView rvServices;
+    private RecyclerView rvServices, rvRoomPhotos;
     private Button btnSave, btnCancel;
-    private TextView tvSelectedCount, tvServicesStatus;
+    private MaterialCardView cardAddPhoto;
+    private TextView tvSelectedCount, tvServicesStatus, tvPhotoCount;
 
     // Data
     private OnRoomTypeEditedListener listener;
@@ -49,6 +59,12 @@ public class EditRoomTypeDialog extends Dialog {
     private List<String> basicServices;
     private List<HotelServiceModel> availableIncludedServices;
     private ServiceSelectionAdapter serviceAdapter;
+
+    // ✅ NUEVOS campos para fotos
+    private List<Object> currentPhotos; // Fotos existentes (URLs) + nuevas (URIs)
+    private List<Uri> newPhotoUris; // Solo las fotos nuevas añadidas
+    private RoomPhotosAdapter photosAdapter;
+    private ActivityResultLauncher<Intent> photoPickerLauncher;
 
     // Firebase
     private FirebaseServiceManager firebaseServiceManager;
@@ -82,14 +98,18 @@ public class EditRoomTypeDialog extends Dialog {
             "Cabaña"
     };
 
-    public EditRoomTypeDialog(Context context, RoomType roomType, FirebaseServiceManager firebaseServiceManager, OnRoomTypeEditedListener listener) {
+    public EditRoomTypeDialog(Context context, RoomType roomType, FirebaseServiceManager firebaseServiceManager,
+                              OnRoomTypeEditedListener listener, ActivityResultLauncher<Intent> photoLauncher) {
         super(context);
         this.listener = listener;
         this.firebaseServiceManager = firebaseServiceManager;
+        this.photoPickerLauncher = photoLauncher; // ✅ Recibir launcher del Fragment padre
         this.originalRoomType = roomType;
         this.selectedServices = new ArrayList<>();
         this.basicServices = new ArrayList<>();
         this.availableIncludedServices = new ArrayList<>();
+        this.currentPhotos = new ArrayList<>(); // ✅ Fotos actuales
+        this.newPhotoUris = new ArrayList<>(); // ✅ Fotos nuevas
 
         setupDialog();
         loadServicesFromFirebase();
@@ -106,9 +126,9 @@ public class EditRoomTypeDialog extends Dialog {
 
         initViews();
         setupSpinner();
-        setupRecyclerView();
+        setupRecyclerViews();
         setupClickListeners();
-        fillWithExistingData();
+        fillWithExistingData(); // ✅ Llenar con datos existentes incluyendo fotos
     }
 
     private void initViews() {
@@ -118,10 +138,13 @@ public class EditRoomTypeDialog extends Dialog {
         etAvailableRooms = findViewById(R.id.etAvailableRooms);
         etRoomCapacity = findViewById(R.id.etRoomCapacity);
         rvServices = findViewById(R.id.rvServices);
+        rvRoomPhotos = findViewById(R.id.rvRoomPhotos); // ✅ NUEVO
         btnSave = findViewById(R.id.btnSave);
         btnCancel = findViewById(R.id.btnCancel);
+        cardAddPhoto = findViewById(R.id.cardAddPhoto); // ✅ NUEVO
         tvSelectedCount = findViewById(R.id.tvSelectedCount);
         tvServicesStatus = findViewById(R.id.tvServicesStatus);
+        tvPhotoCount = findViewById(R.id.tvPhotoCount); // ✅ NUEVO
 
         // Cambiar texto del botón para edición
         if (btnSave != null) {
@@ -135,7 +158,9 @@ public class EditRoomTypeDialog extends Dialog {
         spinnerRoomType.setAdapter(adapter);
     }
 
-    private void setupRecyclerView() {
+    // ✅ NUEVO método para configurar ambos RecyclerViews
+    private void setupRecyclerViews() {
+        // RecyclerView para servicios
         serviceAdapter = new ServiceSelectionAdapter(availableIncludedServices, selectedServices, new ServiceSelectionAdapter.OnServiceSelectedListener() {
             @Override
             public void onServiceSelected(String serviceName, boolean isSelected) {
@@ -143,9 +168,48 @@ public class EditRoomTypeDialog extends Dialog {
                 Log.d(TAG, "Servicio " + (isSelected ? "seleccionado" : "deseleccionado") + ": " + serviceName);
             }
         });
-
         rvServices.setLayoutManager(new GridLayoutManager(getContext(), 2));
         rvServices.setAdapter(serviceAdapter);
+
+        // ✅ RecyclerView para fotos
+        photosAdapter = new RoomPhotosAdapter(getContext(), currentPhotos, new RoomPhotosAdapter.OnPhotoActionListener() {
+            @Override
+            public void onRemovePhoto(int position) {
+                removePhoto(position);
+            }
+
+            @Override
+            public void onPhotoClick(String photoUrl, int position, List<String> allPhotos) {
+                // Implementar visor de fotos si es necesario
+                Log.d(TAG, "Click en foto: " + photoUrl);
+            }
+        }, true); // true = modo edición
+
+        rvRoomPhotos.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));
+        rvRoomPhotos.setAdapter(photosAdapter);
+    }
+
+    // ✅ NUEVO método para manejar resultado de fotos (llamado desde Fragment)
+    public void handlePhotoResult(Intent data) {
+        if (data == null) return;
+
+        try {
+            if (data.getClipData() != null) {
+                // Múltiples fotos seleccionadas
+                int count = data.getClipData().getItemCount();
+                for (int i = 0; i < count && currentPhotos.size() < MAX_PHOTOS; i++) {
+                    Uri photoUri = data.getClipData().getItemAt(i).getUri();
+                    addPhoto(photoUri);
+                }
+            } else if (data.getData() != null) {
+                // Una sola foto seleccionada
+                Uri photoUri = data.getData();
+                addPhoto(photoUri);
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "Error procesando fotos seleccionadas: " + e.getMessage());
+            Toast.makeText(getContext(), "Error seleccionando fotos", Toast.LENGTH_SHORT).show();
+        }
     }
 
     private void setupClickListeners() {
@@ -155,6 +219,9 @@ public class EditRoomTypeDialog extends Dialog {
                 updateRoomType();
             }
         });
+
+        // ✅ NUEVO click listener para añadir fotos
+        cardAddPhoto.setOnClickListener(v -> openPhotoSelector());
     }
 
     private void fillWithExistingData() {
@@ -167,7 +234,83 @@ public class EditRoomTypeDialog extends Dialog {
         etAvailableRooms.setText(String.valueOf(originalRoomType.getAvailableRooms()));
         etRoomCapacity.setText(String.valueOf(originalRoomType.getCapacity()));
 
-        Log.d(TAG, "✅ Datos existentes cargados para habitación: " + originalRoomType.getName());
+        // ✅ Cargar fotos existentes
+        if (originalRoomType.getPhotoUrls() != null) {
+            currentPhotos.clear();
+            for (String photoUrl : originalRoomType.getPhotoUrls()) {
+                if (photoUrl != null && !photoUrl.trim().isEmpty()) {
+                    currentPhotos.add(photoUrl); // Añadir como String (URL)
+                }
+            }
+            updatePhotoUI();
+        }
+
+        Log.d(TAG, "✅ Datos existentes cargados para habitación: " + originalRoomType.getName() +
+                " con " + currentPhotos.size() + " fotos");
+    }
+
+    // ========== MANEJO DE FOTOS ==========
+
+    // ✅ NUEVO método para abrir selector de fotos
+    private void openPhotoSelector() {
+        if (currentPhotos.size() >= MAX_PHOTOS) {
+            Toast.makeText(getContext(), "⚠️ Máximo " + MAX_PHOTOS + " fotos permitidas", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        if (photoPickerLauncher != null) {
+            Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+            intent.setType("image/*");
+            intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
+            intent.addCategory(Intent.CATEGORY_OPENABLE);
+
+            Intent chooser = Intent.createChooser(intent, "Seleccionar fotos de habitación");
+            photoPickerLauncher.launch(chooser);
+        } else {
+            Toast.makeText(getContext(), "Funcionalidad de fotos no disponible", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    // ✅ NUEVO método para añadir foto
+    private void addPhoto(Uri photoUri) {
+        if (photoUri != null && currentPhotos.size() < MAX_PHOTOS) {
+            currentPhotos.add(photoUri); // Añadir como Uri (nueva foto)
+            newPhotoUris.add(photoUri); // Trackear como nueva foto
+            updatePhotoUI();
+            Log.d(TAG, "📷 Foto añadida: " + photoUri + " Total: " + currentPhotos.size());
+        }
+    }
+
+    // ✅ NUEVO método para remover foto
+    private void removePhoto(int position) {
+        if (position >= 0 && position < currentPhotos.size()) {
+            Object removedPhoto = currentPhotos.remove(position);
+
+            // Si era una foto nueva (Uri), removerla también de newPhotoUris
+            if (removedPhoto instanceof Uri) {
+                newPhotoUris.remove(removedPhoto);
+            }
+
+            updatePhotoUI();
+            Log.d(TAG, "🗑️ Foto removida en posición: " + position + " Total: " + currentPhotos.size());
+        }
+    }
+
+    // ✅ NUEVO método para actualizar UI de fotos
+    private void updatePhotoUI() {
+        if (photosAdapter != null) {
+            photosAdapter.updatePhotos(currentPhotos);
+        }
+
+        if (tvPhotoCount != null) {
+            tvPhotoCount.setText(currentPhotos.size() + " / " + MAX_PHOTOS + " fotos");
+        }
+
+        // Mostrar/ocultar RecyclerView de fotos
+        if (rvRoomPhotos != null) {
+            rvRoomPhotos.setVisibility(currentPhotos.isEmpty() ?
+                    android.view.View.GONE : android.view.View.VISIBLE);
+        }
     }
 
     // ========== FIREBASE INTEGRATION ==========
@@ -379,9 +522,21 @@ public class EditRoomTypeDialog extends Dialog {
             allServices.addAll(basicServices); // Servicios básicos automáticos
             allServices.addAll(selectedServices); // Servicios incluidos seleccionados
 
-            Log.d(TAG, "🔄 Actualizando habitación con " + allServices.size() + " servicios:");
+            // ✅ Preparar URLs de fotos actuales (solo las que son String)
+            List<String> currentPhotoUrls = new ArrayList<>();
+            for (Object photo : currentPhotos) {
+                if (photo instanceof String) {
+                    currentPhotoUrls.add((String) photo);
+                }
+                // Las Uri se manejan en newPhotoUris
+            }
+
+            Log.d(TAG, "🔄 Actualizando habitación con " + allServices.size() + " servicios y " +
+                    newPhotoUris.size() + " fotos nuevas:");
             Log.d(TAG, "   - Básicos: " + basicServices.size());
             Log.d(TAG, "   - Incluidos: " + selectedServices.size());
+            Log.d(TAG, "   - Fotos existentes: " + currentPhotoUrls.size());
+            Log.d(TAG, "   - Fotos nuevas: " + newPhotoUris.size());
 
             // Crear habitación actualizada manteniendo el ID original
             RoomType updatedRoomType = new RoomType(
@@ -392,11 +547,12 @@ public class EditRoomTypeDialog extends Dialog {
                     price,
                     allServices,
                     available,
-                    capacity
+                    capacity,
+                    currentPhotoUrls // ✅ Fotos existentes
             );
 
             if (listener != null) {
-                listener.onRoomTypeEdited(updatedRoomType);
+                listener.onRoomTypeEdited(updatedRoomType, newPhotoUris); // ✅ Pasar fotos nuevas
             }
 
             dismiss();
