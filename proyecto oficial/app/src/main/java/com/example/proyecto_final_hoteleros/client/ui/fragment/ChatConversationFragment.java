@@ -84,11 +84,6 @@ public class ChatConversationFragment extends Fragment {
             // Inflate the layout first
             rootView = inflater.inflate(R.layout.client_fragment_chat_conversation, container, false);
 
-            // NUEVO: Configurar el comportamiento del teclado solo para esta vista
-            if (getActivity() != null) {
-                getActivity().getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
-            }
-
             // Obtener servicio de Firebase
             chatService = FirebaseChatService.getInstance();
 
@@ -143,16 +138,6 @@ public class ChatConversationFragment extends Fragment {
         }
 
         return rootView;
-    }
-
-    // NUEVO: Restablecer el comportamiento del teclado cuando se destruye la vista
-    @Override
-    public void onDestroyView() {
-        super.onDestroyView();
-        // Restablecer el comportamiento del teclado
-        if (getActivity() != null) {
-            getActivity().getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_NOTHING);
-        }
     }
 
     private void initViews(View rootView) {
@@ -633,4 +618,5 @@ public class ChatConversationFragment extends Fragment {
             typingTimeoutHandler.removeCallbacks(typingTimeoutCallback);
         }
     }
+
 }

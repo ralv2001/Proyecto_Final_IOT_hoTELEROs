@@ -10,6 +10,7 @@ import com.example.proyecto_final_hoteleros.database.entities.UserRegistrationEn
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import com.example.proyecto_final_hoteleros.repository.FileStorageRepository;
 
 public class UserRegistrationRepository {
 
@@ -18,7 +19,10 @@ public class UserRegistrationRepository {
     private final UserRegistrationDao userRegistrationDao;
     private final ExecutorService executor;
 
+    private Context context; // NUEVO campo
+
     public UserRegistrationRepository(Context context) {
+        this.context = context; // GUARDAR contexto
         this.userRegistrationDao = AppDatabase.getInstance(context).userRegistrationDao();
         this.executor = Executors.newFixedThreadPool(2);
     }
@@ -44,8 +48,43 @@ public class UserRegistrationRepository {
                                      RegistrationIdCallback callback) {
         executor.execute(() -> {
             try {
+                // 🔍 DEBUGGING: Verificar si el usuario ya existe ANTES de guardar
+                UserRegistrationEntity existingUser = userRegistrationDao.checkIfUserExistsByEmail(userRegistration.email);
+
+                if (existingUser != null) {
+                    Log.w(TAG, "⚠️ DEBUGGING: Usuario YA EXISTE en Room Database!");
+                    Log.w(TAG, "📧 Email: " + existingUser.email);
+                    Log.w(TAG, "🆔 ID existente: " + existingUser.id);
+                    Log.w(TAG, "👤 Nombre existente: " + existingUser.nombres + " " + existingUser.apellidos);
+                    Log.w(TAG, "🕐 Creado: " + new java.util.Date(existingUser.createdAt));
+                    Log.w(TAG, "📝 UserType existente: " + existingUser.userType);
+                    Log.w(TAG, "🔒 Completado: " + existingUser.isCompleted);
+                    Log.w(TAG, "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+                } else {
+                    Log.i(TAG, "✅ DEBUGGING: No existe usuario previo con este email");
+                }
+
+                // 🔍 DEBUGGING: Mostrar datos que se van a guardar AHORA
+                Log.i(TAG, "💾 DEBUGGING: Datos a guardar:");
+                Log.i(TAG, "📧 Email nuevo: " + userRegistration.email);
+                Log.i(TAG, "👤 Nombre nuevo: " + userRegistration.nombres + " " + userRegistration.apellidos);
+                Log.i(TAG, "📝 UserType nuevo: " + userRegistration.userType);
+                Log.i(TAG, "🕐 Timestamp nuevo: " + new java.util.Date(userRegistration.createdAt));
+
                 userRegistration.updateTimestamp();
                 long id = userRegistrationDao.insertUserRegistration(userRegistration);
+
+                // 🔍 DEBUGGING: Verificar qué se guardó realmente
+                UserRegistrationEntity savedUser = userRegistrationDao.getUserRegistrationById((int) id);
+                if (savedUser != null) {
+                    Log.i(TAG, "✅ DEBUGGING: Usuario guardado correctamente:");
+                    Log.i(TAG, "🆔 ID final: " + savedUser.id);
+                    Log.i(TAG, "📧 Email final: " + savedUser.email);
+                    Log.i(TAG, "👤 Nombre final: " + savedUser.nombres + " " + savedUser.apellidos);
+                    Log.i(TAG, "📝 UserType final: " + savedUser.userType);
+                    Log.i(TAG, "🕐 Creado final: " + new java.util.Date(savedUser.createdAt));
+                    Log.i(TAG, "🔒 Completado final: " + savedUser.isCompleted);
+                }
 
                 Log.d(TAG, "User registration saved with ID: " + id);
                 callback.onSuccess((int) id);
@@ -285,4 +324,46 @@ public class UserRegistrationRepository {
             }
         });
     }
+
+
+    // 🔍 MÉTODO DE DEBUGGING: Para inspeccionar toda la base de datos
+    public void debugDatabaseState(String context) {
+        executor.execute(() -> {
+            try {
+                List<UserRegistrationEntity> allUsers = userRegistrationDao.getAllUsersForDebugging();
+
+                Log.d(TAG, "🔍 ═══════════════════════════════════════");
+                Log.d(TAG, "🔍 DEBUGGING DATABASE STATE: " + context);
+                Log.d(TAG, "🔍 Total usuarios en Room: " + allUsers.size());
+                Log.d(TAG, "🔍 ═══════════════════════════════════════");
+
+                for (int i = 0; i < allUsers.size(); i++) {
+                    UserRegistrationEntity user = allUsers.get(i);
+                    Log.d(TAG, "🔍 Usuario " + (i + 1) + ":");
+                    Log.d(TAG, "   🆔 ID: " + user.id);
+                    Log.d(TAG, "   📧 Email: " + user.email);
+                    Log.d(TAG, "   👤 Nombre: " + user.nombres + " " + user.apellidos);
+                    Log.d(TAG, "   📝 Tipo: " + user.userType);
+                    Log.d(TAG, "   🕐 Creado: " + new java.util.Date(user.createdAt));
+                    Log.d(TAG, "   🔒 Completado: " + user.isCompleted);
+                    Log.d(TAG, "   ─────────────────────────────────────");
+                }
+
+                Log.d(TAG, "🔍 ═══════════════════════════════════════");
+
+                // 🔍 DEBUGGING CASCADE: Ejecutar después del debugging de usuarios
+                android.os.Handler mainHandler = new android.os.Handler(android.os.Looper.getMainLooper());
+                final String contextString = context; // Guardar el string del parámetro
+                mainHandler.post(() -> {
+                    FileStorageRepository fileRepo = new FileStorageRepository(this.context); // Usar this.context (el Context real)
+                    fileRepo.debugAllFiles("RELACIONADO CON: " + contextString); // Usar el string guardado
+                });
+
+            } catch (Exception e) {
+                Log.e(TAG, "Error en debugging database state", e);
+            }
+        });
+    }
+
+
 }

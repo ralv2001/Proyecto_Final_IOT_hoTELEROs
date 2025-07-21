@@ -13,7 +13,7 @@ import com.example.proyecto_final_hoteleros.database.entities.UserRegistrationEn
 
 @Database(
         entities = {UserRegistrationEntity.class, FileStorageEntity.class},
-        version = 2,  // ← INCREMENTAR A 2
+        version = 3,  // ← INCREMENTAR A 3
         exportSchema = false
 )
 public abstract class AppDatabase extends RoomDatabase {

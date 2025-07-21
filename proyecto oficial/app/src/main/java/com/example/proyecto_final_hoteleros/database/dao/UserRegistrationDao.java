@@ -17,6 +17,18 @@ public interface UserRegistrationDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     long insertUserRegistration(UserRegistrationEntity userRegistration);
 
+    // NUEVO: Método para debugging - verificar si usuario ya existe
+    @Query("SELECT * FROM user_registration_data WHERE email = :email")
+    UserRegistrationEntity checkIfUserExistsByEmail(String email);
+
+    // NUEVO: Método para obtener el último ID insertado
+    @Query("SELECT last_insert_rowid()")
+    long getLastInsertedId();
+
+    // NUEVO: Método para debugging - obtener todos los usuarios
+    @Query("SELECT * FROM user_registration_data ORDER BY created_at DESC")
+    List<UserRegistrationEntity> getAllUsersForDebugging();
+
     @Update
     void updateUserRegistration(UserRegistrationEntity userRegistration);
 

@@ -1,10 +1,12 @@
 package com.example.proyecto_final_hoteleros.database.entities;
 
 import androidx.room.Entity;
+import androidx.room.Index;
 import androidx.room.PrimaryKey;
 import androidx.room.ColumnInfo;
 
-@Entity(tableName = "user_registration_data")
+@Entity(tableName = "user_registration_data",
+        indices = {@Index(value = {"email"}, unique = true)})
 public class UserRegistrationEntity {
 
     @PrimaryKey(autoGenerate = true)
