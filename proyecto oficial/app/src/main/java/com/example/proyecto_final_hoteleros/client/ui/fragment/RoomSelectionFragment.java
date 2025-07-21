@@ -1,3 +1,4 @@
+// client/ui/fragment/RoomSelectionFragment.java - SIMPLIFICADO: Sin complicaciones de timing
 package com.example.proyecto_final_hoteleros.client.ui.fragment;
 
 import android.content.Intent;
@@ -25,6 +26,7 @@ import com.example.proyecto_final_hoteleros.client.ui.activity.AllHotelServicesA
 import com.example.proyecto_final_hoteleros.client.ui.adapters.RoomTypeAdapter;
 import com.example.proyecto_final_hoteleros.client.data.model.RoomType;
 import com.example.proyecto_final_hoteleros.client.utils.ClientRoomManager;
+import com.example.proyecto_final_hoteleros.client.ui.fragment.BookingSummaryFragment;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -46,11 +48,11 @@ public class RoomSelectionFragment extends Fragment {
     private RoomTypeAdapter adapter;
     private String hotelName;
     private String hotelPrice;
-    private HotelProfile currentHotel; // ✅ NUEVO: Referencia al hotel actual
+    private HotelProfile currentHotel;
     private List<RoomType> roomTypes;
 
     // Firebase
-    private ClientRoomManager clientRoomManager; // ✅ NUEVO: Manager para obtener habitaciones
+    private ClientRoomManager clientRoomManager;
 
     @Nullable
     @Override
@@ -73,13 +75,13 @@ public class RoomSelectionFragment extends Fragment {
         // Obtener datos del hotel desde los argumentos
         extractHotelDataFromArguments();
 
-        // Configurar el RecyclerView
+        // Configurar el RecyclerView con servicios reales
         setupRecyclerView();
 
         // Configurar botones y eventos
         setupActions();
 
-        // ✅ CARGAR HABITACIONES REALES EN LUGAR DE DATOS HARDCODEADOS
+        // Cargar habitaciones reales
         loadRealHotelRooms();
     }
 
@@ -91,7 +93,7 @@ public class RoomSelectionFragment extends Fragment {
         tvHotelName = view.findViewById(R.id.tv_hotel_name);
         btnBack = view.findViewById(R.id.btn_back);
 
-        // ✅ NUEVAS VISTAS PARA ESTADOS DE CARGA
+        // Nuevas vistas para estados de carga
         progressBar = view.findViewById(R.id.progressBar);
         layoutEmptyState = view.findViewById(R.id.layoutEmptyState);
         tvEmptyMessage = view.findViewById(R.id.tvEmptyMessage);
@@ -112,7 +114,7 @@ public class RoomSelectionFragment extends Fragment {
             hotelName = getArguments().getString("hotel_name", "Hotel");
             hotelPrice = getArguments().getString("hotel_price", "S/0");
 
-            // ✅ NUEVO: Obtener el HotelProfile completo si está disponible
+            // ✅ Obtener el HotelProfile completo si está disponible
             currentHotel = getArguments().getParcelable("hotel_profile");
 
             // Si no hay HotelProfile pero sí hay hotelAdminId, creamos uno básico
@@ -122,19 +124,22 @@ public class RoomSelectionFragment extends Fragment {
                     currentHotel = new HotelProfile();
                     currentHotel.setHotelAdminId(hotelAdminId);
                     currentHotel.setName(hotelName);
+                    Log.d(TAG, "✅ HotelProfile creado desde hotelAdminId: " + hotelAdminId);
                 }
             }
 
             tvHotelName.setText(hotelName);
 
             Log.d(TAG, "✅ Datos del hotel extraídos - Nombre: " + hotelName +
-                    ", HotelProfile: " + (currentHotel != null ? "✅" : "❌"));
+                    ", HotelProfile: " + (currentHotel != null ? "disponible (AdminId: " + currentHotel.getHotelAdminId() + ")" : "no disponible"));
         }
     }
 
+    // ✅ SIMPLE: Crear adapter y configurar RecyclerView
     private void setupRecyclerView() {
         roomTypes = new ArrayList<>();
 
+        // ✅ Crear adapter con currentHotel para que cargue servicios automáticamente
         adapter = new RoomTypeAdapter(roomTypes, position -> {
             // Callback cuando se selecciona una habitación
             if (position >= 0 && position < roomTypes.size()) {
@@ -142,12 +147,12 @@ public class RoomSelectionFragment extends Fragment {
                 Toast.makeText(getContext(), "Habitación seleccionada: " + selectedRoom.getName(), Toast.LENGTH_SHORT).show();
                 Log.d(TAG, "🏨 Habitación seleccionada: " + selectedRoom.getName() + " - " + selectedRoom.getPrice());
             }
-        });
+        }, getContext(), currentHotel); // ✅ PASAR currentHotel para carga automática de servicios
 
         rvRoomTypes.setLayoutManager(new LinearLayoutManager(getContext()));
         rvRoomTypes.setAdapter(adapter);
 
-        Log.d(TAG, "✅ RecyclerView configurado");
+        Log.d(TAG, "✅ RecyclerView configurado con servicios automáticos");
     }
 
     private void setupActions() {
@@ -167,24 +172,24 @@ public class RoomSelectionFragment extends Fragment {
         });
     }
 
-    // ========== CARGA DE HABITACIONES REALES ==========
+    // ========== CARGA DE HABITACIONES ==========
 
     /**
-     * ✅ NUEVO MÉTODO: Cargar habitaciones reales del hotel desde Firebase
+     * ✅ SIMPLE: Cargar habitaciones del hotel desde Firebase
      */
     private void loadRealHotelRooms() {
         if (currentHotel == null || currentHotel.getHotelAdminId() == null) {
-            Log.w(TAG, "❌ No hay información del hotel para cargar habitaciones");
-            showEmptyState("No se pudo obtener información del hotel");
+            Log.w(TAG, "⚠️ No se puede cargar habitaciones: HotelProfile o hotelAdminId no disponible");
+            showEmptyState("No se puede cargar habitaciones del hotel");
             return;
         }
 
         showLoading();
+        String hotelAdminId = currentHotel.getHotelAdminId();
 
-        Log.d(TAG, "🔍 Cargando habitaciones reales para hotel: " + currentHotel.getName() +
-                " (AdminId: " + currentHotel.getHotelAdminId() + ")");
+        Log.d(TAG, "🔄 Cargando habitaciones reales del hotel: " + hotelAdminId);
 
-        clientRoomManager.getHotelRooms(currentHotel.getHotelAdminId(), new ClientRoomManager.RoomsCallback() {
+        clientRoomManager.getHotelRooms(hotelAdminId, new ClientRoomManager.RoomsCallback() {
             @Override
             public void onSuccess(List<RoomType> rooms) {
                 if (getActivity() != null) {
@@ -192,11 +197,14 @@ public class RoomSelectionFragment extends Fragment {
                         hideLoading();
 
                         if (rooms.isEmpty()) {
-                            Log.w(TAG, "📭 No hay habitaciones disponibles para este hotel");
-                            showEmptyState("Este hotel aún no tiene habitaciones disponibles");
+                            showEmptyState("Este hotel aún no ha configurado sus habitaciones");
                         } else {
-                            Log.d(TAG, "✅ Habitaciones cargadas exitosamente: " + rooms.size());
-                            showRoomsData(rooms);
+                            roomTypes.clear();
+                            roomTypes.addAll(rooms);
+                            adapter.notifyDataSetChanged();
+                            showRoomsList();
+
+                            Log.d(TAG, "✅ " + rooms.size() + " habitaciones cargadas exitosamente");
                         }
                     });
                 }
@@ -207,51 +215,38 @@ public class RoomSelectionFragment extends Fragment {
                 if (getActivity() != null) {
                     getActivity().runOnUiThread(() -> {
                         hideLoading();
+                        showEmptyState("Error cargando habitaciones: " + error);
                         Log.e(TAG, "❌ Error cargando habitaciones: " + error);
-                        showEmptyState("Error cargando habitaciones del hotel");
-                        Toast.makeText(getContext(), "Error: " + error, Toast.LENGTH_SHORT).show();
                     });
                 }
             }
         });
     }
 
-    // ========== GESTIÓN DE ESTADOS DE LA UI ==========
+    // ========== ESTADOS DE UI ==========
 
     private void showLoading() {
-        progressBar.setVisibility(View.VISIBLE);
-        rvRoomTypes.setVisibility(View.GONE);
-        layoutEmptyState.setVisibility(View.GONE);
-        btnNextStep.setVisibility(View.GONE);
+        if (progressBar != null) progressBar.setVisibility(View.VISIBLE);
+        if (layoutEmptyState != null) layoutEmptyState.setVisibility(View.GONE);
+        if (rvRoomTypes != null) rvRoomTypes.setVisibility(View.GONE);
     }
 
     private void hideLoading() {
-        progressBar.setVisibility(View.GONE);
-    }
-
-    private void showRoomsData(List<RoomType> rooms) {
-        roomTypes.clear();
-        roomTypes.addAll(rooms);
-        adapter.notifyDataSetChanged();
-
-        rvRoomTypes.setVisibility(View.VISIBLE);
-        layoutEmptyState.setVisibility(View.GONE);
-        btnNextStep.setVisibility(View.VISIBLE);
-
-        Log.d(TAG, "✅ " + rooms.size() + " habitaciones mostradas en la UI");
+        if (progressBar != null) progressBar.setVisibility(View.GONE);
     }
 
     private void showEmptyState(String message) {
-        rvRoomTypes.setVisibility(View.GONE);
-        btnNextStep.setVisibility(View.GONE);
-
-        if (tvEmptyMessage != null) {
-            tvEmptyMessage.setText(message);
-        }
-        layoutEmptyState.setVisibility(View.VISIBLE);
+        if (layoutEmptyState != null) layoutEmptyState.setVisibility(View.VISIBLE);
+        if (tvEmptyMessage != null) tvEmptyMessage.setText(message);
+        if (rvRoomTypes != null) rvRoomTypes.setVisibility(View.GONE);
     }
 
-    // ========== NAVEGACIÓN (MÉTODOS EXISTENTES MANTENIDOS) ==========
+    private void showRoomsList() {
+        if (rvRoomTypes != null) rvRoomTypes.setVisibility(View.VISIBLE);
+        if (layoutEmptyState != null) layoutEmptyState.setVisibility(View.GONE);
+    }
+
+    // ========== NAVEGACIÓN ==========
 
     private void navigateToServiceSelection() {
         RoomType selectedRoom = adapter.getSelectedPosition() != -1 ?
@@ -270,7 +265,7 @@ public class RoomSelectionFragment extends Fragment {
         intent.putExtra("included_service_ids", selectedRoom.getIncludedServiceIds().toArray(new String[0]));
         intent.putExtra("mode", "service_selection");
 
-        // ✅ AGREGAR precio numérico para cálculos del taxi
+        // Agregar precio numérico para cálculos del taxi
         double roomPriceNumeric = 0.0;
         try {
             roomPriceNumeric = Double.parseDouble(selectedRoom.getPrice().replace("S/", "").trim());
@@ -311,15 +306,15 @@ public class RoomSelectionFragment extends Fragment {
         args.putInt("num_children", 0);
         args.putString("room_number", generateRandomRoomNumber());
 
-        // ✅ CALCULAR automáticamente si taxi es gratis
+        // Calcular automáticamente si taxi es gratis
         double roomPrice = getRoomPriceValue(selectedRoom);
         boolean isTaxiFree = selectedServices != null && selectedServices.contains("taxi") && roomPrice >= 350.0;
         args.putBoolean("has_free_transport", isTaxiFree);
 
-        // ✅ PASAR servicios seleccionados
+        // Pasar servicios seleccionados
         args.putString("selected_services", selectedServices);
 
-        // ✅ CALCULAR precio de servicios adicionales
+        // Calcular precio de servicios adicionales
         double additionalPrice = calculateAdditionalServicesPrice(selectedServices, roomPrice);
         args.putDouble("additional_services_price", additionalPrice);
 
@@ -351,7 +346,7 @@ public class RoomSelectionFragment extends Fragment {
             // Si roomPrice >= 350.0, el taxi es gratis, no se agrega al total
         }
 
-        // ✅ AQUÍ puedes agregar lógica para otros servicios en el futuro
+        // Aquí puedes agregar lógica para otros servicios en el futuro
         // if (selectedServices.contains("spa")) total += 120.0;
         // if (selectedServices.contains("breakfast")) total += 45.0;
 
