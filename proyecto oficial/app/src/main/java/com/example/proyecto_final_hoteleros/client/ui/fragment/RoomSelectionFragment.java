@@ -2,11 +2,14 @@ package com.example.proyecto_final_hoteleros.client.ui.fragment;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageButton;
+import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -17,22 +20,37 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.proyecto_final_hoteleros.R;
+import com.example.proyecto_final_hoteleros.adminhotel.model.HotelProfile;
 import com.example.proyecto_final_hoteleros.client.ui.activity.AllHotelServicesActivity;
 import com.example.proyecto_final_hoteleros.client.ui.adapters.RoomTypeAdapter;
 import com.example.proyecto_final_hoteleros.client.data.model.RoomType;
+import com.example.proyecto_final_hoteleros.client.utils.ClientRoomManager;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class RoomSelectionFragment extends Fragment {
 
+    private static final String TAG = "RoomSelectionFragment";
+
+    // Views
     private RecyclerView rvRoomTypes;
     private Button btnNextStep;
     private TextView tvHotelName;
     private ImageButton btnBack;
+    private ProgressBar progressBar;
+    private LinearLayout layoutEmptyState;
+    private TextView tvEmptyMessage;
+
+    // Datos
     private RoomTypeAdapter adapter;
     private String hotelName;
     private String hotelPrice;
+    private HotelProfile currentHotel; // ✅ NUEVO: Referencia al hotel actual
+    private List<RoomType> roomTypes;
+
+    // Firebase
+    private ClientRoomManager clientRoomManager; // ✅ NUEVO: Manager para obtener habitaciones
 
     @Nullable
     @Override
@@ -40,10 +58,10 @@ public class RoomSelectionFragment extends Fragment {
         View view = inflater.inflate(R.layout.client_fragment_room_selection, container, false);
 
         // Inicializar vistas
-        rvRoomTypes = view.findViewById(R.id.rv_room_types);
-        btnNextStep = view.findViewById(R.id.btn_next_step);
-        tvHotelName = view.findViewById(R.id.tv_hotel_name);
-        btnBack = view.findViewById(R.id.btn_back);
+        initViews(view);
+
+        // Inicializar Firebase manager
+        clientRoomManager = ClientRoomManager.getInstance(getContext());
 
         return view;
     }
@@ -53,104 +71,90 @@ public class RoomSelectionFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
 
         // Obtener datos del hotel desde los argumentos
-        if (getArguments() != null) {
-            hotelName = getArguments().getString("hotel_name", "Belmond Miraflores Park");
-            hotelPrice = getArguments().getString("hotel_price", "S/290");
-            tvHotelName.setText(hotelName);
-        }
+        extractHotelDataFromArguments();
 
         // Configurar el RecyclerView
-        setupRoomTypes();
+        setupRecyclerView();
 
         // Configurar botones y eventos
         setupActions();
+
+        // ✅ CARGAR HABITACIONES REALES EN LUGAR DE DATOS HARDCODEADOS
+        loadRealHotelRooms();
     }
 
-    private void setupRoomTypes() {
-        // Crear lista de tipos de habitación con servicios incluidos
-        List<RoomType> roomTypes = new ArrayList<>();
+    // ========== INICIALIZACIÓN ==========
 
-        // Habitación Estándar
-        List<String> standardServices = new ArrayList<>();
-        standardServices.add("wifi");
-        standardServices.add("reception");
-        standardServices.add("parking");
+    private void initViews(View view) {
+        rvRoomTypes = view.findViewById(R.id.rv_room_types);
+        btnNextStep = view.findViewById(R.id.btn_next_step);
+        tvHotelName = view.findViewById(R.id.tv_hotel_name);
+        btnBack = view.findViewById(R.id.btn_back);
 
-        List<String> standardFeatures = new ArrayList<>();
-        standardFeatures.add("TV de 32 pulgadas");
-        standardFeatures.add("Aire acondicionado");
-        standardFeatures.add("Baño privado");
+        // ✅ NUEVAS VISTAS PARA ESTADOS DE CARGA
+        progressBar = view.findViewById(R.id.progressBar);
+        layoutEmptyState = view.findViewById(R.id.layoutEmptyState);
+        tvEmptyMessage = view.findViewById(R.id.tvEmptyMessage);
 
-        roomTypes.add(new RoomType("Habitación Estándar", 30, "S/290", R.drawable.belmond,
-                standardServices, "Habitación cómoda con comodidades básicas", standardFeatures));
+        // Si no existen en el layout, crearlas programáticamente (fallback)
+        if (progressBar == null) {
+            progressBar = new ProgressBar(getContext());
+            progressBar.setVisibility(View.GONE);
+        }
+        if (layoutEmptyState == null) {
+            layoutEmptyState = new LinearLayout(getContext());
+            layoutEmptyState.setVisibility(View.GONE);
+        }
+    }
 
-        // Habitación Deluxe
-        List<String> deluxeServices = new ArrayList<>();
-        deluxeServices.add("wifi");
-        deluxeServices.add("reception");
-        deluxeServices.add("parking");
-        deluxeServices.add("minibar");
+    private void extractHotelDataFromArguments() {
+        if (getArguments() != null) {
+            hotelName = getArguments().getString("hotel_name", "Hotel");
+            hotelPrice = getArguments().getString("hotel_price", "S/0");
 
-        List<String> deluxeFeatures = new ArrayList<>();
-        deluxeFeatures.add("TV de 42 pulgadas");
-        deluxeFeatures.add("Baño con bañera");
-        deluxeFeatures.add("Vista a la ciudad");
-        deluxeFeatures.add("Minibar incluido");
+            // ✅ NUEVO: Obtener el HotelProfile completo si está disponible
+            currentHotel = getArguments().getParcelable("hotel_profile");
 
-        roomTypes.add(new RoomType("Habitación Deluxe", 40, "S/350", R.drawable.belmond,
-                deluxeServices, "Habitación espaciosa con amenidades premium", deluxeFeatures));
+            // Si no hay HotelProfile pero sí hay hotelAdminId, creamos uno básico
+            if (currentHotel == null) {
+                String hotelAdminId = getArguments().getString("hotel_admin_id");
+                if (hotelAdminId != null) {
+                    currentHotel = new HotelProfile();
+                    currentHotel.setHotelAdminId(hotelAdminId);
+                    currentHotel.setName(hotelName);
+                }
+            }
 
-        // Suite Junior
-        List<String> juniorServices = new ArrayList<>();
-        juniorServices.add("wifi");
-        juniorServices.add("reception");
-        juniorServices.add("parking");
-        juniorServices.add("minibar");
-        juniorServices.add("room_service");
+            tvHotelName.setText(hotelName);
 
-        List<String> juniorFeatures = new ArrayList<>();
-        juniorFeatures.add("Sala de estar separada");
-        juniorFeatures.add("Baño con jacuzzi");
-        juniorFeatures.add("Vista panorámica");
-        juniorFeatures.add("Servicio 24/7");
+            Log.d(TAG, "✅ Datos del hotel extraídos - Nombre: " + hotelName +
+                    ", HotelProfile: " + (currentHotel != null ? "✅" : "❌"));
+        }
+    }
 
-        roomTypes.add(new RoomType("Suite Junior", 50, "S/450", R.drawable.belmond,
-                juniorServices, "Suite elegante con área de estar independiente", juniorFeatures));
+    private void setupRecyclerView() {
+        roomTypes = new ArrayList<>();
 
-        // Suite Presidencial
-        List<String> presServices = new ArrayList<>();
-        presServices.add("wifi");
-        presServices.add("reception");
-        presServices.add("parking");
-        presServices.add("minibar");
-        presServices.add("room_service");
-        presServices.add("laundry");
-
-        List<String> presFeatures = new ArrayList<>();
-        presFeatures.add("Dormitorio principal");
-        presFeatures.add("Sala amplia");
-        presFeatures.add("Balcón privado");
-        presFeatures.add("Servicio de mayordomía");
-
-        roomTypes.add(new RoomType("Suite Presidencial", 70, "S/650", R.drawable.belmond,
-                presServices, "La suite más lujosa con servicios exclusivos", presFeatures));
-
-        // Configurar adapter
         adapter = new RoomTypeAdapter(roomTypes, position -> {
             // Callback cuando se selecciona una habitación
-            RoomType selectedRoom = roomTypes.get(position);
-            Toast.makeText(getContext(), "Habitación seleccionada: " + selectedRoom.getName(), Toast.LENGTH_SHORT).show();
+            if (position >= 0 && position < roomTypes.size()) {
+                RoomType selectedRoom = roomTypes.get(position);
+                Toast.makeText(getContext(), "Habitación seleccionada: " + selectedRoom.getName(), Toast.LENGTH_SHORT).show();
+                Log.d(TAG, "🏨 Habitación seleccionada: " + selectedRoom.getName() + " - " + selectedRoom.getPrice());
+            }
         });
 
         rvRoomTypes.setLayoutManager(new LinearLayoutManager(getContext()));
         rvRoomTypes.setAdapter(adapter);
+
+        Log.d(TAG, "✅ RecyclerView configurado");
     }
 
     private void setupActions() {
         // Botón de retroceso
         btnBack.setOnClickListener(v -> requireActivity().onBackPressed());
 
-        // Botón de siguiente paso - NUEVO FLUJO
+        // Botón de siguiente paso
         btnNextStep.setOnClickListener(v -> {
             // Verificar si hay una habitación seleccionada
             if (adapter.getSelectedPosition() == -1) {
@@ -163,9 +167,95 @@ public class RoomSelectionFragment extends Fragment {
         });
     }
 
+    // ========== CARGA DE HABITACIONES REALES ==========
+
+    /**
+     * ✅ NUEVO MÉTODO: Cargar habitaciones reales del hotel desde Firebase
+     */
+    private void loadRealHotelRooms() {
+        if (currentHotel == null || currentHotel.getHotelAdminId() == null) {
+            Log.w(TAG, "❌ No hay información del hotel para cargar habitaciones");
+            showEmptyState("No se pudo obtener información del hotel");
+            return;
+        }
+
+        showLoading();
+
+        Log.d(TAG, "🔍 Cargando habitaciones reales para hotel: " + currentHotel.getName() +
+                " (AdminId: " + currentHotel.getHotelAdminId() + ")");
+
+        clientRoomManager.getHotelRooms(currentHotel.getHotelAdminId(), new ClientRoomManager.RoomsCallback() {
+            @Override
+            public void onSuccess(List<RoomType> rooms) {
+                if (getActivity() != null) {
+                    getActivity().runOnUiThread(() -> {
+                        hideLoading();
+
+                        if (rooms.isEmpty()) {
+                            Log.w(TAG, "📭 No hay habitaciones disponibles para este hotel");
+                            showEmptyState("Este hotel aún no tiene habitaciones disponibles");
+                        } else {
+                            Log.d(TAG, "✅ Habitaciones cargadas exitosamente: " + rooms.size());
+                            showRoomsData(rooms);
+                        }
+                    });
+                }
+            }
+
+            @Override
+            public void onError(String error) {
+                if (getActivity() != null) {
+                    getActivity().runOnUiThread(() -> {
+                        hideLoading();
+                        Log.e(TAG, "❌ Error cargando habitaciones: " + error);
+                        showEmptyState("Error cargando habitaciones del hotel");
+                        Toast.makeText(getContext(), "Error: " + error, Toast.LENGTH_SHORT).show();
+                    });
+                }
+            }
+        });
+    }
+
+    // ========== GESTIÓN DE ESTADOS DE LA UI ==========
+
+    private void showLoading() {
+        progressBar.setVisibility(View.VISIBLE);
+        rvRoomTypes.setVisibility(View.GONE);
+        layoutEmptyState.setVisibility(View.GONE);
+        btnNextStep.setVisibility(View.GONE);
+    }
+
+    private void hideLoading() {
+        progressBar.setVisibility(View.GONE);
+    }
+
+    private void showRoomsData(List<RoomType> rooms) {
+        roomTypes.clear();
+        roomTypes.addAll(rooms);
+        adapter.notifyDataSetChanged();
+
+        rvRoomTypes.setVisibility(View.VISIBLE);
+        layoutEmptyState.setVisibility(View.GONE);
+        btnNextStep.setVisibility(View.VISIBLE);
+
+        Log.d(TAG, "✅ " + rooms.size() + " habitaciones mostradas en la UI");
+    }
+
+    private void showEmptyState(String message) {
+        rvRoomTypes.setVisibility(View.GONE);
+        btnNextStep.setVisibility(View.GONE);
+
+        if (tvEmptyMessage != null) {
+            tvEmptyMessage.setText(message);
+        }
+        layoutEmptyState.setVisibility(View.VISIBLE);
+    }
+
+    // ========== NAVEGACIÓN (MÉTODOS EXISTENTES MANTENIDOS) ==========
+
     private void navigateToServiceSelection() {
         RoomType selectedRoom = adapter.getSelectedPosition() != -1 ?
-                adapter.getRoomTypes().get(adapter.getSelectedPosition()) : null;
+                roomTypes.get(adapter.getSelectedPosition()) : null;
 
         if (selectedRoom == null) {
             Toast.makeText(getContext(), "Por favor selecciona una habitación", Toast.LENGTH_SHORT).show();
@@ -207,13 +297,13 @@ public class RoomSelectionFragment extends Fragment {
 
     private void navigateToBookingWithServices(String selectedServices) {
         RoomType selectedRoom = adapter.getSelectedPosition() != -1 ?
-                adapter.getRoomTypes().get(adapter.getSelectedPosition()) : null;
+                roomTypes.get(adapter.getSelectedPosition()) : null;
 
         if (selectedRoom == null) return;
 
         Bundle args = new Bundle();
         args.putString("hotel_name", hotelName);
-        args.putString("hotel_address", "Miraflores, Lima, Perú");
+        args.putString("hotel_address", currentHotel != null ? currentHotel.getAddress() : "Dirección no disponible");
         args.putParcelable("selected_room", selectedRoom);
         args.putString("check_in_date", "8 abril");
         args.putString("check_out_date", "9 abril");
@@ -241,6 +331,7 @@ public class RoomSelectionFragment extends Fragment {
                 .addToBackStack(null)
                 .commit();
     }
+
     private double getRoomPriceValue(RoomType room) {
         try {
             return Double.parseDouble(room.getPrice().replace("S/", "").trim());
@@ -248,6 +339,7 @@ public class RoomSelectionFragment extends Fragment {
             return 290.0;
         }
     }
+
     private double calculateAdditionalServicesPrice(String selectedServices, double roomPrice) {
         double total = 0.0;
 

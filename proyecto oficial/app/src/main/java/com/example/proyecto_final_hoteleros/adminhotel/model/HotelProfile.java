@@ -1,8 +1,12 @@
 package com.example.proyecto_final_hoteleros.adminhotel.model;
 
+import android.os.Parcel;
+import android.os.Parcelable;
+
+import java.util.ArrayList;
 import java.util.List;
 
-public class HotelProfile {
+public class HotelProfile implements Parcelable {
     private String id;
     private String hotelAdminId;
     private String name;
@@ -74,6 +78,63 @@ public class HotelProfile {
         this.departamento = "";
         this.provincia = "";
         this.distrito = "";
+    }
+
+    // ✅ IMPLEMENTACIÓN PARCELABLE
+    protected HotelProfile(Parcel in) {
+        id = in.readString();
+        hotelAdminId = in.readString();
+        name = in.readString();
+        address = in.readString();
+        locationName = in.readString();
+        fullAddress = in.readString();
+        latitude = in.readDouble();
+        longitude = in.readDouble();
+        departamento = in.readString();
+        provincia = in.readString();
+        distrito = in.readString();
+        photoUrls = new ArrayList<>();
+        in.readList(photoUrls, String.class.getClassLoader());
+        isActive = in.readByte() != 0;
+        createdAt = in.readLong();
+        Long tmpActivatedAt = in.readLong();
+        activatedAt = tmpActivatedAt == -1 ? null : tmpActivatedAt;
+    }
+
+    public static final Creator<HotelProfile> CREATOR = new Creator<HotelProfile>() {
+        @Override
+        public HotelProfile createFromParcel(Parcel in) {
+            return new HotelProfile(in);
+        }
+
+        @Override
+        public HotelProfile[] newArray(int size) {
+            return new HotelProfile[size];
+        }
+    };
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeString(id);
+        dest.writeString(hotelAdminId);
+        dest.writeString(name);
+        dest.writeString(address);
+        dest.writeString(locationName);
+        dest.writeString(fullAddress);
+        dest.writeDouble(latitude);
+        dest.writeDouble(longitude);
+        dest.writeString(departamento);
+        dest.writeString(provincia);
+        dest.writeString(distrito);
+        dest.writeList(photoUrls);
+        dest.writeByte((byte) (isActive ? 1 : 0));
+        dest.writeLong(createdAt);
+        dest.writeLong(activatedAt != null ? activatedAt : -1);
     }
 
     // ========== GETTERS Y SETTERS ORIGINALES ==========
@@ -217,151 +278,135 @@ public class HotelProfile {
     }
 
     /**
-     * Verifica si la información básica está completa - ACTUALIZADO
+     * Obtiene la primera foto como imagen de preview
      */
-    public boolean isBasicInfoComplete() {
-        return name != null && !name.trim().isEmpty() &&
-                address != null && !address.trim().isEmpty() &&
-                hasValidLocation();
+    public String getPreviewImageUrl() {
+        return hasPhotos() ? photoUrls.get(0) : null;
     }
 
-    /**
-     * Verifica si el hotel tiene suficientes fotos para activación
-     */
-    public boolean hasEnoughPhotos(int minRequired) {
-        return getPhotoCount() >= minRequired;
-    }
+    // ========== NUEVOS MÉTODOS DE UTILIDAD PARA UBICACIÓN ==========
 
     /**
-     * Verifica si alguna vez ha sido activado
-     */
-    public boolean hasBeenActivated() {
-        return activatedAt != null;
-    }
-
-    /**
-     * Obtiene el estado del hotel como string
-     */
-    public String getStatusString() {
-        if (isActive) {
-            return "Activo";
-        } else if (hasBeenActivated()) {
-            return "Desactivado";
-        } else {
-            return "En Configuración";
-        }
-    }
-
-    // ========== NUEVOS MÉTODOS DE UTILIDAD DE UBICACIÓN ==========
-
-    /**
-     * Verifica si tiene una ubicación válida con coordenadas
+     * Verifica si el hotel tiene coordenadas válidas
      */
     public boolean hasValidLocation() {
-        return latitude != 0.0 && longitude != 0.0 &&
-                locationName != null && !locationName.trim().isEmpty() &&
-                fullAddress != null && !fullAddress.trim().isEmpty();
+        return latitude != 0.0 && longitude != 0.0;
     }
 
     /**
-     * Verifica si tiene información de ubicación política (departamento, provincia, distrito)
+     * Obtiene la dirección para mostrar (prioriza fullAddress)
      */
-    public boolean hasLocationComponents() {
-        return departamento != null && !departamento.trim().isEmpty() &&
-                provincia != null && !provincia.trim().isEmpty() &&
-                distrito != null && !distrito.trim().isEmpty();
+    public String getDisplayAddress() {
+        if (fullAddress != null && !fullAddress.trim().isEmpty()) {
+            return fullAddress;
+        }
+        return address != null ? address : "";
     }
 
     /**
-     * Actualiza toda la información de ubicación de una vez
+     * Obtiene la ubicación completa en formato jerárquico
      */
-    public void updateLocation(String locationName, String fullAddress,
-                               double latitude, double longitude) {
-        this.locationName = locationName;
-        this.fullAddress = fullAddress;
-        this.latitude = latitude;
-        this.longitude = longitude;
+    public String getHierarchicalLocation() {
+        StringBuilder location = new StringBuilder();
 
-        // Actualizar también el address principal para compatibilidad
-        this.address = fullAddress;
-
-        // Parsear componentes de ubicación
-        parseLocationComponents(fullAddress);
-    }
-
-    /**
-     * Parsea los componentes de ubicación desde la dirección completa
-     */
-    private void parseLocationComponents(String address) {
-        if (address == null || address.trim().isEmpty()) {
-            return;
+        if (distrito != null && !distrito.trim().isEmpty()) {
+            location.append(distrito);
         }
 
-        // Lógica para extraer departamento, provincia, distrito
-        // Ejemplo: "Av. José Larco 123, Miraflores, Lima, Perú"
-        String[] parts = address.split(", ");
-        if (parts.length >= 3) {
-            // Último elemento generalmente es el país, lo ignoramos
-            this.distrito = parts[parts.length - 3].trim();
-            this.provincia = parts[parts.length - 2].trim();
-
-            // Para Perú, muchas veces provincia y departamento son lo mismo
-            if (parts.length >= 4) {
-                this.departamento = parts[parts.length - 3].trim();
-            } else {
-                this.departamento = this.provincia; // Fallback
-            }
+        if (provincia != null && !provincia.trim().isEmpty()) {
+            if (location.length() > 0) location.append(", ");
+            location.append(provincia);
         }
+
+        if (departamento != null && !departamento.trim().isEmpty()) {
+            if (location.length() > 0) location.append(", ");
+            location.append(departamento);
+        }
+
+        return location.length() > 0 ? location.toString() : getDisplayAddress();
     }
 
     /**
-     * Obtiene una representación corta de la ubicación
+     * Verifica si el hotel está completamente configurado
      */
-    public String getLocationSummary() {
-        if (hasLocationComponents()) {
-            return distrito + ", " + provincia;
-        } else if (locationName != null && !locationName.trim().isEmpty()) {
-            return locationName;
-        } else {
-            return address != null ? address : "Ubicación no disponible";
-        }
+    public boolean isFullyConfigured() {
+        return name != null && !name.trim().isEmpty() &&
+                hasValidLocation() &&
+                hasPhotos() &&
+                hotelAdminId != null && !hotelAdminId.trim().isEmpty();
     }
 
     /**
-     * Calcula la distancia a otro punto (en kilómetros)
+     * Obtiene un resumen del estado del hotel
      */
-    public double getDistanceTo(double otherLatitude, double otherLongitude) {
+    public String getConfigurationStatus() {
+        if (isFullyConfigured()) {
+            return isActive ? "Hotel activo y completamente configurado" : "Hotel configurado, pendiente activación";
+        }
+
+        List<String> missing = new ArrayList<>();
+        if (name == null || name.trim().isEmpty()) missing.add("nombre");
+        if (!hasValidLocation()) missing.add("ubicación");
+        if (!hasPhotos()) missing.add("fotos");
+        if (hotelAdminId == null) missing.add("administrador");
+
+        return "Configuración incompleta: falta " + String.join(", ", missing);
+    }
+
+    /**
+     * ✅ NUEVO: Calcula la distancia entre el hotel y unas coordenadas dadas
+     * Utiliza la fórmula de Haversine para calcular distancias geográficas
+     * @param lat Latitud de destino
+     * @param lon Longitud de destino
+     * @return Distancia en kilómetros
+     */
+    public double getDistanceTo(double lat, double lon) {
         if (!hasValidLocation()) {
-            return Double.MAX_VALUE;
+            return Double.MAX_VALUE; // Retorna distancia máxima si no tiene ubicación válida
         }
 
         final int R = 6371; // Radio de la Tierra en kilómetros
 
-        double latDistance = Math.toRadians(otherLatitude - this.latitude);
-        double lonDistance = Math.toRadians(otherLongitude - this.longitude);
+        double latDistance = Math.toRadians(lat - this.latitude);
+        double lonDistance = Math.toRadians(lon - this.longitude);
 
         double a = Math.sin(latDistance / 2) * Math.sin(latDistance / 2)
-                + Math.cos(Math.toRadians(this.latitude)) * Math.cos(Math.toRadians(otherLatitude))
+                + Math.cos(Math.toRadians(this.latitude)) * Math.cos(Math.toRadians(lat))
                 * Math.sin(lonDistance / 2) * Math.sin(lonDistance / 2);
 
         double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 
-        return R * c;
+        return R * c; // Distancia en kilómetros
+    }
+
+    /**
+     * ✅ NUEVO: Obtiene la distancia formateada como texto
+     * @param lat Latitud de destino
+     * @param lon Longitud de destino
+     * @return Distancia formateada (ej: "2.5 km", "850 m")
+     */
+    public String getFormattedDistanceTo(double lat, double lon) {
+        double distance = getDistanceTo(lat, lon);
+
+        if (distance == Double.MAX_VALUE) {
+            return "Ubicación no disponible";
+        }
+
+        if (distance < 1.0) {
+            return String.format("%.0f m", distance * 1000);
+        } else {
+            return String.format("%.1f km", distance);
+        }
     }
 
     @Override
     public String toString() {
         return "HotelProfile{" +
                 "id='" + id + '\'' +
-                ", hotelAdminId='" + hotelAdminId + '\'' +
                 ", name='" + name + '\'' +
-                ", address='" + address + '\'' +
-                ", locationName='" + locationName + '\'' +
-                ", coordinates=[" + latitude + ", " + longitude + "]" +
-                ", photoCount=" + getPhotoCount() +
                 ", isActive=" + isActive +
-                ", status='" + getStatusString() + '\'' +
-                ", hasValidLocation=" + hasValidLocation() +
+                ", location=" + getHierarchicalLocation() +
+                ", photos=" + getPhotoCount() +
                 '}';
     }
 }

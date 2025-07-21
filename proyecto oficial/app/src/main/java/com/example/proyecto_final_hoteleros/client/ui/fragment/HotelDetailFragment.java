@@ -1114,19 +1114,84 @@ public class HotelDetailFragment extends Fragment implements ThumbnailAdapter.On
     }
 
     private void navigateToRoomSelection() {
-        // Crear el fragmento de selección de habitación
-        RoomSelectionFragment roomSelectionFragment = new RoomSelectionFragment();
-        // Pasar datos del hotel al fragmento
-        Bundle args = new Bundle();
-        args.putString("hotel_name", tvHotelName.getText().toString());
-        args.putString("hotel_price", tvHotelPrice.getText().toString());
-        roomSelectionFragment.setArguments(args);
+        try {
+            Log.d(TAG, "🏨 Iniciando navegación a selección de habitaciones");
 
-        // Navegar al fragmento
-        requireActivity().getSupportFragmentManager()
-                .beginTransaction()
-                .replace(R.id.fragment_container, new RoomSelectionFragment())
-                .addToBackStack(null)
-                .commit();
+            // Crear el fragmento de selección de habitación
+            RoomSelectionFragment roomSelectionFragment = new RoomSelectionFragment();
+
+            // Pasar datos del hotel al fragmento
+            Bundle args = new Bundle();
+
+            // ✅ DATOS BÁSICOS (ya existentes)
+            String hotelName = tvHotelName != null ? tvHotelName.getText().toString() : "Hotel";
+            String hotelPrice = tvHotelPrice != null ? tvHotelPrice.getText().toString() : "S/0";
+
+            args.putString("hotel_name", hotelName);
+            args.putString("hotel_price", hotelPrice);
+
+            // ✅ NUEVO: Pasar el HotelProfile completo si está disponible
+            if (currentHotel != null) {
+                Log.d(TAG, "✅ Pasando HotelProfile completo: " + currentHotel.getName() +
+                        " (AdminId: " + currentHotel.getHotelAdminId() + ")");
+                args.putParcelable("hotel_profile", currentHotel);
+            } else {
+                // ✅ FALLBACK: Si no hay currentHotel, intentar obtener hotelAdminId desde argumentos
+                String hotelAdminId = getHotelAdminIdFromArguments();
+                if (hotelAdminId != null) {
+                    Log.d(TAG, "✅ Usando hotelAdminId desde argumentos: " + hotelAdminId);
+                    args.putString("hotel_admin_id", hotelAdminId);
+                } else {
+                    Log.w(TAG, "⚠️ No se puede obtener hotelAdminId - Las habitaciones no se podrán cargar");
+                    Toast.makeText(getContext(), "Error: No se puede acceder a las habitaciones del hotel", Toast.LENGTH_LONG).show();
+                    return;
+                }
+            }
+
+            roomSelectionFragment.setArguments(args);
+
+            // Navegar al fragmento con animación
+            requireActivity().getSupportFragmentManager()
+                    .beginTransaction()
+                    .setCustomAnimations(
+                            R.anim.slide_in_right,
+                            R.anim.slide_out_left,
+                            R.anim.slide_in_left,
+                            R.anim.slide_out_right
+                    )
+                    .replace(R.id.fragment_container, roomSelectionFragment)
+                    .addToBackStack("room_selection")
+                    .commit();
+
+            Log.d(TAG, "✅ Navegación a RoomSelectionFragment completada");
+
+        } catch (Exception e) {
+            Log.e(TAG, "❌ Error navegando a selección de habitaciones: " + e.getMessage());
+            Toast.makeText(getContext(), "Error abriendo selección de habitaciones", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private String getHotelAdminIdFromArguments() {
+        if (getArguments() != null) {
+            // Buscar en diferentes posibles nombres de argumentos
+            String hotelAdminId = getArguments().getString("hotel_admin_id");
+            if (hotelAdminId == null) {
+                hotelAdminId = getArguments().getString("hotelAdminId");
+            }
+            if (hotelAdminId == null) {
+                hotelAdminId = getArguments().getString("admin_id");
+            }
+
+            Log.d(TAG, "🔍 HotelAdminId desde argumentos: " + hotelAdminId);
+            return hotelAdminId;
+        }
+        return null;
+    }
+    public void setCurrentHotel(HotelProfile hotel) {
+        this.currentHotel = hotel;
+        Log.d(TAG, "✅ HotelProfile establecido: " + (hotel != null ? hotel.getName() : "null"));
+    }
+    public HotelProfile getCurrentHotel() {
+        return currentHotel;
     }
 }
