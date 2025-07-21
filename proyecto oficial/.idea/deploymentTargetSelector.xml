@@ -12,6 +12,14 @@
           </Target>
         </DropdownSelection>
         <DialogSelection />
+        <DropdownSelection timestamp="2025-07-14T02:32:30.093479400Z">
+          <Target type="DEFAULT_BOOT">
+            <handle>
+              <DeviceId pluginId="LocalEmulator" identifier="path=C:\Users\PC\.android\avd\Pixel_4.avd" />
+            </handle>
+          </Target>
+        </DropdownSelection>
+        <DialogSelection />
       </SelectionState>
     </selectionStates>
   </component>

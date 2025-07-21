@@ -16,7 +16,8 @@
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.VIBRATE" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
-
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+        android:maxSdkVersion="28" />
     <!-- Permisos para galería e imágenes -->
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
@@ -52,7 +53,8 @@
         <activity
             android:name=".MainActivity"
             android:exported="true"
-            android:configChanges="orientation|screenSize|keyboardHidden">
+            android:configChanges="orientation|screenSize|keyboardHidden"
+            android:windowSoftInputMode="adjustPan|stateHidden">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
@@ -63,25 +65,30 @@
             android:name=".AuthActivity"
             android:exported="true"
             android:configChanges="orientation|screenSize|keyboardHidden"
+            android:windowSoftInputMode="adjustPan|stateHidden"
             android:screenOrientation="unspecified" />
 
         <activity
             android:name=".client.ui.activity.HomeActivity"
+            android:windowSoftInputMode="adjustResize|stateHidden"
             android:exported="false" />
 
         <!-- Actividad del Taxista -->
         <activity
             android:name=".taxista.activity.DriverActivity"
+            android:windowSoftInputMode="adjustPan|stateHidden"
             android:exported="false" />
 
         <!-- ========== ACTIVIDADES DE AUTENTICACIÓN (TUS CAMBIOS) ========== -->
         <activity
             android:name=".auth.register.UploadDriverDocumentsActivity"
+            android:windowSoftInputMode="adjustPan|stateHidden"
             android:exported="false"
             android:configChanges="orientation|screenSize|keyboardHidden" />
 
         <activity
             android:name=".auth.register.RegisterVerifyActivity"
+            android:windowSoftInputMode="adjustPan|stateHidden"
             android:exported="false"
             android:configChanges="orientation|screenSize|keyboardHidden" />
 
@@ -89,11 +96,13 @@
 
         <activity
             android:name=".auth.register.RegisterSuccessActivity"
+            android:windowSoftInputMode="adjustPan|stateHidden"
             android:exported="false"
             android:configChanges="orientation|screenSize|keyboardHidden" />
 
         <activity
             android:name=".auth.register.AddProfilePhotoActivity"
+            android:windowSoftInputMode="adjustPan|stateHidden"
             android:exported="false"
             android:configChanges="orientation|screenSize|keyboardHidden" />
 
@@ -101,54 +110,64 @@
             android:name=".auth.register.RegisterUserActivity"
             android:exported="false"
             android:configChanges="orientation|screenSize|keyboardHidden"
-            android:screenOrientation="unspecified" />
+            android:screenOrientation="unspecified"
+            android:windowSoftInputMode="adjustPan|stateHidden" />
 
         <activity
             android:name=".auth.password.SuccessActivity"
+            android:windowSoftInputMode="adjustPan|stateHidden"
             android:exported="false"
             android:configChanges="orientation|screenSize|keyboardHidden" />
 
         <!-- ========== ACTIVIDADES DE CLIENTE ========== -->
         <activity
             android:name=".client.ui.activity.LocationSelectorActivity"
+            android:windowSoftInputMode="adjustResize|stateHidden"
             android:exported="true" />
 
         <!-- ========== ACTIVIDADES DE SUPERADMIN ========== -->
         <activity
             android:name=".superadmin.activity.SuperAdminActivity"
+            android:windowSoftInputMode="adjustResize|stateHidden"
             android:exported="true" />
 
         <activity
             android:name=".adminhotel.activity.AdminHotelActivity"
+            android:windowSoftInputMode="adjustResize|stateHidden"
             android:exported="true" />
 
         <!-- ========== ACTIVIDADES DE ADMIN HOTEL ========== -->
 
 
 
-
         <!-- ========== ACTIVIDADES DE SERVICIOS ========== -->
         <activity
             android:name=".client.ui.activity.AllHotelServicesActivity"
+            android:windowSoftInputMode="adjustResize|stateHidden"
             android:exported="true" />
 
         <activity
             android:name=".client.ui.activity.CardDialogActivity"
+            android:windowSoftInputMode="adjustResize|stateHidden"
             android:exported="true" />
 
         <activity
             android:name=".client.ui.activity.HotelServicesPreviewActivity"
+            android:windowSoftInputMode="adjustResize|stateHidden"
             android:exported="true" />
         <activity
             android:name=".client.ui.activity.HotelResultsActivity"
+            android:windowSoftInputMode="adjustResize|stateHidden"
             android:exported="false" />
         <!-- Actividad de prueba de notificaciones -->
         <activity
             android:name=".client.ui.activity.NotificationTestActivity"
+            android:windowSoftInputMode="adjustResize|stateHidden"
             android:exported="false" />
 
         <activity
             android:name=".client.ui.activity.ViewAllServicesActivity"
+            android:windowSoftInputMode="adjustResize|stateHidden"
             android:exported="false" />
 
         <!-- ========== SERVICIOS ========== -->
