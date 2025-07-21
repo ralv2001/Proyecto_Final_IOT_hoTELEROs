@@ -6,6 +6,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.util.Log;
+
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -20,6 +22,7 @@ import java.util.Map;
 
 public class GroupedHotelsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
+    private static final String TAG = "GroupedHotelsAdapter";
     private static final int TYPE_CITY_HEADER = 0;
     private static final int TYPE_HOTEL_ITEM = 1;
 
@@ -28,7 +31,7 @@ public class GroupedHotelsAdapter extends RecyclerView.Adapter<RecyclerView.View
     private List<Object> currentItems;
     private OnHotelClickListener hotelClickListener;
 
-    // ✅ NUEVA estructura para manejar expansión
+    // ✅ ESTRUCTURA para manejar expansión de headers
     private Map<String, Boolean> cityExpansionState = new HashMap<>();
     private Map<String, List<Hotel>> cityHotelsMap = new HashMap<>();
 
@@ -44,7 +47,7 @@ public class GroupedHotelsAdapter extends RecyclerView.Adapter<RecyclerView.View
         rebuildCurrentItems();
     }
 
-    // ✅ INICIALIZAR estructura de datos
+    // ✅ INICIALIZAR estructura de datos para expansión
     private void initializeData() {
         cityExpansionState.clear();
         cityHotelsMap.clear();
@@ -54,107 +57,58 @@ public class GroupedHotelsAdapter extends RecyclerView.Adapter<RecyclerView.View
 
         for (Object item : originalItems) {
             if (item instanceof CityHeader) {
-                // Guardar hoteles de ciudad anterior
+                // Si había una ciudad anterior, guardar sus hoteles
                 if (currentCity != null && !currentCityHotels.isEmpty()) {
                     cityHotelsMap.put(currentCity, new ArrayList<>(currentCityHotels));
+                    cityExpansionState.put(currentCity, true); // Por defecto expandido
                 }
 
                 // Nueva ciudad
                 CityHeader header = (CityHeader) item;
                 currentCity = header.getCityName();
-                cityExpansionState.put(currentCity, true); // Por defecto expandido
-                currentCityHotels.clear();
+                currentCityHotels = new ArrayList<>();
+
+                Log.d(TAG, "🏙️ Inicializando ciudad: " + currentCity);
 
             } else if (item instanceof Hotel && currentCity != null) {
+                // Agregar hotel a la ciudad actual
                 currentCityHotels.add((Hotel) item);
             }
         }
 
-        // Guardar última ciudad
+        // No olvidar la última ciudad
         if (currentCity != null && !currentCityHotels.isEmpty()) {
             cityHotelsMap.put(currentCity, new ArrayList<>(currentCityHotels));
+            cityExpansionState.put(currentCity, true);
         }
+
+        Log.d(TAG, "✅ Inicialización completada. Ciudades: " + cityHotelsMap.size());
     }
 
-    // ✅ RECONSTRUIR lista actual según estados de expansión
+    // ✅ RECONSTRUIR lista actual basada en estados de expansión
     private void rebuildCurrentItems() {
         currentItems.clear();
-
-        String currentCity = null;
 
         for (Object item : originalItems) {
             if (item instanceof CityHeader) {
                 CityHeader header = (CityHeader) item;
-                currentCity = header.getCityName();
+                String cityName = header.getCityName();
 
-                // Siempre agregar header
+                // Siempre agregar el header
                 currentItems.add(header);
 
                 // Agregar hoteles solo si está expandido
-                Boolean isExpanded = cityExpansionState.get(currentCity);
+                Boolean isExpanded = cityExpansionState.get(cityName);
                 if (isExpanded != null && isExpanded) {
-                    List<Hotel> hotels = cityHotelsMap.get(currentCity);
-                    if (hotels != null && !hotels.isEmpty()) {
-                        currentItems.addAll(hotels);
+                    List<Hotel> cityHotels = cityHotelsMap.get(cityName);
+                    if (cityHotels != null) {
+                        currentItems.addAll(cityHotels);
                     }
                 }
             }
         }
-    }
 
-    // ✅ TOGGLE mejorado con animación suave
-    private void toggleCityExpansion(String cityName) {
-        Boolean currentState = cityExpansionState.get(cityName);
-        if (currentState == null) return;
-
-        boolean newState = !currentState;
-        cityExpansionState.put(cityName, newState);
-
-        // Encontrar posición del header
-        int headerPosition = -1;
-        for (int i = 0; i < currentItems.size(); i++) {
-            Object item = currentItems.get(i);
-            if (item instanceof CityHeader) {
-                CityHeader header = (CityHeader) item;
-                if (header.getCityName().equals(cityName)) {
-                    headerPosition = i;
-                    break;
-                }
-            }
-        }
-
-        if (headerPosition == -1) return;
-
-        List<Hotel> cityHotels = cityHotelsMap.get(cityName);
-        if (cityHotels == null || cityHotels.isEmpty()) return;
-
-        if (newState) {
-            // EXPANDIR: insertar hoteles después del header
-            for (int i = 0; i < cityHotels.size(); i++) {
-                currentItems.add(headerPosition + 1 + i, cityHotels.get(i));
-                notifyItemInserted(headerPosition + 1 + i);
-            }
-        } else {
-            // COLAPSAR: remover hoteles
-            for (int i = cityHotels.size() - 1; i >= 0; i--) {
-                currentItems.remove(headerPosition + 1);
-                notifyItemRemoved(headerPosition + 1);
-            }
-        }
-
-        // Actualizar header
-        notifyItemChanged(headerPosition);
-    }
-
-    public void setOnHotelClickListener(OnHotelClickListener listener) {
-        this.hotelClickListener = listener;
-    }
-
-    public void updateItems(List<Object> newItems) {
-        this.originalItems = new ArrayList<>(newItems);
-        initializeData();
-        rebuildCurrentItems();
-        notifyDataSetChanged();
+        Log.d(TAG, "🔄 Lista reconstruida. Items actuales: " + currentItems.size());
     }
 
     @Override
@@ -195,7 +149,7 @@ public class GroupedHotelsAdapter extends RecyclerView.Adapter<RecyclerView.View
         return currentItems.size();
     }
 
-    // ✅ VIEWHOLDER para headers con animación igual a la de detalles
+    // ✅ VIEWHOLDER para headers con funcionalidad de expansión
     class CityHeaderViewHolder extends RecyclerView.ViewHolder {
         TextView tvCityName, tvHotelCount;
         ImageView ivCityIcon, ivExpandCollapse;
@@ -211,101 +165,239 @@ public class GroupedHotelsAdapter extends RecyclerView.Adapter<RecyclerView.View
         void bind(CityHeader cityHeader) {
             String cityName = cityHeader.getCityName();
             tvCityName.setText(cityName);
-            tvHotelCount.setText(cityHeader.getSubtitle());
+
+            // Mostrar información de hoteles
+            List<Hotel> cityHotels = cityHotelsMap.get(cityName);
+            int hotelCount = cityHotels != null ? cityHotels.size() : 0;
+            String subtitle = cityHeader.getSubtitle();
+            if (subtitle == null || subtitle.isEmpty()) {
+                subtitle = hotelCount + " hoteles disponibles";
+            }
+            tvHotelCount.setText(subtitle);
 
             // Estado de expansión
             Boolean isExpanded = cityExpansionState.get(cityName);
             if (isExpanded == null) isExpanded = true;
 
-            // ✅ ANIMACIÓN IGUAL A LA DE DETALLES DE BÚSQUEDA
+            // ✅ ANIMACIÓN de rotación del ícono de expansión
             float targetRotation = isExpanded ? 180f : 0f;
-            ivExpandCollapse.setRotation(targetRotation);
-
-            // Click con feedback visual
-            itemView.setOnClickListener(v -> {
-                // ✅ MISMA ANIMACIÓN QUE EN toggleDetailsVisibility()
-                v.animate()
-                        .scaleX(0.98f)
-                        .scaleY(0.98f)
-                        .setDuration(100)
-                        .withEndAction(() -> {
-                            v.animate()
-                                    .scaleX(1f)
-                                    .scaleY(1f)
-                                    .setDuration(100)
-                                    .start();
-                        })
-                        .start();
-
-                // Animar rotación del chevron
-                Boolean currentExpanded = cityExpansionState.get(cityName);
-                float newRotation = (currentExpanded != null && currentExpanded) ? 0f : 180f;
-
+            if (ivExpandCollapse != null) {
                 ivExpandCollapse.animate()
-                        .rotation(newRotation)
-                        .setDuration(250)
+                        .rotation(targetRotation)
+                        .setDuration(200)
                         .start();
+            }
 
-                // Toggle con delay para sincronizar con animación
-                itemView.postDelayed(() -> toggleCityExpansion(cityName), 100);
+            // ✅ CLICK LISTENER para expandir/colapsar
+            itemView.setOnClickListener(v -> {
+                Log.d(TAG, "🔄 Header clickeado: " + cityName);
+                toggleCityExpansion(cityName);
             });
+
+            Log.d(TAG, "🎭 Header vinculado - Ciudad: " + cityName + ", Expandido: " + isExpanded + ", Hoteles: " + hotelCount);
         }
     }
 
-    // ✅ VIEWHOLDER para hoteles (sin cambios)
+    // ✅ VIEWHOLDER para hoteles
     class HotelViewHolder extends RecyclerView.ViewHolder {
-        ImageView ivHotelImage;
         TextView tvHotelName, tvLocation, tvPrice, tvRating;
+        ImageView ivHotelImage;
 
         HotelViewHolder(@NonNull View itemView) {
             super(itemView);
-            ivHotelImage = itemView.findViewById(R.id.ivHotelImage);
             tvHotelName = itemView.findViewById(R.id.tvHotelName);
             tvLocation = itemView.findViewById(R.id.tvLocation);
             tvPrice = itemView.findViewById(R.id.tvPrice);
             tvRating = itemView.findViewById(R.id.tvRating);
+            ivHotelImage = itemView.findViewById(R.id.ivHotelImage);
         }
 
         void bind(Hotel hotel, int position) {
+            // Configurar datos del hotel
             tvHotelName.setText(hotel.getName());
             tvLocation.setText(hotel.getLocation());
             tvPrice.setText(hotel.getPrice());
             tvRating.setText(hotel.getRating());
 
-            // Configurar imagen
-            String imageName = hotel.getImageUrl();
-            if (imageName.contains("/")) {
-                imageName = imageName.substring(imageName.lastIndexOf("/") + 1);
-            }
-            int resID = context.getResources().getIdentifier(
-                    imageName, "drawable", context.getPackageName()
-            );
-            if (resID != 0) {
-                ivHotelImage.setImageResource(resID);
-            } else {
-                ivHotelImage.setImageResource(R.drawable.belmond);
-            }
+            // ✅ CARGAR IMAGEN REAL O PLACEHOLDER
+            loadHotelImage(ivHotelImage, hotel.getImageUrl(), hotel.getName());
 
             // Click listener
             itemView.setOnClickListener(v -> {
-                v.animate()
-                        .scaleX(0.95f)
-                        .scaleY(0.95f)
-                        .setDuration(100)
-                        .withEndAction(() -> {
-                            v.animate()
-                                    .scaleX(1f)
-                                    .scaleY(1f)
-                                    .setDuration(100)
-                                    .withEndAction(() -> {
-                                        if (hotelClickListener != null) {
-                                            hotelClickListener.onHotelClick(hotel, position);
-                                        }
-                                    })
-                                    .start();
-                        })
-                        .start();
+                if (hotelClickListener != null) {
+                    hotelClickListener.onHotelClick(hotel, position);
+                }
             });
         }
+    }
+
+    // ✅ MÉTODO MEJORADO: Cargar imagen desde URL o usar placeholder
+    private void loadHotelImage(ImageView imageView, String imageUrl, String hotelName) {
+        if (imageUrl != null && imageUrl.startsWith("http")) {
+            // ✅ CARGAR IMAGEN REAL DESDE URL
+            Log.d(TAG, "📸 Cargando imagen real para: " + hotelName);
+
+            com.bumptech.glide.Glide.with(imageView.getContext())
+                    .load(imageUrl)
+                    .placeholder(R.drawable.hotel_placeholder) // Mientras carga
+                    .error(R.drawable.hotel_placeholder)       // Si falla
+                    .diskCacheStrategy(com.bumptech.glide.load.engine.DiskCacheStrategy.ALL)
+                    .centerCrop()
+                    .into(imageView);
+        } else {
+            // ✅ USAR IMAGEN PLACEHOLDER O DRAWABLE
+            Log.d(TAG, "🖼️ Usando placeholder para: " + hotelName);
+
+            if (imageUrl != null && !imageUrl.equals("hotel_placeholder")) {
+                // Intentar cargar como recurso drawable
+                int resID = context.getResources().getIdentifier(
+                        imageUrl, "drawable", context.getPackageName()
+                );
+
+                if (resID != 0) {
+                    imageView.setImageResource(resID);
+                } else {
+                    imageView.setImageResource(R.drawable.hotel_placeholder);
+                }
+            } else {
+                imageView.setImageResource(R.drawable.hotel_placeholder);
+            }
+        }
+    }
+
+    // ✅ MÉTODO para alternar expansión de ciudad con animaciones
+    private void toggleCityExpansion(String cityName) {
+        Boolean currentState = cityExpansionState.get(cityName);
+        if (currentState == null) return;
+
+        boolean newState = !currentState;
+        cityExpansionState.put(cityName, newState);
+
+        Log.d(TAG, "🔄 Alternando expansión - Ciudad: " + cityName + ", Nuevo estado: " + newState);
+
+        // Encontrar posición del header
+        int headerPosition = -1;
+        for (int i = 0; i < currentItems.size(); i++) {
+            Object item = currentItems.get(i);
+            if (item instanceof CityHeader) {
+                CityHeader header = (CityHeader) item;
+                if (header.getCityName().equals(cityName)) {
+                    headerPosition = i;
+                    break;
+                }
+            }
+        }
+
+        if (headerPosition == -1) {
+            Log.w(TAG, "❌ No se encontró header para ciudad: " + cityName);
+            return;
+        }
+
+        List<Hotel> cityHotels = cityHotelsMap.get(cityName);
+        if (cityHotels == null || cityHotels.isEmpty()) {
+            Log.w(TAG, "❌ No hay hoteles para ciudad: " + cityName);
+            return;
+        }
+
+        if (newState) {
+            // EXPANDIR: insertar hoteles después del header
+            Log.d(TAG, "➕ Expandiendo - Insertando " + cityHotels.size() + " hoteles");
+            for (int i = 0; i < cityHotels.size(); i++) {
+                currentItems.add(headerPosition + 1 + i, cityHotels.get(i));
+                notifyItemInserted(headerPosition + 1 + i);
+            }
+        } else {
+            // COLAPSAR: remover hoteles
+            Log.d(TAG, "➖ Colapsando - Removiendo " + cityHotels.size() + " hoteles");
+            for (int i = cityHotels.size() - 1; i >= 0; i--) {
+                currentItems.remove(headerPosition + 1);
+                notifyItemRemoved(headerPosition + 1);
+            }
+        }
+
+        // Actualizar header (para animación del ícono)
+        notifyItemChanged(headerPosition);
+
+        Log.d(TAG, "✅ Expansión completada. Items actuales: " + currentItems.size());
+    }
+
+    // ✅ MÉTODOS PÚBLICOS
+
+    public void setOnHotelClickListener(OnHotelClickListener listener) {
+        this.hotelClickListener = listener;
+    }
+
+    public void updateItems(List<Object> newItems) {
+        Log.d(TAG, "🔄 Actualizando items. Nuevos: " + newItems.size());
+
+        this.originalItems = new ArrayList<>(newItems);
+        initializeData();
+        rebuildCurrentItems();
+        notifyDataSetChanged();
+
+        Log.d(TAG, "✅ Items actualizados. Total actual: " + currentItems.size());
+    }
+
+    // ✅ MÉTODO para obtener hoteles visibles (para filtros)
+    public List<Hotel> getVisibleHotels() {
+        List<Hotel> visibleHotels = new ArrayList<>();
+        for (Object item : currentItems) {
+            if (item instanceof Hotel) {
+                visibleHotels.add((Hotel) item);
+            }
+        }
+        return visibleHotels;
+    }
+
+    // ✅ MÉTODO para expandir/colapsar todas las ciudades
+    public void expandAllCities() {
+        boolean hasChanges = false;
+        for (String cityName : cityExpansionState.keySet()) {
+            if (!cityExpansionState.get(cityName)) {
+                cityExpansionState.put(cityName, true);
+                hasChanges = true;
+            }
+        }
+
+        if (hasChanges) {
+            rebuildCurrentItems();
+            notifyDataSetChanged();
+        }
+    }
+
+    public void collapseAllCities() {
+        boolean hasChanges = false;
+        for (String cityName : cityExpansionState.keySet()) {
+            if (cityExpansionState.get(cityName)) {
+                cityExpansionState.put(cityName, false);
+                hasChanges = true;
+            }
+        }
+
+        if (hasChanges) {
+            rebuildCurrentItems();
+            notifyDataSetChanged();
+        }
+    }
+
+    // ✅ MÉTODO para obtener estadísticas
+    public int getTotalCities() {
+        return cityHotelsMap.size();
+    }
+
+    public int getTotalHotels() {
+        int total = 0;
+        for (List<Hotel> hotels : cityHotelsMap.values()) {
+            total += hotels.size();
+        }
+        return total;
+    }
+
+    public int getExpandedCities() {
+        int expanded = 0;
+        for (Boolean isExpanded : cityExpansionState.values()) {
+            if (isExpanded) expanded++;
+        }
+        return expanded;
     }
 }
