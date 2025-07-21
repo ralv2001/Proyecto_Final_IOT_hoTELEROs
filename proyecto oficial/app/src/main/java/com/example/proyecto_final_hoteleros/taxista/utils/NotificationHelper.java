@@ -307,12 +307,33 @@ public class NotificationHelper {
     }
     // === NOTIFICACIONES DE SOLICITUDES DE VIAJE ===
     public void showTripRequestNotification(String hotelName, String clientName, String pickup, double price) {
-        Intent intent = new Intent(context, DriverActivity.class);
-        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-        intent.putExtra("open_fragment", "viajes");
+        // ✅ INTENT PRINCIPAL PARA IR A DETALLES
+        Intent mainIntent = new Intent(context, DriverActivity.class);
+        mainIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        mainIntent.putExtra("trip_action", "show_details"); // ✅ CAMBIO PRINCIPAL
+        mainIntent.putExtra("hotel_name", hotelName);
+        mainIntent.putExtra("client_name", clientName);
+        mainIntent.putExtra("hotel_address", pickup);
+        mainIntent.putExtra("price", price);
 
-        PendingIntent pendingIntent = PendingIntent.getActivity(
-                context, 0, intent,
+        PendingIntent mainPendingIntent = PendingIntent.getActivity(
+                context, 1001, mainIntent, // ✅ ID único para el intent principal
+                Build.VERSION.SDK_INT >= Build.VERSION_CODES.M ?
+                        PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE :
+                        PendingIntent.FLAG_UPDATE_CURRENT
+        );
+
+        // ✅ INTENT PARA BOTÓN "VER DETALLES"
+        Intent detailsIntent = new Intent(context, DriverActivity.class);
+        detailsIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        detailsIntent.putExtra("trip_action", "show_details");
+        detailsIntent.putExtra("hotel_name", hotelName);
+        detailsIntent.putExtra("client_name", clientName);
+        detailsIntent.putExtra("hotel_address", pickup);
+        detailsIntent.putExtra("price", price);
+
+        PendingIntent detailsPendingIntent = PendingIntent.getActivity(
+                context, 1002, detailsIntent, // ✅ ID único diferente
                 Build.VERSION.SDK_INT >= Build.VERSION_CODES.M ?
                         PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE :
                         PendingIntent.FLAG_UPDATE_CURRENT
@@ -330,30 +351,35 @@ public class NotificationHelper {
                                 "Precio: S/ " + String.format("%.2f", price)))
                 .setPriority(NotificationCompat.PRIORITY_HIGH)
                 .setAutoCancel(true)
-                .setContentIntent(pendingIntent)
+                .setContentIntent(mainPendingIntent) // ✅ Intent principal al tocar la notificación
                 .setVibrate(new long[]{0, 500, 200, 500})
                 .setSound(RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION))
-                .addAction(R.drawable.ic_check_circle, "Aceptar", createTripActionIntent("accept"))
+                .addAction(R.drawable.ic_check_circle, "Ver Detalles", detailsPendingIntent) // ✅ CAMBIO: "Ver Detalles" en lugar de "Aceptar"
                 .addAction(R.drawable.ic_close, "Rechazar", createTripActionIntent("reject"));
 
         notificationManager.notify(1001, builder.build());
 
         // Incrementar contador de notificaciones
-        int currentCount = preferenceManager.getNotificationCount();
-        preferenceManager.setNotificationCount(currentCount + 1);
+        if (preferenceManager != null) {
+            int currentCount = preferenceManager.getNotificationCount();
+            preferenceManager.setNotificationCount(currentCount + 1);
+        }
     }
 
     private PendingIntent createTripActionIntent(String action) {
         Intent intent = new Intent(context, DriverActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         intent.putExtra("trip_action", action);
+
+        int requestCode = "accept".equals(action) ? 1003 : 1004; // ✅ IDs únicos
+
         return PendingIntent.getActivity(
-                context, action.hashCode(), intent,
+                context, requestCode, intent,
                 Build.VERSION.SDK_INT >= Build.VERSION_CODES.M ?
                         PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE :
                         PendingIntent.FLAG_UPDATE_CURRENT
         );
     }
-
     // === NOTIFICACIONES DE ESTADO ===
     public void showDriverStatusNotification(boolean isOnline) {
         String title = isOnline ? "¡Estás en línea!" : "Has salido de línea";

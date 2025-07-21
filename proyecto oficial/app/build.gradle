@@ -56,7 +56,6 @@ dependencies {
     implementation libs.navigation.runtime
     implementation libs.room.runtime.android
     implementation libs.room.common.jvm
-    implementation libs.androidx.appcompat
     annotationProcessor 'com.github.bumptech.glide:compiler:4.16.0'
     implementation 'de.hdodenhof:circleimageview:3.1.0'
     implementation 'com.caverock:androidsvg:1.4'

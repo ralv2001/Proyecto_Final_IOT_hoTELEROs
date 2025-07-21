@@ -13,6 +13,8 @@
     <color name="orange_button">#F35D38</color>
     <color name="background">#FFFFFF</color>
 
+    <!-- Colores para el escáner QR -->
+    <color name="dark_background">#FF121212</color>
     <!-- Color principal -->
     <color name="primary_FF6B35">#FF6B35</color>
 

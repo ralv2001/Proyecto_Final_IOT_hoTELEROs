@@ -67,7 +67,6 @@
                     android:gravity="center"/>
 
                 <!-- Icono de notificaciones -->
-                <!-- Reemplaza el ImageView actual de notificaciones con esto -->
                 <FrameLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content">
@@ -102,7 +101,7 @@
                 android:background="#E0E0E0"
                 android:layout_marginBottom="12dp"/>
 
-            <!-- El resto del contenido existente -->
+            <!-- Estado del conductor -->
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -145,6 +144,157 @@
         </LinearLayout>
     </androidx.cardview.widget.CardView>
 
+    <!-- 🆕 CARD DE SERVICIO ACTIVO -->
+    <!-- 🆕 CARD COMPACTA Y MODERNA -->
+    <!-- Card desplegable -->
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/cardServicioActivo"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="12dp"
+        android:visibility="gone"
+        app:cardCornerRadius="16dp"
+        app:cardElevation="8dp"
+        app:cardBackgroundColor="#E8F5E9"
+        app:strokeColor="#4CAF50"
+        app:strokeWidth="2dp"
+        app:layout_constraintTop_toBottomOf="@id/cardEstadoTaxista">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <!-- Header clickeable (siempre visible) -->
+            <LinearLayout
+                android:id="@+id/headerServicioActivo"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:padding="14dp"
+                android:background="?attr/selectableItemBackground"
+                android:clickable="true"
+                android:focusable="true">
+
+                <TextView
+                    android:id="@+id/tvClienteName"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="🚕 Juan Pérez - Hotel Plaza"
+                    android:textSize="15sp"
+                    android:textStyle="bold"
+                    android:textColor="#2E7D32"/>
+
+                <TextView
+                    android:id="@+id/tvServiceStatus"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="● EN CURSO"
+                    android:textSize="11sp"
+                    android:textColor="#4CAF50"
+                    android:textStyle="bold"
+                    android:layout_marginEnd="8dp"/>
+
+                <ImageView
+                    android:id="@+id/iconExpandCollapse"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/ic_expand_more"
+                    app:tint="#4CAF50"/>
+
+            </LinearLayout>
+
+            <!-- Contenido expandible -->
+            <LinearLayout
+                android:id="@+id/contenidoExpandible"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="14dp"
+                android:paddingTop="0dp"
+                android:visibility="gone">
+
+                <!-- Información detallada -->
+                <TextView
+                    android:id="@+id/tvHotelName"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="🏨 Hotel Grand Plaza"
+                    android:textSize="14sp"
+                    android:textColor="#FF6B35"
+                    android:textStyle="bold"
+                    android:layout_marginBottom="4dp"/>
+
+                <TextView
+                    android:id="@+id/tvDestinationAddress"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="📍 Aeropuerto Internacional Jorge Chávez"
+                    android:textSize="13sp"
+                    android:textColor="#666666"
+                    android:layout_marginBottom="8dp"/>
+
+                <TextView
+                    android:id="@+id/tvDistanceTime"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="📏 15.5 km • ⏱️ 25 minutos"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    android:textColor="#4CAF50"
+                    android:layout_marginBottom="12dp"/>
+
+                <!-- ✅ BOTONES SIN LLAMAR - MÁS GRANDES Y MEJOR DISTRIBUIDOS -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center">
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnIniciarNavegacion"
+                        android:layout_width="0dp"
+                        android:layout_height="48dp"
+                        android:layout_weight="1"
+                        android:layout_marginEnd="6dp"
+                        android:text="🗺️ Google Maps"
+                        android:textSize="13sp"
+                        app:backgroundTint="#2196F3"
+                        style="@style/Widget.Material3.Button"/>
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnMostrarRuta"
+                        android:layout_width="0dp"
+                        android:layout_height="48dp"
+                        android:layout_weight="1"
+                        android:layout_marginStart="6dp"
+                        android:layout_marginEnd="6dp"
+                        android:text="🛣️ Ver Ruta"
+                        android:textSize="13sp"
+                        app:backgroundTint="#9C27B0"
+                        style="@style/Widget.Material3.Button"/>
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnCompletarServicio"
+                        android:layout_width="0dp"
+                        android:layout_height="48dp"
+                        android:layout_weight="1"
+                        android:layout_marginStart="6dp"
+                        android:text="📱 Finalizar"
+                        android:textSize="13sp"
+                        app:backgroundTint="#FF6B35"
+                        style="@style/Widget.Material3.Button"/>
+
+                </LinearLayout>
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+    </com.google.android.material.card.MaterialCardView>
+
     <!-- Controles de zoom -->
     <LinearLayout
         android:id="@+id/zoom_controls"
@@ -153,7 +303,7 @@
         android:orientation="vertical"
         android:layout_margin="16dp"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/cardEstadoTaxista">
+        app:layout_constraintTop_toBottomOf="@id/cardServicioActivo">
 
         <com.google.android.material.floatingactionbutton.FloatingActionButton
             android:id="@+id/btnZoomIn"

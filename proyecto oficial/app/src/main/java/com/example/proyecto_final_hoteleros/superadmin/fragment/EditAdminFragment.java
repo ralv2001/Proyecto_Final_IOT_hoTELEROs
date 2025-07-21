@@ -47,7 +47,7 @@ public class EditAdminFragment extends Fragment {
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_edit_admin, container, false);
+        View view = inflater.inflate(R.layout.superadmin_fragment_edit_admin, container, false);
 
         initViews(view);
         loadAdminData();
