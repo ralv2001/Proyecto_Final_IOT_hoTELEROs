@@ -130,9 +130,16 @@ public class AddHotelAdminFragment extends Fragment {
 
         // Validar email
         String email = formData.get("admin_email");
-        if (email != null && !email.isEmpty() && !isValidEmail(email)) {
-            errors.add("• Email inválido");
+        if (email != null && !email.isEmpty()) {
+            if (!isValidEmail(email)) {
+                errors.add("• Email inválido");
+            } else {
+                // 🔥 NUEVA VALIDACIÓN: Verificar si el email ya existe
+                checkEmailExistsBeforeCreate(email, errors, formData);
+                return; // Salir aquí para manejar la validación asíncrona
+            }
         }
+
 
         // Validar contraseñas
         String password = formData.get("admin_password");
@@ -153,6 +160,30 @@ public class AddHotelAdminFragment extends Fragment {
 
         // Si todo está correcto, crear el administrador
         showCreateConfirmation(formData);
+    }
+    private void checkEmailExistsBeforeCreate(String email, List<String> errors, Map<String, String> formData) {
+        FirebaseManager.getInstance().checkIfEmailExists(email, new FirebaseManager.AuthCallback() {
+            @Override
+            public void onSuccess(String result) {
+                // Email ya existe
+                if (getActivity() != null) {
+                    getActivity().runOnUiThread(() -> {
+                        errors.add("• Este email ya está registrado en el sistema");
+                        showValidationErrors(errors);
+                    });
+                }
+            }
+
+            @Override
+            public void onError(String error) {
+                // Email no existe, continuar con creación
+                if (getActivity() != null) {
+                    getActivity().runOnUiThread(() -> {
+                        showCreateConfirmation(formData);
+                    });
+                }
+            }
+        });
     }
 
     private boolean isValidEmail(String email) {
