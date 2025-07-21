@@ -16,11 +16,21 @@ import java.util.List;
 
 public class MetricsAdapter extends RecyclerView.Adapter<MetricsAdapter.MetricViewHolder> {
 
+    // Busca la clase MetricsAdapter y agrega esta interfaz al inicio de la clase
+    public interface OnMetricClickListener {
+        void onMetricClick(String metricType);
+    }
+
+    private OnMetricClickListener onMetricClickListener;
+
     private List<MetricItem> metrics;
 
-    public MetricsAdapter(List<MetricItem> metrics) {
+    // Modifica el constructor para incluir el listener
+    public MetricsAdapter(List<MetricItem> metrics, OnMetricClickListener listener) {
         this.metrics = metrics;
+        this.onMetricClickListener = listener;
     }
+
 
     @NonNull
     @Override
@@ -30,10 +40,19 @@ public class MetricsAdapter extends RecyclerView.Adapter<MetricsAdapter.MetricVi
         return new MetricViewHolder(view);
     }
 
+    // En el método onBindViewHolder, agrega el click listener al CardView
     @Override
     public void onBindViewHolder(@NonNull MetricViewHolder holder, int position) {
         MetricItem metric = metrics.get(position);
         holder.bind(metric);
+
+        // 🔥 NUEVO: Agregar click listener
+        holder.cardMetric.setOnClickListener(v -> {
+            if (onMetricClickListener != null) {
+                String metricType = determineMetricType(metric.getTitle());
+                onMetricClickListener.onMetricClick(metricType);
+            }
+        });
     }
 
     @Override
@@ -50,14 +69,16 @@ public class MetricsAdapter extends RecyclerView.Adapter<MetricsAdapter.MetricVi
     static class MetricViewHolder extends RecyclerView.ViewHolder {
         private ImageView ivIcon;
         private TextView tvValue, tvTitle;
-        // 🎨 NUEVAS VARIABLES (las otras pueden existir pero no se usan)
+        private androidx.cardview.widget.CardView cardMetric; // 🔥 USAR CardView ESPECÍFICO
 
         public MetricViewHolder(@NonNull View itemView) {
             super(itemView);
+            // 🔥 El itemView YA ES el CardView según tu layout
+            cardMetric = (androidx.cardview.widget.CardView) itemView;
+
             ivIcon = itemView.findViewById(R.id.iv_metric_icon);
             tvValue = itemView.findViewById(R.id.tv_metric_value);
             tvTitle = itemView.findViewById(R.id.tv_metric_title);
-            // Las referencias a gradient_container y tv_metric_change se obtienen dinámicamente
         }
 
         public void bind(MetricItem metric) {
@@ -125,5 +146,19 @@ public class MetricsAdapter extends RecyclerView.Adapter<MetricsAdapter.MetricVi
                 return false;
             });
         }
+    }
+
+    // 🔥 NUEVO: Método para determinar el tipo de métrica
+    private String determineMetricType(String title) {
+        if (title.contains("Usuarios Totales")) {
+            return "usuarios_totales";
+        } else if (title.contains("Taxistas Pendientes")) {
+            return "taxistas_pendientes";
+        } else if (title.contains("Usuarios Activos")) {
+            return "usuarios_activos";
+        } else if (title.contains("Reservas")) {
+            return "reservas";
+        }
+        return "unknown";
     }
 }

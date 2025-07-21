@@ -83,7 +83,7 @@ public class DashboardFragment extends Fragment {
     private void setupRecyclerViews() {
         // Tu código existente
         rvMetrics.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));
-        metricsAdapter = new MetricsAdapter(new ArrayList<>());
+        metricsAdapter = new MetricsAdapter(new ArrayList<>(), this::onMetricClick);
         rvMetrics.setAdapter(metricsAdapter);
 
         GridLayoutManager gridLayoutManager = new GridLayoutManager(getContext(), 2);
@@ -448,6 +448,41 @@ public class DashboardFragment extends Fragment {
         if (refreshHandler != null && refreshRunnable != null) {
             refreshHandler.removeCallbacks(refreshRunnable); // Limpiar callbacks anteriores
             refreshHandler.postDelayed(refreshRunnable, REFRESH_INTERVAL);
+        }
+    }
+
+    // 🔥 NUEVO: Manejar clicks en métricas
+    private void onMetricClick(String metricType) {
+        Log.d(TAG, "Métrica clickeada: " + metricType);
+
+        if (getActivity() instanceof SuperAdminActivity) {
+            SuperAdminActivity activity = (SuperAdminActivity) getActivity();
+
+            switch (metricType) {
+                case "usuarios_totales":
+                    Log.d(TAG, "Navegando a usuarios totales");
+                    activity.navigateToUsuariosWithFilter("ALL");
+                    break;
+
+                case "taxistas_pendientes":
+                    Log.d(TAG, "Navegando a taxistas pendientes");
+                    activity.navigateToTaxistasWithFilter("PENDING");
+                    break;
+
+                case "usuarios_activos":
+                    Log.d(TAG, "Navegando a usuarios activos");
+                    activity.navigateToUsuariosWithFilter("ACTIVE");
+                    break;
+
+                case "reservas":
+                    Log.d(TAG, "Navegando a reportes de reservas");
+                    activity.navigateToReportes();
+                    break;
+
+                default:
+                    Log.w(TAG, "Tipo de métrica no reconocido: " + metricType);
+                    break;
+            }
         }
     }
 

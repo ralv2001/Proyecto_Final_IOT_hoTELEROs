@@ -29,6 +29,9 @@ public class TaxistasFragment extends Fragment implements TaxistasAdapter.OnTaxi
     private LinearLayout layoutEmptyState;
     private FirebaseManager firebaseManager;
 
+    private List<TaxistaUser> allTaxistas = new ArrayList<>();
+
+
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -40,7 +43,26 @@ public class TaxistasFragment extends Fragment implements TaxistasAdapter.OnTaxi
         setupRecyclerView();
         loadDataFromFirebase(); // 🔥 Cambiar a datos reales
 
+
+        // Al final del método onCreateView(), antes del return view;
+        applyInitialFilter();
         return view;
+    }
+
+    // 🔥 MÉTODO ACTUALIZADO: Aplicar filtro inicial si viene de dashboard
+    private void applyInitialFilter() {
+        if (getArguments() != null) {
+            String initialFilter = getArguments().getString("initial_filter");
+            android.util.Log.d("TaxistasFragment", "Filtro inicial recibido: " + initialFilter);
+
+            if ("PENDING".equals(initialFilter)) {
+                // Esperar a que los datos se carguen antes de filtrar
+                new android.os.Handler().postDelayed(() -> {
+                    android.util.Log.d("TaxistasFragment", "Aplicando filtro inicial: PENDING");
+                    filterTaxistasByStatus("PENDING");
+                }, 1000); // Esperar 1 segundo para que los datos se carguen
+            }
+        }
     }
 
     private void initViews(View view) {
@@ -158,8 +180,11 @@ public class TaxistasFragment extends Fragment implements TaxistasAdapter.OnTaxi
         return sdf.format(new java.util.Date(timestamp));
     }
 
-    // 🔥 NUEVO MÉTODO: Actualizar lista de taxistas
+    // 🔥 MÉTODO ACTUALIZADO: Actualizar lista de taxistas
     private void updateTaxistasList(List<TaxistaUser> taxistas) {
+        // ✅ IMPORTANTE: Almacenar todos los taxistas para filtros
+        this.allTaxistas = new ArrayList<>(taxistas);
+
         if (taxistasAdapter != null) {
             taxistasAdapter.updateData(taxistas);
             android.util.Log.d("TaxistasFragment", "Adapter actualizado con " + taxistas.size() + " taxistas");
@@ -499,6 +524,9 @@ public class TaxistasFragment extends Fragment implements TaxistasAdapter.OnTaxi
 
         return taxistas;
     }
+
+
+
 
 
 
