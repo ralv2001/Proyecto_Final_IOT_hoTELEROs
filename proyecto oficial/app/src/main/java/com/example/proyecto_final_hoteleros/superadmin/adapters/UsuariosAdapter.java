@@ -89,8 +89,19 @@ public class UsuariosAdapter extends RecyclerView.Adapter<UsuariosAdapter.Usuari
             // Configurar tipo de usuario con color
             tvUserType.setTextColor(usuario.getUserTypeColor());
 
-            // Configurar botón de toggle
-            btnToggleStatus.setText(usuario.isActive() ? "Desactivar" : "Activar");
+            // Configurar botón de toggle con mejores colores
+            btnToggleStatus.setText(usuario.isActive() ? "DESACTIVAR" : "ACTIVAR");
+
+            if (usuario.isActive()) {
+                // Botón rojo para desactivar
+                btnToggleStatus.setBackgroundColor(android.graphics.Color.parseColor("#F44336"));
+                btnToggleStatus.setTextColor(android.graphics.Color.WHITE);
+            } else {
+                // Botón verde para activar
+                btnToggleStatus.setBackgroundColor(android.graphics.Color.parseColor("#4CAF50"));
+                btnToggleStatus.setTextColor(android.graphics.Color.WHITE);
+            }
+
             btnToggleStatus.setBackgroundColor(usuario.isActive() ?
                     android.graphics.Color.parseColor("#F44336") :
                     android.graphics.Color.parseColor("#4CAF50"));

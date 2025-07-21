@@ -114,8 +114,20 @@ public class FirebaseManager {
                     if (task.isSuccessful()) {
                         FirebaseUser user = auth.getCurrentUser();
                         if (user != null) {
-                            Log.d(TAG, "✅ Login exitoso: " + user.getUid());
-                            callback.onSuccess(user.getUid());
+                            // ✅ VERIFICAR SI EL USUARIO ESTÁ ACTIVO ANTES DE PERMITIR LOGIN
+                            checkUserActiveStatusAndLocation(user.getUid(), email, new BooleanCallback() {
+                                @Override
+                                public void onResult(boolean canLogin, String message) {
+                                    if (canLogin) {
+                                        Log.d(TAG, "✅ Login exitoso: " + user.getUid());
+                                        callback.onSuccess(user.getUid());
+                                    } else {
+                                        Log.w(TAG, "⚠️ Login denegado para: " + email + " - Razón: " + message);
+                                        auth.signOut(); // Cerrar sesión inmediatamente
+                                        callback.onError(message);
+                                    }
+                                }
+                            });
                         } else {
                             Log.e(TAG, "❌ Error: Usuario nulo después del login");
                             callback.onError("Error interno del servidor");
@@ -126,6 +138,60 @@ public class FirebaseManager {
                         Log.e(TAG, "❌ Error en login: " + error);
                         callback.onError(error);
                     }
+                });
+    }
+
+    // ✅ NUEVO MÉTODO: Verificar estado activo y ubicación del usuario
+    private void checkUserActiveStatusAndLocation(String userId, String email, BooleanCallback callback) {
+        Log.d(TAG, "🔍 Verificando estado y ubicación de usuario: " + userId);
+
+        // PASO 1: Buscar en colección 'users' (usuarios activos/aprobados)
+        firestore.collection(USERS_COLLECTION)
+                .document(userId)
+                .get()
+                .addOnSuccessListener(document -> {
+                    if (document.exists()) {
+                        // Usuario encontrado en 'users' - verificar si está activo
+                        Boolean isActive = document.getBoolean("isActive");
+                        String userType = document.getString("userType");
+
+                        Log.d(TAG, "👤 Usuario encontrado en 'users' - Activo: " + isActive + " - Tipo: " + userType);
+
+                        if (isActive != null && isActive) {
+                            Log.d(TAG, "✅ Usuario activo en colección 'users' - Login permitido");
+                            callback.onResult(true, "Login exitoso");
+                        } else {
+                            Log.w(TAG, "🚫 Usuario desactivado en colección 'users'");
+                            callback.onResult(false, "Tu cuenta ha sido desactivada por el administrador. Contacta al soporte técnico.");
+                        }
+                    } else {
+                        // PASO 2: No está en 'users', verificar si está en 'pending_drivers'
+                        Log.d(TAG, "🔍 Usuario no encontrado en 'users', verificando 'pending_drivers'...");
+
+                        firestore.collection(PENDING_DRIVERS_COLLECTION)
+                                .document(userId)
+                                .get()
+                                .addOnSuccessListener(pendingDoc -> {
+                                    if (pendingDoc.exists()) {
+                                        Log.w(TAG, "⏳ Usuario encontrado en 'pending_drivers' - Login denegado");
+                                        callback.onResult(false, "Tu cuenta de taxista está pendiente de aprobación. Espera la validación del administrador.");
+                                    } else {
+                                        Log.e(TAG, "❌ Usuario no encontrado en ninguna colección");
+                                        callback.onResult(false, "Tu cuenta no está registrada correctamente. Contacta al soporte técnico.");
+                                    }
+                                })
+                                .addOnFailureListener(e -> {
+                                    Log.e(TAG, "❌ Error verificando 'pending_drivers': " + e.getMessage());
+                                    // En caso de error, denegar acceso por seguridad
+                                    callback.onResult(false, "Error verificando el estado de tu cuenta. Intenta nuevamente.");
+                                });
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "❌ Error verificando estado del usuario: " + e.getMessage());
+                    // En caso de error de conexión, permitir login (para no bloquear por problemas técnicos)
+                    Log.w(TAG, "⚠️ Permitiendo login debido a error de conexión");
+                    callback.onResult(true, "Login con verificación limitada");
                 });
     }
 
@@ -427,13 +493,14 @@ public class FirebaseManager {
                 superAdminUser.setTelefono("999999999");
                 superAdminUser.setDireccion("Oficina Central");
                 superAdminUser.setNumeroDocumento("00000000");
-                superAdminUser.setActive(true);
+                superAdminUser.setActive(true); // ✅ AGREGAR ESTA LÍNEA
+                superAdminUser.setCreatedAt(System.currentTimeMillis()); // ✅ AGREGAR TIMESTAMP
 
                 // Guardar en Firestore
                 saveUserData(userId, superAdminUser, new DataCallback() {
                     @Override
                     public void onSuccess() {
-                        Log.d(TAG, "✅ Usuario superadmin creado exitosamente");
+                        Log.d(TAG, "✅ Usuario superadmin creado exitosamente con active: true");
                         callback.onSuccess();
                     }
 
@@ -1026,8 +1093,8 @@ public class FirebaseManager {
                                 UserModel user = UserModel.fromMap(document.getData());
                                 user.setUserId(document.getId());
                                 user.setUserType("driver"); // Asegurar que sea driver
-                                // Marcar como pendiente
-                                user.setActive(false);
+                                // ✅ CAMBIAR ESTA LÍNEA:
+                                user.setActive(false); // Forzar que los pending_drivers sean inactivos
                                 allUsers.add(user);
                             } catch (Exception e) {
                                 Log.e(TAG, "Error parseando taxista pendiente: " + e.getMessage());
@@ -1509,5 +1576,76 @@ public class FirebaseManager {
                     callback.onError("Error actualizando perfil: " + e.getMessage());
                 });
     }
+
+    // ========== MÉTODO PARA ACTIVAR/DESACTIVAR USUARIOS ==========
+    public void toggleUserStatus(String userId, boolean newStatus, DataCallback callback) {
+        Log.d(TAG, "🔄 Cambiando estado de usuario: " + userId + " a " + (newStatus ? "ACTIVO" : "INACTIVO"));
+
+        // Validar parámetros
+        if (userId == null || userId.isEmpty()) {
+            Log.e(TAG, "❌ ID de usuario inválido");
+            callback.onError("ID de usuario inválido");
+            return;
+        }
+
+        // Crear mapa con los campos a actualizar
+        Map<String, Object> updates = new HashMap<>();
+        updates.put("isActive", newStatus);
+        updates.put("updatedAt", System.currentTimeMillis());
+
+        // Agregar razón del cambio
+        String reason = newStatus ? "Activado por SuperAdmin" : "Desactivado por SuperAdmin";
+        updates.put("lastStatusChange", reason);
+
+        Log.d(TAG, "📝 Actualizando estado en Firebase: " + updates.toString());
+
+        firestore.collection(USERS_COLLECTION)
+                .document(userId)
+                .update(updates)
+                .addOnSuccessListener(aVoid -> {
+                    Log.d(TAG, "✅ Estado de usuario actualizado exitosamente en Firebase");
+                    callback.onSuccess();
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "❌ Error actualizando estado de usuario: " + e.getMessage());
+                    callback.onError("Error actualizando estado: " + e.getMessage());
+                });
+    }
+
+    // ========== MÉTODO PARA VALIDAR SI UN USUARIO PUEDE SER DESACTIVADO ==========
+    public void canDeactivateUser(String userId, String userType, BooleanCallback callback) {
+        Log.d(TAG, "🔍 Validando si se puede desactivar usuario: " + userId + " (tipo: " + userType + ")");
+
+        // Los superadmins no se pueden desactivar a sí mismos
+        FirebaseUser currentUser = getCurrentUser();
+        if (currentUser != null && currentUser.getUid().equals(userId) && "superadmin".equals(userType)) {
+            Log.w(TAG, "⚠️ SuperAdmin no puede desactivarse a sí mismo");
+            callback.onResult(false, "Los SuperAdmins no pueden desactivarse a sí mismos");
+            return;
+        }
+
+        // Validar si hay reservas activas (para clientes)
+        if ("client".equals(userType)) {
+            checkActiveReservations(userId, callback);
+        } else {
+            // Para otros tipos de usuario, permitir desactivación
+            callback.onResult(true, "Usuario puede ser desactivado");
+        }
+    }
+
+    // Callback para validaciones booleanas
+    public interface BooleanCallback {
+        void onResult(boolean canProceed, String message);
+    }
+
+    private void checkActiveReservations(String userId, BooleanCallback callback) {
+        // TODO: Implementar validación de reservas activas
+        // Por ahora, permitir desactivación
+        Log.d(TAG, "✅ Validación de reservas activas (pendiente de implementar)");
+        callback.onResult(true, "Validación de reservas pendiente");
+    }
+
+
+
 
 }

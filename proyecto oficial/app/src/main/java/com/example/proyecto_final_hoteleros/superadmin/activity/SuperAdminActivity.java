@@ -22,7 +22,9 @@ import com.example.proyecto_final_hoteleros.superadmin.fragment.ReportesFragment
 import com.example.proyecto_final_hoteleros.superadmin.fragment.TaxistaDocumentsFragment;
 import com.example.proyecto_final_hoteleros.utils.FirebaseManager;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class SuperAdminActivity extends AppCompatActivity {
 
@@ -564,4 +566,21 @@ public class SuperAdminActivity extends AppCompatActivity {
         // La lógica se movió a handleCustomBackPress()
     }
     */
+
+    // Método para loggear acciones importantes del SuperAdmin
+    public void logSuperAdminAction(String action, String targetUser, String details) {
+        Log.d(TAG, "📋 ACCIÓN SUPERADMIN: " + action + " | Usuario: " + targetUser + " | Detalles: " + details);
+
+        // Opcional: Guardar en Firebase para auditoría
+        Map<String, Object> logData = new HashMap<>();
+        logData.put("adminId", getUserId());
+        logData.put("adminEmail", getUserEmail());
+        logData.put("action", action);
+        logData.put("targetUser", targetUser);
+        logData.put("details", details);
+        logData.put("timestamp", System.currentTimeMillis());
+
+        // Guardar en colección de logs (opcional)
+        // FirebaseManager.getInstance().saveAdminLog(logData);
+    }
 }

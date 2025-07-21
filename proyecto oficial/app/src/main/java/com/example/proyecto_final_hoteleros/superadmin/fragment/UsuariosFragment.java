@@ -401,6 +401,12 @@ public class UsuariosFragment extends Fragment {
             usuario.setName(userModel.getFullName());
             usuario.setEmail(userModel.getEmail());
             usuario.setUserType(mapUserType(userModel.getUserType()));
+
+            // 🔍 LOG TEMPORAL PARA DEBUG
+            Log.d("UsuariosFragment", "🔍 Usuario: " + userModel.getFullName() +
+                    " - UserModel.isActive(): " + userModel.isActive() +
+                    " - Tipo: " + userModel.getUserType());
+
             usuario.setActive(userModel.isActive());
             usuario.setRegistrationDate(formatTimestamp(userModel.getCreatedAt()));
             usuario.setPhoneNumber(userModel.getTelefono());
@@ -547,18 +553,137 @@ public class UsuariosFragment extends Fragment {
     }
 
     private void toggleUsuarioStatus(Usuario usuario) {
+        Log.d("UsuariosFragment", "🔄 Iniciando toggle de estado para: " + usuario.getName());
+
         String action = usuario.isActive() ? "desactivar" : "activar";
+        String title = action.substring(0, 1).toUpperCase() + action.substring(1) + " usuario";
+        String message = "¿Estás seguro que deseas " + action + " a " + usuario.getName() + "?";
+
+        // Validaciones adicionales para desactivación
+        if (usuario.isActive() && needsExtraValidation(usuario)) {
+            message += "\n\n⚠️ Este usuario tiene un rol importante en el sistema.";
+        }
+
         new androidx.appcompat.app.AlertDialog.Builder(getContext())
-                .setTitle(action.substring(0, 1).toUpperCase() + action.substring(1) + " usuario")
-                .setMessage("¿Estás seguro que deseas " + action + " a " + usuario.getName() + "?")
+                .setTitle(title)
+                .setMessage(message)
                 .setPositiveButton(action.substring(0, 1).toUpperCase() + action.substring(1), (dialog, which) -> {
-                    usuario.setActive(!usuario.isActive());
-                    usuariosAdapter.notifyDataSetChanged();
-                    String message = usuario.isActive() ? "Usuario activado" : "Usuario desactivado";
-                    android.widget.Toast.makeText(getContext(), message, android.widget.Toast.LENGTH_SHORT).show();
+                    performStatusToggle(usuario);
                 })
                 .setNegativeButton("Cancelar", (dialog, which) -> dialog.dismiss())
+                .setIcon(usuario.isActive() ? R.drawable.ic_warning : R.drawable.ic_check)
                 .show();
+    }
+
+    private boolean needsExtraValidation(Usuario usuario) {
+        // Validar si es admin de hotel o taxista con reservas
+        return "ADMIN_HOTEL".equals(usuario.getUserType()) || "TAXISTA".equals(usuario.getUserType());
+    }
+
+    private void performStatusToggle(Usuario usuario) {
+        Log.d("UsuariosFragment", "🔄 Ejecutando cambio de estado para: " + usuario.getName());
+
+        // Mostrar loading
+        showLoading(true);
+
+        // Validar primero si se puede desactivar
+        if (usuario.isActive()) {
+            FirebaseManager.getInstance().canDeactivateUser(
+                    usuario.getId(),
+                    mapUserTypeToFirebase(usuario.getUserType()),
+                    new FirebaseManager.BooleanCallback() {
+                        @Override
+                        public void onResult(boolean canProceed, String message) {
+                            if (canProceed) {
+                                executeStatusChange(usuario);
+                            } else {
+                                if (getActivity() != null) {
+                                    getActivity().runOnUiThread(() -> {
+                                        showLoading(false);
+                                        showError("No se puede desactivar: " + message);
+                                    });
+                                }
+                            }
+                        }
+                    }
+            );
+        } else {
+            // Para activar, no necesita validaciones especiales
+            executeStatusChange(usuario);
+        }
+    }
+
+    private void executeStatusChange(Usuario usuario) {
+        boolean newStatus = !usuario.isActive();
+        String actionText = newStatus ? "activar" : "desactivar";
+
+        Log.d("UsuariosFragment", "🔄 Ejecutando " + actionText + " en Firebase para: " + usuario.getName());
+
+        FirebaseManager.getInstance().toggleUserStatus(usuario.getId(), newStatus, new FirebaseManager.DataCallback() {
+            @Override
+            public void onSuccess() {
+                Log.d("UsuariosFragment", "✅ Estado actualizado exitosamente en Firebase");
+
+                if (getActivity() != null) {
+                    getActivity().runOnUiThread(() -> {
+                        // Actualizar objeto local
+                        usuario.setActive(newStatus);
+
+                        // Actualizar adapter
+                        if (usuariosAdapter != null) {
+                            usuariosAdapter.notifyDataSetChanged();
+                        }
+
+                        // Mostrar mensaje de éxito
+                        String successMessage = usuario.isActive() ?
+                                "✅ Usuario activado exitosamente" :
+                                "🚫 Usuario desactivado exitosamente";
+
+                        android.widget.Toast.makeText(getContext(), successMessage, android.widget.Toast.LENGTH_SHORT).show();
+
+                        // Opcional: Refrescar lista completa para asegurar sincronización
+                        refreshUsersList();
+
+                        showLoading(false);
+                    });
+                }
+            }
+
+            @Override
+            public void onError(String error) {
+                Log.e("UsuariosFragment", "❌ Error actualizando estado: " + error);
+
+                if (getActivity() != null) {
+                    getActivity().runOnUiThread(() -> {
+                        showError("Error " + actionText.substring(0, actionText.length() - 1) + "ando usuario: " + error);
+                        showLoading(false);
+                    });
+                }
+            }
+        });
+    }
+
+    // Método auxiliar para mapear tipos de usuario al formato de Firebase
+    private String mapUserTypeToFirebase(String displayUserType) {
+        switch (displayUserType) {
+            case "CLIENTE":
+                return "client";
+            case "TAXISTA":
+            case "TAXISTA_PENDIENTE":
+                return "driver";
+            case "ADMIN_HOTEL":
+                return "hotel_admin";
+            case "SUPERADMIN":
+                return "superadmin";
+            default:
+                return "unknown";
+        }
+    }
+
+    // Método para refrescar la lista completa
+    private void refreshUsersList() {
+        Log.d("UsuariosFragment", "🔄 Refrescando lista de usuarios...");
+        loadData(); // ✅ ESTO ESTÁ CORRECTO
     }
 
     private void viewUsuarioDetails(Usuario usuario) {
