@@ -288,6 +288,34 @@ public class SuperAdminActivity extends AppCompatActivity {
         loadFragment(reportesFragment, "REPORTES", true);
     }
 
+    // 🔥 NUEVOS MÉTODOS: Navegación con filtros específicos
+    public void navigateToUsuariosWithFilter(String filter) {
+        Log.d(TAG, "Navegando a usuarios con filtro: " + filter);
+        UsuariosFragment usuariosFragment = new UsuariosFragment();
+
+        // Pasar el filtro como argumento
+        Bundle args = new Bundle();
+        args.putString("initial_filter", filter);
+        usuariosFragment.setArguments(args);
+
+        loadFragment(usuariosFragment, "USUARIOS", true);
+    }
+
+    public void navigateToTaxistasWithFilter(String filter) {
+        Log.d(TAG, "Navegando a taxistas con filtro: " + filter);
+        TaxistasFragment taxistasFragment = new TaxistasFragment();
+
+        // Pasar el filtro como argumento
+        Bundle args = new Bundle();
+        args.putString("initial_filter", filter);
+        taxistasFragment.setArguments(args);
+
+        loadFragment(taxistasFragment, "TAXISTAS", true);
+
+        // Actualizar referencia
+        this.taxistasFragment = taxistasFragment;
+    }
+
     public void navigateToLogs() {
         showToast("Logs del Sistema - Próximamente");
     }

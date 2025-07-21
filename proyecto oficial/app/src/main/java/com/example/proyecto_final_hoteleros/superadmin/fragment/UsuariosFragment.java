@@ -51,6 +51,9 @@ public class UsuariosFragment extends Fragment {
         setupRecyclerView();
         loadData();
 
+        // Al final del método onCreateView(), antes del return view;
+        applyInitialFilter();
+
         return view;
     }
 
@@ -590,5 +593,56 @@ public class UsuariosFragment extends Fragment {
                     android.widget.Toast.makeText(getContext(), "Filtro: " + options[which], android.widget.Toast.LENGTH_SHORT).show();
                 })
                 .show();
+    }
+
+
+    // 🔥 NUEVO: Aplicar filtro inicial si viene de dashboard
+    private void applyInitialFilter() {
+        if (getArguments() != null) {
+            String initialFilter = getArguments().getString("initial_filter");
+            android.util.Log.d("UsuariosFragment", "Filtro inicial recibido: " + initialFilter);
+
+            if ("ALL".equals(initialFilter)) {
+                // Mostrar todos los usuarios
+                currentFilter = "ALL";
+                android.util.Log.d("UsuariosFragment", "Aplicando filtro inicial: TODOS");
+            } else if ("ACTIVE".equals(initialFilter)) {
+                // Mostrar solo usuarios activos
+                currentFilter = "ACTIVE";
+                android.util.Log.d("UsuariosFragment", "Aplicando filtro inicial: ACTIVOS");
+
+                // Esperar a que los datos se carguen antes de filtrar
+                new android.os.Handler().postDelayed(() -> {
+                    filterUsuariosByStatus("ACTIVE");
+                }, 1000);
+            }
+        }
+    }
+
+    // 🔥 NUEVO: Filtrar usuarios por estado
+    private void filterUsuariosByStatus(String status) {
+        if (usuariosAdapter == null || allUsuarios.isEmpty()) {
+            android.widget.Toast.makeText(getContext(), "Cargando usuarios...", android.widget.Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        List<Usuario> filteredList = new ArrayList<>();
+
+        for (Usuario usuario : allUsuarios) {
+            if ("ACTIVE".equals(status) && usuario.isActive()) {
+                filteredList.add(usuario);
+            } else if ("ALL".equals(status)) {
+                filteredList.add(usuario);
+            }
+        }
+
+        usuariosAdapter.updateData(filteredList);
+
+        String statusText = "ACTIVE".equals(status) ? "activos" : "todos";
+        android.widget.Toast.makeText(getContext(),
+                "Mostrando " + filteredList.size() + " usuarios " + statusText,
+                android.widget.Toast.LENGTH_SHORT).show();
+
+        android.util.Log.d("UsuariosFragment", "Filtro aplicado - " + statusText + ": " + filteredList.size());
     }
 }
