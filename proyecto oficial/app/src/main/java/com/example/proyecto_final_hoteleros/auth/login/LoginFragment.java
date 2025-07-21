@@ -344,6 +344,8 @@ public class LoginFragment extends Fragment {
                         if (getActivity() != null) {
                             getActivity().runOnUiThread(() -> {
                                 Log.d("LoginFragment", "✅ Datos del usuario obtenidos: " + user.getFullName());
+                                Log.d("LoginFragment", "🔍 UserType detectado: '" + user.getUserType() + "'");
+                                Log.d("LoginFragment", "🔍 Es admin de hotel: " + "hotel_admin".equals(user.getUserType()));
 
                                 // Verificar si es superadmin
                                 if ("superadmin".equals(user.getUserType())) {
@@ -381,7 +383,7 @@ public class LoginFragment extends Fragment {
                                     case "driver":
                                         intent = new Intent(getActivity(), com.example.proyecto_final_hoteleros.taxista.activity.DriverActivity.class);
                                         break;
-                                    case "admin_hotel":
+                                    case "hotel_admin":
                                         intent = new Intent(getActivity(), com.example.proyecto_final_hoteleros.adminhotel.activity.AdminHotelActivity.class);
                                         break;
                                     default:
@@ -650,7 +652,7 @@ public class LoginFragment extends Fragment {
                                         resetGoogleLoginButton();
                                     }
 
-                                } else if ("admin_hotel".equals(userType)) {
+                                } else if ("hotel_admin".equals(userType)) {
                                     // Verificar si el administrador de hotel está activo
                                     if (isActive) {
                                         Toast.makeText(getContext(),
@@ -929,7 +931,7 @@ public class LoginFragment extends Fragment {
                                         resetGitHubLoginButton();
                                     }
 
-                                } else if ("admin_hotel".equals(userType)) {
+                                } else if ("hotel_admin".equals(userType)) {
                                     if (isActive) {
                                         Toast.makeText(getContext(),
                                                 "¡Bienvenido " + user.getNombres() + "!",

@@ -379,6 +379,33 @@ public class FirebaseManager {
                     }
                 });
     }
+    // 🔥 NUEVO MÉTODO: Verificar email específicamente para admins de hotel
+    public void checkEmailExistsForHotelAdmin(String email, AuthCallback callback) {
+        Log.d(TAG, "Verificando si email existe para admin de hotel: " + email);
+
+        // Buscar en colección users con userType hotel_admin
+        firestore.collection(USERS_COLLECTION)
+                .whereEqualTo("email", email)
+                .whereEqualTo("userType", "hotel_admin")
+                .get()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        boolean emailExists = !task.getResult().isEmpty();
+                        Log.d(TAG, "Email de admin existe: " + emailExists);
+
+                        if (emailExists) {
+                            callback.onSuccess("ADMIN_EMAIL_EXISTS");
+                        } else {
+                            callback.onError("ADMIN_EMAIL_NOT_EXISTS");
+                        }
+                    } else {
+                        String error = task.getException() != null ?
+                                task.getException().getMessage() : "Error verificando email";
+                        Log.e(TAG, "❌ Error verificando email admin: " + error);
+                        callback.onError(error);
+                    }
+                });
+    }
 
     // ========== MÉTODO PARA CREAR SUPERADMIN ==========
     public void createSuperAdminUser(DataCallback callback) {
