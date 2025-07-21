@@ -126,37 +126,52 @@ public class HotelGroupingUtils {
             return nearbyHotels;
         }
 
-        Log.d(TAG, "Filtrando hoteles cercanos para: " + userLocation);
+        String userCity = userLocation != null ? userLocation.toLowerCase().trim() : "";
 
-        String userCity = userLocation.toLowerCase().trim();
-
-        // Si tenemos contexto, usar UserLocationManager
+        // ✅ OBTENER CIUDAD ACTUAL DEL USUARIO DESDE LOCATIONMANAGER
         if (context != null) {
             UserLocationManager locationManager = UserLocationManager.getInstance(context);
-            userCity = locationManager.getCurrentCity().toLowerCase();
+            userCity = locationManager.getCurrentCity().toLowerCase().trim();
         }
 
+        Log.d(TAG, "🔍 Filtrando hoteles cercanos para ciudad del usuario: '" + userCity + "'");
+        Log.d(TAG, "📊 Total hoteles a revisar: " + hotels.size());
+
         for (Hotel hotel : hotels) {
-            String hotelLocation = hotel.getLocation() != null ? hotel.getLocation().toLowerCase() : "";
+            String hotelLocation = hotel.getLocation() != null ? hotel.getLocation().toLowerCase().trim() : "";
             String hotelCity = extractCityFromLocation(hotelLocation);
 
-            // Verificar si está en la misma ciudad
+            Log.d(TAG, "🏨 Revisando hotel: " + hotel.getName());
+            Log.d(TAG, "   📍 Ubicación hotel: '" + hotelLocation + "'");
+            Log.d(TAG, "   🏙️ Ciudad extraída: '" + hotelCity + "'");
+
             boolean isNearby = false;
 
-            // Si está en la misma ciudad
+            // ✅ MEJORAR LÓGICA DE COMPARACIÓN
             if (hotelCity != null && hotelCity.equals(userCity)) {
                 isNearby = true;
-            } else if (hotelLocation.contains(userCity)) {
+                Log.d(TAG, "   ✅ COINCIDENCIA POR CIUDAD EXTRAÍDA");
+            }
+            // ✅ VERIFICAR SI LA UBICACIÓN COMPLETA CONTIENE LA CIUDAD DEL USUARIO
+            else if (hotelLocation.contains(userCity)) {
                 isNearby = true;
+                Log.d(TAG, "   ✅ COINCIDENCIA POR CONTIENE CIUDAD");
+            }
+            // ✅ VERIFICAR VARIACIONES COMUNES DE NOMBRES DE CIUDADES
+            else if (isCityVariation(userCity, hotelLocation)) {
+                isNearby = true;
+                Log.d(TAG, "   ✅ COINCIDENCIA POR VARIACIÓN DE CIUDAD");
             }
 
             if (isNearby) {
                 nearbyHotels.add(hotel);
-                Log.d(TAG, "Hotel cercano encontrado: " + hotel.getName() + " en " + hotelLocation);
+                Log.d(TAG, "   🎯 HOTEL AGREGADO A CERCANOS");
+            } else {
+                Log.d(TAG, "   ❌ Hotel no está cerca");
             }
         }
 
-        // Ordenar por rating
+        // ✅ ORDENAR POR RATING DESCENDENTE
         Collections.sort(nearbyHotels, (h1, h2) -> {
             try {
                 double rating1 = Double.parseDouble(h1.getRating());
@@ -167,9 +182,32 @@ public class HotelGroupingUtils {
             }
         });
 
-        Log.d(TAG, "Hoteles cercanos encontrados: " + nearbyHotels.size());
+        Log.d(TAG, "🏆 RESULTADO FINAL - Hoteles cercanos encontrados: " + nearbyHotels.size());
+        for (Hotel hotel : nearbyHotels) {
+            Log.d(TAG, "   ✅ " + hotel.getName() + " - " + hotel.getLocation());
+        }
+
         return nearbyHotels;
     }
+    private static boolean isCityVariation(String userCity, String hotelLocation) {
+        // Manejar variaciones comunes
+        if (userCity.equals("lima")) {
+            return hotelLocation.contains("lima") ||
+                    hotelLocation.contains("miraflores") ||
+                    hotelLocation.contains("san isidro") ||
+                    hotelLocation.contains("barranco") ||
+                    hotelLocation.contains("surco") ||
+                    hotelLocation.contains("callao");
+        }
+
+        if (userCity.equals("cusco") || userCity.equals("cuzco")) {
+            return hotelLocation.contains("cusco") || hotelLocation.contains("cuzco");
+        }
+
+        // Agregar más variaciones según necesidad
+        return false;
+    }
+
 
     /**
      * ✅ FILTRAR HOTELES POPULARES - Basado en rating
@@ -360,22 +398,25 @@ public class HotelGroupingUtils {
 
         String locationLower = location.toLowerCase().trim();
 
-        // Buscar coincidencias exactas primero
+        Log.d(TAG, "🔍 Extrayendo ciudad de: '" + location + "'");
+
+        // ✅ BÚSQUEDA MÁS PRECISA - ORDEN IMPORTA
+        // Buscar ciudades más específicas primero
+        if (locationLower.contains("san isidro")) return "lima";
+        if (locationLower.contains("miraflores")) return "lima";
+        if (locationLower.contains("barranco")) return "lima";
+        if (locationLower.contains("surco")) return "lima";
+        if (locationLower.contains("callao")) return "lima";
+
+        // Luego ciudades principales
         for (String city : PERU_CITIES) {
             if (locationLower.contains(city)) {
-                Log.d(TAG, "Ciudad extraída: '" + city + "' de ubicación: '" + location + "'");
+                Log.d(TAG, "✅ Ciudad extraída: '" + city + "'");
                 return city;
             }
         }
 
-        // Si no encuentra coincidencia exacta, tratar de extraer de patrones comunes
-        if (locationLower.contains("lima")) return "lima";
-        if (locationLower.contains("cusco") || locationLower.contains("cuzco")) return "cusco";
-        if (locationLower.contains("arequipa")) return "arequipa";
-        if (locationLower.contains("trujillo")) return "trujillo";
-        if (locationLower.contains("piura")) return "piura";
-
-        Log.d(TAG, "No se pudo extraer ciudad de: '" + location + "'");
+        Log.d(TAG, "❌ No se pudo extraer ciudad de: '" + location + "'");
         return null;
     }
 

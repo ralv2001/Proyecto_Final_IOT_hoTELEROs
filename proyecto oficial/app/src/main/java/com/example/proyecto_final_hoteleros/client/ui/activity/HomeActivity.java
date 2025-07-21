@@ -102,7 +102,182 @@ public class HomeActivity extends AppCompatActivity {
             );
         }
     }
+    private void verifyAuthenticatedUser() {
+        // ✅ Si ya tenemos todos los datos del intent, no hacer nada
+        if (userId != null && userName != null && userType != null) {
+            Log.d(TAG, "✅ Datos completos recibidos del intent");
+            return;
+        }
 
+        // ✅ Verificar si hay un usuario autenticado en Firebase
+        com.google.firebase.auth.FirebaseAuth firebaseAuth = com.google.firebase.auth.FirebaseAuth.getInstance();
+        com.google.firebase.auth.FirebaseUser currentUser = firebaseAuth.getCurrentUser();
+
+        if (currentUser != null) {
+            Log.d(TAG, "🔍 Usuario autenticado encontrado, cargando perfil...");
+
+            // ✅ Usuario autenticado pero sin datos en el intent
+            // Cargar datos desde Firebase y crearlos si no existen
+            loadUserProfileOrCreateDefault(currentUser);
+        } else {
+            Log.d(TAG, "👤 Usuario no autenticado - modo huésped");
+            // ✅ Usuario no autenticado (huésped) - configurar datos por defecto
+            setupGuestUser();
+        }
+    }
+
+
+    private void loadUserProfileOrCreateDefault(com.google.firebase.auth.FirebaseUser firebaseUser) {
+        String firebaseUserId = firebaseUser.getUid();
+        String firebaseEmail = firebaseUser.getEmail();
+
+        Log.d(TAG, "📥 Cargando perfil para: " + firebaseUserId);
+
+        com.example.proyecto_final_hoteleros.utils.FirebaseManager firebaseManager =
+                com.example.proyecto_final_hoteleros.utils.FirebaseManager.getInstance();
+
+        firebaseManager.getUserDataFromAnyCollection(firebaseUserId, new com.example.proyecto_final_hoteleros.utils.FirebaseManager.UserCallback() {
+            @Override
+            public void onUserFound(com.example.proyecto_final_hoteleros.models.UserModel user) {
+                Log.d(TAG, "✅ Perfil encontrado: " + user.getFullName());
+
+                runOnUiThread(() -> {
+                    // ✅ Actualizar datos con el perfil encontrado
+                    updateUserDataFromProfile(user);
+                });
+            }
+
+            @Override
+            public void onUserNotFound() {
+                Log.w(TAG, "⚠️ Perfil no encontrado, creando perfil básico de cliente...");
+
+                runOnUiThread(() -> {
+                    // ✅ Crear perfil básico de cliente
+                    createBasicClientProfile(firebaseUserId, firebaseEmail);
+                });
+            }
+
+            @Override
+            public void onError(String error) {
+                Log.e(TAG, "❌ Error cargando perfil: " + error);
+
+                runOnUiThread(() -> {
+                    // ✅ En caso de error, crear perfil básico para que funcione
+                    createBasicClientProfile(firebaseUserId, firebaseEmail);
+                });
+            }
+        });
+    }
+    private void updateUserDataFromProfile(com.example.proyecto_final_hoteleros.models.UserModel user) {
+        userId = user.getUserId();
+        userName = user.getFullName();
+        userFullName = user.getFullName();
+        userEmail = user.getEmail();
+        userType = user.getUserType() != null ? user.getUserType() : "client";  // ✅ DEFAULT a client
+
+        Log.d(TAG, "✅ Datos actualizados desde Firebase:");
+        Log.d(TAG, "   userId: " + userId);
+        Log.d(TAG, "   userName: " + userName);
+        Log.d(TAG, "   userType: " + userType);
+
+        // ✅ Actualizar UserDataManager
+        UserDataManager.getInstance().setUserData(userId, userName, userFullName, userEmail, userType);
+    }
+
+    // ✅ MÉTODO: Crear perfil básico de cliente
+    private void createBasicClientProfile(String firebaseUserId, String firebaseEmail) {
+        Log.d(TAG, "🚀 Creando perfil básico de cliente");
+
+        // ✅ Extraer nombre del email
+        String extractedName = extractNameFromEmail(firebaseEmail);
+        String[] nameParts = extractedName.split(" ");
+        String firstName = nameParts.length > 0 ? nameParts[0] : "Cliente";
+        String lastName = nameParts.length > 1 ? nameParts[1] : "";
+
+        // ✅ Crear modelo de usuario
+        com.example.proyecto_final_hoteleros.models.UserModel clientUser =
+                new com.example.proyecto_final_hoteleros.models.UserModel();
+        clientUser.setUserId(firebaseUserId);
+        clientUser.setEmail(firebaseEmail);
+        clientUser.setNombres(firstName);
+        clientUser.setApellidos(lastName);
+        clientUser.setUserType("client");  // ✅ CRÍTICO: Marcar como cliente
+        clientUser.setTelefono("");
+        clientUser.setDireccion("");
+        clientUser.setNumeroDocumento("");
+        clientUser.setTipoDocumento("DNI");
+        clientUser.setFechaNacimiento("01/01/1990");
+        clientUser.setActive(true);
+
+        // ✅ Intentar guardar en Firebase (pero no bloquear si falla)
+        com.example.proyecto_final_hoteleros.utils.FirebaseManager firebaseManager =
+                com.example.proyecto_final_hoteleros.utils.FirebaseManager.getInstance();
+
+        firebaseManager.saveUserData(firebaseUserId, clientUser, new com.example.proyecto_final_hoteleros.utils.FirebaseManager.DataCallback() {
+            @Override
+            public void onSuccess() {
+                Log.d(TAG, "✅ Perfil básico creado en Firebase");
+            }
+
+            @Override
+            public void onError(String error) {
+                Log.w(TAG, "⚠️ Error guardando perfil en Firebase: " + error);
+                Log.w(TAG, "⚠️ Continuando con datos en memoria...");
+            }
+        });
+
+        // ✅ Usar los datos inmediatamente (no esperar a Firebase)
+        updateUserDataFromProfile(clientUser);
+
+        // ✅ Mostrar mensaje al usuario
+        Toast.makeText(this, "Perfil configurado como cliente", Toast.LENGTH_SHORT).show();
+    }
+
+    private void setupGuestUser() {
+        userId = "guest_" + System.currentTimeMillis();
+        userName = "Huésped";
+        userFullName = "Huésped";
+        userEmail = "";
+        userType = "guest";
+
+        Log.d(TAG, "✅ Usuario configurado como huésped");
+
+        // ✅ Actualizar UserDataManager
+        UserDataManager.getInstance().setUserData(userId, userName, userFullName, userEmail, userType);
+    }
+    private String extractNameFromEmail(String email) {
+        if (email == null || !email.contains("@")) {
+            return "Cliente";
+        }
+
+        String localPart = email.split("@")[0];
+
+        // Reemplazar caracteres con espacios
+        localPart = localPart.replace(".", " ");
+        localPart = localPart.replace("_", " ");
+        localPart = localPart.replace("-", " ");
+
+        // Capitalizar cada palabra
+        StringBuilder result = new StringBuilder();
+        String[] words = localPart.split("\\s+");
+
+        for (String word : words) {
+            if (!word.isEmpty()) {
+                if (result.length() > 0) {
+                    result.append(" ");
+                }
+                result.append(capitalize(word));
+            }
+        }
+
+        return result.toString().isEmpty() ? "Cliente" : result.toString();
+    }
+
+    // ✅ MÉTODO AUXILIAR: Capitalizar primera letra
+    private String capitalize(String str) {
+        if (str == null || str.isEmpty()) return str;
+        return str.substring(0, 1).toUpperCase() + str.substring(1).toLowerCase();
+    }
     private void getUserDataFromIntent() {
         // 🔥 USAR LOS NOMBRES EXACTOS QUE ENVÍA LoginFragment
         userId = getIntent().getStringExtra("userId");

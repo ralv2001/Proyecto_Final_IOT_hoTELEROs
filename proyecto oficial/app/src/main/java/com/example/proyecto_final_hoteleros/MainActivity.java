@@ -225,6 +225,7 @@ public class MainActivity extends AppCompatActivity {
 
         // Crear el modelo de usuario para admin de hotel
         com.example.proyecto_final_hoteleros.models.UserModel adminUser = new com.example.proyecto_final_hoteleros.models.UserModel();
+        adminUser.setUserId(userId);  // ✅ AGREGAR ESTO
         adminUser.setEmail(email);
         adminUser.setNombres("Admin");
         adminUser.setApellidos("Hotel Test");
@@ -245,9 +246,14 @@ public class MainActivity extends AppCompatActivity {
                         "✅ Admin de Hotel creado y autenticado",
                         Toast.LENGTH_LONG).show();
 
-                // Ir al AdminHotelActivity
+                // ✅ MEJORADO: Ir al AdminHotelActivity con datos
                 Intent intent = new Intent(MainActivity.this, AdminHotelActivity.class);
+                intent.putExtra("userId", userId);
+                intent.putExtra("userName", "Admin Hotel Test");
+                intent.putExtra("userEmail", email);
+                intent.putExtra("userType", "hotel_admin");
                 startActivity(intent);
+                finish(); // ✅ AGREGAR para cerrar MainActivity
             }
 
             @Override

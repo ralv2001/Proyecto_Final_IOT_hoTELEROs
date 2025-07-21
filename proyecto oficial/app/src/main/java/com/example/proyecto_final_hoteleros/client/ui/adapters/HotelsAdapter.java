@@ -1,5 +1,6 @@
 package com.example.proyecto_final_hoteleros.client.ui.adapters;
 
+import android.graphics.drawable.Drawable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -8,10 +9,16 @@ import android.widget.TextView;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.DataSource;
+import com.bumptech.glide.load.DecodeFormat;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
+import com.bumptech.glide.load.engine.GlideException;
+import com.bumptech.glide.request.RequestListener;
+import com.bumptech.glide.request.target.Target;
 import com.example.proyecto_final_hoteleros.R;
 import com.example.proyecto_final_hoteleros.client.data.model.Hotel;
 
@@ -67,20 +74,58 @@ public class HotelsAdapter extends RecyclerView.Adapter<HotelsAdapter.HotelViewH
 
     // ✅ MÉTODO MEJORADO: Cargar imagen desde URL o usar placeholder
     private void loadHotelImage(ImageView imageView, String imageUrl, String hotelName) {
-        if (imageUrl != null && imageUrl.startsWith("http")) {
-            // ✅ CARGAR IMAGEN REAL DESDE URL
-            Log.d(TAG, "📸 Cargando imagen real para: " + hotelName);
+        Log.d(TAG, "🔍 Intentando cargar imagen para: " + hotelName);
+        Log.d(TAG, "📸 URL: " + (imageUrl != null ? imageUrl.substring(0, Math.min(50, imageUrl.length())) + "..." : "null"));
 
+        if (imageUrl != null && imageUrl.startsWith("http")) {
+            // ✅ CONFIGURACIÓN ROBUSTA DE GLIDE PARA DISPOSITIVOS REALES
             Glide.with(imageView.getContext())
                     .load(imageUrl)
                     .placeholder(R.drawable.hotel_placeholder) // Mientras carga
                     .error(R.drawable.hotel_placeholder)       // Si falla
-                    .diskCacheStrategy(DiskCacheStrategy.ALL) // Cache para mejor rendimiento
+                    .fallback(R.drawable.hotel_placeholder)    // Si URL es null
+
+                    // ✅ CONFIGURACIÓN DE CACHE OPTIMIZADA
+                    .diskCacheStrategy(DiskCacheStrategy.ALL) // Cache en disco
+                    .skipMemoryCache(false)                   // Usar cache de memoria
+
+                    // ✅ TIMEOUTS EXTENDIDOS PARA DISPOSITIVOS LENTOS
+                    .timeout(30000) // 30 segundos timeout
+
+                    // ✅ CONFIGURACIÓN DE RESIZE PARA AHORRAR MEMORIA
+                    .override(800, 600) // Redimensionar a máximo 800x600
                     .centerCrop()
+
+                    // ✅ CONFIGURACIÓN DE FORMATO
+                    .format(DecodeFormat.PREFER_RGB_565) // Menor uso de memoria
+
+                    // ✅ LISTENER PARA DEBUG EN DISPOSITIVOS REALES
+                    .listener(new RequestListener<Drawable>() {
+                        @Override
+                        public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<Drawable> target, boolean isFirstResource) {
+                            Log.e(TAG, "❌ Error cargando imagen para " + hotelName + ": " + e);
+                            if (e != null && e.getCauses() != null) {
+                                for (Throwable cause : e.getCauses()) {
+                                    Log.e(TAG, "   Causa: " + cause.getMessage());
+                                }
+                            }
+                            // Intentar cargar URL alternativa o placeholder
+                            imageView.setImageResource(R.drawable.hotel_placeholder);
+                            return true; // true = manejo el error, no mostrar error adicional
+                        }
+
+                        @Override
+                        public boolean onResourceReady(Drawable resource, Object model, Target<Drawable> target, DataSource dataSource, boolean isFirstResource) {
+                            Log.d(TAG, "✅ Imagen cargada exitosamente para " + hotelName + " desde: " + dataSource);
+                            return false; // false = continuar con el flujo normal
+                        }
+                    })
                     .into(imageView);
+
+            Log.d(TAG, "🚀 Glide iniciado para: " + hotelName);
         } else {
-            // ✅ USAR IMAGEN PLACEHOLDER O DRAWABLE
-            Log.d(TAG, "🖼️ Usando placeholder para: " + hotelName);
+            // ✅ MANEJAR IMAGEN PLACEHOLDER O DRAWABLE LOCAL
+            Log.d(TAG, "🖼️ Usando imagen local para: " + hotelName);
 
             if (imageUrl != null && !imageUrl.equals("hotel_placeholder")) {
                 // Intentar cargar como recurso drawable
@@ -90,11 +135,14 @@ public class HotelsAdapter extends RecyclerView.Adapter<HotelsAdapter.HotelViewH
 
                 if (resID != 0) {
                     imageView.setImageResource(resID);
+                    Log.d(TAG, "✅ Imagen drawable cargada: " + imageUrl);
                 } else {
                     imageView.setImageResource(R.drawable.hotel_placeholder);
+                    Log.d(TAG, "⚠️ Drawable no encontrado, usando placeholder");
                 }
             } else {
                 imageView.setImageResource(R.drawable.hotel_placeholder);
+                Log.d(TAG, "📷 Usando placeholder por defecto");
             }
         }
     }
