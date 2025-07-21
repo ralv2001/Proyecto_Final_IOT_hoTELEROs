@@ -40,6 +40,7 @@ import com.example.proyecto_final_hoteleros.client.utils.HotelGroupingUtils;
 import com.example.proyecto_final_hoteleros.client.utils.UserDataManager;
 import com.example.proyecto_final_hoteleros.client.utils.UserLocationManager;
 import com.example.proyecto_final_hoteleros.client.navigation.NavigationManager;
+import com.example.proyecto_final_hoteleros.client.utils.HotelPriceUtils;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 
@@ -49,10 +50,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 
-public class HomeFragment extends Fragment {
+public class HomeFragment extends BaseBottomNavigationFragment {  // ✅ CAMBIADO
 
     private static final String TAG = "HomeFragment";
     private static final int LOCATION_REQUEST_CODE = 1001;
@@ -94,6 +96,12 @@ public class HomeFragment extends Fragment {
     private String selectedDates = "Hoy - Mañana";
     private int adults = 2;
     private int children = 0;
+
+    // ✅ NUEVO: Implementar método requerido por BaseBottomNavigationFragment
+    @Override
+    protected NavigationTab getCurrentTab() {
+        return NavigationTab.HOME;  // ✅ AGREGAR ESTE MÉTODO
+    }
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -450,38 +458,107 @@ public class HomeFragment extends Fragment {
         loadCitiesSection(convertedHotels);
     }
 
-    // ✅ MÉTODO ACTUALIZADO: Usar fotos reales de Firebase
+    // ✅ MÉTODO ACTUALIZADO: Usar fotos reales de Firebase y precios de habitaciones
     private List<Hotel> convertHotelProfilesToHotels(List<HotelProfile> hotelProfiles) {
         List<Hotel> hotels = new ArrayList<>();
+        AtomicInteger processedHotels = new AtomicInteger(0);
+        int totalHotels = hotelProfiles.size();
+
+        Log.d(TAG, "🔄 Convirtiendo " + totalHotels + " hoteles con precios reales...");
 
         for (HotelProfile profile : hotelProfiles) {
             if (profile != null && profile.isActive()) {
-                String city = profile.getDepartamento();
-                if (city == null || city.isEmpty()) {
-                    city = HotelGroupingUtils.extractCityFromLocation(profile.getFullAddress());
-                }
+                String city = extractCityFromProfile(profile);
 
                 // ✅ EXTRAER PRIMERA FOTO REAL DEL HOTEL
                 String imageUrl = getFirstPhotoFromProfile(profile);
 
-                Hotel hotel = new Hotel(
-                        profile.getName(),
-                        profile.getFullAddress(),
-                        imageUrl, // ✅ USAR FOTO REAL en lugar de placeholder
-                        generatePriceFromHotel(profile),
-                        generateRatingFromHotel(profile)
-                );
+                // ✅ OBTENER PRECIO REAL DE HABITACIONES
+                HotelPriceUtils.getMinimumRoomPrice(profile, getContext(), new HotelPriceUtils.PriceCallback() {
+                    @Override
+                    public void onPriceObtained(String formattedPrice, double rawPrice) {
+                        Hotel hotel = new Hotel(
+                                profile.getName(),
+                                profile.getFullAddress() != null ? profile.getFullAddress() : profile.getAddress(),
+                                imageUrl,
+                                formattedPrice, // ✅ PRECIO REAL DE HABITACIÓN MÁS BARATA
+                                generateRatingFromProfile(profile)
+                        );
 
-                hotels.add(hotel);
+                        synchronized (hotels) {
+                            hotels.add(hotel);
+
+                            int completed = processedHotels.incrementAndGet();
+                            Log.d(TAG, "💰 Hotel " + completed + "/" + totalHotels + ": " + profile.getName() + " - " + formattedPrice);
+
+                            // Cuando todos los hoteles estén procesados, actualizar UI
+                            if (completed == totalHotels) {
+                                if (getActivity() != null) {
+                                    getActivity().runOnUiThread(() -> {
+                                        Log.d(TAG, "✅ Todos los hoteles procesados con precios reales");
+                                        updateHotelSections(hotels);
+                                    });
+                                }
+                            }
+                        }
+                    }
+
+                    @Override
+                    public void onError(String error) {
+                        Log.w(TAG, "⚠️ Error obteniendo precio para " + profile.getName() + ": " + error);
+
+                        // Usar precio por defecto en caso de error
+                        String defaultPrice = HotelPriceUtils.generatePriceSync(profile);
+
+                        Hotel hotel = new Hotel(
+                                profile.getName(),
+                                profile.getFullAddress() != null ? profile.getFullAddress() : profile.getAddress(),
+                                imageUrl,
+                                defaultPrice,
+                                generateRatingFromProfile(profile)
+                        );
+
+                        synchronized (hotels) {
+                            hotels.add(hotel);
+
+                            int completed = processedHotels.incrementAndGet();
+                            Log.d(TAG, "⚠️ Hotel " + completed + "/" + totalHotels + " (precio por defecto): " + profile.getName() + " - " + defaultPrice);
+
+                            if (completed == totalHotels) {
+                                if (getActivity() != null) {
+                                    getActivity().runOnUiThread(() -> {
+                                        Log.d(TAG, "✅ Todos los hoteles procesados (algunos con precios por defecto)");
+                                        updateHotelSections(hotels);
+                                    });
+                                }
+                            }
+                        }
+                    }
+                });
 
                 // ✅ LOG PARA VER QUE ESTÁ FUNCIONANDO
-                Log.d(TAG, "🏨 Hotel convertido: " + profile.getName() + " - Foto: " +
+                Log.d(TAG, "🏨 Procesando hotel: " + profile.getName() + " - Foto: " +
                         (imageUrl.startsWith("http") ? "URL_REAL" : "PLACEHOLDER"));
             }
         }
 
-        Log.d(TAG, "✅ Convertidos " + hotels.size() + " hoteles de Firebase con fotos reales");
-        return hotels;
+        // Si no hay hoteles activos, retornar lista vacía inmediatamente
+        if (totalHotels == 0) {
+            Log.d(TAG, "❌ No hay hoteles activos para procesar");
+            updateHotelSections(hotels);
+        }
+
+        return hotels; // Esta lista se irá llenando asíncronamente
+    }
+
+    // ✅ NUEVO MÉTODO: Actualizar secciones cuando todos los precios estén listos
+    private void updateHotelSections(List<Hotel> hotels) {
+        Log.d(TAG, "🔄 Actualizando secciones con " + hotels.size() + " hoteles con precios reales");
+
+        // Aplicar lógica existente para cada sección
+        loadNearbyHotelsSection(hotels);
+        loadPopularHotelsSection(hotels);
+        loadCitiesSection(hotels);
     }
 
     // ✅ NUEVO MÉTODO: Extraer primera foto del perfil del hotel
@@ -490,12 +567,22 @@ public class HomeFragment extends Fragment {
         return com.example.proyecto_final_hoteleros.client.utils.HotelPhotoUtils.getFirstPhotoFromProfile(profile);
     }
 
-    private String generatePriceFromHotel(HotelProfile profile) {
-        int basePrice = 150 + (int)(Math.random() * 300);
-        return "S/" + basePrice;
+    private String extractCityFromProfile(HotelProfile profile) {
+        if (profile.getDepartamento() != null && !profile.getDepartamento().isEmpty()) {
+            return profile.getDepartamento();
+        }
+
+        if (profile.getProvincia() != null && !profile.getProvincia().isEmpty()) {
+            return profile.getProvincia();
+        }
+
+        String address = profile.getFullAddress() != null ? profile.getFullAddress() : profile.getAddress();
+        String extractedCity = HotelGroupingUtils.extractCityFromLocation(address);
+
+        return extractedCity != null ? extractedCity : "Lima";
     }
 
-    private String generateRatingFromHotel(HotelProfile profile) {
+    private String generateRatingFromProfile(HotelProfile profile) {
         double rating = 4.0 + (Math.random() * 1.0);
         return String.format(Locale.US, "%.1f", rating);
     }

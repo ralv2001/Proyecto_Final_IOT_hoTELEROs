@@ -1,4 +1,3 @@
-// client/ui/adapters/FeaturedServicesAdapter.java
 package com.example.proyecto_final_hoteleros.client.ui.adapters;
 
 import android.content.Context;
@@ -71,8 +70,8 @@ public class FeaturedServicesAdapter extends RecyclerView.Adapter<FeaturedServic
             // Configurar icono
             setupServiceIcon(service);
 
-            // Configurar indicadores especiales
-            setupServiceIndicators(service);
+            // ✅ CONFIGURAR INDICADORES CON LÓGICA CORREGIDA
+            setupServiceIndicatorsFixed(service);
 
             // Configurar colores según tipo
             setupServiceColors(service);
@@ -95,9 +94,13 @@ public class FeaturedServicesAdapter extends RecyclerView.Adapter<FeaturedServic
             }
         }
 
-        private void setupServiceIndicators(HotelService service) {
+        // ✅ MÉTODO CORREGIDO: Lógica para mostrar etiquetas según tipo de servicio
+        private void setupServiceIndicatorsFixed(HotelService service) {
+            // ✅ OBTENER EL TIPO DE SERVICIO CORRECTAMENTE
+            String serviceType = getServiceTypeFromService(service);
+
             if (service.isConditional()) {
-                // Mostrar indicador condicional
+                // Servicios condicionales (ej: taxi)
                 conditionalIndicator.setVisibility(View.VISIBLE);
                 ivConditionalIcon.setVisibility(View.VISIBLE);
 
@@ -124,21 +127,69 @@ public class FeaturedServicesAdapter extends RecyclerView.Adapter<FeaturedServic
                     tvStatusBadge.setBackgroundTintList(
                             ContextCompat.getColorStateList(context, R.color.warning_orange));
                 }
-            } else if (service.isFree()) {
-                // Servicio incluido
+            } else if ("basic".equals(serviceType)) {
+                // ✅ SERVICIOS BÁSICOS → Etiqueta "Básico"
                 tvStatusBadge.setVisibility(View.VISIBLE);
-                tvStatusBadge.setText("INCLUIDO");
+                tvStatusBadge.setText("Básico");
+                tvStatusBadge.setBackgroundTintList(
+                        ContextCompat.getColorStateList(context, R.color.success_green));
+
+                conditionalIndicator.setVisibility(View.GONE);
+                ivConditionalIcon.setVisibility(View.GONE);
+            } else if ("included".equals(serviceType) || service.isIncludedInRoom()) {
+                // ✅ SERVICIOS INCLUIDOS → Etiqueta "Incluido"
+                tvStatusBadge.setVisibility(View.VISIBLE);
+                tvStatusBadge.setText("Incluido");
+                tvStatusBadge.setBackgroundTintList(
+                        ContextCompat.getColorStateList(context, R.color.success_green));
+
+                conditionalIndicator.setVisibility(View.GONE);
+                ivConditionalIcon.setVisibility(View.GONE);
+            } else if (service.isFree()) {
+                // ✅ OTROS SERVICIOS GRATUITOS → Etiqueta "Básico" por defecto
+                tvStatusBadge.setVisibility(View.VISIBLE);
+                tvStatusBadge.setText("Básico");
                 tvStatusBadge.setBackgroundTintList(
                         ContextCompat.getColorStateList(context, R.color.success_green));
 
                 conditionalIndicator.setVisibility(View.GONE);
                 ivConditionalIcon.setVisibility(View.GONE);
             } else {
-                // Servicio de pago
+                // Servicios de pago - sin etiqueta
                 conditionalIndicator.setVisibility(View.GONE);
                 ivConditionalIcon.setVisibility(View.GONE);
                 tvStatusBadge.setVisibility(View.GONE);
             }
+        }
+
+        // ✅ MÉTODO PARA DETERMINAR EL TIPO DE SERVICIO CORRECTAMENTE
+        private String getServiceTypeFromService(HotelService service) {
+            // 1. Si el servicio tiene una categoría específica, usarla
+            if (service.getCategory() != null) {
+                HotelService.ServiceCategory category = service.getCategory();
+                if (category == HotelService.ServiceCategory.ROOM_INCLUDED) {
+                    return "included";
+                } else if (category == HotelService.ServiceCategory.ESSENTIALS) {
+                    return "basic";
+                }
+            }
+
+            // 2. Si no tiene categoría, usar el tipo estándar
+            String standardType = service.getServiceType();
+            if ("room_included".equals(standardType)) {
+                return "included";
+            } else if ("free".equals(standardType)) {
+                return "basic";
+            }
+
+            // 3. Fallback: Para servicios creados desde Firebase con serviceType "basic"
+            // (Como los que se están cargando en HotelDetailFragment)
+            // Si es gratuito pero no está marcado como incluido en habitación, es básico
+            if (service.isFree() && !service.isIncludedInRoom()) {
+                return "basic";
+            }
+
+            return standardType; // "conditional", "paid", etc.
         }
 
         private void setupServiceColors(HotelService service) {
@@ -154,6 +205,7 @@ public class FeaturedServicesAdapter extends RecyclerView.Adapter<FeaturedServic
                     iconTint = R.color.warning_orange;
                 }
             } else if (service.isFree()) {
+                // ✅ SERVICIOS GRATUITOS (tanto básicos como incluidos)
                 backgroundColor = R.color.success_light;
                 iconTint = R.color.success_green;
             } else {

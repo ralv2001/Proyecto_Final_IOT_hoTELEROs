@@ -37,6 +37,10 @@ import com.example.proyecto_final_hoteleros.client.ui.adapters.HotelImageAdapter
 import com.example.proyecto_final_hoteleros.client.ui.adapters.ThumbnailAdapter;
 import com.example.proyecto_final_hoteleros.client.data.model.City;
 import com.example.proyecto_final_hoteleros.client.data.model.HotelService;
+import com.example.proyecto_final_hoteleros.client.utils.HotelPriceUtils;
+import com.example.proyecto_final_hoteleros.adminhotel.model.HotelProfile;
+import com.example.proyecto_final_hoteleros.adminhotel.utils.FirebaseHotelManager;
+import com.example.proyecto_final_hoteleros.client.utils.HotelPhotoUtils;
 
 // ✅ IMPORTACIONES PARA GOOGLE MAPS
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -48,11 +52,17 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.material.button.MaterialButton;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 public class HotelDetailFragment extends Fragment implements ThumbnailAdapter.OnThumbnailClickListener, OnMapReadyCallback, ServiceClickListener {
+
+    private static final String TAG = "HotelDetailFragment";
 
     private ViewPager2 viewPagerImages;
     private RecyclerView rvImageThumbnails;
@@ -65,8 +75,8 @@ public class HotelDetailFragment extends Fragment implements ThumbnailAdapter.On
     private TextView tvSeeAllServices;
     private List<HotelService> featuredServices = new ArrayList<>();
 
-    // Nuevas variables para los servicios de alojamiento
-    private RecyclerView rvServices;
+    // ✅ NUEVAS VARIABLES PARA ESTANCIA
+    private TextView tvStayDates, tvStayDetail;
 
     // ✅ VARIABLES PARA EL MAPA
     private GoogleMap mMap;
@@ -77,13 +87,16 @@ public class HotelDetailFragment extends Fragment implements ThumbnailAdapter.On
 
     private HotelImageAdapter imageAdapter;
     private ThumbnailAdapter thumbnailAdapter;
-    private List<Integer> hotelImages;
+    private List<String> hotelImageUrls = new ArrayList<>(); // ✅ CAMBIAR A String URLs
     private NearbyPlacesRepository nearbyPlacesRepository;
 
     private List<NearbyPlace> nearbyPlacesList = new ArrayList<>();
-    // ✅ MODIFICAR ESTAS VARIABLES AL INICIO DE LA CLASE
-    private EnhancedCitiesAdapter enhancedCitiesAdapter; // Cambiar de NearbyPlacesAdapter
+    private EnhancedCitiesAdapter enhancedCitiesAdapter;
 
+    // ✅ NUEVO: Variables para datos del hotel
+    private HotelProfile currentHotel;
+    private FirebaseHotelManager hotelManager;
+    private com.example.proyecto_final_hoteleros.adminhotel.utils.FirebaseServiceManager serviceManager; // ✅ AGREGAR
 
     @Nullable
     @Override
@@ -104,8 +117,12 @@ public class HotelDetailFragment extends Fragment implements ThumbnailAdapter.On
         btnSeeAllPhotos = view.findViewById(R.id.btn_see_all_photos);
 
         // Inicializar vistas para los servicios de alojamiento
-        rvServices = view.findViewById(R.id.rv_services_preview);
+        rvServicesPreview = view.findViewById(R.id.rv_services_preview);
         tvSeeAllServices = view.findViewById(R.id.tv_see_all_services);
+
+        // ✅ INICIALIZAR NUEVAS VISTAS DE ESTANCIA
+        tvStayDates = view.findViewById(R.id.tv_stay_dates);
+        tvStayDetail = view.findViewById(R.id.tv_stay_detail);
 
         // ✅ INICIALIZAR VISTA DEL MAPA
         btnOpenInMaps = view.findViewById(R.id.btn_open_in_maps);
@@ -117,6 +134,10 @@ public class HotelDetailFragment extends Fragment implements ThumbnailAdapter.On
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
+        // Inicializar managers
+        hotelManager = FirebaseHotelManager.getInstance(getContext());
+        serviceManager = com.example.proyecto_final_hoteleros.adminhotel.utils.FirebaseServiceManager.getInstance(getContext()); // ✅ AGREGAR
+
         // Obtener argumentos si existen
         if (getArguments() != null) {
             hotelName = getArguments().getString("hotel_name", "Belmond Miraflores Park");
@@ -124,7 +145,7 @@ public class HotelDetailFragment extends Fragment implements ThumbnailAdapter.On
             String hotelPrice = getArguments().getString("hotel_price", "S/2,050");
             String hotelRating = getArguments().getString("hotel_rating", "4.7");
 
-            // Actualizar la UI con los datos
+            // Actualizar la UI con los datos básicos primero
             tvHotelName.setText(hotelName);
             tvHotelLocation.setText(hotelAddress);
             tvHotelPrice.setText(hotelPrice);
@@ -133,35 +154,418 @@ public class HotelDetailFragment extends Fragment implements ThumbnailAdapter.On
             hotelAddress = "Miraflores, frente al malecón, Lima";
         }
 
-        // ✅ CONFIGURAR UBICACIÓN DEL HOTEL (coordenadas de ejemplo para Lima, Miraflores)
-        // Estas coordenadas son para el Belmond Miraflores Park como ejemplo
-        hotelLocation = new LatLng(-12.1191, -77.0306);
-// ✅ LLAMAR setupFeaturedServices solo UNA VEZ
+        // ✅ BUSCAR DATOS COMPLETOS DEL HOTEL EN FIREBASE PRIMERO
+        // Y SOLO DESPUÉS CONFIGURAR LUGARES CERCANOS
+        loadHotelDetailsFromFirebase();
+
+        // ✅ CONFIGURAR ESTANCIA POR DEFECTO (1 noche)
+        setupDefaultStayInfo();
+
+        // ✅ CONFIGURAR SERVICIOS (se cargarán los reales cuando se encuentre el hotel)
+        // Solo inicializar el adapter vacío por ahora
         if (savedInstanceState == null) {
-            setupFeaturedServices();
-            setupServicesPreview();
+            featuredServices.clear(); // Empezar con lista vacía
+            setupServicesPreview(); // Configurar adapter vacío
         }
-        // Configurar galería de imágenes
-        setupImageGallery();
 
-        // Configurar lugares turísticos cercanos
-        setupNearbyPlaces();
-
-        // Configurar servicios de alojamiento
-        setupHotelServices();
-
-        // ✅ CONFIGURAR MAPA
+        // ✅ CONFIGURAR MAPA (se actualizará cuando lleguen las coordenadas reales)
         setupMap();
 
         // Configurar botones y eventos
         setupActions(view);
-        setupFeaturedServices();
-        setupServicesPreview();
         setupClickListeners();
     }
-    private void setupClickListeners() {
-        // ... otros click listeners existentes ...
 
+    // ✅ NUEVO: Buscar datos completos del hotel en Firebase
+    private void loadHotelDetailsFromFirebase() {
+        Log.d(TAG, "🔍 Buscando datos del hotel: " + hotelName);
+
+        hotelManager.findHotelsNearLocation(0, 0, 999999, new FirebaseHotelManager.HotelsCallback() {
+            @Override
+            public void onSuccess(List<HotelProfile> hotels) {
+                // Buscar hotel por nombre
+                for (HotelProfile hotel : hotels) {
+                    if (hotel.getName().equalsIgnoreCase(hotelName)) {
+                        currentHotel = hotel;
+                        Log.d(TAG, "✅ Hotel encontrado en Firebase: " + hotel.getName());
+
+                        if (getActivity() != null) {
+                            getActivity().runOnUiThread(() -> {
+                                updateUIWithHotelDetails(hotel);
+                            });
+                        }
+                        return;
+                    }
+                }
+
+                Log.w(TAG, "⚠️ Hotel no encontrado en Firebase: " + hotelName);
+                setupDefaultHotelData();
+            }
+
+            @Override
+            public void onError(String error) {
+                Log.e(TAG, "❌ Error buscando hotel: " + error);
+                setupDefaultHotelData();
+            }
+        });
+    }
+
+    // ✅ NUEVO: Actualizar UI con datos reales del hotel
+    private void updateUIWithHotelDetails(HotelProfile hotel) {
+        Log.d(TAG, "📊 Actualizando UI con datos reales del hotel");
+
+        // ✅ ACTUALIZAR COORDENADAS PARA EL MAPA
+        if (hotel.hasValidLocation()) {
+            hotelLocation = new LatLng(hotel.getLatitude(), hotel.getLongitude());
+            Log.d(TAG, "📍 Coordenadas del hotel: " + hotel.getLatitude() + ", " + hotel.getLongitude());
+
+            // ✅ AHORA SÍ CONFIGURAR LUGARES CERCANOS CON COORDENADAS REALES
+            if (getActivity() != null) {
+                getActivity().runOnUiThread(() -> {
+                    setupNearbyPlaces(); // ✅ LLAMAR AQUÍ CON COORDENADAS REALES
+                });
+            }
+
+            if (mMap != null) {
+                updateMapWithHotelLocation();
+            }
+        } else {
+            Log.w(TAG, "⚠️ Hotel no tiene coordenadas válidas, usando coordenadas por defecto");
+            // ✅ USAR COORDENADAS POR DEFECTO PERO AÚN ASÍ LLAMAR A LA API
+            hotelLocation = new LatLng(-12.1191, -77.0306); // Miraflores por defecto
+
+            if (getActivity() != null) {
+                getActivity().runOnUiThread(() -> {
+                    setupNearbyPlaces(); // ✅ LLAMAR TAMBIÉN CON COORDENADAS POR DEFECTO
+                });
+            }
+        }
+
+        // ✅ CARGAR FOTOS REALES DEL HOTEL
+        loadRealHotelPhotos(hotel);
+
+        // ✅ CARGAR SERVICIOS BÁSICOS REALES DEL HOTEL
+        loadRealHotelBasicServices(hotel);
+
+        // ✅ ACTUALIZAR PRECIO CON HABITACIÓN MÁS BARATA
+        updatePriceWithRealRoomPrice(hotel);
+
+        // ✅ ACTUALIZAR DIRECCIÓN COMPLETA
+        if (hotel.getFullAddress() != null) {
+            tvHotelLocation.setText(hotel.getFullAddress());
+            hotelAddress = hotel.getFullAddress();
+        }
+    }
+
+    // ✅ NUEVO: Cargar fotos reales del hotel
+    private void loadRealHotelPhotos(HotelProfile hotel) {
+        Log.d(TAG, "📷 Cargando fotos reales del hotel");
+
+        List<String> hotelPhotos = HotelPhotoUtils.getAllPhotosFromProfile(hotel);
+
+        if (hotelPhotos != null && !hotelPhotos.isEmpty()) {
+            hotelImageUrls.clear();
+            hotelImageUrls.addAll(hotelPhotos);
+
+            Log.d(TAG, "✅ " + hotelImageUrls.size() + " fotos reales encontradas");
+        } else {
+            // Usar fotos por defecto si no hay fotos reales
+            hotelImageUrls.clear();
+            hotelImageUrls.addAll(Arrays.asList(
+                    "https://example.com/hotel_default_1.jpg",
+                    "https://example.com/hotel_default_2.jpg",
+                    "https://example.com/hotel_default_3.jpg",
+                    "https://example.com/hotel_default_4.jpg"
+            ));
+            Log.d(TAG, "⚠️ Usando fotos por defecto");
+        }
+
+        // Configurar galería de imágenes con las fotos reales
+        setupImageGalleryWithRealPhotos();
+    }
+
+    // ✅ NUEVO: Configurar galería con fotos reales
+    private void setupImageGalleryWithRealPhotos() {
+        Log.d(TAG, "🖼️ Configurando galería con " + hotelImageUrls.size() + " fotos");
+
+        // Configurar ViewPager principal con URLs reales
+        imageAdapter = new HotelImageAdapter(hotelImageUrls);
+        viewPagerImages.setAdapter(imageAdapter);
+
+        // Mostrar contador inicial
+        updateImageCounter(0);
+
+        // Configurar listener de cambio de página
+        viewPagerImages.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
+            @Override
+            public void onPageSelected(int position) {
+                super.onPageSelected(position);
+                updateImageCounter(position);
+                if (thumbnailAdapter != null) {
+                    thumbnailAdapter.updateSelectedPosition(position);
+                    // Hacer scroll a la miniatura seleccionada
+                    rvImageThumbnails.smoothScrollToPosition(position);
+                }
+            }
+        });
+
+        // Configurar miniaturas con URLs reales
+        thumbnailAdapter = new ThumbnailAdapter(hotelImageUrls, this);
+        rvImageThumbnails.setLayoutManager(
+                new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));
+        rvImageThumbnails.setAdapter(thumbnailAdapter);
+
+        // Configurar botones de navegación
+        setupImageNavigationButtons();
+
+        // Configurar botón Ver todas las fotos
+        btnSeeAllPhotos.setOnClickListener(v -> {
+            navigateToFullGallery();
+        });
+
+        // Configurar listener de clic en imagen principal
+        if (imageAdapter != null) {
+            imageAdapter.setOnImageClickListener(position -> {
+                navigateToFullGallery();
+            });
+        }
+    }
+
+    // ✅ NUEVO: Cargar servicios básicos reales del hotel desde Firebase
+    private void loadRealHotelBasicServices(HotelProfile hotel) {
+        Log.d(TAG, "📋 Cargando servicios básicos reales del hotel: " + hotel.getName());
+
+        if (hotel.getHotelAdminId() == null) {
+            Log.w(TAG, "⚠️ Hotel sin hotelAdminId, usando servicios por defecto");
+            setupFallbackServices();
+            return;
+        }
+
+        // ✅ OBTENER SERVICIOS BÁSICOS ESPECÍFICOS DEL HOTEL
+        getHotelBasicServices(hotel.getHotelAdminId(), new HotelServicesCallback() {
+            @Override
+            public void onSuccess(List<HotelService> services) {
+                if (getActivity() != null) {
+                    getActivity().runOnUiThread(() -> {
+                        featuredServices.clear();
+
+                        // ✅ TOMAR SOLO LOS PRIMEROS 4 SERVICIOS BÁSICOS
+                        int servicesToShow = Math.min(4, services.size());
+                        for (int i = 0; i < servicesToShow; i++) {
+                            featuredServices.add(services.get(i));
+                        }
+
+                        Log.d(TAG, "✅ " + featuredServices.size() + " servicios básicos reales cargados del hotel");
+
+                        // Actualizar el adapter
+                        setupServicesPreview();
+                    });
+                }
+            }
+
+            @Override
+            public void onError(String error) {
+                Log.e(TAG, "❌ Error cargando servicios del hotel: " + error);
+                if (getActivity() != null) {
+                    getActivity().runOnUiThread(() -> {
+                        setupFallbackServices();
+                    });
+                }
+            }
+        });
+    }
+
+    // ✅ INTERFACE PARA CALLBACK DE SERVICIOS DEL HOTEL
+    private interface HotelServicesCallback {
+        void onSuccess(List<HotelService> services);
+        void onError(String error);
+    }
+
+    // ✅ MÉTODO PARA OBTENER SERVICIOS BÁSICOS DE UN HOTEL ESPECÍFICO
+    private void getHotelBasicServices(String hotelAdminId, HotelServicesCallback callback) {
+        Log.d(TAG, "🔍 Obteniendo servicios básicos para hotelAdminId: " + hotelAdminId);
+
+        // Usar Firebase directamente para obtener servicios del hotel específico
+        com.google.firebase.firestore.FirebaseFirestore.getInstance()
+                .collection("hotel_services")
+                .whereEqualTo("hotelAdminId", hotelAdminId)
+                .whereEqualTo("serviceType", "basic")
+                .orderBy("createdAt", com.google.firebase.firestore.Query.Direction.ASCENDING)
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    List<HotelService> services = new ArrayList<>();
+
+                    for (com.google.firebase.firestore.DocumentSnapshot doc : queryDocumentSnapshots) {
+                        try {
+                            // Convertir HotelServiceModel a HotelService
+                            String name = doc.getString("name");
+                            String description = doc.getString("description");
+                            String iconKey = doc.getString("iconKey");
+
+                            if (name != null && description != null) {
+                                // ✅ USAR EL CONSTRUCTOR COMPLETO PARA ESPECIFICAR CATEGORÍA
+                                HotelService service = new HotelService(
+                                        doc.getId(),                    // id
+                                        name,                          // name
+                                        description,                   // description
+                                        null,                          // price (servicios básicos son gratis)
+                                        null,                          // imageUrl
+                                        new ArrayList<>(),             // imageUrls
+                                        iconKey != null ? iconKey : "ic_hotel_service_default", // iconResourceName
+                                        false,                         // isConditional
+                                        null,                          // conditionalDescription
+                                        HotelService.ServiceCategory.ESSENTIALS, // ✅ CATEGORÍA BÁSICOS
+                                        false,                         // isPopular
+                                        0,                             // sortOrder
+                                        "24/7",                        // availability
+                                        null,                          // features
+                                        false                          // isIncludedInRoom (false para básicos)
+                                );
+
+                                services.add(service);
+                                Log.d(TAG, "✅ Servicio básico agregado: " + name);
+                            }
+                        } catch (Exception e) {
+                            Log.e(TAG, "Error parseando servicio: " + e.getMessage());
+                        }
+                    }
+
+                    Log.d(TAG, "✅ Total servicios básicos obtenidos: " + services.size());
+                    callback.onSuccess(services);
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "❌ Error obteniendo servicios de Firebase: " + e.getMessage());
+                    callback.onError(e.getMessage());
+                });
+    }
+
+    // ✅ FALLBACK: Servicios por defecto si no se encuentran servicios del hotel - CORREGIDO
+    private void setupFallbackServices() {
+        Log.d(TAG, "⚠️ Usando servicios básicos por defecto");
+
+        featuredServices.clear();
+
+        // ✅ USAR EL CONSTRUCTOR COMPLETO PARA ESPECIFICAR CATEGORÍA ESSENTIALS (básicos)
+        featuredServices.add(new HotelService("wifi", "WiFi Gratuito", "Internet de alta velocidad",
+                null, null, new ArrayList<>(), "ic_wifi", false, null,
+                HotelService.ServiceCategory.ESSENTIALS, false, 0, "24/7", null, false));
+        featuredServices.add(new HotelService("reception", "Recepción 24h", "Atención las 24 horas",
+                null, null, new ArrayList<>(), "ic_reception", false, null,
+                HotelService.ServiceCategory.ESSENTIALS, false, 0, "24/7", null, false));
+        featuredServices.add(new HotelService("ac", "Aire Acondicionado", "Climatización individual",
+                null, null, new ArrayList<>(), "ic_ac", false, null,
+                HotelService.ServiceCategory.ESSENTIALS, false, 0, "24/7", null, false));
+        featuredServices.add(new HotelService("tv", "TV por Cable", "Televisión con canales premium",
+                null, null, new ArrayList<>(), "ic_tv", false, null,
+                HotelService.ServiceCategory.ESSENTIALS, false, 0, "24/7", null, false));
+
+        setupServicesPreview();
+    }
+
+    private void updatePriceWithRealRoomPrice(HotelProfile hotel) {
+        Log.d(TAG, "💰 Obteniendo precio real de habitación más barata");
+
+        HotelPriceUtils.getMinimumRoomPrice(hotel, getContext(), new HotelPriceUtils.PriceCallback() {
+            @Override
+            public void onPriceObtained(String formattedPrice, double rawPrice) {
+                if (getActivity() != null) {
+                    getActivity().runOnUiThread(() -> {
+                        // ✅ ACTUALIZAR PRECIO PARA 1 NOCHE
+                        tvHotelPrice.setText(formattedPrice);
+                        tvPriceDescription.setText("por noche");
+
+                        Log.d(TAG, "✅ Precio actualizado: " + formattedPrice + " por noche");
+                    });
+                }
+            }
+
+            @Override
+            public void onError(String error) {
+                Log.w(TAG, "⚠️ Error obteniendo precio real: " + error);
+                // Mantener precio por defecto
+            }
+        });
+    }
+
+    // ✅ NUEVO: Configurar estancia por defecto (1 noche, hoy-mañana, 2 adultos)
+    private void setupDefaultStayInfo() {
+        // Configurar 1 noche por defecto
+        if (tvStayDates != null) {
+            tvStayDates.setText("1 noche");
+        }
+
+        // Configurar fechas (hoy - mañana) y huéspedes (2 adultos)
+        if (tvStayDetail != null) {
+            SimpleDateFormat dateFormat = new SimpleDateFormat("d MMMM", new Locale("es", "ES"));
+
+            Calendar today = Calendar.getInstance();
+            Calendar tomorrow = Calendar.getInstance();
+            tomorrow.add(Calendar.DAY_OF_MONTH, 1);
+
+            String todayStr = dateFormat.format(today.getTime());
+            String tomorrowStr = dateFormat.format(tomorrow.getTime());
+
+            String stayDetail = todayStr + " - " + tomorrowStr + " | 2 adultos";
+            tvStayDetail.setText(stayDetail);
+        }
+
+        Log.d(TAG, "✅ Estancia configurada: 1 noche, hoy-mañana, 2 adultos");
+    }
+
+    // ✅ MÉTODO MEJORADO: Configurar datos por defecto si no se encuentra el hotel
+    private void setupDefaultHotelData() {
+        // ✅ CONFIGURAR UBICACIÓN POR DEFECTO (coordenadas de ejemplo para Lima, Miraflores)
+        hotelLocation = new LatLng(-12.1191, -77.0306);
+
+        // ✅ CONFIGURAR FOTOS POR DEFECTO
+        hotelImageUrls.clear();
+        hotelImageUrls.addAll(Arrays.asList(
+                "https://example.com/hotel_default_1.jpg",
+                "https://example.com/hotel_default_2.jpg",
+                "https://example.com/hotel_default_3.jpg",
+                "https://example.com/hotel_default_4.jpg"
+        ));
+
+        if (getActivity() != null) {
+            getActivity().runOnUiThread(() -> {
+                setupImageGalleryWithRealPhotos();
+
+                // ✅ CONFIGURAR LUGARES CERCANOS TAMBIÉN CON COORDENADAS POR DEFECTO
+                setupNearbyPlaces();
+
+                // ✅ CARGAR SERVICIOS POR DEFECTO
+                setupFallbackServices();
+
+                if (mMap != null) {
+                    updateMapWithHotelLocation();
+                }
+            });
+        }
+
+        Log.d(TAG, "⚠️ Usando datos por defecto para el hotel");
+    }
+
+    private void setupImageNavigationButtons() {
+        if (btnPreviousImage != null) {
+            btnPreviousImage.setOnClickListener(v -> {
+                int currentPosition = viewPagerImages.getCurrentItem();
+                if (currentPosition > 0) {
+                    viewPagerImages.setCurrentItem(currentPosition - 1, true);
+                }
+            });
+        }
+
+        if (btnNextImage != null) {
+            btnNextImage.setOnClickListener(v -> {
+                int currentPosition = viewPagerImages.getCurrentItem();
+                if (currentPosition < hotelImageUrls.size() - 1) {
+                    viewPagerImages.setCurrentItem(currentPosition + 1, true);
+                }
+            });
+        }
+    }
+
+    private void setupClickListeners() {
         // Click en "Ver todo" - navegar a ViewAllServicesActivity
         if (tvSeeAllServices != null) {
             tvSeeAllServices.setOnClickListener(v -> {
@@ -172,10 +576,11 @@ public class HotelDetailFragment extends Fragment implements ThumbnailAdapter.On
             });
         }
     }
+
     @Override
     public void onServiceClicked(HotelService service) {
         try {
-            Log.d("HotelDetail", "Servicio clickeado: " + service.getName());
+            Log.d(TAG, "Servicio clickeado: " + service.getName());
 
             if (service.getId().equals("taxi")) {
                 showTaxiInfoDialog(service);
@@ -184,9 +589,10 @@ public class HotelDetailFragment extends Fragment implements ThumbnailAdapter.On
             }
 
         } catch (Exception e) {
-            Log.e("HotelDetail", "Error en onServiceClicked: " + e.getMessage());
+            Log.e(TAG, "Error en onServiceClicked: " + e.getMessage());
         }
     }
+
     private void showTaxiInfoDialog(HotelService taxiService) {
         AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
         View dialogView = LayoutInflater.from(getContext())
@@ -244,15 +650,16 @@ public class HotelDetailFragment extends Fragment implements ThumbnailAdapter.On
                 .setNegativeButton("Cerrar", null)
                 .show();
     }
+
     private String getHotelName() {
         if (getArguments() != null) {
             return getArguments().getString("hotel_name", "Hotel");
         }
         return "Hotel";
     }
+
     private void setupServicesPreview() {
         if (rvServicesPreview != null) {
-
             // ✅ VERIFICAR si ya tiene adaptador
             if (rvServicesPreview.getAdapter() == null) {
                 // Primera vez - crear adaptador
@@ -262,16 +669,17 @@ public class HotelDetailFragment extends Fragment implements ThumbnailAdapter.On
                 rvServicesPreview.setLayoutManager(layoutManager);
                 rvServicesPreview.setAdapter(adapter);
 
-                Log.d("HotelDetailFragment", "Adaptador creado por primera vez");
+                Log.d(TAG, "Adaptador creado por primera vez");
             } else {
                 // Ya existe - solo actualizar datos
                 rvServicesPreview.getAdapter().notifyDataSetChanged();
-                Log.d("HotelDetailFragment", "Adaptador actualizado");
+                Log.d(TAG, "Adaptador actualizado");
             }
 
-            Log.d("HotelDetailFragment", "Services preview configurado con " + featuredServices.size() + " servicios");
+            Log.d(TAG, "Services preview configurado con " + featuredServices.size() + " servicios");
         }
     }
+
     @Override
     public void onResume() {
         super.onResume();
@@ -282,35 +690,14 @@ public class HotelDetailFragment extends Fragment implements ThumbnailAdapter.On
             setupServicesPreview();
         }
 
-        Log.d("HotelDetailFragment", "onResume - Servicios: " + featuredServices.size());
+        Log.d(TAG, "onResume - Servicios: " + featuredServices.size());
     }
+
     private void setupFeaturedServices() {
-        try {
-            // ✅ LIMPIAR lista antes de cargar
-            featuredServices.clear();
-
-            ServicesRepository repository = ServicesRepository.getInstance();
-            List<HotelService> newServices = repository.getFeaturedServices();
-
-            // ✅ AGREGAR solo si no están duplicados
-            for (HotelService service : newServices) {
-                if (!isServiceAlreadyAdded(service.getId())) {
-                    featuredServices.add(service);
-                }
-            }
-
-            Log.d("HotelDetailFragment", "Servicios destacados: " + featuredServices.size());
-
-            // ✅ NOTIFICAR al adaptador que los datos cambiaron
-            if (rvServicesPreview != null && rvServicesPreview.getAdapter() != null) {
-                rvServicesPreview.getAdapter().notifyDataSetChanged();
-            }
-
-        } catch (Exception e) {
-            Log.e("HotelDetailFragment", "Error loading featured services: " + e.getMessage());
-            featuredServices = new ArrayList<>();
-        }
-
+        // ✅ ESTE MÉTODO AHORA ES SOLO FALLBACK
+        // Los servicios reales se cargan en loadRealHotelBasicServices()
+        Log.d(TAG, "⚠️ setupFeaturedServices llamado como fallback");
+        setupFallbackServices();
     }
 
     private boolean isServiceAlreadyAdded(String serviceId) {
@@ -339,7 +726,7 @@ public class HotelDetailFragment extends Fragment implements ThumbnailAdapter.On
             }
 
         } catch (Exception e) {
-            Log.e("HotelDetailFragment", "Error configurando mapa: " + e.getMessage());
+            Log.e(TAG, "Error configurando mapa: " + e.getMessage());
         }
     }
 
@@ -355,18 +742,9 @@ public class HotelDetailFragment extends Fragment implements ThumbnailAdapter.On
             mMap.getUiSettings().setMyLocationButtonEnabled(false);
             mMap.getUiSettings().setCompassEnabled(false);
 
-            // Agregar marcador del hotel
+            // Si ya tenemos la ubicación del hotel, configurar el mapa
             if (hotelLocation != null) {
-                MarkerOptions markerOptions = new MarkerOptions()
-                        .position(hotelLocation)
-                        .title(hotelName != null ? hotelName : "Hotel")
-                        .snippet(hotelAddress != null ? hotelAddress : "")
-                        .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED));
-
-                mMap.addMarker(markerOptions);
-
-                // Centrar el mapa en el hotel con zoom apropiado
-                mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(hotelLocation, 15f));
+                updateMapWithHotelLocation();
             }
 
             // Configurar listener para abrir Google Maps cuando se toque el marcador
@@ -375,10 +753,37 @@ public class HotelDetailFragment extends Fragment implements ThumbnailAdapter.On
                 return true;
             });
 
-            Log.d("HotelDetailFragment", "Mapa configurado correctamente");
+            Log.d(TAG, "Mapa configurado correctamente");
 
         } catch (Exception e) {
-            Log.e("HotelDetailFragment", "Error en onMapReady: " + e.getMessage());
+            Log.e(TAG, "Error en onMapReady: " + e.getMessage());
+        }
+    }
+
+    // ✅ NUEVO: Actualizar mapa con ubicación real del hotel
+    private void updateMapWithHotelLocation() {
+        if (mMap == null || hotelLocation == null) return;
+
+        try {
+            // Limpiar marcadores anteriores
+            mMap.clear();
+
+            // Agregar marcador del hotel
+            MarkerOptions markerOptions = new MarkerOptions()
+                    .position(hotelLocation)
+                    .title(hotelName != null ? hotelName : "Hotel")
+                    .snippet(hotelAddress != null ? hotelAddress : "")
+                    .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED));
+
+            mMap.addMarker(markerOptions);
+
+            // Centrar el mapa en el hotel con zoom apropiado
+            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(hotelLocation, 15f));
+
+            Log.d(TAG, "✅ Mapa actualizado con ubicación real del hotel");
+
+        } catch (Exception e) {
+            Log.e(TAG, "Error actualizando mapa: " + e.getMessage());
         }
     }
 
@@ -406,100 +811,195 @@ public class HotelDetailFragment extends Fragment implements ThumbnailAdapter.On
                     startActivity(webIntent);
                 }
 
-                Log.d("HotelDetailFragment", "Abriendo Google Maps");
+                Log.d(TAG, "Abriendo Google Maps");
             }
         } catch (Exception e) {
-            Log.e("HotelDetailFragment", "Error abriendo Google Maps: " + e.getMessage());
+            Log.e(TAG, "Error abriendo Google Maps: " + e.getMessage());
             if (getContext() != null) {
                 Toast.makeText(getContext(), "Error abriendo mapas", Toast.LENGTH_SHORT).show();
             }
         }
     }
 
-    // ✅ MÉTODO PARA ACTUALIZAR UBICACIÓN DEL HOTEL (útil si cambias de hotel)
-    public void updateHotelLocation(LatLng newLocation, String newName, String newAddress) {
-        this.hotelLocation = newLocation;
-        this.hotelName = newName;
-        this.hotelAddress = newAddress;
+    private void setupNearbyPlaces() {
+        Log.d(TAG, "=== INICIANDO setupNearbyPlaces ===");
 
-        if (mMap != null) {
-            mMap.clear();
-            MarkerOptions markerOptions = new MarkerOptions()
-                    .position(newLocation)
-                    .title(newName)
-                    .snippet(newAddress)
-                    .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED));
+        try {
+            // Verificar que hotelLocation existe
+            if (hotelLocation == null) {
+                Log.e(TAG, "❌ hotelLocation es NULL - usando coordenadas por defecto");
+                hotelLocation = new LatLng(-12.1191, -77.0306); // Miraflores por defecto
+            }
 
-            mMap.addMarker(markerOptions);
-            mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(newLocation, 15f));
+            Log.d(TAG, "✅ Hotel location: " + hotelLocation.latitude + ", " + hotelLocation.longitude);
+
+            // Inicializar repositorio
+            nearbyPlacesRepository = new NearbyPlacesRepository();
+            Log.d(TAG, "✅ Repository inicializado");
+
+            // ✅ ASEGURAR QUE nearbyPlacesList ESTÉ INICIALIZADA
+            if (nearbyPlacesList == null) {
+                nearbyPlacesList = new ArrayList<>();
+            }
+
+            // Configurar adaptador con datos dinámicos
+            enhancedCitiesAdapter = new EnhancedCitiesAdapter(nearbyPlacesList, "AIzaSyBdghOu6DZktjZcg0_PJzffH72NC-nR0ok", hotelLocation);
+            rvNearbyPlaces.setLayoutManager(
+                    new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));
+            rvNearbyPlaces.setAdapter(enhancedCitiesAdapter);
+
+            Log.d(TAG, "✅ Adaptador configurado");
+
+            // Configurar click listener
+            enhancedCitiesAdapter.setOnPlaceClickListener((place, position) -> {
+                Log.d(TAG, "Click en lugar: " + place.getName());
+                openPlaceInMaps(place);
+            });
+
+            // ✅ LLAMAR A CARGAR LUGARES INMEDIATAMENTE
+            Log.d(TAG, "🔄 Iniciando carga de lugares...");
+            loadNearbyPlaces();
+
+        } catch (Exception e) {
+            Log.e(TAG, "❌ Error configurando lugares cercanos: " + e.getMessage());
+            e.printStackTrace();
+            setupStaticNearbyPlaces();
         }
     }
 
-    private void setupImageGallery() {
-        // Lista de imágenes para la galería
-        hotelImages = Arrays.asList(
-                R.drawable.belmond,
-                R.drawable.belmond,
-                R.drawable.belmond,
-                R.drawable.belmond
-        );
-
-        // Configurar ViewPager principal
-        imageAdapter = new HotelImageAdapter(hotelImages);
-        viewPagerImages.setAdapter(imageAdapter);
-
-        // Mostrar contador inicial
-        updateImageCounter(0);
-
-        // Configurar listener de cambio de página
-        viewPagerImages.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
-            @Override
-            public void onPageSelected(int position) {
-                super.onPageSelected(position);
-                updateImageCounter(position);
-                thumbnailAdapter.updateSelectedPosition(position);
-                // Hacer scroll a la miniatura seleccionada
-                rvImageThumbnails.smoothScrollToPosition(position);
+    // ✅ MÉTODO YA FUNCIONA - ARREGLADO PARA USAR DIRECCIONES EN LUGAR DE COORDENADAS
+    private void openPlaceInMaps(NearbyPlace place) {
+        try {
+            if (hotelLocation == null || hotelName == null) {
+                // Fallback: abrir solo el destino
+                String destinationQuery = place.getName().replace(" ", "+");
+                if (place.getVicinity() != null) {
+                    destinationQuery += "+" + place.getVicinity().replace(" ", "+");
+                }
+                String uri = "https://www.google.com/maps/search/?api=1&query=" + destinationQuery;
+                openMapIntent(uri);
+                return;
             }
-        });
 
-        // Configurar miniaturas
-        thumbnailAdapter = new ThumbnailAdapter(hotelImages, this);
-        rvImageThumbnails.setLayoutManager(
-                new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));
-        rvImageThumbnails.setAdapter(thumbnailAdapter);
-
-        // Configurar botones de navegación
-        btnPreviousImage.setOnClickListener(v -> {
-            int currentPosition = viewPagerImages.getCurrentItem();
-            if (currentPosition > 0) {
-                viewPagerImages.setCurrentItem(currentPosition - 1, true);
+            // ✅ CREAR RUTA USANDO DIRECCIONES LEGIBLES (como funcionaba antes)
+            String origin = hotelName.replace(" ", "+");
+            if (hotelAddress != null) {
+                origin += "+" + hotelAddress.replace(" ", "+");
             }
-        });
 
-        btnNextImage.setOnClickListener(v -> {
-            int currentPosition = viewPagerImages.getCurrentItem();
-            if (currentPosition < hotelImages.size() - 1) {
-                viewPagerImages.setCurrentItem(currentPosition + 1, true);
+            String destination = place.getName().replace(" ", "+");
+            if (place.getVicinity() != null) {
+                destination += "+" + place.getVicinity().replace(" ", "+");
             }
-        });
 
-        // Configurar botón Ver todas las fotos
-        btnSeeAllPhotos.setOnClickListener(v -> {
-            // Implementar navegación a la galería completa
-            navigateToFullGallery();
-        });
+            // ✅ URI MEJORADA CON DIRECCIONES EN LUGAR DE COORDENADAS
+            String routeUri = String.format(
+                    "https://www.google.com/maps/dir/?api=1&origin=%s&destination=%s&travelmode=walking",
+                    origin, destination
+            );
 
-        // Configurar listener de clic en imagen principal
-        imageAdapter.setOnImageClickListener(position -> {
-            // También puede navegar a la galería completa
-            navigateToFullGallery();
-        });
+            Log.d(TAG, "🗺️ Abriendo ruta desde hotel a: " + place.getName());
+            Log.d(TAG, "📍 Origen: " + origin);
+            Log.d(TAG, "📍 Destino: " + destination);
+            Log.d(TAG, "🔗 URI: " + routeUri);
+
+            Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(routeUri));
+            intent.setPackage("com.google.android.apps.maps");
+
+            if (intent.resolveActivity(requireActivity().getPackageManager()) != null) {
+                startActivity(intent);
+
+                // Mostrar toast informativo (como funcionaba antes)
+                Toast.makeText(getContext(),
+                        "🗺️ Ruta desde " + hotelName + " a " + place.getName(),
+                        Toast.LENGTH_LONG).show();
+            } else {
+                // Si Google Maps no está instalado, abrir en navegador
+                Intent webIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(routeUri));
+                startActivity(webIntent);
+            }
+
+        } catch (Exception e) {
+            Log.e(TAG, "Error abriendo ruta: " + e.getMessage());
+            Toast.makeText(getContext(), "Error abriendo mapa", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void openMapIntent(String uri) {
+        Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(uri));
+        intent.setPackage("com.google.android.apps.maps");
+
+        if (intent.resolveActivity(requireActivity().getPackageManager()) != null) {
+            startActivity(intent);
+        } else {
+            Intent webIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(uri));
+            startActivity(webIntent);
+        }
+    }
+
+    private void loadNearbyPlaces() {
+        Log.d(TAG, "=== INICIANDO loadNearbyPlaces ===");
+
+        if (hotelLocation != null) {
+            Log.d(TAG, "🌍 Buscando lugares cerca de: " + hotelLocation.latitude + ", " + hotelLocation.longitude);
+
+            nearbyPlacesRepository.getNearbyTouristAttractions(
+                    hotelLocation.latitude,
+                    hotelLocation.longitude,
+                    2000, // Radio de 2km
+                    new NearbyPlacesRepository.NearbyPlacesCallback() {
+                        @Override
+                        public void onSuccess(List<NearbyPlace> places) {
+                            Log.d(TAG, "✅ SUCCESS: Recibidos " + places.size() + " lugares");
+
+                            if (getActivity() != null) {
+                                getActivity().runOnUiThread(() -> {
+                                    nearbyPlacesList.clear();
+                                    nearbyPlacesList.addAll(places);
+                                    enhancedCitiesAdapter.updatePlaces(nearbyPlacesList);
+
+                                    Log.d(TAG, "✅ UI actualizada con " + places.size() + " lugares");
+
+                                    // ✅ MOSTRAR NOMBRES DE LOS LUGARES
+                                    for (NearbyPlace place : places) {
+                                        Log.d(TAG, "   📍 " + place.getName() + " - " + place.getVicinity());
+                                    }
+                                });
+                            }
+                        }
+
+                        @Override
+                        public void onError(String error) {
+                            Log.e(TAG, "❌ ERROR cargando lugares: " + error);
+
+                            if (getActivity() != null) {
+                                getActivity().runOnUiThread(() -> {
+                                    Log.d(TAG, "🔄 Usando lugares estáticos como fallback");
+                                    setupStaticNearbyPlaces();
+                                });
+                            }
+                        }
+                    }
+            );
+        } else {
+            Log.e(TAG, "❌ hotelLocation es null en loadNearbyPlaces");
+            setupStaticNearbyPlaces();
+        }
+    }
+
+    private void setupStaticNearbyPlaces() {
+        List<City> nearbyPlaces = new ArrayList<>();
+        nearbyPlaces.add(new City("Parque del Amor", R.drawable.lima));
+        nearbyPlaces.add(new City("Larcomar", R.drawable.lima));
+        nearbyPlaces.add(new City("Kennedy Park", R.drawable.lima));
+
+        CitiesAdapter adapter = new CitiesAdapter(nearbyPlaces);
+        rvNearbyPlaces.setAdapter(adapter);
     }
 
     private void updateImageCounter(int position) {
         // Actualizar el contador de imágenes (1/4, 2/4, etc.)
-        String counterText = (position + 1) + "/" + hotelImages.size();
+        String counterText = (position + 1) + "/" + hotelImageUrls.size();
         tvImageCounter.setText(counterText);
     }
 
@@ -518,247 +1018,6 @@ public class HotelDetailFragment extends Fragment implements ThumbnailAdapter.On
         viewPagerImages.setCurrentItem(position, true);
     }
 
-
-    private void setupNearbyPlaces() {
-        Log.d("HotelDetailFragment", "=== INICIANDO setupNearbyPlaces ===");
-
-        try {
-            // Verificar que hotelLocation existe
-            if (hotelLocation == null) {
-                Log.e("HotelDetailFragment", "❌ hotelLocation es NULL");
-                setupStaticNearbyPlaces();
-                return;
-            }
-
-            Log.d("HotelDetailFragment", "✅ Hotel location: " + hotelLocation.latitude + ", " + hotelLocation.longitude);
-
-            // Inicializar repositorio
-            nearbyPlacesRepository = new NearbyPlacesRepository();
-            Log.d("HotelDetailFragment", "✅ Repository inicializado");
-
-            // Configurar adaptador con datos dinámicos
-            enhancedCitiesAdapter = new EnhancedCitiesAdapter(nearbyPlacesList, "AIzaSyBdghOu6DZktjZcg0_PJzffH72NC-nR0ok", hotelLocation);
-            rvNearbyPlaces.setLayoutManager(
-                    new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));
-            rvNearbyPlaces.setAdapter(enhancedCitiesAdapter);
-
-            Log.d("HotelDetailFragment", "✅ Adaptador configurado");
-
-            // Configurar click listener
-            enhancedCitiesAdapter.setOnPlaceClickListener((place, position) -> {
-                Log.d("HotelDetailFragment", "Click en lugar: " + place.getName());
-                openPlaceInMaps(place);
-            });
-
-            // ✅ LLAMAR A CARGAR LUGARES
-            Log.d("HotelDetailFragment", "🔄 Iniciando carga de lugares...");
-            loadNearbyPlaces();
-
-        } catch (Exception e) {
-            Log.e("HotelDetailFragment", "❌ Error configurando lugares cercanos: " + e.getMessage());
-            e.printStackTrace();
-            setupStaticNearbyPlaces();
-        }
-    }
-    // ✅ NUEVO MÉTODO PARA ABRIR LUGAR EN MAPS
-    private void openPlaceInMaps(NearbyPlace place) {
-        try {
-            if (hotelLocation == null) {
-                // Fallback: abrir solo el destino
-                String uri = String.format("geo:%f,%f?q=%f,%f(%s)",
-                        place.getLatitude(), place.getLongitude(),
-                        place.getLatitude(), place.getLongitude(),
-                        place.getName().replace(" ", "+"));
-                openMapIntent(uri);
-                return;
-            }
-
-            // ✅ CREAR RUTA DESDE HOTEL HASTA EL LUGAR
-            String routeUri = String.format(
-                    "https://www.google.com/maps/dir/%f,%f/%f,%f",
-                    hotelLocation.latitude, hotelLocation.longitude,  // Origen: Hotel
-                    place.getLatitude(), place.getLongitude()         // Destino: Lugar turístico
-            );
-
-            Log.d("HotelDetailFragment", "🗺️ Abriendo ruta desde hotel a: " + place.getName());
-            Log.d("HotelDetailFragment", "📍 Origen: " + hotelLocation.latitude + ", " + hotelLocation.longitude);
-            Log.d("HotelDetailFragment", "📍 Destino: " + place.getLatitude() + ", " + place.getLongitude());
-
-            Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(routeUri));
-            intent.setPackage("com.google.android.apps.maps");
-
-            if (intent.resolveActivity(requireActivity().getPackageManager()) != null) {
-                startActivity(intent);
-
-                // Mostrar toast informativo
-                Toast.makeText(getContext(),
-                        "🗺️ Ruta desde " + hotelName + " a " + place.getName(),
-                        Toast.LENGTH_LONG).show();
-            } else {
-                // Si Google Maps no está instalado, abrir en navegador
-                Intent webIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(routeUri));
-                startActivity(webIntent);
-            }
-
-        } catch (Exception e) {
-            Log.e("HotelDetailFragment", "Error abriendo ruta: " + e.getMessage());
-            Toast.makeText(getContext(), "Error abriendo mapa", Toast.LENGTH_SHORT).show();
-        }
-    }
-
-    private void openMapIntent(String uri) {
-        Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(uri));
-        intent.setPackage("com.google.android.apps.maps");
-
-        if (intent.resolveActivity(requireActivity().getPackageManager()) != null) {
-            startActivity(intent);
-        } else {
-            Intent webIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(uri));
-            startActivity(webIntent);
-        }
-    }
-    private void loadNearbyPlaces() {
-        Log.d("HotelDetailFragment", "=== INICIANDO loadNearbyPlaces ===");
-
-        if (hotelLocation != null) {
-            Log.d("HotelDetailFragment", "🌍 Buscando lugares cerca de: " + hotelLocation.latitude + ", " + hotelLocation.longitude);
-
-            nearbyPlacesRepository.getNearbyTouristAttractions(
-                    hotelLocation.latitude,
-                    hotelLocation.longitude,
-                    2000, // Radio de 2km
-                    new NearbyPlacesRepository.NearbyPlacesCallback() {
-                        @Override
-                        public void onSuccess(List<NearbyPlace> places) {
-                            Log.d("HotelDetailFragment", "✅ SUCCESS: Recibidos " + places.size() + " lugares");
-
-                            if (getActivity() != null) {
-                                getActivity().runOnUiThread(() -> {
-                                    nearbyPlacesList.clear();
-                                    nearbyPlacesList.addAll(places);
-                                    enhancedCitiesAdapter.updatePlaces(nearbyPlacesList);
-
-                                    Log.d("HotelDetailFragment", "✅ UI actualizada con " + places.size() + " lugares");
-
-                                    // ✅ MOSTRAR NOMBRES DE LOS LUGARES
-                                    for (NearbyPlace place : places) {
-                                        Log.d("HotelDetailFragment", "   📍 " + place.getName() + " - " + place.getVicinity());
-                                    }
-                                });
-                            }
-                        }
-
-                        @Override
-                        public void onError(String error) {
-                            Log.e("HotelDetailFragment", "❌ ERROR cargando lugares: " + error);
-
-                            if (getActivity() != null) {
-                                getActivity().runOnUiThread(() -> {
-                                    Log.d("HotelDetailFragment", "🔄 Usando lugares estáticos como fallback");
-                                    setupStaticNearbyPlaces();
-                                });
-                            }
-                        }
-                    }
-            );
-        } else {
-            Log.e("HotelDetailFragment", "❌ hotelLocation es null en loadNearbyPlaces");
-            setupStaticNearbyPlaces();
-        }
-    }
-
-
-    private void setupStaticNearbyPlaces() {
-        List<City> nearbyPlaces = new ArrayList<>();
-        nearbyPlaces.add(new City("Parque del Amor", R.drawable.lima));
-        nearbyPlaces.add(new City("Larcomar", R.drawable.lima));
-        nearbyPlaces.add(new City("Kennedy Park", R.drawable.lima));
-
-        CitiesAdapter adapter = new CitiesAdapter(nearbyPlaces);
-        rvNearbyPlaces.setAdapter(adapter);
-    }
-    private void setupHotelServices() {
-        try {
-            // Cargar servicios destacados
-            loadFeaturedServices();
-
-            // Configurar RecyclerView en formato de grid
-            if (rvServices != null) {
-                rvServices.setLayoutManager(new GridLayoutManager(getContext(), 4));
-
-                // Crear y configurar adaptador personalizado para servicios
-                ServicePreviewAdapter adapter = new ServicePreviewAdapter(featuredServices);
-                rvServices.setAdapter(adapter);
-            }
-
-            // Configurar botón "Ver todo"
-            if (tvSeeAllServices != null) {
-                tvSeeAllServices.setOnClickListener(v -> {
-                    try {
-                        // Navegar a la actividad de todos los servicios de alojamiento
-                        Intent intent = new Intent(getContext(), AllHotelServicesActivity.class);
-                        startActivity(intent);
-                    } catch (Exception e) {
-                        Log.e("HotelDetailFragment", "Error navegando a servicios: " + e.getMessage());
-                        if (getContext() != null) {
-                            Toast.makeText(getContext(), "Error abriendo servicios", Toast.LENGTH_SHORT).show();
-                        }
-                    }
-                });
-            }
-
-        } catch (Exception e) {
-            Log.e("HotelDetailFragment", "Error configurando servicios: " + e.getMessage());
-        }
-    }
-
-    private void loadFeaturedServices() {
-        // Estos serían los servicios destacados que aparecen en la pantalla principal
-        featuredServices.add(new HotelService(
-                "wifi",
-                "WiFi",
-                "Conectarse a nuestra red inalámbrica en todas las áreas del establecimiento.",
-                null, // Precio null = gratis
-                null, // Sin imagen específica
-                "ic_wifi", // Usa icono predeterminado
-                false,
-                null
-        ));
-
-        featuredServices.add(new HotelService(
-                "reception",
-                "Recepción 24h",
-                "Atención personalizada las 24 horas del día.",
-                null, // Precio null = gratis
-                null, // Sin imagen específica
-                "ic_reception", // Usa icono predeterminado
-                false,
-                null
-        ));
-
-        featuredServices.add(new HotelService(
-                "pool",
-                "Piscina",
-                "Piscina con vistas panorámicas en la azotea del hotel.",
-                null, // Precio null = gratis
-                null, // Sin imagen específica
-                "ic_pool", // Usa icono predeterminado
-                false,
-                null
-        ));
-
-        featuredServices.add(new HotelService(
-                "taxi",
-                "Taxi*",
-                "El servicio de taxi gratuito hacia el aeropuerto estará disponible si se adquiere una reserva de S/. 350",
-                null, // Precio base null ya que depende de condición
-                null, // Sin imagen específica
-                "ic_taxi", // Usa icono predeterminado
-                true, // Es condicional
-                "Disponible gratis con reserva mínima de S/. 350"
-        ));
-    }
-
     private void setupActions(View view) {
         try {
             // Configurar botón de retroceso - VERIFICAR SI EXISTE
@@ -769,9 +1028,9 @@ public class HotelDetailFragment extends Fragment implements ThumbnailAdapter.On
                         getActivity().onBackPressed();
                     }
                 });
-                Log.d("HotelDetailFragment", "btn_back configurado correctamente");
+                Log.d(TAG, "btn_back configurado correctamente");
             } else {
-                Log.w("HotelDetailFragment", "btn_back no encontrado en el layout");
+                Log.w(TAG, "btn_back no encontrado en el layout");
             }
 
             // Configurar botón de favoritos - VERIFICAR SI EXISTE
@@ -781,9 +1040,9 @@ public class HotelDetailFragment extends Fragment implements ThumbnailAdapter.On
                     // Implementar lógica para añadir a favoritos
                     Toast.makeText(getContext(), "Añadido a favoritos", Toast.LENGTH_SHORT).show();
                 });
-                Log.d("HotelDetailFragment", "btn_favorite configurado correctamente");
+                Log.d(TAG, "btn_favorite configurado correctamente");
             } else {
-                Log.w("HotelDetailFragment", "btn_favorite no encontrado en el layout");
+                Log.w(TAG, "btn_favorite no encontrado en el layout");
             }
 
             // Configurar botón de elegir habitación - VERIFICAR SI EXISTE
@@ -792,9 +1051,9 @@ public class HotelDetailFragment extends Fragment implements ThumbnailAdapter.On
                 btnChooseRoom.setOnClickListener(v -> {
                     navigateToRoomSelection();
                 });
-                Log.d("HotelDetailFragment", "btn_choose_room configurado correctamente");
+                Log.d(TAG, "btn_choose_room configurado correctamente");
             } else {
-                Log.w("HotelDetailFragment", "btn_choose_room no encontrado en el layout");
+                Log.w(TAG, "btn_choose_room no encontrado en el layout");
             }
 
             // Ver todas las reseñas - VERIFICAR SI EXISTE
@@ -803,15 +1062,15 @@ public class HotelDetailFragment extends Fragment implements ThumbnailAdapter.On
                 tvSeeAllReviews.setOnClickListener(v -> {
                     navigateToAllReviews();
                 });
-                Log.d("HotelDetailFragment", "tv_see_all_reviews configurado correctamente");
+                Log.d(TAG, "tv_see_all_reviews configurado correctamente");
             } else {
-                Log.w("HotelDetailFragment", "tv_see_all_reviews no encontrado en el layout");
+                Log.w(TAG, "tv_see_all_reviews no encontrado en el layout");
             }
 
-            Log.d("HotelDetailFragment", "setupActions completado sin errores");
+            Log.d(TAG, "setupActions completado sin errores");
 
         } catch (Exception e) {
-            Log.e("HotelDetailFragment", "Error en setupActions: " + e.getMessage());
+            Log.e(TAG, "Error en setupActions: " + e.getMessage());
             e.printStackTrace();
 
             // No lanzar el error, solo registrarlo
@@ -844,10 +1103,10 @@ public class HotelDetailFragment extends Fragment implements ThumbnailAdapter.On
                     .addToBackStack(null)
                     .commit();
 
-            Log.d("HotelDetailFragment", "Navegando a AllReviewsFragment");
+            Log.d(TAG, "Navegando a AllReviewsFragment");
 
         } catch (Exception e) {
-            Log.e("HotelDetailFragment", "Error navegando a reseñas: " + e.getMessage());
+            Log.e(TAG, "Error navegando a reseñas: " + e.getMessage());
             if (getContext() != null) {
                 Toast.makeText(getContext(), "Error abriendo reseñas", Toast.LENGTH_SHORT).show();
             }
@@ -869,120 +1128,5 @@ public class HotelDetailFragment extends Fragment implements ThumbnailAdapter.On
                 .replace(R.id.fragment_container, new RoomSelectionFragment())
                 .addToBackStack(null)
                 .commit();
-    }
-
-    // Adaptador para la vista previa de servicios (adaptado de ServicePreviewAdapter)
-    class ServicePreviewAdapter extends RecyclerView.Adapter<ServicePreviewAdapter.ServiceViewHolder> {
-        private List<HotelService> services;
-
-        public ServicePreviewAdapter(List<HotelService> services) {
-            this.services = services != null ? services : new ArrayList<>();
-        }
-
-        @NonNull
-        @Override
-        public ServiceViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-            View view = LayoutInflater.from(parent.getContext())
-                    .inflate(R.layout.client_item_service_preview, parent, false);
-            return new ServiceViewHolder(view);
-        }
-
-        @Override
-        public void onBindViewHolder(@NonNull ServiceViewHolder holder, int position) {
-            if (position < services.size()) {
-                HotelService service = services.get(position);
-                holder.bind(service);
-            }
-        }
-
-        @Override
-        public int getItemCount() {
-            return services.size();
-        }
-
-        class ServiceViewHolder extends RecyclerView.ViewHolder {
-            private ImageView ivServiceIcon;
-            private TextView tvServiceName;
-            private CardView iconContainer;
-
-            public ServiceViewHolder(@NonNull View itemView) {
-                super(itemView);
-                ivServiceIcon = itemView.findViewById(R.id.iv_service_icon);
-                tvServiceName = itemView.findViewById(R.id.tv_service_name);
-                iconContainer = itemView.findViewById(R.id.fl_service_icon_container);
-            }
-
-            public void bind(HotelService service) {
-                try {
-                    if (service == null) return;
-
-                    tvServiceName.setText(service.getName());
-
-                    // Configurar icono
-                    setupServiceIcon(service);
-
-                    // Configurar click
-                    itemView.setOnClickListener(v -> {
-                        try {
-                            String message = service.getName();
-                            if (service.isConditional()) {
-                                message += " - " + service.getConditionalDescription();
-                            }
-
-                            if (getContext() != null) {
-                                Toast.makeText(getContext(), message, Toast.LENGTH_SHORT).show();
-                            }
-                        } catch (Exception e) {
-                            Log.e("ServiceViewHolder", "Error en click: " + e.getMessage());
-                        }
-                    });
-
-                } catch (Exception e) {
-                    Log.e("ServiceViewHolder", "Error en bind: " + e.getMessage());
-                }
-            }
-
-            private void setupServiceIcon(HotelService service) {
-                try {
-                    if (ivServiceIcon == null || iconContainer == null) return;
-
-                    // Configurar icono
-                    String iconName = service.getIconResourceName();
-                    if (iconName != null && !iconName.isEmpty()) {
-                        int resourceId = itemView.getContext().getResources().getIdentifier(
-                                iconName, "drawable", itemView.getContext().getPackageName());
-
-                        if (resourceId > 0) {
-                            ivServiceIcon.setImageResource(resourceId);
-                        } else {
-                            ivServiceIcon.setImageResource(R.drawable.ic_hotel_service_default);
-                        }
-                    } else {
-                        ivServiceIcon.setImageResource(R.drawable.ic_hotel_service_default);
-                    }
-
-                    // Configurar fondo según tipo de servicio
-                    int backgroundRes = R.color.orange_light;
-                    switch (service.getServiceType()) {
-                        case "free":
-                            backgroundRes = R.color.success_light;
-                            break;
-                        case "conditional":
-                            backgroundRes = R.color.purple_light;
-                            break;
-                        case "paid":
-                        default:
-                            backgroundRes = R.color.orange_light;
-                            break;
-                    }
-
-                    iconContainer.setCardBackgroundColor(
-                            ContextCompat.getColor(itemView.getContext(), backgroundRes));
-
-                } catch (Exception e) {
-                    Log.e("ServiceViewHolder", "Error configurando icono: " + e.getMessage());
-                }
-            }
-        }
     }
 }

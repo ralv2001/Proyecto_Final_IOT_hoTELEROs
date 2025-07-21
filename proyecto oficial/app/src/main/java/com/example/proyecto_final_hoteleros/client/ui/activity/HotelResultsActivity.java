@@ -32,6 +32,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class HotelResultsActivity extends AppCompatActivity {
 
@@ -348,13 +349,14 @@ public class HotelResultsActivity extends AppCompatActivity {
                 Log.d(TAG, "✅ Hoteles cargados desde Firebase: " + hotelProfiles.size());
 
                 allHotelProfiles = hotelProfiles;
-                allHotels = convertHotelProfilesToHotels(hotelProfiles);
 
+                // ✅ CAMBIO IMPORTANTE: No llamar directamente a processHotelsIntelligently
+                // porque convertHotelProfilesToHotels ahora es asíncrono y maneja la UI internamente
+                convertHotelProfilesToHotels(hotelProfiles);
+
+                // Ocultar loading inmediatamente ya que el procesamiento asíncrono se encarga
                 runOnUiThread(() -> {
                     hideLoadingState();
-                    processHotelsIntelligently();
-                    setupAdapter();
-                    updateResultsCount();
                 });
             }
 
@@ -372,8 +374,13 @@ public class HotelResultsActivity extends AppCompatActivity {
     }
 
     // ✅ MÉTODO ACTUALIZADO: Usar fotos reales de Firebase
+    // ✅ MÉTODO ACTUALIZADO: Usar fotos reales de Firebase y precios reales de habitaciones
     private List<Hotel> convertHotelProfilesToHotels(List<HotelProfile> hotelProfiles) {
         List<Hotel> hotels = new ArrayList<>();
+        AtomicInteger processedHotels = new AtomicInteger(0);
+        int totalHotels = hotelProfiles.size();
+
+        Log.d(TAG, "🔄 Convirtiendo " + totalHotels + " hoteles con precios reales en HotelResultsActivity...");
 
         for (HotelProfile profile : hotelProfiles) {
             if (profile != null && profile.isActive()) {
@@ -382,24 +389,97 @@ public class HotelResultsActivity extends AppCompatActivity {
                 // ✅ EXTRAER PRIMERA FOTO REAL DEL HOTEL
                 String imageUrl = getFirstPhotoFromProfile(profile);
 
-                Hotel hotel = new Hotel(
-                        profile.getName(),
-                        profile.getFullAddress() != null ? profile.getFullAddress() : profile.getAddress(),
-                        imageUrl, // ✅ USAR FOTO REAL en lugar de placeholder
-                        generatePriceFromProfile(profile),
-                        generateRatingFromProfile(profile)
-                );
+                // ✅ OBTENER PRECIO REAL DE HABITACIONES
+                com.example.proyecto_final_hoteleros.client.utils.HotelPriceUtils.getMinimumRoomPrice(profile, this, new com.example.proyecto_final_hoteleros.client.utils.HotelPriceUtils.PriceCallback() {
+                    @Override
+                    public void onPriceObtained(String formattedPrice, double rawPrice) {
+                        Hotel hotel = new Hotel(
+                                profile.getName(),
+                                profile.getFullAddress() != null ? profile.getFullAddress() : profile.getAddress(),
+                                imageUrl,
+                                formattedPrice, // ✅ PRECIO REAL DE HABITACIÓN MÁS BARATA
+                                generateRatingFromProfile(profile)
+                        );
 
-                hotels.add(hotel);
+                        synchronized (hotels) {
+                            hotels.add(hotel);
+
+                            int completed = processedHotels.incrementAndGet();
+                            Log.d(TAG, "💰 Hotel " + completed + "/" + totalHotels + ": " + profile.getName() + " - " + formattedPrice);
+
+                            // Cuando todos los hoteles estén procesados, actualizar UI
+                            if (completed == totalHotels) {
+                                runOnUiThread(() -> {
+                                    Log.d(TAG, "✅ Todos los hoteles procesados con precios reales en HotelResults");
+
+                                    // Actualizar allHotels con la lista completa
+                                    allHotels = hotels;
+
+                                    // Procesar hoteles y actualizar UI
+                                    processHotelsIntelligently();
+                                    setupAdapter();
+                                    updateResultsCount();
+                                });
+                            }
+                        }
+                    }
+
+                    @Override
+                    public void onError(String error) {
+                        Log.w(TAG, "⚠️ Error obteniendo precio para " + profile.getName() + ": " + error);
+
+                        // Usar precio por defecto en caso de error
+                        String defaultPrice = com.example.proyecto_final_hoteleros.client.utils.HotelPriceUtils.generatePriceSync(profile);
+
+                        Hotel hotel = new Hotel(
+                                profile.getName(),
+                                profile.getFullAddress() != null ? profile.getFullAddress() : profile.getAddress(),
+                                imageUrl,
+                                defaultPrice,
+                                generateRatingFromProfile(profile)
+                        );
+
+                        synchronized (hotels) {
+                            hotels.add(hotel);
+
+                            int completed = processedHotels.incrementAndGet();
+                            Log.d(TAG, "⚠️ Hotel " + completed + "/" + totalHotels + " (precio por defecto): " + profile.getName() + " - " + defaultPrice);
+
+                            if (completed == totalHotels) {
+                                runOnUiThread(() -> {
+                                    Log.d(TAG, "✅ Todos los hoteles procesados en HotelResults (algunos con precios por defecto)");
+
+                                    // Actualizar allHotels con la lista completa
+                                    allHotels = hotels;
+
+                                    // Procesar hoteles y actualizar UI
+                                    processHotelsIntelligently();
+                                    setupAdapter();
+                                    updateResultsCount();
+                                });
+                            }
+                        }
+                    }
+                });
 
                 // ✅ LOG PARA VER QUE ESTÁ FUNCIONANDO
-                Log.d(TAG, "🏨 Hotel convertido: " + profile.getName() + " - Foto: " +
+                Log.d(TAG, "🏨 Procesando hotel en HotelResults: " + profile.getName() + " - Foto: " +
                         (imageUrl.startsWith("http") ? "URL_REAL" : "PLACEHOLDER"));
             }
         }
 
-        Log.d(TAG, "✅ Convertidos " + hotels.size() + " hoteles de Firebase con fotos reales");
-        return hotels;
+        // Si no hay hoteles activos, retornar lista vacía inmediatamente
+        if (totalHotels == 0) {
+            Log.d(TAG, "❌ No hay hoteles activos para procesar en HotelResults");
+            runOnUiThread(() -> {
+                allHotels = hotels;
+                processHotelsIntelligently();
+                setupAdapter();
+                updateResultsCount();
+            });
+        }
+
+        return hotels; // Esta lista se irá llenando asíncronamente
     }
 
     // ✅ NUEVO MÉTODO: Extraer primera foto del perfil del hotel
