@@ -70,5 +70,38 @@
 
     <!-- Google Sign-In -->
     <string name="default_web_client_id">366577529035-drve6pgt7ap8kgs757ek48qf4ud49093.apps.googleusercontent.com</string>
+    <!-- Textos para servicio de taxi -->
+    <string name="taxi_service_checkout">Servicio de Checkout</string>
+    <string name="free_taxi_service">Taxi Gratuito al Aeropuerto</string>
+    <string name="pickup_client">Recoger Cliente</string>
+    <string name="client_waiting">Cliente esperando</string>
+    <string name="start_navigation">Iniciar Navegación</string>
+    <string name="contact_client">Contactar Cliente</string>
+    <string name="contact_hotel">Contactar Hotel</string>
+    <string name="service_completed">Servicio Completado</string>
+    <string name="checkout_pickup">Recogida de Checkout</string>
+    <string name="service_in_progress">Servicio en Progreso</string>
+    <string name="arrive_at_hotel">He llegado al hotel</string>
+    <string name="client_picked_up">Cliente recogido</string>
+    <string name="heading_to_airport">Rumbo al aeropuerto</string>
+    <string name="service_type_checkout">🏨 Checkout Gratuito</string>
+    <string name="estimated_time">Tiempo estimado</string>
+    <string name="estimated_distance">Distancia estimada</string>
+    <string name="checkout_time">Hora de checkout</string>
+    <string name="special_notes">Notas especiales</string>
+    <string name="accept_service">Aceptar Servicio</string>
+    <string name="reject_service">Rechazar</string>
+    <string name="call_hotel">Llamar Hotel</string>
+    <string name="call_client">Llamar Cliente</string>
+    <string name="service_accepted">¡Servicio aceptado!</string>
+    <string name="navigating_to_hotel">Navegando al hotel...</string>
+    <string name="new_checkout_request">Nueva solicitud de checkout</string>
+    <string name="checkout_service_available">Servicio de checkout disponible</string>
+    <string name="no_services_available">No hay servicios disponibles</string>
+    <string name="loading_services">Cargando servicios...</string>
+    <string name="error_loading_services">Error cargando servicios</string>
+    <string name="service_validation_failed">No puedes tomar este servicio</string>
+    <string name="already_have_active_service">Ya tienes un servicio activo</string>
+    <string name="complete_current_service">Completa tu servicio actual primero</string>
 
 </resources>
