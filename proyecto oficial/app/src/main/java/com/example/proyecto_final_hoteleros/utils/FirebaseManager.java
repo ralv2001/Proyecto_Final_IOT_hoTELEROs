@@ -2,6 +2,8 @@ package com.example.proyecto_final_hoteleros.utils;
 
 import android.util.Log;
 import androidx.annotation.NonNull;
+
+import com.example.proyecto_final_hoteleros.taxista.model.CheckoutReservation;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentReference;
@@ -9,6 +11,10 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.DocumentSnapshot;
 import java.util.HashMap;
 import com.example.proyecto_final_hoteleros.models.UserModel;
+import com.google.firebase.firestore.ListenerRegistration;
+import com.google.firebase.firestore.DocumentChange;
+import com.google.firebase.firestore.QuerySnapshot;
+
 import java.util.Map;
 import java.util.List;
 import java.util.ArrayList;
@@ -19,6 +25,9 @@ public class FirebaseManager {
     private FirebaseFirestore db;
     private static final String USERS_COLLECTION = "users";
     private static final String PENDING_DRIVERS_COLLECTION = "pending_drivers";
+
+    private static final String RESERVATIONS_COLLECTION = "reservations"; // NUEVO
+    private static final String TAXI_SERVICES_COLLECTION = "taxi_services";
 
     private final FirebaseAuth auth;
     private final FirebaseFirestore firestore;
@@ -55,7 +64,23 @@ public class FirebaseManager {
         void onUserNotFound();
         void onError(String error);
     }
+    public interface CheckoutCallback {
+        void onSuccess(List<CheckoutReservation> reservations);
+        void onError(String error);
+    }
 
+    public interface TaxiServiceCallback {
+        void onSuccess();
+        void onError(String error);
+        void onStatusUpdate(String status);
+    }
+
+    public interface RealtimeCheckoutCallback {
+        void onNewReservation(CheckoutReservation reservation);
+        void onReservationUpdated(CheckoutReservation reservation);
+        void onReservationRemoved(String reservationId);
+        void onError(String error);
+    }
     // ========== AUTENTICACIÓN ==========
 
     public void registerUser(String email, String password, AuthCallback callback) {
@@ -629,6 +654,211 @@ public class FirebaseManager {
                     }
                 });
     }
+
+    // Método para obtener reservas en checkout
+    public void getCheckoutReservations(CheckoutCallback callback) {
+        Log.d(TAG, "🚕 Obteniendo reservas de checkout...");
+
+        firestore.collection(RESERVATIONS_COLLECTION)
+                .whereEqualTo("status", "checkout")
+                .whereEqualTo("freeTransport", true)
+                .whereEqualTo("taxiStatus", "pending")
+                .get()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        List<CheckoutReservation> reservations = new ArrayList<>();
+
+                        for (DocumentSnapshot document : task.getResult()) {
+                            try {
+                                CheckoutReservation reservation = CheckoutReservation.fromDocumentSnapshot(document);
+                                reservations.add(reservation);
+
+                                Log.d(TAG, "📋 Reserva encontrada: " + reservation.getHotelName() +
+                                        " | Cliente: " + reservation.getClientName() +
+                                        " | ID: " + document.getId());
+                            } catch (Exception e) {
+                                Log.e(TAG, "❌ Error parseando reserva: " + e.getMessage());
+                            }
+                        }
+
+                        Log.d(TAG, "✅ " + reservations.size() + " reservas de checkout obtenidas");
+                        callback.onSuccess(reservations);
+
+                    } else {
+                        String error = task.getException() != null ?
+                                task.getException().getMessage() : "Error desconocido";
+                        Log.e(TAG, "❌ Error obteniendo reservas: " + error);
+                        callback.onError(error);
+                    }
+                });
+    }
+
+    /**
+     * Listener en tiempo real para nuevas reservas de checkout
+     */
+    public ListenerRegistration listenToCheckoutReservations(RealtimeCheckoutCallback callback) {
+        Log.d(TAG, "🔄 Iniciando listener de reservas de checkout...");
+
+        return firestore.collection(RESERVATIONS_COLLECTION)
+                .whereEqualTo("status", "checkout")
+                .whereEqualTo("freeTransport", true)
+                .whereEqualTo("taxiStatus", "pending")
+                .addSnapshotListener((querySnapshot, e) -> {  // ⭐ CAMBIAR AQUÍ
+                    if (e != null) {
+                        Log.e(TAG, "❌ Error en listener: " + e.getMessage());
+                        callback.onError(e.getMessage());
+                        return;
+                    }
+
+                    if (querySnapshot != null) {  // ⭐ CAMBIAR AQUÍ
+                        for (DocumentChange dc : querySnapshot.getDocumentChanges()) {  // ⭐ CAMBIAR AQUÍ
+                            try {
+                                CheckoutReservation reservation = CheckoutReservation.fromDocumentSnapshot(dc.getDocument());  // ⭐ CAMBIAR AQUÍ
+
+                                switch (dc.getType()) {  // ⭐ CAMBIAR AQUÍ
+                                    case ADDED:
+                                        Log.d(TAG, "🆕 Nueva reserva: " + reservation.getHotelName());
+                                        callback.onNewReservation(reservation);
+                                        break;
+                                    case MODIFIED:
+                                        Log.d(TAG, "🔄 Reserva actualizada: " + reservation.getId());
+                                        callback.onReservationUpdated(reservation);
+                                        break;
+                                    case REMOVED:
+                                        Log.d(TAG, "🗑️ Reserva removida: " + dc.getDocument().getId());  // ⭐ CAMBIAR AQUÍ
+                                        callback.onReservationRemoved(dc.getDocument().getId());  // ⭐ CAMBIAR AQUÍ
+                                        break;
+                                }
+                            } catch (Exception ex) {
+                                Log.e(TAG, "❌ Error procesando cambio: " + ex.getMessage());
+                            }
+                        }
+                    }
+                });
+    }
+
+    // Método para asignar taxista a reserva
+    public void assignDriverToReservation(String reservationId, String driverId, DataCallback callback) {
+        Log.d(TAG, "🚕 Asignando taxista " + driverId + " a reserva " + reservationId);
+
+        Map<String, Object> updates = new HashMap<>();
+        updates.put("assignedDriverId", driverId);
+        updates.put("taxiStatus", "assigned");
+        updates.put("assignedAt", System.currentTimeMillis());
+
+        firestore.collection(RESERVATIONS_COLLECTION)
+                .document(reservationId)
+                .update(updates)
+                .addOnSuccessListener(aVoid -> {
+                    Log.d(TAG, "✅ Taxista asignado exitosamente");
+                    callback.onSuccess();
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "❌ Error asignando taxista: " + e.getMessage());
+                    callback.onError(e.getMessage());
+                });
+    }
+
+    public void updateTaxiServiceStatus(String reservationId, String newStatus, TaxiServiceCallback callback) {
+        Log.d(TAG, "🔄 Actualizando estado de taxi a: " + newStatus);
+
+        Map<String, Object> updates = new HashMap<>();
+        updates.put("taxiStatus", newStatus);
+
+        // Agregar timestamp según el estado
+        switch (newStatus) {
+            case "in_progress":
+                updates.put("serviceStartTime", System.currentTimeMillis());
+                break;
+            case "completed":
+                updates.put("serviceCompletedTime", System.currentTimeMillis());
+                break;
+            case "cancelled":
+                updates.put("serviceCancelledTime", System.currentTimeMillis());
+                break;
+        }
+
+        firestore.collection(RESERVATIONS_COLLECTION)
+                .document(reservationId)
+                .update(updates)
+                .addOnSuccessListener(aVoid -> {
+                    Log.d(TAG, "✅ Estado actualizado a: " + newStatus);
+                    callback.onSuccess();
+                    callback.onStatusUpdate(newStatus);
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "❌ Error actualizando estado: " + e.getMessage());
+                    callback.onError(e.getMessage());
+                });
+    }
+
+    /**
+     * Crea un registro de servicio de taxi completado
+     */
+    public void createTaxiServiceRecord(String reservationId, String driverId,
+                                        double distance, int duration, String notes, DataCallback callback) {
+        Log.d(TAG, "📝 Creando registro de servicio de taxi...");
+
+        Map<String, Object> serviceRecord = new HashMap<>();
+        serviceRecord.put("reservationId", reservationId);
+        serviceRecord.put("driverId", driverId);
+        serviceRecord.put("distance", distance);
+        serviceRecord.put("duration", duration);
+        serviceRecord.put("notes", notes);
+        serviceRecord.put("createdAt", System.currentTimeMillis());
+        serviceRecord.put("serviceType", "checkout_taxi");
+
+        firestore.collection(TAXI_SERVICES_COLLECTION)
+                .add(serviceRecord)
+                .addOnSuccessListener(documentReference -> {
+                    Log.d(TAG, "✅ Registro de servicio creado: " + documentReference.getId());
+                    callback.onSuccess();
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "❌ Error creando registro: " + e.getMessage());
+                    callback.onError(e.getMessage());
+                });
+    }
+
+    /**
+     * Obtiene todas las reservas asignadas a un taxista específico
+     */
+    public void getDriverAssignedReservations(String driverId, CheckoutCallback callback) {
+        Log.d(TAG, "🚕 Obteniendo reservas asignadas al taxista: " + driverId);
+
+        firestore.collection(RESERVATIONS_COLLECTION)
+                .whereEqualTo("assignedDriverId", driverId)
+                .whereIn("taxiStatus", List.of("assigned", "in_progress"))
+                .get()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        List<CheckoutReservation> reservations = new ArrayList<>();
+
+                        for (DocumentSnapshot document : task.getResult()) {
+                            try {
+                                CheckoutReservation reservation = CheckoutReservation.fromDocumentSnapshot(document);
+                                reservations.add(reservation);
+
+                                Log.d(TAG, "📋 Reserva asignada: " + reservation.getHotelName() +
+                                        " | Estado: " + reservation.getTaxiStatus());
+                            } catch (Exception e) {
+                                Log.e(TAG, "❌ Error parseando reserva asignada: " + e.getMessage());
+                            }
+                        }
+
+                        Log.d(TAG, "✅ " + reservations.size() + " reservas asignadas obtenidas");
+                        callback.onSuccess(reservations);
+
+                    } else {
+                        String error = task.getException() != null ?
+                                task.getException().getMessage() : "Error desconocido";
+                        Log.e(TAG, "❌ Error obteniendo reservas asignadas: " + error);
+                        callback.onError(error);
+                    }
+                });
+    }
+
+
     // ========== MÉTODO PARA OBTENER ADMINISTRADORES DE HOTEL ==========
     public void getHotelAdmins(DriverListCallback callback) {
         Log.d(TAG, "📋 Obteniendo administradores de hotel... [timestamp: " + System.currentTimeMillis() + "]");
@@ -928,6 +1158,117 @@ public class FirebaseManager {
                         onComplete.run();
                     }
                 });
+    }
+
+    public void createSampleCheckoutReservations(DataCallback callback) {
+        Log.d(TAG, "🧪 Creando reservas de ejemplo...");
+
+        List<Map<String, Object>> sampleReservations = new ArrayList<>();
+
+        // ✅ SOLO 2 RESERVAS DE EJEMPLO (en lugar de 13+)
+
+        // Reserva 1
+        Map<String, Object> reservation1 = new HashMap<>();
+        reservation1.put("hotelName", "Hotel Gran Plaza");
+        reservation1.put("hotelAddress", "Av. La Marina 123, San Miguel");
+        reservation1.put("hotelPhone", "+51 1 234-5678");
+        reservation1.put("clientName", "Juan Pérez");
+        reservation1.put("clientPhone", "+51 987 654 321");
+        reservation1.put("clientEmail", "juan.perez@email.com");
+        reservation1.put("checkoutDate", "2025-07-20"); // Fecha actual + 1 día
+        reservation1.put("checkoutTime", "11:30");
+        reservation1.put("roomNumber", "205");
+        reservation1.put("roomType", "Suite Ejecutiva");
+        reservation1.put("status", "checkout");
+        reservation1.put("freeTransport", true);
+        reservation1.put("taxiStatus", "pending");
+        reservation1.put("estimatedDistance", 15.5);
+        reservation1.put("estimatedDuration", 25);
+        reservation1.put("createdAt", System.currentTimeMillis());
+        reservation1.put("destinationAddress", "Aeropuerto Internacional Jorge Chávez, Callao");
+        reservation1.put("notes", "Cliente esperando en lobby, equipaje pesado. Vuelo nacional a las 14:00");
+
+        // Reserva 2
+        Map<String, Object> reservation2 = new HashMap<>();
+        reservation2.put("hotelName", "Hotel Miraflores Park");
+        reservation2.put("hotelAddress", "Av. Malecón 456, Miraflores");
+        reservation2.put("hotelPhone", "+51 1 345-6789");
+        reservation2.put("clientName", "María García");
+        reservation2.put("clientPhone", "+51 987 123 456");
+        reservation2.put("clientEmail", "maria.garcia@email.com");
+        reservation2.put("checkoutDate", "2025-07-20"); // Fecha actual + 1 día
+        reservation2.put("checkoutTime", "14:15");
+        reservation2.put("roomNumber", "812");
+        reservation2.put("roomType", "Habitación Doble");
+        reservation2.put("status", "checkout");
+        reservation2.put("freeTransport", true);
+        reservation2.put("taxiStatus", "pending");
+        reservation2.put("estimatedDistance", 18.2);
+        reservation2.put("estimatedDuration", 30);
+        reservation2.put("createdAt", System.currentTimeMillis() + 300000); // 5 min después
+        reservation2.put("destinationAddress", "Aeropuerto Internacional Jorge Chávez, Callao");
+        reservation2.put("notes", "Vuelo internacional a las 17:45, llegar 3 horas antes. Cliente con equipaje extra");
+
+        sampleReservations.add(reservation1);
+        sampleReservations.add(reservation2);
+
+        // ✅ IMPLEMENTACIÓN MEJORADA CON CONTADOR Y MANEJO DE ERRORES
+        final int[] createdCount = {0};
+        final int[] errorCount = {0};
+        final int totalToCreate = sampleReservations.size();
+
+        Log.d(TAG, "📝 Creando " + totalToCreate + " reservas de ejemplo...");
+
+        // Guardar cada reserva en Firebase
+        for (int i = 0; i < sampleReservations.size(); i++) {
+            Map<String, Object> reservation = sampleReservations.get(i);
+            final int reservationIndex = i + 1;
+
+            firestore.collection(RESERVATIONS_COLLECTION)
+                    .add(reservation)
+                    .addOnSuccessListener(documentReference -> {
+                        Log.d(TAG, "✅ Reserva " + reservationIndex + " creada: " + documentReference.getId());
+                        createdCount[0]++;
+
+                        // Verificar si todas las reservas fueron creadas
+                        if (createdCount[0] + errorCount[0] == totalToCreate) {
+                            if (errorCount[0] == 0) {
+                                Log.d(TAG, "🎉 Todas las reservas creadas exitosamente");
+                                callback.onSuccess();
+                            } else {
+                                Log.w(TAG, "⚠️ Algunas reservas fallaron: " + createdCount[0] + " exitosas, " + errorCount[0] + " errores");
+                                callback.onSuccess(); // Considerar éxito parcial como éxito
+                            }
+                        }
+                    })
+                    .addOnFailureListener(e -> {
+                        Log.e(TAG, "❌ Error creando reserva " + reservationIndex + ": " + e.getMessage());
+                        errorCount[0]++;
+
+                        // Verificar si todas las operaciones terminaron
+                        if (createdCount[0] + errorCount[0] == totalToCreate) {
+                            if (createdCount[0] > 0) {
+                                Log.w(TAG, "⚠️ Creación parcial: " + createdCount[0] + " exitosas, " + errorCount[0] + " errores");
+                                callback.onSuccess(); // Éxito parcial
+                            } else {
+                                Log.e(TAG, "💥 Falló la creación de todas las reservas");
+                                callback.onError("Error creando todas las reservas de ejemplo");
+                            }
+                        }
+                    });
+        }
+
+        // ✅ TIMEOUT DE SEGURIDAD
+        new android.os.Handler().postDelayed(() -> {
+            if (createdCount[0] + errorCount[0] < totalToCreate) {
+                Log.w(TAG, "⏰ Timeout en creación de reservas. Creadas: " + createdCount[0]);
+                if (createdCount[0] > 0) {
+                    callback.onSuccess(); // Al menos algunas se crearon
+                } else {
+                    callback.onError("Timeout creando reservas de ejemplo");
+                }
+            }
+        }, 10000); // 10 segundos timeout
     }
 
     /**

@@ -143,10 +143,17 @@ public class MainActivity extends AppCompatActivity {
         layoutContinueAsTaxiDriver.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Toast.makeText(MainActivity.this, "Continuando como taxista...", Toast.LENGTH_SHORT).show();
+                Toast.makeText(MainActivity.this, "🚗 Continuando como taxista...", Toast.LENGTH_SHORT).show();
 
-                // Iniciar la HomeActivity que contiene el contenedor de fragmentos
+                // Crear intent con datos simulados para testing
                 Intent intent = new Intent(MainActivity.this, DriverActivity.class);
+
+                // ⭐ AGREGAR ESTOS DATOS PARA QUE FUNCIONE CORRECTAMENTE
+                intent.putExtra("userId", "taxista_testing_" + System.currentTimeMillis());
+                intent.putExtra("userEmail", "taxista.testing@hoteleros.com");
+                intent.putExtra("userName", "Taxista de Prueba");
+                intent.putExtra("userType", "driver");
+
                 startActivity(intent);
             }
         });

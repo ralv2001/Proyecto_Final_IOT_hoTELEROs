@@ -11,10 +11,48 @@
         android:id="@+id/fragment_container"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        app:layout_constraintBottom_toTopOf="@+id/bottom_navigation"
+        app:layout_constraintBottom_toTopOf="@+id/test_buttons_container"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
+
+    <!-- NUEVO: Contenedor para botones de testing (solo visible en debug) -->
+    <LinearLayout
+        android:id="@+id/test_buttons_container"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="8dp"
+        android:background="#FFF3E0"
+        android:visibility="gone"
+        app:layout_constraintBottom_toTopOf="@+id/bottom_navigation"
+        tools:visibility="visible">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnCreateTestData"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginEnd="4dp"
+            android:text="🧪 Crear Datos"
+            android:textSize="12sp"
+            android:backgroundTint="#FF6B35"
+            android:textColor="@android:color/white"
+            style="@style/Widget.Material3.Button"/>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnClearTestData"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="4dp"
+            android:text="🗑️ Limpiar"
+            android:textSize="12sp"
+            android:backgroundTint="#757575"
+            android:textColor="@android:color/white"
+            style="@style/Widget.Material3.Button.OutlinedButton"/>
+
+    </LinearLayout>
 
     <!-- Bottom Navigation -->
     <include
