@@ -424,7 +424,7 @@ public class MainActivity extends AppCompatActivity {
             public void onAccountCollision(String email) {
                 // No debería pasar en vinculación
             }
-        }, null);
+        });
     }
 
 
