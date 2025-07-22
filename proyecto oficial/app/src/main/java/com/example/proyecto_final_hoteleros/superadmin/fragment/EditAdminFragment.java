@@ -60,19 +60,6 @@ public class EditAdminFragment extends Fragment {
         return view;
     }
 
-    // ✅ AGREGAR ESTE MÉTODO NUEVO DESPUÉS DE onCreateView
-    @Override
-    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
-        super.onViewCreated(view, savedInstanceState);
-
-        // ✅ CONFIGURAR WINDOW INSETS
-        ViewCompat.setOnApplyWindowInsetsListener(view, (v, insets) -> {
-            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            v.setPadding(v.getPaddingLeft(), v.getPaddingTop(), v.getPaddingRight(), systemBars.bottom);
-            return insets;
-        });
-    }
-
     private void initViews(View view) {
         toolbar = view.findViewById(R.id.toolbar);
         etNombres = view.findViewById(R.id.et_nombres);

@@ -61,7 +61,9 @@ public class SuperAdminActivity extends AppCompatActivity {
         View mainLayout = findViewById(R.id.fragment_container); // ✅ Este es el ID correcto
         ViewCompat.setOnApplyWindowInsetsListener(mainLayout, (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
+            // ✅ SOLO aplicar bottom padding para navigation bar
+            // El header naranja maneja su propio top padding
+            v.setPadding(v.getPaddingLeft(), v.getPaddingTop(), v.getPaddingRight(), systemBars.bottom);
             return insets;
         });
 

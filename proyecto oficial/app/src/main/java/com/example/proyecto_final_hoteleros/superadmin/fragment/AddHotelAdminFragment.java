@@ -65,19 +65,6 @@ public class AddHotelAdminFragment extends Fragment {
         return view;
     }
 
-    // ✅ AGREGAR ESTE MÉTODO NUEVO DESPUÉS DE onCreateView
-    @Override
-    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
-        super.onViewCreated(view, savedInstanceState);
-
-        // ✅ CONFIGURAR WINDOW INSETS
-        ViewCompat.setOnApplyWindowInsetsListener(view, (v, insets) -> {
-            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            v.setPadding(v.getPaddingLeft(), v.getPaddingTop(), v.getPaddingRight(), systemBars.bottom);
-            return insets;
-        });
-    }
-
     private void initViews(View view) {
         toolbar = view.findViewById(R.id.toolbar);
         recyclerView = view.findViewById(R.id.recycler_admin_fields);
@@ -116,7 +103,7 @@ public class AddHotelAdminFragment extends Fragment {
     private void loadFormFields() {
         fieldsList.clear();
 
-        // Información del Administrador (SEPARADO: nombre y apellido)
+        // NO incluir header - solo los campos
         fieldsList.add(new HotelAdminField("admin_nombres", "Nombres del Administrador",
                 "Ej: Juan Carlos", R.drawable.ic_profile, "text", true));
         fieldsList.add(new HotelAdminField("admin_apellidos", "Apellidos del Administrador",
