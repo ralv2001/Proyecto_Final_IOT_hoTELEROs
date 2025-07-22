@@ -56,16 +56,7 @@
                 android:contentDescription="Estadísticas"
                 app:tint="@color/text_secondary" />
 
-            <ImageView
-                android:id="@+id/iv_filter"
-                android:layout_width="24dp"
-                android:layout_height="24dp"
-                android:src="@drawable/ic_filter"
-                android:background="?android:attr/selectableItemBackgroundBorderless"
-                android:padding="4dp"
-                android:layout_marginEnd="8dp"
-                android:contentDescription="Filtrar"
-                app:tint="@color/text_secondary" />
+            <!-- ❌ BOTÓN DE FILTRO REMOVIDO -->
 
             <ImageView
                 android:id="@+id/iv_search_toggle"
@@ -110,13 +101,13 @@
 
         </LinearLayout>
 
-        <!-- Chips de filtros por tipo de usuario -->
+        <!-- Chips de filtros por tipo de usuario MEJORADOS -->
         <HorizontalScrollView
             android:id="@+id/scroll_filters"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:paddingHorizontal="16dp"
-            android:paddingBottom="8dp"
+            android:paddingBottom="12dp"
             android:scrollbars="none">
 
             <LinearLayout
@@ -132,8 +123,13 @@
                     android:checkable="true"
                     android:checked="true"
                     android:layout_marginEnd="8dp"
-                    app:chipBackgroundColor="@color/primary_FF6B35"
-                    app:chipStrokeWidth="0dp" />
+                    android:textColor="@color/selector_chip_text"
+                    android:textStyle="bold"
+                    app:chipBackgroundColor="@color/selector_chip_background"
+                    app:chipStrokeWidth="1dp"
+                    app:chipStrokeColor="@color/selector_chip_stroke"
+                    app:chipCornerRadius="20dp"
+                    app:chipMinHeight="36dp" />
 
                 <com.google.android.material.chip.Chip
                     android:id="@+id/chip_clients"
@@ -141,7 +137,13 @@
                     android:layout_height="wrap_content"
                     android:text="👤 Clientes"
                     android:checkable="true"
-                    android:layout_marginEnd="8dp" />
+                    android:layout_marginEnd="8dp"
+                    android:textColor="@color/selector_chip_text"
+                    app:chipBackgroundColor="@color/selector_chip_background"
+                    app:chipStrokeWidth="1dp"
+                    app:chipStrokeColor="@color/selector_chip_stroke"
+                    app:chipCornerRadius="20dp"
+                    app:chipMinHeight="36dp" />
 
                 <com.google.android.material.chip.Chip
                     android:id="@+id/chip_hotel_admins"
@@ -149,7 +151,13 @@
                     android:layout_height="wrap_content"
                     android:text="🏨 Admins Hotel"
                     android:checkable="true"
-                    android:layout_marginEnd="8dp" />
+                    android:layout_marginEnd="8dp"
+                    android:textColor="@color/selector_chip_text"
+                    app:chipBackgroundColor="@color/selector_chip_background"
+                    app:chipStrokeWidth="1dp"
+                    app:chipStrokeColor="@color/selector_chip_stroke"
+                    app:chipCornerRadius="20dp"
+                    app:chipMinHeight="36dp" />
 
                 <com.google.android.material.chip.Chip
                     android:id="@+id/chip_drivers"
@@ -157,7 +165,13 @@
                     android:layout_height="wrap_content"
                     android:text="🚗 Taxistas"
                     android:checkable="true"
-                    android:layout_marginEnd="8dp" />
+                    android:layout_marginEnd="8dp"
+                    android:textColor="@color/selector_chip_text"
+                    app:chipBackgroundColor="@color/selector_chip_background"
+                    app:chipStrokeWidth="1dp"
+                    app:chipStrokeColor="@color/selector_chip_stroke"
+                    app:chipCornerRadius="20dp"
+                    app:chipMinHeight="36dp" />
 
                 <com.google.android.material.chip.Chip
                     android:id="@+id/chip_pending"
@@ -165,7 +179,13 @@
                     android:layout_height="wrap_content"
                     android:text="🕒 Pendientes"
                     android:checkable="true"
-                    android:layout_marginEnd="8dp" />
+                    android:layout_marginEnd="8dp"
+                    android:textColor="@color/selector_chip_text"
+                    app:chipBackgroundColor="@color/selector_chip_background"
+                    app:chipStrokeWidth="1dp"
+                    app:chipStrokeColor="@color/selector_chip_stroke"
+                    app:chipCornerRadius="20dp"
+                    app:chipMinHeight="36dp" />
 
                 <com.google.android.material.chip.Chip
                     android:id="@+id/chip_active"
@@ -173,14 +193,26 @@
                     android:layout_height="wrap_content"
                     android:text="✅ Activos"
                     android:checkable="true"
-                    android:layout_marginEnd="8dp" />
+                    android:layout_marginEnd="8dp"
+                    android:textColor="@color/selector_chip_text"
+                    app:chipBackgroundColor="@color/selector_chip_background"
+                    app:chipStrokeWidth="1dp"
+                    app:chipStrokeColor="@color/selector_chip_stroke"
+                    app:chipCornerRadius="20dp"
+                    app:chipMinHeight="36dp" />
 
                 <com.google.android.material.chip.Chip
                     android:id="@+id/chip_inactive"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="❌ Inactivos"
-                    android:checkable="true" />
+                    android:checkable="true"
+                    android:textColor="@color/selector_chip_text"
+                    app:chipBackgroundColor="@color/selector_chip_background"
+                    app:chipStrokeWidth="1dp"
+                    app:chipStrokeColor="@color/selector_chip_stroke"
+                    app:chipCornerRadius="20dp"
+                    app:chipMinHeight="36dp" />
 
             </LinearLayout>
 
