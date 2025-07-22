@@ -274,9 +274,16 @@ public class RoomSelectionFragment extends Fragment {
         }
         intent.putExtra("room_price_numeric", roomPriceNumeric);
 
+        // ✅ SOLO ESTAS 6 LÍNEAS AÑADIDAS:
+        if (currentHotel != null && currentHotel.getHotelAdminId() != null) {
+            intent.putExtra("hotel_admin_id", currentHotel.getHotelAdminId());
+            Log.d(TAG, "✅ Enviando hotel_admin_id: " + currentHotel.getHotelAdminId());
+        } else {
+            Log.w(TAG, "⚠️ No se pudo obtener hotel_admin_id");
+        }
+
         startActivityForResult(intent, 100);
     }
-
     @Override
     public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);

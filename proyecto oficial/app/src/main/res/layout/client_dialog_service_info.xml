@@ -1,0 +1,194 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_dialog_rounded"
+    android:padding="0dp">
+
+    <!-- Header del diálogo -->
+    <LinearLayout
+        android:id="@+id/dialog_header"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:padding="20dp"
+        android:background="@drawable/bg_dialog_header_rounded"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <!-- Ícono del servicio -->
+        <androidx.cardview.widget.CardView
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            app:cardCornerRadius="20dp"
+            app:cardBackgroundColor="@color/orange_primary"
+            app:cardElevation="0dp">
+
+            <ImageView
+                android:id="@+id/iv_dialog_service_icon"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:layout_gravity="center"
+                android:src="@drawable/ic_hotel_service_default"
+                app:tint="@android:color/white"
+                android:scaleType="centerInside"
+                tools:src="@drawable/ic_wifi" />
+        </androidx.cardview.widget.CardView>
+
+        <!-- Información del servicio -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:layout_marginStart="16dp">
+
+            <TextView
+                android:id="@+id/tv_dialog_service_name"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="WiFi Premium"
+                android:textSize="18sp"
+                android:textColor="@android:color/white"
+                android:textStyle="bold"
+                android:fontFamily="@font/poppins_semibold"
+                android:maxLines="1"
+                android:ellipsize="end"
+                tools:text="Taxi Premium al Aeropuerto" />
+
+            <TextView
+                android:id="@+id/tv_dialog_service_price"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="✓ Incluido"
+                android:textSize="14sp"
+                android:textColor="@android:color/white"
+                android:textStyle="normal"
+                android:fontFamily="@font/poppins_regular"
+                android:layout_marginTop="2dp"
+                tools:text="S/. 60.00" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- Contenido del diálogo -->
+    <ScrollView
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="0dp"
+        android:fillViewport="true"
+        app:layout_constraintTop_toBottomOf="@id/dialog_header"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/dialog_footer">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="24dp">
+
+            <!-- Descripción detallada -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Descripción"
+                android:textSize="16sp"
+                android:textColor="@color/text_primary"
+                android:textStyle="bold"
+                android:fontFamily="@font/poppins_semibold"
+                android:layout_marginBottom="8dp" />
+
+            <TextView
+                android:id="@+id/tv_dialog_service_description"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Conexión de alta velocidad disponible en todas las áreas del hotel, incluyendo habitaciones, lobby, restaurant y áreas comunes."
+                android:textSize="14sp"
+                android:textColor="@color/text_secondary"
+                android:fontFamily="@font/poppins_regular"
+                android:lineSpacingExtra="4dp"
+                android:layout_marginBottom="20dp"
+                tools:text="Traslado ejecutivo al aeropuerto Jorge Chávez en vehículo Mercedes-Benz con chofer bilingüe y WiFi a bordo. Servicio disponible las 24 horas." />
+
+            <!-- Características -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Características"
+                android:textSize="16sp"
+                android:textColor="@color/text_primary"
+                android:textStyle="bold"
+                android:fontFamily="@font/poppins_semibold"
+                android:layout_marginBottom="8dp" />
+
+            <TextView
+                android:id="@+id/tv_dialog_service_features"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="• Velocidad de hasta 100 Mbps\n• Disponible 24/7\n• Sin límite de dispositivos\n• Soporte técnico incluido"
+                android:textSize="14sp"
+                android:textColor="@color/text_secondary"
+                android:fontFamily="@font/poppins_regular"
+                android:lineSpacingExtra="4dp"
+                android:layout_marginBottom="20dp"
+                tools:text="• Mercedes-Benz E-Class\n• Chofer bilingüe certificado\n• WiFi de alta velocidad\n• Agua y snacks incluidos\n• Servicio puerta a puerta" />
+
+            <!-- Disponibilidad -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Disponibilidad"
+                android:textSize="16sp"
+                android:textColor="@color/text_primary"
+                android:textStyle="bold"
+                android:fontFamily="@font/poppins_semibold"
+                android:layout_marginBottom="8dp" />
+
+            <TextView
+                android:id="@+id/tv_dialog_service_availability"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Disponible las 24 horas"
+                android:textSize="14sp"
+                android:textColor="@color/text_secondary"
+                android:fontFamily="@font/poppins_regular"
+                android:lineSpacingExtra="4dp"
+                tools:text="Lunes a Domingo de 5:00 AM a 11:00 PM. Reserva con 2 horas de anticipación." />
+
+        </LinearLayout>
+    </ScrollView>
+
+    <!-- Footer del diálogo -->
+    <LinearLayout
+        android:id="@+id/dialog_footer"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="end"
+        android:padding="20dp"
+        android:background="@android:color/white"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_close_dialog"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Entendido"
+            android:textAllCaps="false"
+            android:textSize="14sp"
+            android:fontFamily="@font/poppins_semibold"
+            app:backgroundTint="@color/orange_primary"
+            app:cornerRadius="25dp"
+            android:paddingHorizontal="32dp"
+            android:minWidth="0dp" />
+
+    </LinearLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

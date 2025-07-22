@@ -12,4 +12,7 @@ public interface ServiceSelectListener {
      * @param isSelected Si el servicio fue seleccionado (true) o deseleccionado (false)
      */
     void onServiceSelected(HotelService service, boolean isSelected);
+    default void onServiceSelectionChanged() {
+        // Implementación por defecto vacía para retrocompatibilidad
+    }
 }
