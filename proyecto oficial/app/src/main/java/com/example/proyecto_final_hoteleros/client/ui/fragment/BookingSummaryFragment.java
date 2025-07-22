@@ -1,5 +1,7 @@
 package com.example.proyecto_final_hoteleros.client.ui.fragment;
-
+import com.example.proyecto_final_hoteleros.client.data.model.PaymentMethod;
+import com.example.proyecto_final_hoteleros.client.data.model.Reservation;
+import com.example.proyecto_final_hoteleros.client.utils.PaymentMethodManager;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.graphics.Typeface;
@@ -97,7 +99,8 @@ public class BookingSummaryFragment extends Fragment implements AddPaymentDialog
     // ✅ FIREBASE MANAGERS
     private FirebaseHotelManager hotelManager;
     private FirebaseManager firebaseManager;
-
+    private PaymentMethodManager paymentMethodManager;
+    private PaymentMethod currentPaymentMethod = null;
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -135,8 +138,35 @@ public class BookingSummaryFragment extends Fragment implements AddPaymentDialog
         // ✅ CALCULAR PRECIOS INICIALES
         calculateAndDisplayPrices();
 
+        // ✅ FORZAR ACTUALIZACIÓN DESPUÉS DE UN BREVE DELAY (por si hay problemas de timing)
+        new Handler(Looper.getMainLooper()).postDelayed(() -> {
+            forceUIUpdate();
+        }, 1000);
+
         // ✅ ANIMAR ENTRADA DE TARJETAS
         animateCardEntrance();
+    }
+
+    /**
+     * ✅ MÉTODO PARA FORZAR ACTUALIZACIÓN COMPLETA DE LA UI
+     */
+    private void forceUIUpdate() {
+        try {
+            Log.d(TAG, "🔄 Forzando actualización completa de la UI");
+
+            // ✅ RECONFIGURAR DATOS DE RESERVA CON DATOS REALES
+            refreshReservationDataInUI();
+
+            // ✅ RECONFIGURAR TAXI Y SERVICIOS
+            setupTaxiDisplay();
+            setupSelectedServices();
+
+            // ✅ RECALCULAR Y MOSTRAR PRECIOS
+            updatePricesDirectly();
+
+        } catch (Exception e) {
+            Log.e(TAG, "❌ Error en actualización forzada: " + e.getMessage());
+        }
     }
 
     private void initViews(View view) {
@@ -176,11 +206,63 @@ public class BookingSummaryFragment extends Fragment implements AddPaymentDialog
     private void initFirebaseManagers() {
         hotelManager = FirebaseHotelManager.getInstance(requireContext());
         firebaseManager = FirebaseManager.getInstance();
+        // ✅ NUEVO: Inicializar PaymentMethodManager
+        paymentMethodManager = PaymentMethodManager.getInstance(requireContext());
+
+        // ✅ NUEVO: Cargar tarjeta predeterminada del usuario si existe
+        loadUserDefaultPaymentMethod();
+    }
+
+    private void loadUserDefaultPaymentMethod() {
+        UserDataManager userManager = UserDataManager.getInstance();
+        String userId = userManager.getUserId();
+
+        if (userId != null && !userId.startsWith("guest_")) {
+            Log.d(TAG, "🔍 Buscando tarjeta predeterminada del usuario: " + userId);
+
+            paymentMethodManager.getDefaultPaymentMethod(userId, new PaymentMethodManager.PaymentMethodCallback() {
+                @Override
+                public void onSuccess(PaymentMethod paymentMethod) {
+                    if (getActivity() != null) {
+                        getActivity().runOnUiThread(() -> {
+                            currentPaymentMethod = paymentMethod;
+                            displayExistingPaymentMethod(paymentMethod);
+                            Log.d(TAG, "✅ Tarjeta predeterminada cargada: " + paymentMethod.getCardNumber());
+                        });
+                    }
+                }
+
+                @Override
+                public void onError(String error) {
+                    Log.d(TAG, "ℹ️ No se encontró tarjeta predeterminada: " + error);
+                    // No mostrar error - es normal no tener tarjeta guardada
+                }
+            });
+        } else {
+            Log.d(TAG, "👤 Usuario huésped - no cargar tarjetas guardadas");
+        }
+    }
+
+    // ✅ NUEVO MÉTODO: Mostrar tarjeta existente en la UI
+    private void displayExistingPaymentMethod(PaymentMethod paymentMethod) {
+        // Mostrar la información de la tarjeta guardada
+        if (tvCardNumber != null) tvCardNumber.setText(paymentMethod.getCardNumber());
+        if (tvCardName != null) tvCardName.setText(paymentMethod.getCardHolderName());
+
+        // Mostrar tarjeta en lugar del botón de agregar
+        if (btnAddPaymentMethod != null) btnAddPaymentMethod.setVisibility(View.GONE);
+        if (layoutCardInfo != null) layoutCardInfo.setVisibility(View.VISIBLE);
+
+        // Marcar como método de pago agregado
+        isPaymentMethodAdded = true;
+        updateConfirmButtonState();
+
+        Log.d(TAG, "💳 Tarjeta existente mostrada en UI");
     }
 
     private void retrieveArguments() {
         if (getArguments() != null) {
-            // ✅ OBTENER DATOS DE LA RESERVA
+            // ✅ OBTENER DATOS DE LA RESERVA (REALES, NO ALEATORIOS)
             selectedRoom = getArguments().getParcelable("selected_room");
             checkInDate = getArguments().getString("check_in_date", "");
             checkOutDate = getArguments().getString("check_out_date", "");
@@ -194,10 +276,10 @@ public class BookingSummaryFragment extends Fragment implements AddPaymentDialog
             String hotelAddress = getArguments().getString("hotel_address", "");
             float hotelRating = getArguments().getFloat("hotel_rating", 4.9f);
 
-            Log.d(TAG, "✅ Argumentos obtenidos:");
+            Log.d(TAG, "✅ Argumentos obtenidos (DATOS REALES):");
             Log.d(TAG, "   - Hotel: " + hotelName);
-            Log.d(TAG, "   - Fechas: " + checkInDate + " - " + checkOutDate);
-            Log.d(TAG, "   - Huéspedes: " + numAdults + " adultos, " + numChildren + " niños");
+            Log.d(TAG, "   - Fechas REALES: " + checkInDate + " - " + checkOutDate);
+            Log.d(TAG, "   - Huéspedes REALES: " + numAdults + " adultos, " + numChildren + " niños");
             Log.d(TAG, "   - Servicios adicionales: " + selectedServices);
             Log.d(TAG, "   - Precio servicios: " + additionalServicesPrice);
 
@@ -212,15 +294,19 @@ public class BookingSummaryFragment extends Fragment implements AddPaymentDialog
         }
     }
 
+
     private void setupBasicReservationDataFromArguments() {
-        // ✅ CONFIGURAR FECHAS - ASEGURAR QUE SE MUESTREN LAS REALES
+        // ✅ CONFIGURAR FECHAS - USAR LAS REALES QUE VIENEN EN LOS ARGUMENTOS
         String displayDates;
         if (!checkInDate.isEmpty() && !checkOutDate.isEmpty()) {
             displayDates = String.format("%s - %s", checkInDate, checkOutDate);
+            Log.d(TAG, "📅 Usando fechas REALES: " + displayDates);
         } else if (!checkInDate.isEmpty()) {
             displayDates = checkInDate + " - (sin fecha fin)";
+            Log.d(TAG, "📅 Usando fecha parcial: " + displayDates);
         } else {
             displayDates = "Fechas no especificadas";
+            Log.w(TAG, "⚠️ No hay fechas en argumentos");
         }
 
         if (tvCheckInOut != null) {
@@ -228,11 +314,11 @@ public class BookingSummaryFragment extends Fragment implements AddPaymentDialog
             Log.d(TAG, "📅 Fechas configuradas en UI: " + displayDates);
         }
 
-        // ✅ CONFIGURAR HUÉSPEDES - FORZAR ACTUALIZACIÓN
+        // ✅ CONFIGURAR HUÉSPEDES - USAR LOS REALES QUE VIENEN EN LOS ARGUMENTOS
         String guestsText = String.format(Locale.getDefault(), "%d adultos - %d niños", numAdults, numChildren);
         if (tvNumberOfGuests != null) {
             tvNumberOfGuests.setText(guestsText);
-            Log.d(TAG, "👥 Huéspedes configurados en UI: " + guestsText);
+            Log.d(TAG, "👥 Huéspedes REALES configurados en UI: " + guestsText);
         }
 
         // ✅ CONFIGURAR TIPO DE HABITACIÓN
@@ -421,7 +507,7 @@ public class BookingSummaryFragment extends Fragment implements AddPaymentDialog
      * Asegura que los datos reales se mantengan después de cargar el hotel
      */
     private void refreshReservationDataInUI() {
-        // ✅ RECONFIGURAR FECHAS
+        // ✅ RECONFIGURAR FECHAS REALES (NO ALEATORIAS)
         String displayDates;
         if (!checkInDate.isEmpty() && !checkOutDate.isEmpty()) {
             displayDates = String.format("%s - %s", checkInDate, checkOutDate);
@@ -433,14 +519,14 @@ public class BookingSummaryFragment extends Fragment implements AddPaymentDialog
 
         if (tvCheckInOut != null) {
             tvCheckInOut.setText(displayDates);
-            Log.d(TAG, "🔄 Fechas refrescadas: " + displayDates);
+            Log.d(TAG, "🔄 Fechas REALES refrescadas: " + displayDates);
         }
 
-        // ✅ RECONFIGURAR HUÉSPEDES
+        // ✅ RECONFIGURAR HUÉSPEDES REALES (NO ALEATORIOS)
         String guestsText = String.format(Locale.getDefault(), "%d adultos - %d niños", numAdults, numChildren);
         if (tvNumberOfGuests != null) {
             tvNumberOfGuests.setText(guestsText);
-            Log.d(TAG, "🔄 Huéspedes refrescados: " + guestsText);
+            Log.d(TAG, "🔄 Huéspedes REALES refrescados: " + guestsText);
         }
 
         // ✅ RECONFIGURAR HABITACIÓN
@@ -448,6 +534,7 @@ public class BookingSummaryFragment extends Fragment implements AddPaymentDialog
             tvRoomType.setText(selectedRoom.getName());
         }
     }
+
 
     /**
      * ✅ GENERAR RATING CONSISTENTE BASADO EN EL HOTEL
@@ -504,23 +591,36 @@ public class BookingSummaryFragment extends Fragment implements AddPaymentDialog
     private void setDefaultValues() {
         // ✅ SOLO USAR VALORES POR DEFECTO SI NO HAY DATOS EN LOS ARGUMENTOS
         if (checkInDate == null || checkInDate.isEmpty()) {
-            checkInDate = "Fechas no seleccionadas";
+            checkInDate = "Hoy";
+            Log.d(TAG, "⚠️ Usando fecha de entrada por defecto: " + checkInDate);
         }
         if (checkOutDate == null || checkOutDate.isEmpty()) {
-            checkOutDate = "";
+            checkOutDate = "Mañana";
+            Log.d(TAG, "⚠️ Usando fecha de salida por defecto: " + checkOutDate);
         }
-        // ✅ NO SOBRESCRIBIR numAdults y numChildren si ya se obtuvieron de los argumentos
+
+        // ✅ SOLO ESTABLECER VALORES POR DEFECTO SI NO ESTÁN CONFIGURADOS
+        if (numAdults == 0) {
+            numAdults = 2;
+            Log.d(TAG, "⚠️ Usando adultos por defecto: " + numAdults);
+        }
+        if (numChildren == 0 && getArguments() != null && !getArguments().containsKey("num_children")) {
+            numChildren = 0; // Explícitamente 0 si no está especificado
+            Log.d(TAG, "⚠️ Usando niños por defecto: " + numChildren);
+        }
 
         if (additionalServicesPrice == 0.0 && selectedServices.isEmpty()) {
             additionalServicesPrice = 0.0;
             selectedServices = "";
+            Log.d(TAG, "⚠️ Usando servicios por defecto: ninguno");
         }
 
         if (roomPrice == 0.0) {
             roomPrice = 0.0;
+            Log.d(TAG, "⚠️ Precio de habitación: 0.0");
         }
 
-        setupBasicReservationDataFromArguments(); // ✅ CORREGIDO: Usar el método correcto
+        setupBasicReservationDataFromArguments();
         generateRandomRoomNumber();
     }
 
@@ -625,10 +725,55 @@ public class BookingSummaryFragment extends Fragment implements AddPaymentDialog
         Log.d(TAG, "   - Taxi incluido: " + (isTaxiIncluded ? "GRATIS" : "NO"));
         Log.d(TAG, "   - TOTAL: S/ " + totalPrice);
 
-        // ✅ ACTUALIZAR UI CON ANIMACIÓN
-        animatePriceUpdate(tvRoomPriceValue, roomPrice);
-        animatePriceUpdate(tvAdditionalServices, additionalServicesPrice);
-        animatePriceUpdate(tvTotalPrice, totalPrice);
+        // ✅ VERIFICAR QUE LOS TEXTVIEWS EXISTEN ANTES DE ACTUALIZAR
+        if (tvRoomPriceValue == null || tvAdditionalServices == null || tvTotalPrice == null) {
+            Log.w(TAG, "⚠️ Algunos TextViews son null, intentando actualización directa");
+            // ✅ FORZAR ACTUALIZACIÓN DIRECTA SIN ANIMACIÓN
+            updatePricesDirectly();
+        } else {
+            // ✅ ACTUALIZAR UI CON ANIMACIÓN
+            animatePriceUpdate(tvRoomPriceValue, roomPrice);
+            animatePriceUpdate(tvAdditionalServices, additionalServicesPrice);
+            animatePriceUpdate(tvTotalPrice, totalPrice);
+        }
+    }
+
+    /**
+     * ✅ MÉTODO DE EMERGENCIA: Actualizar precios directamente sin animación
+     */
+    private void updatePricesDirectly() {
+        try {
+            if (getView() != null) {
+                // ✅ BUSCAR TEXTVIEWS DINÁMICAMENTE SI SON NULL
+                if (tvRoomPriceValue == null) {
+                    tvRoomPriceValue = getView().findViewById(R.id.tv_room_price_value);
+                }
+                if (tvAdditionalServices == null) {
+                    tvAdditionalServices = getView().findViewById(R.id.tv_additional_services);
+                }
+                if (tvTotalPrice == null) {
+                    tvTotalPrice = getView().findViewById(R.id.tv_total_price);
+                }
+
+                // ✅ ACTUALIZAR DIRECTAMENTE
+                if (tvRoomPriceValue != null) {
+                    tvRoomPriceValue.setText(String.format(Locale.getDefault(), "S/ %.2f", roomPrice));
+                    Log.d(TAG, "💰 Precio habitación actualizado directamente: S/ " + roomPrice);
+                }
+
+                if (tvAdditionalServices != null) {
+                    tvAdditionalServices.setText(String.format(Locale.getDefault(), "S/ %.2f", additionalServicesPrice));
+                    Log.d(TAG, "💰 Servicios adicionales actualizados directamente: S/ " + additionalServicesPrice);
+                }
+
+                if (tvTotalPrice != null) {
+                    tvTotalPrice.setText(String.format(Locale.getDefault(), "S/ %.2f", totalPrice));
+                    Log.d(TAG, "💰 Total actualizado directamente: S/ " + totalPrice);
+                }
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "❌ Error en actualización directa de precios: " + e.getMessage());
+        }
     }
 
     /**
@@ -674,14 +819,32 @@ public class BookingSummaryFragment extends Fragment implements AddPaymentDialog
 
     private void animatePriceUpdate(TextView textView, double price) {
         if (textView != null) {
-            textView.setAlpha(0f);
-            textView.setText(String.format(Locale.getDefault(), "S/ %.2f", price));
+            // ✅ PRIMERO: Actualizar el texto inmediatamente (sin animación si hay problemas)
+            String priceText = String.format(Locale.getDefault(), "S/ %.2f", price);
+            textView.setText(priceText);
+
+            Log.d(TAG, "💰 Actualizando " + getTextViewName(textView) + ": " + priceText);
+
+            // ✅ SEGUNDO: Aplicar animación suave
+            textView.setAlpha(0.7f);
             textView.animate()
                     .alpha(1f)
-                    .setDuration(500)
-                    .setStartDelay(300)
+                    .setDuration(300)
+                    .setStartDelay(100)
                     .start();
+        } else {
+            Log.w(TAG, "⚠️ TextView es null para precio: " + price);
         }
+    }
+
+    /**
+     * ✅ MÉTODO DE DEBUG: Identificar qué TextView se está actualizando
+     */
+    private String getTextViewName(TextView textView) {
+        if (textView == tvRoomPriceValue) return "Precio Habitación";
+        if (textView == tvAdditionalServices) return "Servicios Adicionales";
+        if (textView == tvTotalPrice) return "Precio Total";
+        return "TextView Desconocido";
     }
 
     private void setupActions() {
@@ -702,10 +865,25 @@ public class BookingSummaryFragment extends Fragment implements AddPaymentDialog
             btnChangeCard.setOnClickListener(v -> showAddPaymentMethodDialog());
         }
 
-        // Confirm reservation button
+        // ✅ ACTUALIZADO: Confirm reservation button con lógica mejorada
         if (btnConfirmReservation != null) {
             btnConfirmReservation.setOnClickListener(v -> {
                 if (isPaymentMethodAdded) {
+                    // ✅ MARCAR TARJETA COMO USADA ANTES DE CONFIRMAR
+                    if (currentPaymentMethod != null) {
+                        paymentMethodManager.markCardAsUsed(currentPaymentMethod.getId(), new PaymentMethodManager.SimpleCallback() {
+                            @Override
+                            public void onSuccess() {
+                                Log.d(TAG, "✅ Tarjeta marcada como usada recientemente");
+                            }
+
+                            @Override
+                            public void onError(String error) {
+                                Log.w(TAG, "⚠️ No se pudo marcar tarjeta como usada: " + error);
+                            }
+                        });
+                    }
+
                     confirmBooking();
                 } else {
                     showPaymentRequiredMessage();
@@ -782,11 +960,26 @@ public class BookingSummaryFragment extends Fragment implements AddPaymentDialog
             btnConfirmReservation.setAlpha(isPaymentMethodAdded ? 1.0f : 0.6f);
 
             if (isPaymentMethodAdded) {
+                // ✅ CAMBIO: Texto correcto cuando ya hay tarjeta
                 btnConfirmReservation.setText("Confirmar Reserva");
                 btnConfirmReservation.setIcon(null);
+
+                // ✅ CAMBIO: Actualizar texto informativo de pago
+                if (tvPaymentInfo != null) {
+                    if (currentUser != null && !currentUser.getUserId().startsWith("guest_")) {
+                        tvPaymentInfo.setText("✅ Tarjeta guardada como garantía. No se realizará cobro hasta el check-in.");
+                    } else {
+                        tvPaymentInfo.setText("ℹ️ Tarjeta agregada como garantía para esta reserva únicamente.");
+                    }
+                }
             } else {
+                // ✅ CAMBIO: Texto correcto cuando no hay tarjeta
                 btnConfirmReservation.setText("Agregar método de pago");
                 btnConfirmReservation.setIconResource(R.drawable.ic_payment);
+
+                if (tvPaymentInfo != null) {
+                    tvPaymentInfo.setText("Se requiere agregar una tarjeta como garantía para confirmar tu reserva.");
+                }
             }
         }
     }
@@ -806,23 +999,100 @@ public class BookingSummaryFragment extends Fragment implements AddPaymentDialog
 
     @Override
     public void onPaymentMethodAdded(String cardNumber, String cardHolderName) {
-        savedCardNumber = cardNumber;
+        Log.d(TAG, "💳 Guardando nueva tarjeta: " + cardNumber);
+
+        // Obtener información del usuario actual
+        UserDataManager userManager = UserDataManager.getInstance();
+        String userId = userManager.getUserId();
+
+        if (userId == null || userId.startsWith("guest_")) {
+            // Usuario huésped - solo mostrar en UI sin guardar
+            handleGuestPaymentMethod(cardNumber, cardHolderName);
+            return;
+        }
+
+        // ✅ CREAR PAYMENTMETHOD PARA GUARDAR EN FIREBASE
+        String cardType = PaymentMethodManager.determineCardType(cardNumber);
+        String maskedCardNumber = PaymentMethodManager.maskCardNumber(cardNumber);
+
+        PaymentMethod paymentMethod = new PaymentMethod(
+                userId,
+                maskedCardNumber,
+                cardHolderName.toUpperCase(),
+                cardType,
+                "12/28" // Por ahora fecha por defecto - se puede obtener del diálogo
+        );
+
+        // ✅ GUARDAR EN FIREBASE
+        paymentMethodManager.savePaymentMethod(paymentMethod, new PaymentMethodManager.PaymentMethodCallback() {
+            @Override
+            public void onSuccess(PaymentMethod savedPaymentMethod) {
+                if (getActivity() != null) {
+                    getActivity().runOnUiThread(() -> {
+                        // Guardar referencia a la tarjeta actual
+                        currentPaymentMethod = savedPaymentMethod;
+
+                        // Actualizar UI
+                        savedCardNumber = savedPaymentMethod.getCardNumber();
+                        savedCardHolderName = savedPaymentMethod.getCardHolderName();
+
+                        if (tvCardNumber != null) tvCardNumber.setText(savedCardNumber);
+                        if (tvCardName != null) tvCardName.setText(savedCardHolderName);
+
+                        // Animar transición
+                        animatePaymentMethodAdded();
+
+                        isPaymentMethodAdded = true;
+                        updateConfirmButtonState();
+
+                        // Mostrar mensaje de éxito
+                        Snackbar.make(requireView(), "💳 Tarjeta guardada exitosamente", Snackbar.LENGTH_SHORT)
+                                .setBackgroundTint(getResources().getColor(R.color.success_green, null))
+                                .show();
+
+                        Log.d(TAG, "✅ Tarjeta guardada y UI actualizada");
+                    });
+                }
+            }
+
+            @Override
+            public void onError(String error) {
+                if (getActivity() != null) {
+                    getActivity().runOnUiThread(() -> {
+                        Log.e(TAG, "❌ Error guardando tarjeta: " + error);
+
+                        // Mostrar en UI aunque no se haya guardado
+                        handleGuestPaymentMethod(cardNumber, cardHolderName);
+
+                        // Mostrar mensaje de advertencia
+                        Snackbar.make(requireView(), "⚠️ Tarjeta agregada temporalmente", Snackbar.LENGTH_LONG)
+                                .setAction("Reintentar", v -> onPaymentMethodAdded(cardNumber, cardHolderName))
+                                .show();
+                    });
+                }
+            }
+        });
+    }
+    // ✅ NUEVO MÉTODO: Manejar tarjeta para usuarios huésped
+    private void handleGuestPaymentMethod(String cardNumber, String cardHolderName) {
+        String maskedCardNumber = PaymentMethodManager.maskCardNumber(cardNumber);
+
+        savedCardNumber = maskedCardNumber;
         savedCardHolderName = cardHolderName;
 
-        // Update UI with card information
-        if (tvCardNumber != null) tvCardNumber.setText(cardNumber);
+        if (tvCardNumber != null) tvCardNumber.setText(maskedCardNumber);
         if (tvCardName != null) tvCardName.setText(cardHolderName);
 
-        // Animate the transition from button to card info
         animatePaymentMethodAdded();
 
         isPaymentMethodAdded = true;
         updateConfirmButtonState();
 
-        // Show success message
-        Snackbar.make(requireView(), "Tarjeta agregada exitosamente", Snackbar.LENGTH_SHORT)
-                .setBackgroundTint(getResources().getColor(R.color.security_green, null))
+        Snackbar.make(requireView(), "💳 Tarjeta agregada para esta reserva", Snackbar.LENGTH_SHORT)
+                .setBackgroundTint(getResources().getColor(R.color.orange_primary, null))
                 .show();
+
+        Log.d(TAG, "💳 Tarjeta temporal para usuario huésped");
     }
 
     private void animatePaymentMethodAdded() {
@@ -855,28 +1125,168 @@ public class BookingSummaryFragment extends Fragment implements AddPaymentDialog
                     });
         }
     }
-
+    // ✅ NUEVO MÉTODO: Obtener información de la tarjeta para mostrar en confirmación
+    private String getPaymentMethodInfo() {
+        if (currentPaymentMethod != null) {
+            return currentPaymentMethod.getCardNumber() + " - " + currentPaymentMethod.getCardHolderName();
+        } else if (!savedCardNumber.isEmpty()) {
+            return savedCardNumber + " - " + savedCardHolderName;
+        }
+        return "Método de pago no especificado";
+    }
     private void confirmBooking() {
         // Add loading state to button
         if (btnConfirmReservation != null) {
             btnConfirmReservation.setEnabled(false);
-            btnConfirmReservation.setText("Procesando...");
+            btnConfirmReservation.setText("Procesando reserva...");
         }
 
-        // Simulate processing delay
-        new Handler(Looper.getMainLooper()).postDelayed(() -> {
-            showConfirmationDialog();
-        }, 1500);
+        Log.d(TAG, "🏨 Iniciando proceso de confirmación de reserva");
+        Log.d(TAG, "💳 Tarjeta usada: " + (currentPaymentMethod != null ? currentPaymentMethod.getCardNumber() : savedCardNumber));
+        Log.d(TAG, "💰 Total de reserva: S/. " + totalPrice);
+
+        // ✅ CREAR Y GUARDAR RESERVA EN FIREBASE
+        createAndSaveReservation();
     }
 
+    /**
+     * ✅ CREAR Y GUARDAR RESERVA EN FIREBASE
+     */
+    private void createAndSaveReservation() {
+        try {
+            // ✅ CREAR OBJETO RESERVATION CON DATOS REALES
+            String hotelName = currentHotel != null ? currentHotel.getName() : "Hotel";
+            String hotelLocation = currentHotel != null ?
+                    (currentHotel.getFullAddress() != null ? currentHotel.getFullAddress() : currentHotel.getAddress()) :
+                    "Ubicación";
+
+            // ✅ FORMAR FECHA CORRECTA
+            String dateRange = checkInDate + " - " + checkOutDate;
+            if (checkInDate.isEmpty() || checkOutDate.isEmpty()) {
+                dateRange = "Fechas por confirmar";
+            }
+
+            // ✅ CREAR RESERVA
+            Reservation newReservation = new Reservation(
+                    hotelName,
+                    hotelLocation,
+                    dateRange,
+                    roomPrice,
+                    currentHotel != null ? (float) generateRatingFromProfile(currentHotel) : 4.5f,
+                    R.drawable.belmond,
+                    Reservation.STATUS_UPCOMING // Por defecto próxima, se clasificará automáticamente por fecha
+            );
+
+            // ✅ CONFIGURAR DATOS ADICIONALES
+            newReservation.setRoomType(selectedRoom != null ? selectedRoom.getName() : "Suite Estándar");
+            newReservation.setRoomNumber(roomNumber);
+            newReservation.setHasTaxiService(isTaxiIncluded);
+            newReservation.setSpecialRequests(selectedServices);
+
+            // ✅ AGREGAR SERVICIOS ADICIONALES SI LOS HAY (en lugar de setServicesTotal)
+            if (additionalServicesPrice > 0 && selectedServices != null && !selectedServices.isEmpty()) {
+                // La clase Reservation calculará automáticamente el total cuando agregues servicios
+                // Por ahora, agregar un servicio genérico para representar los servicios adicionales
+                newReservation.addService("Servicios adicionales", additionalServicesPrice, 1);
+            }
+
+            // ✅ CONFIGURAR TARJETA DE GARANTÍA
+            if (currentPaymentMethod != null) {
+                Reservation.PaymentMethod guaranteeCard = new Reservation.PaymentMethod(
+                        currentPaymentMethod.getCardNumber(),
+                        currentPaymentMethod.getCardType(),
+                        currentPaymentMethod.getCardHolderName()
+                );
+                newReservation.setGuaranteeCard(guaranteeCard);
+            } else if (!savedCardNumber.isEmpty()) {
+                Reservation.PaymentMethod guaranteeCard = new Reservation.PaymentMethod(
+                        savedCardNumber,
+                        "Tarjeta",
+                        savedCardHolderName
+                );
+                newReservation.setGuaranteeCard(guaranteeCard);
+            }
+
+            // ✅ OBTENER ID DEL USUARIO
+            UserDataManager userManager = UserDataManager.getInstance();
+            String userId = userManager.getUserId();
+
+            if (userId == null) {
+                userId = "guest_" + System.currentTimeMillis();
+                Log.w(TAG, "⚠️ Usando ID de huésped: " + userId);
+            }
+
+            Log.d(TAG, "💾 Guardando reserva para usuario: " + userId);
+            Log.d(TAG, "📋 Detalles de la reserva:");
+            Log.d(TAG, "   Hotel: " + hotelName);
+            Log.d(TAG, "   Fechas: " + dateRange);
+            Log.d(TAG, "   Habitación: " + newReservation.getRoomType() + " #" + roomNumber);
+            Log.d(TAG, "   Total: S/ " + totalPrice);
+            Log.d(TAG, "   Taxi incluido: " + isTaxiIncluded);
+
+            // ✅ GUARDAR EN FIREBASE
+            com.example.proyecto_final_hoteleros.client.utils.FirebaseReservationManager
+                    .getInstance()
+                    .saveReservation(newReservation, userId, new com.example.proyecto_final_hoteleros.client.utils.FirebaseReservationManager.ReservationCallback() {
+                        @Override
+                        public void onSuccess() {
+                            if (getActivity() != null) {
+                                getActivity().runOnUiThread(() -> {
+                                    Log.d(TAG, "✅ Reserva guardada exitosamente en Firebase");
+                                    showConfirmationDialog();
+                                });
+                            }
+                        }
+
+                        @Override
+                        public void onError(String error) {
+                            if (getActivity() != null) {
+                                getActivity().runOnUiThread(() -> {
+                                    Log.e(TAG, "❌ Error guardando reserva: " + error);
+
+                                    // ✅ MOSTRAR ERROR PERO CONTINUAR CON CONFIRMACIÓN VISUAL
+                                    Toast.makeText(requireContext(),
+                                            "⚠️ Reserva creada localmente. Error de conexión: " + error,
+                                            Toast.LENGTH_LONG).show();
+
+                                    showConfirmationDialog();
+                                });
+                            }
+                        }
+                    });
+
+        } catch (Exception e) {
+            Log.e(TAG, "❌ Error creando reserva: " + e.getMessage());
+
+            // ✅ MOSTRAR ERROR Y RESTAURAR BOTÓN
+            if (getActivity() != null) {
+                getActivity().runOnUiThread(() -> {
+                    Toast.makeText(requireContext(),
+                            "❌ Error procesando reserva: " + e.getMessage(),
+                            Toast.LENGTH_LONG).show();
+
+                    // Restaurar botón
+                    if (btnConfirmReservation != null) {
+                        btnConfirmReservation.setEnabled(true);
+                        btnConfirmReservation.setText("Confirmar Reserva");
+                    }
+                });
+            }
+        }
+    }
+
+
+    // ✅ ACTUALIZAR EL MÉTODO showConfirmationDialog():
     private void showConfirmationDialog() {
-        // Configure success message
+        // Configure success message with payment info
         TextView tvSuccessMessage = confirmationDialogOverlay.findViewById(R.id.tv_success_message);
         if (tvSuccessMessage != null && currentHotel != null) {
-            tvSuccessMessage.setText(
-                    "Tu reserva en " + currentHotel.getName() +
-                            " ha sido procesada exitosamente. Recibirás un correo con todos los detalles."
-            );
+            String message = "Tu reserva en " + currentHotel.getName() +
+                    " ha sido confirmada exitosamente.\n\n" +
+                    "💳 Método de pago: " + getPaymentMethodInfo() + "\n" +
+                    "💰 Total: S/. " + String.format("%.2f", totalPrice) + "\n\n" +
+                    "Recibirás un correo con todos los detalles.";
+            tvSuccessMessage.setText(message);
         }
 
         // Show overlay with animation

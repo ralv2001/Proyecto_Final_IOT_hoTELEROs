@@ -292,38 +292,67 @@ public class RoomSelectionFragment extends Fragment {
             // El usuario completó la selección de servicios, ir al resumen
             if (data != null) {
                 String selectedServices = data.getStringExtra("SELECTED_SERVICES");
-                navigateToBookingWithServices(selectedServices);
+                double additionalServicesPrice = data.getDoubleExtra("ADDITIONAL_SERVICES_PRICE", 0.0); // ✅ OBTENER PRECIO REAL
+
+                Log.d(TAG, "🎯 Resultado de AllHotelServicesActivity:");
+                Log.d(TAG, "   - Servicios: " + selectedServices);
+                Log.d(TAG, "   - Precio adicional: S/. " + additionalServicesPrice);
+
+                navigateToBookingWithServices(selectedServices, additionalServicesPrice);
             }
         }
     }
 
-    private void navigateToBookingWithServices(String selectedServices) {
+    private void navigateToBookingWithServices(String selectedServices, double additionalServicesPrice) {
         RoomType selectedRoom = adapter.getSelectedPosition() != -1 ?
                 roomTypes.get(adapter.getSelectedPosition()) : null;
 
         if (selectedRoom == null) return;
 
+        // ✅ USAR FECHAS Y HUÉSPEDES REALES DESDE LOS ARGUMENTOS
+        String[] realDates = getRealDatesFromArguments();
+        int[] realGuestCounts = getRealGuestCountsFromArguments();
+
         Bundle args = new Bundle();
         args.putString("hotel_name", hotelName);
         args.putString("hotel_address", currentHotel != null ? currentHotel.getAddress() : "Dirección no disponible");
         args.putParcelable("selected_room", selectedRoom);
-        args.putString("check_in_date", "8 abril");
-        args.putString("check_out_date", "9 abril");
-        args.putInt("num_adults", 2);
-        args.putInt("num_children", 0);
+
+        // ✅ USAR FECHAS REALES EN LUGAR DE ALEATORIAS
+        args.putString("check_in_date", realDates[0]);
+        args.putString("check_out_date", realDates[1]);
+
+        Log.d(TAG, "📅 Usando fechas REALES desde argumentos:");
+        Log.d(TAG, "   Check-in: " + realDates[0]);
+        Log.d(TAG, "   Check-out: " + realDates[1]);
+
+        // ✅ USAR HUÉSPEDES REALES EN LUGAR DE ALEATORIOS
+        args.putInt("num_adults", realGuestCounts[0]);
+        args.putInt("num_children", realGuestCounts[1]);
+
+        Log.d(TAG, "👥 Usando huéspedes REALES desde argumentos:");
+        Log.d(TAG, "   Adultos: " + realGuestCounts[0]);
+        Log.d(TAG, "   Niños: " + realGuestCounts[1]);
+
         args.putString("room_number", generateRandomRoomNumber());
 
-        // Calcular automáticamente si taxi es gratis
+        // ✅ CALCULAR SI TAXI ES GRATIS BASADO EN EL TOTAL REAL
         double roomPrice = getRoomPriceValue(selectedRoom);
-        boolean isTaxiFree = selectedServices != null && selectedServices.contains("taxi") && roomPrice >= 350.0;
+        double totalReservation = roomPrice + additionalServicesPrice;
+        boolean isTaxiFree = selectedServices != null && selectedServices.contains("taxi") && totalReservation >= 350.0;
         args.putBoolean("has_free_transport", isTaxiFree);
 
-        // Pasar servicios seleccionados
+        // ✅ PASAR SERVICIOS Y PRECIO REAL
         args.putString("selected_services", selectedServices);
+        args.putDouble("additional_services_price", additionalServicesPrice);
 
-        // Calcular precio de servicios adicionales
-        double additionalPrice = calculateAdditionalServicesPrice(selectedServices, roomPrice);
-        args.putDouble("additional_services_price", additionalPrice);
+        Log.d(TAG, "📋 Navegando a BookingSummary con datos REALES:");
+        Log.d(TAG, "   - Fechas: " + realDates[0] + " - " + realDates[1]);
+        Log.d(TAG, "   - Huéspedes: " + realGuestCounts[0] + " adultos, " + realGuestCounts[1] + " niños");
+        Log.d(TAG, "   - Precio habitación: S/. " + roomPrice);
+        Log.d(TAG, "   - Precio servicios: S/. " + additionalServicesPrice);
+        Log.d(TAG, "   - Total: S/. " + totalReservation);
+        Log.d(TAG, "   - Taxi gratis: " + isTaxiFree);
 
         BookingSummaryFragment bookingSummaryFragment = new BookingSummaryFragment();
         bookingSummaryFragment.setArguments(args);
@@ -334,12 +363,173 @@ public class RoomSelectionFragment extends Fragment {
                 .commit();
     }
 
+    private String[] getRealDatesFromArguments() {
+        if (getArguments() != null) {
+            // ✅ OPCIÓN 1: Fechas ya parseadas individualmente
+            String checkInDate = getArguments().getString("check_in_date");
+            String checkOutDate = getArguments().getString("check_out_date");
+
+            if (checkInDate != null && checkOutDate != null) {
+                Log.d(TAG, "✅ Usando fechas individuales desde argumentos: " + checkInDate + " - " + checkOutDate);
+                return new String[]{checkInDate, checkOutDate};
+            }
+
+            // ✅ OPCIÓN 2: Fechas como string combinado
+            String searchDates = getArguments().getString("search_dates");
+            if (searchDates != null && !searchDates.isEmpty()) {
+                String[] parsedDates = parseCombinedDates(searchDates);
+                Log.d(TAG, "✅ Usando fechas combinadas desde argumentos: " + searchDates + " -> " + parsedDates[0] + " - " + parsedDates[1]);
+                return parsedDates;
+            }
+        }
+
+        // ✅ FALLBACK: Solo si no hay datos en argumentos, usar valores por defecto (no aleatorios)
+        Log.d(TAG, "⚠️ No se encontraron fechas en argumentos, usando por defecto: Hoy - Mañana");
+        return new String[]{"Hoy", "Mañana"};
+    }
+
+    /**
+     * Obtener números de huéspedes reales desde los argumentos, no generar aleatorios
+     */
+    private int[] getRealGuestCountsFromArguments() {
+        if (getArguments() != null) {
+            // ✅ OPCIÓN 1: Números ya parseados individualmente
+            int numAdults = getArguments().getInt("num_adults", -1);
+            int numChildren = getArguments().getInt("num_children", -1);
+
+            if (numAdults != -1) {
+                Log.d(TAG, "✅ Usando números de huéspedes desde argumentos: " + numAdults + " adultos, " + numChildren + " niños");
+                return new int[]{numAdults, numChildren};
+            }
+
+            // ✅ OPCIÓN 2: Huéspedes como string
+            String searchGuests = getArguments().getString("search_guests");
+            if (searchGuests != null && !searchGuests.isEmpty()) {
+                int[] parsedGuests = parseCombinedGuests(searchGuests);
+                Log.d(TAG, "✅ Usando huéspedes desde string: " + searchGuests + " -> " + parsedGuests[0] + " adultos, " + parsedGuests[1] + " niños");
+                return parsedGuests;
+            }
+        }
+
+        // ✅ FALLBACK: Solo si no hay datos en argumentos, usar valores por defecto (no aleatorios)
+        Log.d(TAG, "⚠️ No se encontraron huéspedes en argumentos, usando por defecto: 2 adultos, 0 niños");
+        return new int[]{2, 0};
+    }
+    private String[] parseCombinedDates(String combinedDates) {
+        try {
+            // Buscar diferentes separadores
+            String separator = combinedDates.contains(" - ") ? " - " :
+                    combinedDates.contains("-") ? "-" :
+                            combinedDates.contains("–") ? "–" : " - ";
+
+            String[] parts = combinedDates.split(separator);
+            if (parts.length >= 2) {
+                return new String[]{parts[0].trim(), parts[1].trim()};
+            } else if (parts.length == 1) {
+                return new String[]{parts[0].trim(), "Día siguiente"};
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "Error parseando fechas combinadas: " + e.getMessage());
+        }
+
+        return new String[]{"Hoy", "Mañana"};
+    }
+
+    /**
+     * Parsear huéspedes desde string como "2 adultos" o "3 adultos • 1 niños"
+     */
+    private int[] parseCombinedGuests(String combinedGuests) {
+        int adults = 2;
+        int children = 0;
+
+        try {
+            if (combinedGuests != null && !combinedGuests.isEmpty()) {
+                // Buscar adultos
+                if (combinedGuests.contains("adultos")) {
+                    String[] parts = combinedGuests.split("adultos");
+                    if (parts.length > 0) {
+                        String adultsPart = parts[0].trim();
+                        String adultsNumber = adultsPart.replaceAll("[^0-9]", "");
+                        if (!adultsNumber.isEmpty()) {
+                            adults = Integer.parseInt(adultsNumber);
+                        }
+                    }
+                }
+
+                // Buscar niños
+                if (combinedGuests.contains("niños")) {
+                    String[] parts = combinedGuests.split("•");
+                    for (String part : parts) {
+                        if (part.contains("niños")) {
+                            String childrenPart = part.trim();
+                            String childrenNumber = childrenPart.replaceAll("[^0-9]", "");
+                            if (!childrenNumber.isEmpty()) {
+                                children = Integer.parseInt(childrenNumber);
+                            }
+                            break;
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "Error parseando huéspedes: " + e.getMessage());
+        }
+
+        return new int[]{adults, children};
+    }
+    private String[] generateDynamicDates() {
+        try {
+            java.util.Calendar calendar = java.util.Calendar.getInstance();
+
+            // Fecha de entrada: Hoy + 1-7 días (más realista)
+            calendar.add(java.util.Calendar.DAY_OF_MONTH, 1 + (int)(Math.random() * 7));
+            int checkInDay = calendar.get(java.util.Calendar.DAY_OF_MONTH);
+            String checkInMonth = getMonthName(calendar.get(java.util.Calendar.MONTH));
+
+            // Fecha de salida: Entrada + 1-3 días
+            calendar.add(java.util.Calendar.DAY_OF_MONTH, 1 + (int)(Math.random() * 3));
+            int checkOutDay = calendar.get(java.util.Calendar.DAY_OF_MONTH);
+            String checkOutMonth = getMonthName(calendar.get(java.util.Calendar.MONTH));
+
+            String checkInDate = checkInDay + " " + checkInMonth;
+            String checkOutDate = checkOutDay + " " + checkOutMonth;
+
+            return new String[]{checkInDate, checkOutDate};
+
+        } catch (Exception e) {
+            Log.e(TAG, "❌ Error generando fechas: " + e.getMessage());
+            return new String[]{"Próximamente", "A definir"};
+        }
+    }
+
+    // ✅ NUEVO MÉTODO: Generar número de huéspedes dinámico
+    private int[] generateDynamicGuestCounts() {
+        // Generar números más realistas
+        int adults = 1 + (int)(Math.random() * 4); // 1-4 adultos
+        int children = (int)(Math.random() * 3);   // 0-2 niños
+
+        return new int[]{adults, children};
+    }
+
+    // ✅ NUEVO MÉTODO: Obtener nombre del mes en español
+    private String getMonthName(int month) {
+        String[] months = {
+                "enero", "febrero", "marzo", "abril", "mayo", "junio",
+                "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"
+        };
+        return months[month];
+    }
+
     private double getRoomPriceValue(RoomType room) {
         try {
             return Double.parseDouble(room.getPrice().replace("S/", "").trim());
         } catch (NumberFormatException e) {
             return 290.0;
         }
+    }
+
+    private String generateRandomRoomNumber() {
+        return String.valueOf(System.currentTimeMillis()).substring(7);
     }
 
     private double calculateAdditionalServicesPrice(String selectedServices, double roomPrice) {
@@ -360,9 +550,7 @@ public class RoomSelectionFragment extends Fragment {
         return total;
     }
 
-    private String generateRandomRoomNumber() {
-        return String.valueOf(System.currentTimeMillis()).substring(7);
-    }
+
 
     // Interface para comunicarse con el adapter
     public interface OnRoomSelectedListener {

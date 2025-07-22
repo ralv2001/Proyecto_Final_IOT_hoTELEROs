@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#80000000"
+    android:clickable="true"
+    android:focusable="true">
+
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/dialog_content"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="32dp"
+        android:layout_gravity="center"
+        app:cardCornerRadius="16dp"
+        app:cardElevation="8dp"
+        app:cardBackgroundColor="@color/white">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="24dp">
+
+            <!-- Header con icono de taxi -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="16dp">
+
+                <ImageView
+                    android:id="@+id/iv_taxi_icon"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:src="@drawable/ic_taxi"
+                    android:layout_marginEnd="12dp"
+                    app:tint="#FF6B35" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="🚖 Servicio de Taxi"
+                    android:textSize="20sp"
+                    android:textStyle="bold"
+                    android:textColor="#212121" />
+
+                <ImageView
+                    android:id="@+id/btn_close"
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:src="@drawable/ic_close"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:padding="4dp"
+                    android:clickable="true"
+                    android:focusable="true"
+                    app:tint="#757575" />
+
+            </LinearLayout>
+
+            <!-- Información de la reserva -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="20dp"
+                app:cardCornerRadius="12dp"
+                app:cardBackgroundColor="@color/background_light">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <TextView
+                        android:id="@+id/tv_hotel_name"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Hotel Costa del Sol"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/text_primary"
+                        android:layout_marginBottom="4dp"
+                        tools:text="Hotel Costa del Sol" />
+
+                    <TextView
+                        android:id="@+id/tv_reservation_dates"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="25 Abr - 02 May, 2025"
+                        android:textSize="14sp"
+                        android:textColor="@color/text_secondary"
+                        tools:text="25 Abr - 02 May, 2025" />
+
+                </LinearLayout>
+
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Mensaje principal -->
+            <TextView
+                android:id="@+id/tv_message"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="¡Tu estadía ha finalizado! Como tu reserva incluyó servicio de taxi gratuito, ¿te gustaría confirmar el servicio de taxi al aeropuerto?"
+                android:textSize="16sp"
+                android:textColor="#212121"
+                android:lineSpacingExtra="4dp"
+                android:layout_marginBottom="16dp"
+                tools:text="¡Tu estadía ha finalizado! Como tu reserva incluyó servicio de taxi gratuito, ¿te gustaría confirmar el servicio de taxi al aeropuerto?" />
+
+            <!-- Mensaje de validez -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="24dp"
+                app:cardCornerRadius="8dp"
+                app:cardBackgroundColor="#FFF3E0"
+                app:strokeColor="#FF9800"
+                app:strokeWidth="1dp">
+
+                <TextView
+                    android:id="@+id/tv_validity_message"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="✅ Válido solo hoy. Una vez que pase el día, ya no podrás solicitar el taxi gratuito."
+                    android:textSize="14sp"
+                    android:textColor="#4CAF50"
+                    android:padding="12dp"
+                    android:lineSpacingExtra="2dp"
+                    tools:text="✅ Válido solo hoy. Una vez que pase el día, ya no podrás solicitar el taxi gratuito." />
+
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Botones de acción -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_decline_taxi"
+                    android:layout_width="0dp"
+                    android:layout_height="56dp"
+                    android:layout_weight="1"
+                    android:layout_marginEnd="8dp"
+                    android:text="No, gracias"
+                    android:textSize="14sp"
+                    android:textColor="#757575"
+                    app:backgroundTint="#F5F5F5"
+                    app:strokeColor="#E0E0E0"
+                    app:strokeWidth="1dp"
+                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                    app:cornerRadius="12dp"
+                    android:textAllCaps="false" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_confirm_taxi"
+                    android:layout_width="0dp"
+                    android:layout_height="56dp"
+                    android:layout_weight="1"
+                    android:layout_marginStart="8dp"
+                    android:text="Sí, quiero el taxi"
+                    android:textSize="14sp"
+                    android:textColor="@color/white"
+                    app:backgroundTint="#FF6B35"
+                    app:cornerRadius="12dp"
+                    android:textAllCaps="false"
+                    app:icon="@drawable/ic_taxi"
+                    app:iconTint="@color/white"
+                    app:iconSize="20dp" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+    </com.google.android.material.card.MaterialCardView>
+
+</FrameLayout>
