@@ -1,4 +1,4 @@
-// AnimationDirection.java
+// AnimationDirection.java - COMPLETO
 package com.example.proyecto_final_hoteleros.client.navigation;
 
 public enum AnimationDirection {

@@ -702,13 +702,23 @@ public class HomeFragment extends BaseBottomNavigationFragment {  // ✅ CAMBIAD
     private void onHotelClick(Hotel hotel, int position) {
         Log.d(TAG, "🏨 Hotel clickeado: " + hotel.getName());
 
+        // ✅ ARREGLADO: Pasar fechas y huéspedes del HomeFragment
+        String currentDates = selectedDates; // "Hoy - Mañana" por defecto
+        String currentGuests = adults + " adultos" + (children > 0 ? " • " + children + " niños" : "");
+
+        Log.d(TAG, "📅 Navegando con fechas: " + currentDates);
+        Log.d(TAG, "👥 Navegando con huéspedes: " + currentGuests);
+
+        // ✅ USAR EL NUEVO MÉTODO QUE INCLUYE FECHAS Y HUÉSPEDES
         NavigationManager.getInstance().navigateToHotelDetail(
                 hotel.getName(),
                 hotel.getLocation(),
                 hotel.getPrice(),
                 hotel.getRating(),
                 hotel.getImageUrl(),
-                UserDataManager.getInstance().getUserBundle()
+                UserDataManager.getInstance().getUserBundle(),
+                currentDates,  // ✅ FECHAS DEL HOME
+                currentGuests  // ✅ HUÉSPEDES DEL HOME
         );
     }
 
@@ -741,6 +751,7 @@ public class HomeFragment extends BaseBottomNavigationFragment {  // ✅ CAMBIAD
         startActivity(intent);
     }
 
+
     private void navigateToAllDestinations() {
         Intent intent = new Intent(getContext(), HotelResultsActivity.class);
         intent.putExtra("search_location", "Todas las ubicaciones");
@@ -764,6 +775,8 @@ public class HomeFragment extends BaseBottomNavigationFragment {  // ✅ CAMBIAD
             SimpleDateFormat format = new SimpleDateFormat("dd MMM", Locale.getDefault());
             selectedDates = format.format(startDate) + " - " + format.format(endDate);
             updateSearchPanelDisplay();
+
+            Log.d(TAG, "📅 Fechas actualizadas en HomeFragment: " + selectedDates);
         });
         datePicker.show(getParentFragmentManager(), "DatePicker");
     }
@@ -774,6 +787,8 @@ public class HomeFragment extends BaseBottomNavigationFragment {  // ✅ CAMBIAD
             adults = selectedAdults;
             children = selectedChildren;
             updateSearchPanelDisplay();
+
+            Log.d(TAG, "👥 Huéspedes actualizados en HomeFragment: " + adults + " adultos, " + children + " niños");
         });
         guestSelector.show(getParentFragmentManager(), "GuestSelector");
     }
@@ -784,15 +799,8 @@ public class HomeFragment extends BaseBottomNavigationFragment {  // ✅ CAMBIAD
         }
 
         if (tvGuests != null) {
-            String guestsText = adults + " adultos";
-            if (children > 0) {
-                guestsText += " • " + children + " niños";
-            }
+            String guestsText = adults + " adultos" + (children > 0 ? " • " + children + " niños" : "");
             tvGuests.setText(guestsText);
-        }
-
-        if (tvLocation != null) {
-            tvLocation.setText(locationManager.getLocationDisplayName());
         }
     }
 

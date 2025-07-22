@@ -592,8 +592,16 @@ public class AllHotelServicesActivity extends AppCompatActivity implements Servi
                 // Modo selección: procesar servicios y volver con resultado
                 Set<String> selectedServices = adapter != null ? adapter.getSelectedServiceIds() : new HashSet<>();
 
+                // ✅ CALCULAR PRECIO REAL DE SERVICIOS ADICIONALES
+                double calculatedAdditionalPrice = calculateCurrentAdditionalServicesPrice(selectedServices);
+
+                Log.d(TAG, "🎯 Finalizando selección de servicios:");
+                Log.d(TAG, "   - Servicios seleccionados: " + selectedServices);
+                Log.d(TAG, "   - Precio adicional calculado: S/. " + calculatedAdditionalPrice);
+
                 Intent result = new Intent();
                 result.putExtra("SELECTED_SERVICES", selectedServices.toString());
+                result.putExtra("ADDITIONAL_SERVICES_PRICE", calculatedAdditionalPrice); // ✅ AGREGAR PRECIO
                 setResult(RESULT_OK, result);
                 finish();
             } else {
@@ -604,6 +612,45 @@ public class AllHotelServicesActivity extends AppCompatActivity implements Servi
             Log.e(TAG, "Error en continuar: " + e.getMessage());
             Toast.makeText(this, "Error al continuar", Toast.LENGTH_SHORT).show();
         }
+    }
+    private double calculateCurrentAdditionalServicesPrice(Set<String> selectedServiceIds) {
+        double totalAdditionalCost = 0.0;
+        double currentRoomPrice = getCurrentRoomPrice();
+
+        Log.d(TAG, "💰 Calculando precio de servicios adicionales:");
+        Log.d(TAG, "   - Precio habitación base: S/. " + currentRoomPrice);
+
+        for (HotelService service : allServices) {
+            if (selectedServiceIds.contains(service.getId())) {
+                String serviceType = service.getServiceType();
+                boolean isIncluded = service.isIncludedInRoom();
+
+                Log.d(TAG, "   - Evaluando: " + service.getName() +
+                        " (Tipo: " + serviceType + ", Incluido: " + isIncluded + ")");
+
+                // ✅ SKIP servicios básicos e incluidos (ya están incluidos)
+                if ("basic".equals(serviceType) ||
+                        ("included".equals(serviceType) && isIncluded)) {
+                    Log.d(TAG, "     → INCLUIDO, no suma al total");
+                    continue;
+                }
+
+                // ✅ SERVICIOS PAGADOS: Suman al total
+                if ("paid".equals(serviceType) && service.getPrice() != null && service.getPrice() > 0) {
+                    totalAdditionalCost += service.getPrice();
+                    Log.d(TAG, "     → PAGADO: +S/. " + service.getPrice() +
+                            " (Total acumulado: S/. " + totalAdditionalCost + ")");
+                }
+
+                // ✅ TAXI (condicional): NUNCA suma al total (siempre gratis cuando califica)
+                else if ("conditional".equals(serviceType)) {
+                    Log.d(TAG, "     → TAXI: Gratis (no suma al total)");
+                }
+            }
+        }
+
+        Log.d(TAG, "💰 Precio final de servicios adicionales: S/. " + totalAdditionalCost);
+        return totalAdditionalCost;
     }
 
     private void showBrowseOnlyMessage() {

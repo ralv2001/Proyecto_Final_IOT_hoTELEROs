@@ -41,6 +41,7 @@ import com.example.proyecto_final_hoteleros.taxista.services.DirectionsService;
 import com.example.proyecto_final_hoteleros.taxista.services.MockNotificationService;
 import com.example.proyecto_final_hoteleros.taxista.utils.DriverPreferenceManager;
 import com.example.proyecto_final_hoteleros.taxista.utils.NotificationHelper;
+import com.example.proyecto_final_hoteleros.utils.FirebaseManager;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationRequest;
@@ -829,53 +830,134 @@ public class DriverMapFragment extends Fragment implements OnMapReadyCallback {
         }
     }
 
+
+    /**
+     * Agregar hoteles reales de Firebase al mapa
+     */
     private void addNearbyHotels(LatLng driverLocation) {
+        Log.d(TAG, "🏨 Cargando hoteles reales de Firebase para el mapa...");
+
         // Limpiar hoteles anteriores
         if (hotelMarkers != null) {
             for (Marker marker : hotelMarkers) {
                 marker.remove();
             }
         }
-
         hotelMarkers = new ArrayList<>();
 
-        // ✅ HOTELES REALES DE LIMA CON UBICACIONES ESTÁTICAS
-        String[][] hotelesLima = {
-                {"Country Club Lima Hotel", "Golf de San Isidro 1570, San Isidro", "-12.0942", "-77.0364"},
-                {"JW Marriott Hotel Lima", "Malecón de la Reserva 615, Miraflores", "-12.1196", "-77.0434"},
-                {"Belmond Miraflores Park", "Av. Malecón de la Reserva 1035, Miraflores", "-12.1214", "-77.0436"},
-                {"Hotel Maury", "Jr. Ucayali 201, Cercado de Lima", "-12.0458", "-77.0311"},
-                {"Westin Lima Hotel", "Calle Las Begonias 450, San Isidro", "-12.0968", "-77.0365"},
-                {"Hotel B", "Av. Sáenz Peña 204, Barranco", "-12.1401", "-77.0203"},
-                {"Swissôtel Lima", "Vía Central 150, Centro Empresarial Real, San Isidro", "-12.0891", "-77.0427"},
-                {"AC Hotel Lima Miraflores", "Av. Malecón Balta 1298, Miraflores", "-12.1231", "-77.0319"},
-                {"Casa Andina Premium Miraflores", "Av. La Paz 463, Miraflores", "-12.1178", "-77.0286"},
-                {"Hilton Lima Miraflores", "Av. La Paz 1099, Miraflores", "-12.1205", "-77.0234"}
-        };
+        // Obtener hoteles reales de Firebase
+        FirebaseManager firebaseManager = FirebaseManager.getInstance();
+        firebaseManager.getActiveHotels(new FirebaseManager.HotelCallback() {
+            @Override
+            public void onSuccess(List<FirebaseManager.Hotel> hotels) {
+                Log.d(TAG, "✅ " + hotels.size() + " hoteles reales obtenidos para el mapa");
 
-        // Agregar cada hotel al mapa
-        for (int i = 0; i < hotelesLima.length; i++) {
-            String nombre = hotelesLima[i][0];
-            String direccion = hotelesLima[i][1];
-            double lat = Double.parseDouble(hotelesLima[i][2]);
-            double lng = Double.parseDouble(hotelesLima[i][3]);
+                if (getActivity() != null) {
+                    getActivity().runOnUiThread(() -> {
+                        addHotelsToMap(hotels, driverLocation);
+                    });
+                }
+            }
 
-            LatLng hotelLocation = new LatLng(lat, lng);
+            @Override
+            public void onError(String error) {
+                Log.e(TAG, "❌ Error obteniendo hoteles reales: " + error);
+                Log.w(TAG, "🔄 Fallback: usando hoteles de ejemplo en el mapa");
 
-            MarkerOptions markerOptions = new MarkerOptions()
-                    .position(hotelLocation)
-                    .title("🏨 " + nombre)
-                    .snippet("📍 " + direccion)
-                    .icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_hotelitos_20));
+                if (getActivity() != null) {
+                    getActivity().runOnUiThread(() -> {
+                        addFallbackHotelsToMap(driverLocation);
+                    });
+                }
+            }
+        });
+    }
 
-            Marker hotelMarker = mMap.addMarker(markerOptions);
-            hotelMarkers.add(hotelMarker);
+    /**
+     * Agregar hoteles reales al mapa
+     */
+    private void addHotelsToMap(List<FirebaseManager.Hotel> hotels, LatLng driverLocation) {
+        int hotelCount = 0;
 
-            Log.d(TAG, "🏨 Hotel agregado: " + nombre + " en " + hotelLocation);
+        for (FirebaseManager.Hotel hotel : hotels) {
+            try {
+                LatLng hotelLocation = new LatLng(hotel.latitude, hotel.longitude);
+
+                // Calcular distancia al taxista
+                float distance = calculateDistance(driverLocation, hotelLocation);
+
+                MarkerOptions markerOptions = new MarkerOptions()
+                        .position(hotelLocation)
+                        .title("🏨 " + hotel.getDisplayName())
+                        .snippet("📍 " + hotel.getDisplayAddress() + "\n📏 " + String.format("%.1f km", distance))
+                        .icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_hotelitos_20));
+
+                Marker hotelMarker = mMap.addMarker(markerOptions);
+                hotelMarkers.add(hotelMarker);
+                hotelCount++;
+
+                Log.d(TAG, "🏨 Hotel agregado: " + hotel.getDisplayName() +
+                        " (" + String.format("%.1f km", distance) + ")");
+
+            } catch (Exception e) {
+                Log.e(TAG, "❌ Error agregando hotel al mapa: " + e.getMessage());
+            }
         }
 
-        Log.d(TAG, "✅ " + hotelesLima.length + " hoteles reales de Lima agregados al mapa");
+        Log.d(TAG, "✅ " + hotelCount + " hoteles reales agregados al mapa");
     }
+
+    /**
+     * Hoteles de fallback si falla Firebase
+     */
+    private void addFallbackHotelsToMap(LatLng driverLocation) {
+        // Solo algunos hoteles básicos como fallback
+        String[][] fallbackHotels = {
+                {"Hotel Lima Centro", "Jr. De la Unión 789, Cercado de Lima", "-12.0458", "-77.0311"},
+                {"Hotel San Isidro", "Av. República de Panamá 321, San Isidro", "-12.0931", "-77.0465"},
+                {"Hotel Miraflores", "Av. Malecón Balta 1298, Miraflores", "-12.1231", "-77.0319"}
+        };
+
+        for (String[] hotelData : fallbackHotels) {
+            try {
+                String nombre = hotelData[0];
+                String direccion = hotelData[1];
+                double lat = Double.parseDouble(hotelData[2]);
+                double lng = Double.parseDouble(hotelData[3]);
+
+                LatLng hotelLocation = new LatLng(lat, lng);
+                float distance = calculateDistance(driverLocation, hotelLocation);
+
+                MarkerOptions markerOptions = new MarkerOptions()
+                        .position(hotelLocation)
+                        .title("🏨 " + nombre)
+                        .snippet("📍 " + direccion + "\n📏 " + String.format("%.1f km", distance))
+                        .icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_hotelitos_20));
+
+                Marker hotelMarker = mMap.addMarker(markerOptions);
+                hotelMarkers.add(hotelMarker);
+
+            } catch (Exception e) {
+                Log.e(TAG, "❌ Error agregando hotel fallback: " + e.getMessage());
+            }
+        }
+
+        Log.d(TAG, "✅ Hoteles de fallback agregados al mapa");
+    }
+
+    /**
+     * Calcular distancia entre dos puntos
+     */
+    private float calculateDistance(LatLng point1, LatLng point2) {
+        float[] results = new float[1];
+        android.location.Location.distanceBetween(
+                point1.latitude, point1.longitude,
+                point2.latitude, point2.longitude,
+                results
+        );
+        return results[0] / 1000; // Convertir a km
+    }
+
 
     private void loadSavedState() {
         boolean isAvailable = preferenceManager.isDriverAvailable();

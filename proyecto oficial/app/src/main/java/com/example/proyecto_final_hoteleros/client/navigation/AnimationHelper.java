@@ -1,4 +1,4 @@
-// AnimationHelper.java
+// AnimationHelper.java - SEGURO: Solo usa animaciones que sabemos que existen
 package com.example.proyecto_final_hoteleros.client.navigation;
 
 import com.example.proyecto_final_hoteleros.R;
@@ -38,19 +38,20 @@ public class AnimationHelper {
                 );
 
             case BOTTOM_TO_TOP:
+                // Usar animaciones existentes como fallback
                 return new AnimationSet(
-                        R.anim.slide_in_bottom,
+                        R.anim.slide_in_right, // Fallback
                         R.anim.fade_out,
                         R.anim.fade_in,
-                        R.anim.slide_out_bottom
+                        R.anim.slide_out_left  // Fallback
                 );
 
             case TOP_TO_BOTTOM:
                 return new AnimationSet(
-                        R.anim.slide_in_top,
+                        R.anim.slide_in_left,  // Fallback
                         R.anim.fade_out,
                         R.anim.fade_in,
-                        R.anim.slide_out_top
+                        R.anim.slide_out_right // Fallback
                 );
 
             case FADE:
@@ -62,19 +63,20 @@ public class AnimationHelper {
                 );
 
             case SCALE_UP:
+                // Usar fade como fallback si no existe scale
                 return new AnimationSet(
-                        R.anim.scale_up_fade_in,
+                        R.anim.fade_in,
                         R.anim.fade_out,
                         R.anim.fade_in,
-                        R.anim.scale_down_fade_out
+                        R.anim.fade_out
                 );
 
             case SLIDE_UP:
                 return new AnimationSet(
-                        R.anim.slide_in_bottom,
-                        R.anim.stay,
-                        R.anim.stay,
-                        R.anim.slide_out_bottom
+                        R.anim.slide_in_right, // Fallback
+                        R.anim.fade_out,
+                        R.anim.fade_in,
+                        R.anim.slide_out_left  // Fallback
                 );
 
             case NONE:

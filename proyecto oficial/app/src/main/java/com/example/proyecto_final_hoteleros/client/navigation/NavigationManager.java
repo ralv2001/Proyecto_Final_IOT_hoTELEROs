@@ -1,3 +1,4 @@
+// NavigationManager.java - COMPLETO: Con todos los métodos originales + fechas y huéspedes
 package com.example.proyecto_final_hoteleros.client.navigation;
 
 import android.os.Bundle;
@@ -80,16 +81,34 @@ public class NavigationManager {
 
     // ============= NAVEGACIÓN SECUNDARIA CON ANIMACIONES ESPECÍFICAS =============
 
+    // ✅ MÉTODO ORIGINAL: Mantener compatibilidad (sin fechas ni huéspedes)
     public void navigateToHotelDetail(String hotelName, String hotelLocation,
                                       String hotelPrice, String hotelRating,
                                       String hotelImage, Bundle userArgs) {
+        // Llamar al método completo con valores por defecto
+        navigateToHotelDetail(hotelName, hotelLocation, hotelPrice, hotelRating,
+                hotelImage, userArgs, "Hoy - Mañana", "2 adultos");
+    }
+
+    // ✅ NUEVO MÉTODO: Navegación con fechas y huéspedes explícitos
+    public void navigateToHotelDetail(String hotelName, String hotelLocation,
+                                      String hotelPrice, String hotelRating,
+                                      String hotelImage, Bundle userArgs,
+                                      String searchDates, String searchGuests) {
         HotelDetailFragment fragment = new HotelDetailFragment();
         Bundle args = userArgs != null ? new Bundle(userArgs) : new Bundle();
+
+        // ✅ DATOS BÁSICOS DEL HOTEL
         args.putString("hotel_name", hotelName);
         args.putString("hotel_location", hotelLocation);
         args.putString("hotel_price", hotelPrice);
         args.putString("hotel_rating", hotelRating);
         args.putString("hotel_image", hotelImage);
+
+        // ✅ AGREGAR FECHAS Y HUÉSPEDES
+        args.putString("search_dates", searchDates != null ? searchDates : "Hoy - Mañana");
+        args.putString("search_guests", searchGuests != null ? searchGuests : "2 adultos");
+
         fragment.setArguments(args);
 
         // ANIMACIÓN SCALE_UP para detalles (viene de una tarjeta/foto)
@@ -145,51 +164,6 @@ public class NavigationManager {
         replaceFragment(fragment, true, AnimationDirection.RIGHT_TO_LEFT);
     }
 
-    // ============= MÉTODOS AUXILIARES =============
-
-    /**
-     * Determina la dirección de animación basada en la posición de los tabs
-     */
-    private AnimationDirection getBottomNavAnimationDirection(BottomNavTab targetTab) {
-        int currentPos = currentBottomNavTab.getPosition();
-        int targetPos = targetTab.getPosition();
-
-        if (currentPos == targetPos) {
-            return AnimationDirection.NONE; // Mismo tab, sin animación
-        } else if (currentPos < targetPos) {
-            return AnimationDirection.RIGHT_TO_LEFT; // Moverse hacia la derecha
-        } else {
-            return AnimationDirection.LEFT_TO_RIGHT; // Moverse hacia la izquierda
-        }
-    }
-
-    /**
-     * Método base mejorado para reemplazar fragmentos con animaciones específicas
-     */
-    private void replaceFragment(Fragment fragment, boolean addToBackStack, AnimationDirection direction) {
-        if (activity == null) return;
-
-        FragmentTransaction transaction = activity.getSupportFragmentManager().beginTransaction();
-
-        // Aplicar animaciones basadas en la dirección
-        AnimationHelper.AnimationSet animSet = AnimationHelper.getAnimationSet(direction);
-        if (animSet.enter != 0) {
-            transaction.setCustomAnimations(
-                    animSet.enter,
-                    animSet.exit,
-                    animSet.popEnter,
-                    animSet.popExit
-            );
-        }
-
-        transaction.replace(R.id.fragment_container, fragment);
-
-        if (addToBackStack) {
-            transaction.addToBackStack(null);
-        }
-
-        transaction.commit();
-    }
     public void navigateToEditProfile(ClientProfile clientProfile) {
         EditClientProfileFragment fragment = new EditClientProfileFragment();
         Bundle args = new Bundle();
@@ -231,5 +205,51 @@ public class NavigationManager {
 
     public BottomNavTab getCurrentBottomNavTab() {
         return currentBottomNavTab;
+    }
+
+    // ============= MÉTODOS AUXILIARES =============
+
+    /**
+     * Determina la dirección de animación basada en la posición de los tabs
+     */
+    private AnimationDirection getBottomNavAnimationDirection(BottomNavTab targetTab) {
+        int currentPos = currentBottomNavTab.getPosition();
+        int targetPos = targetTab.getPosition();
+
+        if (currentPos == targetPos) {
+            return AnimationDirection.NONE; // Mismo tab, sin animación
+        } else if (currentPos < targetPos) {
+            return AnimationDirection.RIGHT_TO_LEFT; // Moverse hacia la derecha
+        } else {
+            return AnimationDirection.LEFT_TO_RIGHT; // Moverse hacia la izquierda
+        }
+    }
+
+    /**
+     * Método base mejorado para reemplazar fragmentos con animaciones específicas
+     */
+    private void replaceFragment(Fragment fragment, boolean addToBackStack, AnimationDirection direction) {
+        if (activity == null) return;
+
+        FragmentTransaction transaction = activity.getSupportFragmentManager().beginTransaction();
+
+        // Aplicar animaciones basadas en la dirección usando AnimationHelper
+        AnimationHelper.AnimationSet animSet = AnimationHelper.getAnimationSet(direction);
+        if (animSet.enter != 0) {
+            transaction.setCustomAnimations(
+                    animSet.enter,
+                    animSet.exit,
+                    animSet.popEnter,
+                    animSet.popExit
+            );
+        }
+
+        transaction.replace(R.id.fragment_container, fragment);
+
+        if (addToBackStack) {
+            transaction.addToBackStack(null);
+        }
+
+        transaction.commit();
     }
 }
