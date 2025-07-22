@@ -1123,12 +1123,41 @@ public class HotelDetailFragment extends Fragment implements ThumbnailAdapter.On
             // Pasar datos del hotel al fragmento
             Bundle args = new Bundle();
 
-            // ✅ DATOS BÁSICOS (ya existentes)
+            // ✅ DATOS BÁSICOS DEL HOTEL (ya existentes)
             String hotelName = tvHotelName != null ? tvHotelName.getText().toString() : "Hotel";
             String hotelPrice = tvHotelPrice != null ? tvHotelPrice.getText().toString() : "S/0";
 
             args.putString("hotel_name", hotelName);
             args.putString("hotel_price", hotelPrice);
+
+            // ✅ FECHAS Y HUÉSPEDES: Obtener desde argumentos o usar por defecto
+            String searchDates = getArguments() != null ?
+                    getArguments().getString("search_dates", "Hoy - Mañana") :
+                    "Hoy - Mañana";
+            String searchGuests = getArguments() != null ?
+                    getArguments().getString("search_guests", "2 adultos") :
+                    "2 adultos";
+
+            // ✅ PASAR FECHAS Y HUÉSPEDES A ROOM SELECTION
+            args.putString("search_dates", searchDates);
+            args.putString("search_guests", searchGuests);
+
+            Log.d(TAG, "📅 Pasando fechas a RoomSelection: " + searchDates);
+            Log.d(TAG, "👥 Pasando huéspedes a RoomSelection: " + searchGuests);
+
+            // ✅ CONVERTIR HUÉSPEDES A NÚMEROS PARA CÁLCULOS
+            int[] guestNumbers = parseGuestsToNumbers(searchGuests);
+            args.putInt("num_adults", guestNumbers[0]);
+            args.putInt("num_children", guestNumbers[1]);
+
+            Log.d(TAG, "🔢 Números de huéspedes: " + guestNumbers[0] + " adultos, " + guestNumbers[1] + " niños");
+
+            // ✅ CONVERTIR FECHAS A FORMATO INDIVIDUAL
+            String[] dateArray = parseDatesToArray(searchDates);
+            args.putString("check_in_date", dateArray[0]);
+            args.putString("check_out_date", dateArray[1]);
+
+            Log.d(TAG, "📅 Fechas individuales: Check-in=" + dateArray[0] + ", Check-out=" + dateArray[1]);
 
             // ✅ NUEVO: Pasar el HotelProfile completo si está disponible
             if (currentHotel != null) {
@@ -1170,7 +1199,80 @@ public class HotelDetailFragment extends Fragment implements ThumbnailAdapter.On
             Toast.makeText(getContext(), "Error abriendo selección de habitaciones", Toast.LENGTH_SHORT).show();
         }
     }
+    private int[] parseGuestsToNumbers(String guestsString) {
+        int adults = 2; // Por defecto
+        int children = 0; // Por defecto
 
+        try {
+            if (guestsString != null && !guestsString.isEmpty()) {
+                // Buscar adultos
+                if (guestsString.contains("adultos")) {
+                    String[] parts = guestsString.split("adultos");
+                    if (parts.length > 0) {
+                        String adultsPart = parts[0].trim();
+                        // Extraer solo el número
+                        String adultsNumber = adultsPart.replaceAll("[^0-9]", "");
+                        if (!adultsNumber.isEmpty()) {
+                            adults = Integer.parseInt(adultsNumber);
+                        }
+                    }
+                }
+
+                // Buscar niños
+                if (guestsString.contains("niños")) {
+                    String[] parts = guestsString.split("•");
+                    for (String part : parts) {
+                        if (part.contains("niños")) {
+                            String childrenPart = part.trim();
+                            String childrenNumber = childrenPart.replaceAll("[^0-9]", "");
+                            if (!childrenNumber.isEmpty()) {
+                                children = Integer.parseInt(childrenNumber);
+                            }
+                            break;
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "Error parseando huéspedes: " + e.getMessage());
+            // Mantener valores por defecto
+        }
+
+        return new int[]{adults, children};
+    }
+
+    /**
+     * Convertir string de fechas a array
+     * Ejemplos: "Hoy - Mañana" -> ["Hoy", "Mañana"], "25 jul - 27 jul" -> ["25 jul", "27 jul"]
+     */
+    private String[] parseDatesToArray(String datesString) {
+        String checkIn = "Hoy";
+        String checkOut = "Mañana";
+
+        try {
+            if (datesString != null && !datesString.isEmpty()) {
+                // Buscar diferentes separadores
+                String separator = datesString.contains(" - ") ? " - " :
+                        datesString.contains("-") ? "-" :
+                                datesString.contains("–") ? "–" : " - ";
+
+                String[] parts = datesString.split(separator);
+                if (parts.length >= 2) {
+                    checkIn = parts[0].trim();
+                    checkOut = parts[1].trim();
+                } else if (parts.length == 1) {
+                    checkIn = parts[0].trim();
+                    // Si solo hay una fecha, la salida es al día siguiente
+                    checkOut = "Día siguiente";
+                }
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "Error parseando fechas: " + e.getMessage());
+            // Mantener valores por defecto
+        }
+
+        return new String[]{checkIn, checkOut};
+    }
     private String getHotelAdminIdFromArguments() {
         if (getArguments() != null) {
             // Buscar en diferentes posibles nombres de argumentos
@@ -1187,10 +1289,12 @@ public class HotelDetailFragment extends Fragment implements ThumbnailAdapter.On
         }
         return null;
     }
+
     public void setCurrentHotel(HotelProfile hotel) {
         this.currentHotel = hotel;
         Log.d(TAG, "✅ HotelProfile establecido: " + (hotel != null ? hotel.getName() : "null"));
     }
+
     public HotelProfile getCurrentHotel() {
         return currentHotel;
     }

@@ -58,8 +58,7 @@ public class AdminsAdapter extends RecyclerView.Adapter<AdminsAdapter.AdminViewH
     static class AdminViewHolder extends RecyclerView.ViewHolder {
         private CardView cardAdmin;
         private ImageView ivProfile, ivMore;
-        private TextView tvName, tvEmail, tvHotel, tvRegistrationDate;
-        private Chip chipStatus;
+        private TextView tvName, tvEmail, tvAdminType, tvRegistrationDate, tvStatus; // ✅ CAMBIADO
         private MaterialButton btnToggleStatus;
 
         public AdminViewHolder(@NonNull View itemView) {
@@ -69,9 +68,9 @@ public class AdminsAdapter extends RecyclerView.Adapter<AdminsAdapter.AdminViewH
             ivMore = itemView.findViewById(R.id.iv_more);
             tvName = itemView.findViewById(R.id.tv_name);
             tvEmail = itemView.findViewById(R.id.tv_email);
-            tvHotel = itemView.findViewById(R.id.tv_hotel);
+            tvAdminType = itemView.findViewById(R.id.tv_admin_type); // ✅ CAMBIADO
             tvRegistrationDate = itemView.findViewById(R.id.tv_registration_date);
-            chipStatus = itemView.findViewById(R.id.chip_status);
+            tvStatus = itemView.findViewById(R.id.tv_status); // ✅ AGREGADO
             btnToggleStatus = itemView.findViewById(R.id.btn_toggle_status);
         }
 
@@ -79,74 +78,37 @@ public class AdminsAdapter extends RecyclerView.Adapter<AdminsAdapter.AdminViewH
             // Configurar datos básicos
             tvName.setText(admin.getName());
             tvEmail.setText(admin.getEmail());
-            tvHotel.setText(admin.getHotelName());
+            tvAdminType.setText("Admin Hotel"); // Texto fijo
             tvRegistrationDate.setText("Registrado: " + admin.getRegistrationDate());
 
-            // Configurar estado con TextView personalizado más visible
+            // ✅ CONFIGURAR ESTADO - Igual que usuarios
+            tvStatus.setText(admin.getStatusText());
+            tvStatus.setTextColor(admin.getStatusColor());
+
+            // ✅ CONFIGURAR TIPO DE ADMIN CON COLOR
+            tvAdminType.setTextColor(android.graphics.Color.parseColor("#FF9800")); // Naranja para admins
+
+            // ✅ CONFIGURAR BOTÓN DE TOGGLE - Igual que usuarios
+            btnToggleStatus.setText(admin.isActive() ? "DESACTIVAR" : "ACTIVAR");
+
             if (admin.isActive()) {
-                chipStatus.setText("✅ ACTIVO");
-                chipStatus.setBackgroundColor(android.graphics.Color.parseColor("#4CAF50")); // Verde
-                chipStatus.setTextColor(android.graphics.Color.BLACK);
+                // Botón rojo para desactivar
+                btnToggleStatus.setBackgroundColor(android.graphics.Color.parseColor("#F44336"));
+                btnToggleStatus.setTextColor(android.graphics.Color.WHITE);
             } else {
-                chipStatus.setText("❌ INACTIVO");
-                chipStatus.setBackgroundColor(android.graphics.Color.parseColor("#F44336")); // Rojo
-                chipStatus.setTextColor(android.graphics.Color.BLACK);
+                // Botón verde para activar
+                btnToggleStatus.setBackgroundColor(android.graphics.Color.parseColor("#4CAF50"));
+                btnToggleStatus.setTextColor(android.graphics.Color.WHITE);
             }
 
-            // Estilo mejorado
-            chipStatus.setTextSize(11);
-            chipStatus.setPadding(12, 6, 12, 6);
-            chipStatus.setTypeface(null, android.graphics.Typeface.BOLD);
-
-            // Esquinas redondeadas
-            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.JELLY_BEAN) {
-                android.graphics.drawable.GradientDrawable shape = new android.graphics.drawable.GradientDrawable();
-                shape.setShape(android.graphics.drawable.GradientDrawable.RECTANGLE);
-                shape.setCornerRadius(20f); // Esquinas redondeadas
-                if (admin.isActive()) {
-                    shape.setColor(android.graphics.Color.parseColor("#4CAF50"));
-                } else {
-                    shape.setColor(android.graphics.Color.parseColor("#F44336"));
-                }
-                chipStatus.setBackground(shape);
-            }
-
-            // Configurar botón de toggle con mejor UX
-            if (admin.isActive()) {
-                btnToggleStatus.setText("🔒 Desactivar");
-                btnToggleStatus.setBackgroundTintList(android.content.res.ColorStateList.valueOf(
-                        android.graphics.Color.parseColor("#F44336"))); // Rojo
-            } else {
-                btnToggleStatus.setText("✅ Activar");
-                btnToggleStatus.setBackgroundTintList(android.content.res.ColorStateList.valueOf(
-                        android.graphics.Color.parseColor("#4CAF50"))); // Verde
-            }
-
-            // Mejorar estilo del botón
-            btnToggleStatus.setTextColor(android.graphics.Color.WHITE);
-            btnToggleStatus.setAllCaps(false); // Texto normal, no mayúsculas
-
-            // Configurar imagen de perfil (placeholder por ahora)
+            // Configurar imagen de perfil
             ivProfile.setImageResource(R.drawable.ic_person);
 
-            // Click listeners
+            // ✅ CLICK LISTENERS
             cardAdmin.setOnClickListener(v -> {
                 if (actionListener != null) {
-                    actionListener.onAdminAction(admin, "view_details");
+                    actionListener.onAdminAction(admin, "view_info");
                 }
-            });
-
-            cardAdmin.setOnTouchListener((v, event) -> {
-                switch (event.getAction()) {
-                    case android.view.MotionEvent.ACTION_DOWN:
-                        v.setAlpha(0.7f);
-                        break;
-                    case android.view.MotionEvent.ACTION_UP:
-                    case android.view.MotionEvent.ACTION_CANCEL:
-                        v.setAlpha(1.0f);
-                        break;
-                }
-                return false;
             });
 
             btnToggleStatus.setOnClickListener(v -> {
@@ -162,20 +124,16 @@ public class AdminsAdapter extends RecyclerView.Adapter<AdminsAdapter.AdminViewH
 
         private void showMoreOptions(View anchor, AdminUser admin, OnAdminActionListener actionListener) {
             androidx.appcompat.widget.PopupMenu popup = new androidx.appcompat.widget.PopupMenu(anchor.getContext(), anchor);
-            popup.inflate(R.menu.menu_admin_options);
+
+            // ✅ SOLO UNA OPCIÓN: Ver información
+            android.view.Menu menu = popup.getMenu();
+            menu.add(0, 1001, 0, "Ver información")
+                    .setIcon(R.drawable.ic_info);
 
             popup.setOnMenuItemClickListener(item -> {
-                if (actionListener != null) {
-                    if (item.getItemId() == R.id.action_edit) {
-                        actionListener.onAdminAction(admin, "edit");
-                        return true;
-                    } else if (item.getItemId() == R.id.action_view_hotel) {
-                        actionListener.onAdminAction(admin, "view_hotel");
-                        return true;
-                    } else if (item.getItemId() == R.id.action_reset_password) {
-                        actionListener.onAdminAction(admin, "reset_password");
-                        return true;
-                    }
+                if (actionListener != null && item.getItemId() == 1001) {
+                    actionListener.onAdminAction(admin, "view_info");
+                    return true;
                 }
                 return false;
             });

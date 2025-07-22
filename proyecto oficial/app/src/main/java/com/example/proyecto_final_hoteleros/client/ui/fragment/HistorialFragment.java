@@ -1,6 +1,11 @@
 package com.example.proyecto_final_hoteleros.client.ui.fragment;
 
+import static android.content.ContentValues.TAG;
+
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -19,6 +24,8 @@ import com.example.proyecto_final_hoteleros.client.data.model.Reservation;
 import com.example.proyecto_final_hoteleros.client.navigation.AnimationDirection;
 import com.example.proyecto_final_hoteleros.client.navigation.NavigationManager;
 import com.example.proyecto_final_hoteleros.client.ui.fragment.ReservationDetailFragment;
+import com.example.proyecto_final_hoteleros.client.utils.UserDataManager;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -90,7 +97,8 @@ public class HistorialFragment extends BaseBottomNavigationFragment {
         View rootView = inflater.inflate(R.layout.client_fragment_historial, container, false);
         setupViews(rootView);
         setupRecyclerViews();
-        loadProfessionalMockData();
+        loadReservationsFromFirebase(); // ✅ NUEVA LÍNEA
+
         return rootView;
     }
 
@@ -515,9 +523,161 @@ public class HistorialFragment extends BaseBottomNavigationFragment {
     }
 
     public void refreshReservations() {
-        loadProfessionalMockData();
+        loadReservationsFromFirebase();
+
+    }
+    // ✅ CARGAR RESERVAS REALES DESDE FIREBASE
+    private void loadReservationsFromFirebase() {
+        clearAllData();
+
+        // ✅ OBTENER ID DEL USUARIO ACTUAL
+        UserDataManager userManager = UserDataManager.getInstance();
+        String userId = userManager.getUserId();
+
+        if (userId == null) {
+            Log.w(TAG, "⚠️ Usuario no identificado, mostrando datos mock");
+            loadProfessionalMockData();
+            return;
+        }
+
+        Log.d(TAG, "🔍 Cargando reservas desde Firebase para usuario: " + userId);
+
+        // ✅ CARGAR DESDE FIREBASE
+        com.example.proyecto_final_hoteleros.client.utils.FirebaseReservationManager
+                .getInstance()
+                .loadUserReservations(userId, new com.example.proyecto_final_hoteleros.client.utils.FirebaseReservationManager.ReservationsListCallback() {
+                    @Override
+                    public void onSuccess(List<Reservation> upcomingList, List<Reservation> activeList, List<Reservation> completedList) {
+                        if (getActivity() != null) {
+                            getActivity().runOnUiThread(() -> {
+                                Log.d(TAG, "✅ Reservas cargadas desde Firebase:");
+                                Log.d(TAG, "   - Próximas: " + upcomingList.size());
+                                Log.d(TAG, "   - Actuales: " + activeList.size());
+                                Log.d(TAG, "   - Completadas: " + completedList.size());
+
+                                // ✅ ASIGNAR LISTAS
+                                proximasReservations.clear();
+                                proximasReservations.addAll(upcomingList);
+
+                                actualesReservations.clear();
+                                actualesReservations.addAll(activeList);
+
+                                completadasReservations.clear();
+                                completadasReservations.addAll(completedList);
+
+                                // ✅ VERIFICAR TAXI EN COMPLETADAS
+                                checkTaxiDialogsForCompletedReservations();
+
+                                // ✅ NOTIFICAR ADAPTADORES
+                                notifyAllAdapters();
+                                updateSelectedTab(0);
+                            });
+                        }
+                    }
+
+                    @Override
+                    public void onError(String error) {
+                        if (getActivity() != null) {
+                            getActivity().runOnUiThread(() -> {
+                                Log.e(TAG, "❌ Error cargando reservas: " + error);
+
+                                // ✅ FALLBACK A DATOS MOCK SI HAY ERROR
+                                android.widget.Toast.makeText(requireContext(),
+                                        "⚠️ Error cargando reservas. Mostrando datos de ejemplo.",
+                                        android.widget.Toast.LENGTH_SHORT).show();
+
+                                loadProfessionalMockData();
+                            });
+                        }
+                    }
+                });
     }
 
+    /**
+     * ✅ VERIFICAR SI HAY RESERVAS COMPLETADAS CON TAXI QUE REQUIERAN CONFIRMACIÓN
+     */
+    private void checkTaxiDialogsForCompletedReservations() {
+        for (Reservation reservation : completadasReservations) {
+            if (shouldShowTaxiDialog(reservation)) {
+                // ✅ MOSTRAR DIÁLOGO DESPUÉS DE UN BREVE DELAY PARA QUE LA UI SE ESTABILICE
+                new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                    showTaxiConfirmationDialog(reservation);
+                }, 1000);
+                break; // Solo mostrar uno a la vez
+            }
+        }
+    }
+
+    /**
+     * ✅ VERIFICAR SI DEBE MOSTRARSE EL DIÁLOGO DE TAXI PARA UNA RESERVA
+     */
+    private boolean shouldShowTaxiDialog(Reservation reservation) {
+        if (reservation == null) return false;
+        if (reservation.getStatus() != Reservation.STATUS_COMPLETED) return false;
+        if (!reservation.isEligibleForFreeTaxi()) return false;
+
+        // ✅ VERIFICAR SI AÚN ES VÁLIDO (mismo día del checkout)
+        return com.example.proyecto_final_hoteleros.client.ui.dialog.TaxiConfirmationDialog
+                .shouldShowForReservation(reservation);
+    }
+    /**
+     * ✅ MOSTRAR DIÁLOGO DE CONFIRMACIÓN DE TAXI
+     */
+    private void showTaxiConfirmationDialog(Reservation reservation) {
+        if (getChildFragmentManager().isStateSaved()) return;
+
+        Log.d(TAG, "🚖 Mostrando diálogo de confirmación de taxi para: " + reservation.getHotelName());
+
+        com.example.proyecto_final_hoteleros.client.ui.dialog.TaxiConfirmationDialog dialog =
+                com.example.proyecto_final_hoteleros.client.ui.dialog.TaxiConfirmationDialog.newInstance(reservation);
+
+        dialog.setTaxiConfirmationListener(new com.example.proyecto_final_hoteleros.client.ui.dialog.TaxiConfirmationDialog.TaxiConfirmationListener() {
+            @Override
+            public void onTaxiConfirmed(Reservation reservation) {
+                Log.d(TAG, "✅ Usuario confirmó taxi para: " + reservation.getHotelName());
+                android.widget.Toast.makeText(requireContext(),
+                        "🚖 Taxi confirmado para " + reservation.getHotelName(),
+                        android.widget.Toast.LENGTH_SHORT).show();
+            }
+
+            @Override
+            public void onTaxiDeclined(Reservation reservation) {
+                Log.d(TAG, "❌ Usuario declinó taxi para: " + reservation.getHotelName());
+                android.widget.Toast.makeText(requireContext(),
+                        "Taxi declinado para " + reservation.getHotelName(),
+                        android.widget.Toast.LENGTH_SHORT).show();
+            }
+
+            @Override
+            public void onNavigateToTaxiFlow(Reservation reservation) {
+                Log.d(TAG, "🚖 Navegando al flujo de taxi para: " + reservation.getHotelName());
+                navigateToTaxiFlow(reservation);
+            }
+        });
+
+        try {
+            dialog.show(getChildFragmentManager(), "TaxiConfirmationDialog");
+        } catch (Exception e) {
+            Log.e(TAG, "❌ Error mostrando diálogo de taxi: " + e.getMessage());
+        }
+    }
+    /**
+     * ✅ NAVEGAR AL FLUJO DE TAXI (TAXISTA)
+     */
+    private void navigateToTaxiFlow(Reservation reservation) {
+        Log.d(TAG, "🚖 Navegando al flujo de taxi para reserva: " + reservation.getReservationId());
+
+        // ✅ CREAR FRAGMENTO DE SOLICITUD DE TAXI
+        com.example.proyecto_final_hoteleros.client.ui.fragment.TaxiRequestFragment taxiFragment =
+                com.example.proyecto_final_hoteleros.client.ui.fragment.TaxiRequestFragment.newInstance(reservation);
+
+        // ✅ NAVEGAR CON ANIMACIÓN BOTTOM_TO_TOP (emerge desde abajo como modal)
+        NavigationManager.getInstance().navigateWithCustomAnimation(
+                taxiFragment,
+                AnimationDirection.BOTTOM_TO_TOP,
+                true
+        );
+    }
     public Reservation getReservationById(String reservationId) {
         for (Reservation reservation : proximasReservations) {
             if (reservation.getReservationId().equals(reservationId)) {
@@ -536,4 +696,5 @@ public class HistorialFragment extends BaseBottomNavigationFragment {
         }
         return null;
     }
+
 }

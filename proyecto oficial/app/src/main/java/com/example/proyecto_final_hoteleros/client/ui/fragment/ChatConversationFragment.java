@@ -18,6 +18,8 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
@@ -139,6 +141,65 @@ public class ChatConversationFragment extends Fragment {
 
         return rootView;
     }
+
+//    @Override
+//    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+//        super.onViewCreated(view, savedInstanceState);
+//
+//        // 🔍 DEBUG TEMPORAL: Colorear elementos para encontrar el culpable
+//        debugLayoutBounds(view);
+//    }
+//
+//    // 🔍 MÉTODO DEBUG TEMPORAL
+//    private void debugLayoutBounds(View rootView) {
+//        // Root container - ROJO
+//        View rootContainer = rootView.findViewById(android.R.id.content);
+//        if (rootContainer != null) {
+//            rootContainer.setBackgroundColor(0xFFFF0000); // Rojo
+//        }
+//
+//        // Chat input layout - VERDE BRILLANTE
+//        View chatInputLayout = rootView.findViewById(R.id.chatInputLayout);
+//        if (chatInputLayout != null) {
+//            chatInputLayout.setBackgroundColor(0xFF00FF00); // Verde brillante
+//        }
+//
+//        // EditText - AZUL
+//        View editText = rootView.findViewById(R.id.etMessage);
+//        if (editText != null) {
+//            editText.setBackgroundColor(0xFF0000FF); // Azul
+//        }
+//
+//        // ConstraintLayout principal - AMARILLO
+//        View mainConstraint = rootView.findViewById(R.id.constraint_home);
+//        if (mainConstraint == null) {
+//            // Buscar el primer ConstraintLayout
+//            if (rootView instanceof androidx.constraintlayout.widget.ConstraintLayout) {
+//                rootView.setBackgroundColor(0xFFFFFF00); // Amarillo
+//            }
+//        }
+//
+//        Log.d("DEBUG", "🎨 Colores aplicados para debug");
+//    }
+
+
+//    @Override
+//    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+//        super.onViewCreated(view, savedInstanceState);
+//
+//        // 🎯 REDUCIR PADDING BOTTOM DEL INPUT LAYOUT
+//        View chatInputLayout = view.findViewById(R.id.chatInputLayout);
+//        if (chatInputLayout != null) {
+//            // Cambiar de 12dp a 4dp el padding bottom
+//            int paddingBottom = (int) (4 * getResources().getDisplayMetrics().density);
+//            chatInputLayout.setPadding(
+//                    chatInputLayout.getPaddingLeft(),
+//                    chatInputLayout.getPaddingTop(),
+//                    chatInputLayout.getPaddingRight(),
+//                    paddingBottom  // 4dp en lugar de 12dp
+//            );
+//        }
+//    }
 
     private void initViews(View rootView) {
         try {

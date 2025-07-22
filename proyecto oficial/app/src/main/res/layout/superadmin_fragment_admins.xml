@@ -7,7 +7,7 @@
     android:background="@color/background_gray">
 
     <!-- Header -->
-    <!-- Header mejorado con búsqueda -->
+    <!-- Header mejorado con búsqueda y filtros -->
     <LinearLayout
         android:id="@+id/header_layout"
         android:layout_width="match_parent"
@@ -17,7 +17,7 @@
         android:orientation="vertical"
         app:layout_constraintTop_toTopOf="parent">
 
-        <!-- Barra superior con título y filtros -->
+        <!-- Barra superior con título y controles -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -32,6 +32,7 @@
                 android:src="@drawable/ic_arrow_back"
                 android:background="?android:attr/selectableItemBackgroundBorderless"
                 android:padding="4dp"
+                android:contentDescription="Volver"
                 app:tint="@color/text_primary" />
 
             <TextView
@@ -44,23 +45,16 @@
                 android:textColor="@color/text_primary"
                 android:layout_marginStart="16dp" />
 
-            <ImageView
-                android:id="@+id/iv_filter"
-                android:layout_width="24dp"
-                android:layout_height="24dp"
-                android:src="@drawable/ic_filter"
-                android:background="?android:attr/selectableItemBackgroundBorderless"
-                android:padding="4dp"
-                android:layout_marginEnd="8dp"
-                app:tint="@color/text_secondary" />
+            <!-- ❌ BOTÓN DE FILTRO REMOVIDO -->
 
             <ImageView
                 android:id="@+id/iv_search_toggle"
                 android:layout_width="24dp"
                 android:layout_height="24dp"
-                android:src="@drawable/ic_search"
+                android:src="@drawable/ic_search_superadmin"
                 android:background="?android:attr/selectableItemBackgroundBorderless"
                 android:padding="4dp"
+                android:contentDescription="Buscar"
                 app:tint="@color/text_secondary" />
 
         </LinearLayout>
@@ -79,7 +73,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                app:startIconDrawable="@drawable/ic_search"
+                app:startIconDrawable="@drawable/ic_search_superadmin"
                 app:startIconTint="@color/primary_FF6B35"
                 app:endIconMode="clear_text"
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense">
@@ -96,13 +90,13 @@
 
         </LinearLayout>
 
-        <!-- Chips de filtros rápidos -->
+        <!-- Chips de filtros MEJORADOS -->
         <HorizontalScrollView
             android:id="@+id/scroll_filters"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:paddingHorizontal="16dp"
-            android:paddingBottom="8dp"
+            android:paddingBottom="12dp"
             android:scrollbars="none">
 
             <LinearLayout
@@ -110,6 +104,7 @@
                 android:layout_height="wrap_content"
                 android:orientation="horizontal">
 
+                <!-- ✅ CHIP "TODOS" CON ESTILO MEJORADO -->
                 <com.google.android.material.chip.Chip
                     android:id="@+id/chip_all"
                     android:layout_width="wrap_content"
@@ -118,8 +113,13 @@
                     android:checkable="true"
                     android:checked="true"
                     android:layout_marginEnd="8dp"
-                    app:chipBackgroundColor="@color/primary_FF6B35"
-                    app:chipStrokeWidth="0dp" />
+                    android:textColor="@color/selector_chip_text"
+                    android:textStyle="bold"
+                    app:chipBackgroundColor="@color/selector_chip_background"
+                    app:chipStrokeWidth="1dp"
+                    app:chipStrokeColor="@color/selector_chip_stroke"
+                    app:chipCornerRadius="20dp"
+                    app:chipMinHeight="36dp" />
 
                 <com.google.android.material.chip.Chip
                     android:id="@+id/chip_active"
@@ -127,7 +127,13 @@
                     android:layout_height="wrap_content"
                     android:text="✅ Activos"
                     android:checkable="true"
-                    android:layout_marginEnd="8dp" />
+                    android:layout_marginEnd="8dp"
+                    android:textColor="@color/selector_chip_text"
+                    app:chipBackgroundColor="@color/selector_chip_background"
+                    app:chipStrokeWidth="1dp"
+                    app:chipStrokeColor="@color/selector_chip_stroke"
+                    app:chipCornerRadius="20dp"
+                    app:chipMinHeight="36dp" />
 
                 <com.google.android.material.chip.Chip
                     android:id="@+id/chip_inactive"
@@ -135,14 +141,26 @@
                     android:layout_height="wrap_content"
                     android:text="❌ Inactivos"
                     android:checkable="true"
-                    android:layout_marginEnd="8dp" />
+                    android:layout_marginEnd="8dp"
+                    android:textColor="@color/selector_chip_text"
+                    app:chipBackgroundColor="@color/selector_chip_background"
+                    app:chipStrokeWidth="1dp"
+                    app:chipStrokeColor="@color/selector_chip_stroke"
+                    app:chipCornerRadius="20dp"
+                    app:chipMinHeight="36dp" />
 
                 <com.google.android.material.chip.Chip
                     android:id="@+id/chip_recent"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="🕒 Recientes"
-                    android:checkable="true" />
+                    android:checkable="true"
+                    android:textColor="@color/selector_chip_text"
+                    app:chipBackgroundColor="@color/selector_chip_background"
+                    app:chipStrokeWidth="1dp"
+                    app:chipStrokeColor="@color/selector_chip_stroke"
+                    app:chipCornerRadius="20dp"
+                    app:chipMinHeight="36dp" />
 
             </LinearLayout>
 
@@ -157,6 +175,7 @@
         android:layout_height="0dp"
         android:layout_marginTop="8dp"
         android:paddingHorizontal="16dp"
+        android:contentDescription="Lista de administradores"
         app:layout_constraintTop_toBottomOf="@id/header_layout"
         app:layout_constraintBottom_toBottomOf="parent" />
 
@@ -178,6 +197,7 @@
             android:layout_height="80dp"
             android:src="@drawable/ic_admin_empty"
             android:alpha="0.3"
+            android:contentDescription="Sin administradores"
             app:tint="@color/text_secondary" />
 
         <TextView
@@ -197,6 +217,7 @@
         android:layout_height="wrap_content"
         android:layout_margin="16dp"
         android:src="@drawable/ic_add"
+        android:contentDescription="Agregar administrador"
         app:backgroundTint="@color/primary_FF6B35"
         app:tint="@android:color/white"
         app:layout_constraintBottom_toBottomOf="parent"

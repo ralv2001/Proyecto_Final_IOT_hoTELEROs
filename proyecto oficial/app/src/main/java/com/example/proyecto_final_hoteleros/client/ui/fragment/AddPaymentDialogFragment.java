@@ -1,4 +1,6 @@
+// AddPaymentDialogFragment.java - VERSIÓN SIMPLIFICADA PARA PRUEBAS
 package com.example.proyecto_final_hoteleros.client.ui.fragment;
+import com.example.proyecto_final_hoteleros.client.utils.PaymentMethodManager;
 
 import android.animation.ObjectAnimator;
 import android.app.Dialog;
@@ -7,6 +9,7 @@ import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -28,6 +31,9 @@ public class AddPaymentDialogFragment extends DialogFragment {
 
     public interface PaymentDialogListener {
         void onPaymentMethodAdded(String cardNumber, String cardHolderName);
+        default void onPaymentMethodAdded(String cardNumber, String cardHolderName, String expiryDate, String cardType) {
+            onPaymentMethodAdded(cardNumber, cardHolderName);
+        }
     }
 
     private PaymentDialogListener listener;
@@ -85,6 +91,8 @@ public class AddPaymentDialogFragment extends DialogFragment {
         setupCardFlipAnimations();
         setupListeners();
         setupInputFormatting();
+
+        // ✅ HABILITAR BOTÓN INMEDIATAMENTE PARA PRUEBAS
         updateSaveButtonState();
     }
 
@@ -116,45 +124,52 @@ public class AddPaymentDialogFragment extends DialogFragment {
         btnCancel = view.findViewById(R.id.btn_cancel);
 
         // Initial state - back card hidden
-        cardBackView.setVisibility(View.GONE);
-        cardBackView.setRotationY(180f);
+        if (cardBackView != null) {
+            cardBackView.setVisibility(View.GONE);
+            cardBackView.setRotationY(180f);
+        }
     }
 
     private void setupCardFlipAnimations() {
-        // Set camera distance for 3D effect
-        float scale = requireContext().getResources().getDisplayMetrics().density * 8000;
-        cardFrontView.setCameraDistance(scale);
-        cardBackView.setCameraDistance(scale);
+        if (cardFrontView != null && cardBackView != null) {
+            float scale = requireContext().getResources().getDisplayMetrics().density * 8000;
+            cardFrontView.setCameraDistance(scale);
+            cardBackView.setCameraDistance(scale);
+        }
     }
 
     private void setupListeners() {
         // Button listeners
-        btnCancel.setOnClickListener(v -> dismiss());
-        btnSave.setOnClickListener(v -> {
-            if (validateFields()) {
-                String rawNumber = Objects.requireNonNull(etCardNumber.getText()).toString().replaceAll("\\s", "");
-                String masked = "**** **** **** " + rawNumber.substring(Math.max(0, rawNumber.length() - 4));
-                String nameUpper = Objects.requireNonNull(etCardHolder.getText()).toString().toUpperCase();
-                if (listener != null) {
-                    listener.onPaymentMethodAdded(masked, nameUpper);
+        if (btnCancel != null) {
+            btnCancel.setOnClickListener(v -> dismiss());
+        }
+
+        if (btnSave != null) {
+            btnSave.setOnClickListener(v -> {
+                // ✅ VALIDACIÓN SÚPER SIMPLE
+                if (validateFieldsSimple()) {
+                    saveCard();
                 }
-                dismiss();
-            }
-        });
+            });
+        }
 
-        // Flip card button - manual flip
-        btnFlipCard.setOnClickListener(v -> {
-            if (!isAnimating) {
-                flipCard();
-            }
-        });
+        // Flip card button
+        if (btnFlipCard != null) {
+            btnFlipCard.setOnClickListener(v -> {
+                if (!isAnimating) {
+                    flipCard();
+                }
+            });
+        }
 
-        // Auto-flip logic
-        etCvv.setOnFocusChangeListener((v, hasFocus) -> {
-            if (hasFocus && !isCardFlipped && !isAnimating) {
-                flipCard();
-            }
-        });
+        // Auto-flip logic simplificado
+        if (etCvv != null) {
+            etCvv.setOnFocusChangeListener((v, hasFocus) -> {
+                if (hasFocus && !isCardFlipped && !isAnimating) {
+                    flipCard();
+                }
+            });
+        }
 
         // Auto-flip to front when other fields are focused
         View.OnFocusChangeListener flipToFrontListener = (v, hasFocus) -> {
@@ -163,153 +178,129 @@ public class AddPaymentDialogFragment extends DialogFragment {
             }
         };
 
-        etCardNumber.setOnFocusChangeListener(flipToFrontListener);
-        etExpiryDate.setOnFocusChangeListener(flipToFrontListener);
-        etCardHolder.setOnFocusChangeListener(flipToFrontListener);
+        if (etCardNumber != null) etCardNumber.setOnFocusChangeListener(flipToFrontListener);
+        if (etExpiryDate != null) etExpiryDate.setOnFocusChangeListener(flipToFrontListener);
+        if (etCardHolder != null) etCardHolder.setOnFocusChangeListener(flipToFrontListener);
     }
 
     private void setupInputFormatting() {
-        // Card Number formatting - SIMPLIFICADO
-        etCardNumber.addTextChangedListener(new TextWatcher() {
-            private boolean isFormatting = false;
+        // ✅ FORMATEO BÁSICO PARA NÚMERO DE TARJETA
+        if (etCardNumber != null) {
+            etCardNumber.addTextChangedListener(new TextWatcher() {
+                private boolean isFormatting = false;
 
-            @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
-            @Override public void onTextChanged(CharSequence s, int start, int before, int count) {}
+                @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+                @Override public void onTextChanged(CharSequence s, int start, int before, int count) {}
 
-            @Override public void afterTextChanged(Editable s) {
-                if (isFormatting) return;
-                isFormatting = true;
+                @Override public void afterTextChanged(Editable s) {
+                    if (isFormatting) return;
+                    isFormatting = true;
 
-                String input = s.toString().replaceAll("\\s", "");
-
-                // Limit to 16 digits
-                if (input.length() > 16) {
-                    input = input.substring(0, 16);
-                }
-
-                // Format with spaces every 4 digits
-                StringBuilder formatted = new StringBuilder();
-                for (int i = 0; i < input.length(); i++) {
-                    if (i > 0 && i % 4 == 0) {
-                        formatted.append(' ');
+                    String input = s.toString().replaceAll("\\s", "");
+                    if (input.length() > 16) {
+                        input = input.substring(0, 16);
                     }
-                    formatted.append(input.charAt(i));
-                }
 
-                // Update text
-                s.replace(0, s.length(), formatted.toString());
-
-                try {
-                    etCardNumber.setSelection(formatted.length());
-                } catch (Exception ignored) {}
-
-                // Update card type and preview - SIMPLIFICADO
-                if (input.length() > 0) {
-                    if (input.startsWith("4")) {
-                        currentCardType = CardUtils.VISA;
-                    } else if (input.startsWith("5") || input.startsWith("2")) {
-                        currentCardType = CardUtils.MASTERCARD;
-                    } else {
-                        currentCardType = CardUtils.UNKNOWN;
+                    // Format with spaces every 4 digits
+                    StringBuilder formatted = new StringBuilder();
+                    for (int i = 0; i < input.length(); i++) {
+                        if (i > 0 && i % 4 == 0) {
+                            formatted.append(' ');
+                        }
+                        formatted.append(input.charAt(i));
                     }
+
+                    s.replace(0, s.length(), formatted.toString());
+
+                    try {
+                        etCardNumber.setSelection(formatted.length());
+                    } catch (Exception ignored) {}
+
+                    // Update preview
+                    updateCardNumberPreview(formatted.toString());
+
+                    isFormatting = false;
+                    updateSaveButtonState(); // ✅ ACTUALIZAR BOTÓN
                 }
+            });
+        }
 
-                updateCardTypeAndColor(currentCardType);
-                updateCardNumberPreview(formatted.toString());
+        // ✅ FORMATEO BÁSICO PARA FECHA
+        if (etExpiryDate != null) {
+            etExpiryDate.addTextChangedListener(new TextWatcher() {
+                private boolean isFormatting = false;
 
-                isFormatting = false;
-                clearErrors();
-                updateSaveButtonState();
-            }
-        });
+                @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+                @Override public void onTextChanged(CharSequence s, int start, int before, int count) {}
 
-        // Expiry Date formatting - SIMPLIFICADO
-        etExpiryDate.addTextChangedListener(new TextWatcher() {
-            private boolean isFormatting = false;
+                @Override public void afterTextChanged(Editable s) {
+                    if (isFormatting) return;
+                    isFormatting = true;
 
-            @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
-            @Override public void onTextChanged(CharSequence s, int start, int before, int count) {}
+                    String input = s.toString().replaceAll("[^\\d]", "");
+                    if (input.length() > 4) {
+                        input = input.substring(0, 4);
+                    }
 
-            @Override public void afterTextChanged(Editable s) {
-                if (isFormatting) return;
-                isFormatting = true;
+                    StringBuilder formatted = new StringBuilder();
+                    for (int i = 0; i < input.length(); i++) {
+                        if (i == 2) formatted.append('/');
+                        formatted.append(input.charAt(i));
+                    }
 
-                String input = s.toString().replaceAll("[^\\d]", "");
+                    s.replace(0, s.length(), formatted.toString());
 
-                if (input.length() > 4) {
-                    input = input.substring(0, 4);
+                    try {
+                        etExpiryDate.setSelection(formatted.length());
+                    } catch (Exception ignored) {}
+
+                    if (tvExpiryDatePreview != null) {
+                        tvExpiryDatePreview.setText(formatted.length() > 0 ? formatted.toString() : "MM/YY");
+                    }
+
+                    isFormatting = false;
+                    updateSaveButtonState(); // ✅ ACTUALIZAR BOTÓN
                 }
+            });
+        }
 
-                StringBuilder formatted = new StringBuilder();
-                for (int i = 0; i < input.length(); i++) {
-                    if (i == 2) formatted.append('/');
-                    formatted.append(input.charAt(i));
+        // ✅ FORMATEO BÁSICO PARA CVV
+        if (etCvv != null) {
+            etCvv.addTextChangedListener(new TextWatcher() {
+                @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+                @Override public void onTextChanged(CharSequence s, int start, int before, int count) {}
+
+                @Override public void afterTextChanged(Editable s) {
+                    if (s.length() > 3) {
+                        s.delete(3, s.length());
+                    }
+                    if (tvCvvPreview != null) {
+                        tvCvvPreview.setText(s.length() > 0 ? s.toString() : "CVV");
+                    }
+                    updateSaveButtonState(); // ✅ ACTUALIZAR BOTÓN
                 }
+            });
+        }
 
-                s.replace(0, s.length(), formatted.toString());
+        // ✅ FORMATEO BÁSICO PARA TITULAR
+        if (etCardHolder != null) {
+            etCardHolder.addTextChangedListener(new TextWatcher() {
+                @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+                @Override public void onTextChanged(CharSequence s, int start, int before, int count) {}
 
-                try {
-                    etExpiryDate.setSelection(formatted.length());
-                } catch (Exception ignored) {}
-
-                tvExpiryDatePreview.setText(formatted.length() > 0 ? formatted.toString() : "MM/YY");
-
-                isFormatting = false;
-                clearErrors();
-                updateSaveButtonState();
-            }
-        });
-
-        // CVV formatting - SIMPLIFICADO
-        etCvv.addTextChangedListener(new TextWatcher() {
-            @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
-            @Override public void onTextChanged(CharSequence s, int start, int before, int count) {}
-
-            @Override public void afterTextChanged(Editable s) {
-                if (s.length() > 3) {
-                    s.delete(3, s.length());
+                @Override public void afterTextChanged(Editable s) {
+                    if (tvCardHolderPreview != null) {
+                        tvCardHolderPreview.setText(s.length() > 0 ? s.toString().toUpperCase() : "NOMBRE DEL TITULAR");
+                    }
+                    updateSaveButtonState(); // ✅ ACTUALIZAR BOTÓN
                 }
-                tvCvvPreview.setText(s.length() > 0 ? s.toString() : "CVV");
-                clearErrors();
-                updateSaveButtonState();
-            }
-        });
-
-        // Card Holder formatting - SIMPLIFICADO
-        etCardHolder.addTextChangedListener(new TextWatcher() {
-            @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
-            @Override public void onTextChanged(CharSequence s, int start, int before, int count) {}
-
-            @Override public void afterTextChanged(Editable s) {
-                tvCardHolderPreview.setText(s.length() > 0 ? s.toString().toUpperCase() : "NOMBRE DEL TITULAR");
-                clearErrors();
-                updateSaveButtonState();
-            }
-        });
-    }
-
-    private void updateCardTypeAndColor(int cardType) {
-        // Update card type icon
-        CardUtils.updateCardTypeIcon(cardType, ivCardType);
-
-        // Update card colors with smooth transition
-        int[] colors = CardUtils.getCardColors(cardType);
-        int frontColor = colors[0];
-        int backColor = colors[1];
-
-        // Animate color change
-        ObjectAnimator frontColorAnim = ObjectAnimator.ofArgb(cardFrontView, "cardBackgroundColor",
-                cardFrontView.getCardBackgroundColor().getDefaultColor(), frontColor);
-        ObjectAnimator backColorAnim = ObjectAnimator.ofArgb(cardBackView, "cardBackgroundColor",
-                cardBackView.getCardBackgroundColor().getDefaultColor(), backColor);
-
-        frontColorAnim.setDuration(300);
-        backColorAnim.setDuration(300);
-        frontColorAnim.start();
-        backColorAnim.start();
+            });
+        }
     }
 
     private void updateCardNumberPreview(String cardNumber) {
+        if (tvCardNumberPreview == null) return;
+
         String digits = cardNumber.replaceAll("\\s", "");
         StringBuilder preview = new StringBuilder();
 
@@ -337,7 +328,7 @@ public class AddPaymentDialogFragment extends DialogFragment {
     }
 
     private void flipCard() {
-        if (isAnimating) return;
+        if (isAnimating || cardFrontView == null || cardBackView == null) return;
 
         isAnimating = true;
         isCardFlipped = !isCardFlipped;
@@ -374,53 +365,87 @@ public class AddPaymentDialogFragment extends DialogFragment {
         });
     }
 
-    // VALIDACIÓN SIMPLIFICADA - ESTA ES LA CLAVE
-    private boolean validateFields() {
-        String cardNumber = Objects.requireNonNull(etCardNumber.getText()).toString().replaceAll("\\s", "");
-        String expiryDate = Objects.requireNonNull(etExpiryDate.getText()).toString();
-        String cvv = Objects.requireNonNull(etCvv.getText()).toString();
-        String holder = Objects.requireNonNull(etCardHolder.getText()).toString().trim();
+    // ✅ VALIDACIÓN SÚPER SIMPLE - SOLO VERIFICAR QUE HAYA ALGO ESCRITO
+    private boolean validateFieldsSimple() {
+        String cardNumber = etCardNumber != null ? Objects.requireNonNull(etCardNumber.getText()).toString().trim() : "";
+        String holder = etCardHolder != null ? Objects.requireNonNull(etCardHolder.getText()).toString().trim() : "";
 
-        // VALIDACIONES MUY BÁSICAS - solo verificar que no estén completamente vacíos
-        if (cardNumber.length() < 10) {
-            tilCardNumber.setError("Número de tarjeta muy corto");
+        // ✅ SOLO VERIFICAR QUE NO ESTÉN VACÍOS
+        if (cardNumber.isEmpty()) {
+            Log.d("PaymentDialog", "Número de tarjeta vacío");
             return false;
         }
 
-        if (expiryDate.length() < 3) {
-            tilExpiryDate.setError("Fecha requerida");
+        if (holder.isEmpty()) {
+            Log.d("PaymentDialog", "Nombre del titular vacío");
             return false;
         }
 
-        if (cvv.length() < 2) {
-            tilCvv.setError("CVV requerido");
-            return false;
-        }
-
-        if (holder.length() < 1) {
-            tilCardHolder.setError("Nombre requerido");
-            return false;
-        }
-
-        // Si llegamos aquí, todo está bien
-        clearErrors();
+        Log.d("PaymentDialog", "✅ Validación simple APROBADA");
         return true;
     }
 
-    private void clearErrors() {
-        tilCardNumber.setError(null);
-        tilExpiryDate.setError(null);
-        tilCvv.setError(null);
-        tilCardHolder.setError(null);
+    // ✅ GUARDAR TARJETA CON DATOS BÁSICOS
+    private void saveCard() {
+        try {
+            String rawNumber = Objects.requireNonNull(etCardNumber.getText()).toString().replaceAll("\\s", "");
+            String expiryDate = Objects.requireNonNull(etExpiryDate.getText()).toString();
+            String nameUpper = Objects.requireNonNull(etCardHolder.getText()).toString().toUpperCase();
+
+            // ✅ SI NO HAY FECHA, USAR POR DEFECTO
+            if (expiryDate.isEmpty()) {
+                expiryDate = "12/28";
+            }
+
+            // ✅ DETERMINAR TIPO DE TARJETA
+            String cardType = PaymentMethodManager.determineCardType(rawNumber);
+
+            // ✅ ENMASCARAR NÚMERO DE TARJETA
+            String maskedNumber = PaymentMethodManager.maskCardNumber(rawNumber);
+
+            Log.d("PaymentDialog", "💳 Guardando tarjeta:");
+            Log.d("PaymentDialog", "   Número: " + maskedNumber);
+            Log.d("PaymentDialog", "   Titular: " + nameUpper);
+            Log.d("PaymentDialog", "   Tipo: " + cardType);
+            Log.d("PaymentDialog", "   Vencimiento: " + expiryDate);
+
+            if (listener != null) {
+                try {
+                    listener.onPaymentMethodAdded(maskedNumber, nameUpper, expiryDate, cardType);
+                } catch (Exception e) {
+                    // Fallback al método original
+                    listener.onPaymentMethodAdded(maskedNumber, nameUpper);
+                }
+            }
+            dismiss();
+
+        } catch (Exception e) {
+            Log.e("PaymentDialog", "Error guardando tarjeta: " + e.getMessage());
+        }
     }
 
-    // MÉTODO DE VALIDACIÓN SIMPLIFICADO - ESTA ES LA SOLUCIÓN
+    // ✅ MÉTODO SIMPLIFICADO PARA HABILITAR BOTÓN
     private void updateSaveButtonState() {
-        // FORZAR BOTÓN SIEMPRE HABILITADO
-        btnSave.setEnabled(true);
-        btnSave.setAlpha(1.0f);
+        if (btnSave == null) return;
 
-        android.util.Log.d("PaymentDialog", "Botón FORZADO a estar habilitado");
+        try {
+            String cardNumber = etCardNumber != null ? Objects.requireNonNull(etCardNumber.getText()).toString().trim() : "";
+            String holder = etCardHolder != null ? Objects.requireNonNull(etCardHolder.getText()).toString().trim() : "";
+
+            // ✅ HABILITAR SI HAY ALGO EN NÚMERO Y TITULAR
+            boolean hasBasicInfo = !cardNumber.isEmpty() && !holder.isEmpty();
+
+            btnSave.setEnabled(hasBasicInfo);
+            btnSave.setAlpha(hasBasicInfo ? 1.0f : 0.6f);
+
+            Log.d("PaymentDialog", "🔄 Estado del botón: " + (hasBasicInfo ? "HABILITADO" : "DESHABILITADO"));
+
+        } catch (Exception e) {
+            Log.e("PaymentDialog", "Error actualizando botón: " + e.getMessage());
+            // ✅ EN CASO DE ERROR, HABILITAR EL BOTÓN DE TODAS FORMAS
+            btnSave.setEnabled(true);
+            btnSave.setAlpha(1.0f);
+        }
     }
 
     @Override
@@ -433,5 +458,10 @@ public class AddPaymentDialogFragment extends DialogFragment {
                     ViewGroup.LayoutParams.WRAP_CONTENT
             );
         }
+
+        Log.d("PaymentDialog", "✅ Diálogo iniciado - Verificando botón...");
+
+        // ✅ FORZAR ACTUALIZACIÓN DEL BOTÓN AL INICIAR
+        updateSaveButtonState();
     }
 }

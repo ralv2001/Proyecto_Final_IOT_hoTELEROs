@@ -32,6 +32,10 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
+import androidx.core.graphics.Insets;
+
 public class DashboardFragment extends Fragment {
 
     private static final String TAG = "DashboardFragment";

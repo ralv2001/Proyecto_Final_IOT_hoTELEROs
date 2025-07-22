@@ -32,6 +32,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
+import androidx.core.graphics.Insets;
+
 public class AddHotelAdminFragment extends Fragment {
 
     private static final String TAG = "AddHotelAdminFragment";
@@ -99,7 +103,7 @@ public class AddHotelAdminFragment extends Fragment {
     private void loadFormFields() {
         fieldsList.clear();
 
-        // Información del Administrador (SEPARADO: nombre y apellido)
+        // NO incluir header - solo los campos
         fieldsList.add(new HotelAdminField("admin_nombres", "Nombres del Administrador",
                 "Ej: Juan Carlos", R.drawable.ic_profile, "text", true));
         fieldsList.add(new HotelAdminField("admin_apellidos", "Apellidos del Administrador",

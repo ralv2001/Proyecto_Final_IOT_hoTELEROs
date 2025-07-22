@@ -15,6 +15,10 @@ import com.example.proyecto_final_hoteleros.R;
 import com.example.proyecto_final_hoteleros.superadmin.activity.SuperAdminActivity;
 import com.example.proyecto_final_hoteleros.superadmin.models.TaxistaUser;
 
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
+import androidx.core.graphics.Insets;
+
 public class TaxistaDocumentsFragment extends Fragment {
 
     private TaxistaUser taxista;

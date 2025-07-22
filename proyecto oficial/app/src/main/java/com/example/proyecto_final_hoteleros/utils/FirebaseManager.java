@@ -1270,7 +1270,64 @@ public class FirebaseManager {
             }
         });
     }
+    public void createCheckoutTaxiReservation(Map<String, Object> taxiRequestData, DataCallback callback) {
+        Log.d(TAG, "🚖 Creando solicitud de taxi desde cliente...");
 
+        if (taxiRequestData == null) {
+            Log.e(TAG, "❌ Datos de solicitud de taxi son null");
+            callback.onError("Datos de solicitud no válidos");
+            return;
+        }
+
+        // ✅ VALIDAR DATOS MÍNIMOS REQUERIDOS
+        String hotelName = (String) taxiRequestData.get("hotelName");
+        String clientName = (String) taxiRequestData.get("clientName");
+
+        if (hotelName == null || hotelName.isEmpty()) {
+            Log.e(TAG, "❌ Nombre del hotel es requerido");
+            callback.onError("Nombre del hotel es requerido");
+            return;
+        }
+
+        if (clientName == null || clientName.isEmpty()) {
+            Log.e(TAG, "❌ Nombre del cliente es requerido");
+            callback.onError("Nombre del cliente es requerido");
+            return;
+        }
+
+        // ✅ ASEGURAR CAMPOS REQUERIDOS PARA TAXI
+        taxiRequestData.put("status", "checkout");
+        taxiRequestData.put("freeTransport", true);
+        taxiRequestData.put("taxiStatus", "pending");
+
+        if (!taxiRequestData.containsKey("createdAt")) {
+            taxiRequestData.put("createdAt", System.currentTimeMillis());
+        }
+
+        if (!taxiRequestData.containsKey("updatedAt")) {
+            taxiRequestData.put("updatedAt", System.currentTimeMillis());
+        }
+
+        Log.d(TAG, "📝 Guardando solicitud en colección: " + RESERVATIONS_COLLECTION);
+        Log.d(TAG, "🏨 Hotel: " + hotelName);
+        Log.d(TAG, "👤 Cliente: " + clientName);
+
+        // ✅ GUARDAR EN FIRESTORE
+        firestore.collection(RESERVATIONS_COLLECTION)
+                .add(taxiRequestData)
+                .addOnSuccessListener(documentReference -> {
+                    String reservationId = documentReference.getId();
+                    Log.d(TAG, "✅ Solicitud de taxi creada exitosamente: " + reservationId);
+                    Log.d(TAG, "📍 Hotel: " + hotelName);
+                    Log.d(TAG, "🚖 Estado: pending");
+
+                    callback.onSuccess();
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "❌ Error creando solicitud de taxi: " + e.getMessage());
+                    callback.onError("Error guardando solicitud: " + e.getMessage());
+                });
+    }
     // ========== INTERFACES PARA ESTADÍSTICAS ==========
     public interface UserStatsCallback {
         void onSuccess(UserStatistics stats);

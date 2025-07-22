@@ -1,12 +1,17 @@
 package com.example.proyecto_final_hoteleros.superadmin.activity;
 
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 import androidx.activity.OnBackPressedCallback;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
@@ -46,7 +51,21 @@ public class SuperAdminActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_super_admin);
+
+        // ✅ CONFIGURAR EDGE-TO-EDGE
+        enableEdgeToEdge();
+
+        setContentView(R.layout.superadmin_activity_super_admin);
+
+        // ✅ CONFIGURAR WINDOW INSETS PARA RESPETAR BARRAS DEL SISTEMA
+        View mainLayout = findViewById(R.id.fragment_container); // ✅ Este es el ID correcto
+        ViewCompat.setOnApplyWindowInsetsListener(mainLayout, (v, insets) -> {
+            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+            // ✅ SOLO aplicar bottom padding para navigation bar
+            // El header naranja maneja su propio top padding
+            v.setPadding(v.getPaddingLeft(), v.getPaddingTop(), v.getPaddingRight(), systemBars.bottom);
+            return insets;
+        });
 
         // 🔥 MANEJO MODERNO DEL BACK BUTTON
         setupModernBackHandler();
@@ -582,5 +601,20 @@ public class SuperAdminActivity extends AppCompatActivity {
 
         // Guardar en colección de logs (opcional)
         // FirebaseManager.getInstance().saveAdminLog(logData);
+    }
+
+    // ✅ MÉTODO PARA HABILITAR EDGE-TO-EDGE
+    private void enableEdgeToEdge() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            // Android 11+
+            getWindow().setDecorFitsSystemWindows(false);
+        } else {
+            // Android 10 y anteriores
+            getWindow().getDecorView().setSystemUiVisibility(
+                    View.SYSTEM_UI_FLAG_LAYOUT_STABLE |
+                            View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION |
+                            View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+            );
+        }
     }
 }
