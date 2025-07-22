@@ -71,7 +71,7 @@
         <activity
             android:name=".client.ui.activity.HomeActivity"
             android:windowSoftInputMode="adjustResize|stateHidden"
-            android:exported="false" />
+            android:exported="true" />
 
         <!-- Actividad del Taxista -->
         <activity
