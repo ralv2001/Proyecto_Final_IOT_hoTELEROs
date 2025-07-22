@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class FirebaseChatService {
     private static final String TAG = "FirebaseChatService";
@@ -38,9 +39,14 @@ public class FirebaseChatService {
     private DatabaseReference mChatSummariesRef;
     private DatabaseReference mMessagesRef;
 
-    // Listeners
+    // ✅ MEJORA: Usar ConcurrentHashMap para thread safety
+    private Map<String, ChildEventListener> messageListeners = new ConcurrentHashMap<>();
     private ValueEventListener chatSummariesListener;
-    private Map<String, ChildEventListener> messageListeners = new HashMap<>();
+
+    // ✅ MEJORA: Cache para optimizar rendimiento
+    private Map<String, List<Message>> messagesCache = new ConcurrentHashMap<>();
+    private long lastCacheUpdate = 0;
+    private static final long CACHE_DURATION = 30000; // 30 segundos
 
     // Interfaces para callbacks
     public interface OnChatSummariesLoadedListener {
@@ -62,13 +68,28 @@ public class FirebaseChatService {
     private FirebaseChatService() {
         mAuth = FirebaseAuth.getInstance();
         mDatabase = FirebaseDatabase.getInstance();
+
+        // ✅ MEJORA: Habilitar persistencia offline
+        try {
+            mDatabase.setPersistenceEnabled(true);
+        } catch (Exception e) {
+            Log.d(TAG, "Firebase persistence already enabled or failed: " + e.getMessage());
+        }
+
         mChatSummariesRef = mDatabase.getReference("chatSummaries");
         mMessagesRef = mDatabase.getReference("messages");
+
+        // ✅ MEJORA: Configurar cache offline
+        mChatSummariesRef.keepSynced(true);
     }
 
     public static FirebaseChatService getInstance() {
         if (instance == null) {
-            instance = new FirebaseChatService();
+            synchronized (FirebaseChatService.class) {
+                if (instance == null) {
+                    instance = new FirebaseChatService();
+                }
+            }
         }
         return instance;
     }
@@ -115,6 +136,7 @@ public class FirebaseChatService {
     public void loadChatSummaries(final OnChatSummariesLoadedListener listener) {
         String userId = getCurrentUserId();
 
+        // ✅ MEJORA: Cleanup anterior listener
         if (chatSummariesListener != null) {
             mChatSummariesRef.removeEventListener(chatSummariesListener);
         }
@@ -155,9 +177,19 @@ public class FirebaseChatService {
     }
 
     public void loadMessages(final String chatId, final OnMessagesLoadedListener listener) {
+        // ✅ MEJORA: Cleanup listener anterior si existe
         if (messageListeners.containsKey(chatId)) {
             mMessagesRef.child(chatId).removeEventListener(messageListeners.get(chatId));
             messageListeners.remove(chatId);
+        }
+
+        // ✅ MEJORA: Verificar cache primero
+        if (isCacheValid(chatId)) {
+            List<Message> cachedMessages = messagesCache.get(chatId);
+            if (cachedMessages != null && listener != null) {
+                listener.onMessagesLoaded(new ArrayList<>(cachedMessages));
+                Log.d(TAG, "Mensajes cargados desde cache para: " + chatId);
+            }
         }
 
         Query query = mMessagesRef.child(chatId).orderByChild("timestamp");
@@ -167,24 +199,37 @@ public class FirebaseChatService {
         ChildEventListener messagesListener = new ChildEventListener() {
             @Override
             public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String previousChildName) {
-                FirebaseMessage fbMessage = dataSnapshot.getValue(FirebaseMessage.class);
-                if (fbMessage != null) {
-                    Message message = fbMessage.toMessage();
-                    messagesList.add(message);
+                try {
+                    FirebaseMessage fbMessage = dataSnapshot.getValue(FirebaseMessage.class);
+                    if (fbMessage != null) {
+                        Message message = fbMessage.toMessage();
+                        messagesList.add(message);
 
-                    if (listener != null) {
-                        listener.onMessageAdded(message);
-                    }
+                        if (listener != null) {
+                            listener.onMessageAdded(message);
+                        }
 
-                    if (fbMessage.getType().equals("HOTEL") && !fbMessage.isRead()) {
-                        markMessageAsRead(chatId, fbMessage.getId());
+                        // ✅ MEJORA: Marcar mensajes del hotel como leídos automáticamente
+                        if (fbMessage.getType().equals("HOTEL") && !fbMessage.isRead()) {
+                            markMessageAsRead(chatId, fbMessage.getId());
+                        }
                     }
+                } catch (Exception e) {
+                    Log.e(TAG, "Error processing message: " + e.getMessage());
                 }
             }
 
             @Override
             public void onChildChanged(@NonNull DataSnapshot dataSnapshot, @Nullable String previousChildName) {
-                // No necesitamos manejar cambios por ahora
+                // Manejar cambios en mensajes (ej: estado de leído)
+                try {
+                    FirebaseMessage fbMessage = dataSnapshot.getValue(FirebaseMessage.class);
+                    if (fbMessage != null) {
+                        Log.d(TAG, "Mensaje actualizado: " + fbMessage.getId());
+                    }
+                } catch (Exception e) {
+                    Log.e(TAG, "Error processing message update: " + e.getMessage());
+                }
             }
 
             @Override
@@ -209,9 +254,14 @@ public class FirebaseChatService {
         query.addChildEventListener(messagesListener);
         messageListeners.put(chatId, messagesListener);
 
+        // ✅ MEJORA: Cargar mensajes iniciales y actualizar cache
         query.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                // Actualizar cache
+                messagesCache.put(chatId, new ArrayList<>(messagesList));
+                lastCacheUpdate = System.currentTimeMillis();
+
                 if (listener != null) {
                     listener.onMessagesLoaded(messagesList);
                 }
@@ -227,29 +277,35 @@ public class FirebaseChatService {
         });
     }
 
-    public void sendMessage(final String chatId, Message message, final OnMessageSentListener listener) {
-        String messageId = mMessagesRef.child(chatId).push().getKey();
-        if (messageId == null) {
+    public void sendMessage(String chatId, Message message, final OnMessageSentListener listener) {
+        // ✅ MEJORA: Validar datos antes de enviar
+        if (chatId == null || chatId.isEmpty()) {
             if (listener != null) {
-                listener.onMessageError("Error al generar ID de mensaje");
+                listener.onMessageError("ID de chat inválido");
             }
             return;
         }
 
-        message.setId(messageId);
+        if (message.getText() == null || message.getText().trim().isEmpty()) {
+            if (listener != null) {
+                listener.onMessageError("El mensaje no puede estar vacío");
+            }
+            return;
+        }
+
         FirebaseMessage fbMessage = FirebaseMessage.fromMessage(message);
 
-        mMessagesRef.child(chatId).child(messageId).setValue(fbMessage)
+        mMessagesRef.child(chatId).child(message.getId()).setValue(fbMessage)
                 .addOnSuccessListener(new OnSuccessListener<Void>() {
                     @Override
                     public void onSuccess(Void aVoid) {
-                        Log.d(TAG, "Mensaje enviado exitosamente");
+                        Log.d(TAG, "Mensaje enviado exitosamente: " + message.getId());
 
+                        // ✅ MEJORA: Actualizar último mensaje en el chat summary
                         updateChatLastMessage(chatId, message.getText());
 
-                        if (message.getType() == Message.MessageType.USER) {
-                            updateChatStatus(chatId, ChatSummary.ChatStatus.ACTIVE);
-                        }
+                        // ✅ MEJORA: Invalidar cache para forzar actualización
+                        messagesCache.remove(chatId);
 
                         if (listener != null) {
                             listener.onMessageSent(message);
@@ -263,6 +319,25 @@ public class FirebaseChatService {
                         if (listener != null) {
                             listener.onMessageError("Error al enviar mensaje: " + e.getMessage());
                         }
+                    }
+                });
+    }
+
+    // ✅ MEJORA: Método para verificar validez del cache
+    private boolean isCacheValid(String chatId) {
+        return messagesCache.containsKey(chatId) &&
+                (System.currentTimeMillis() - lastCacheUpdate) < CACHE_DURATION;
+    }
+
+    private void markMessageAsRead(String chatId, String messageId) {
+        Map<String, Object> updates = new HashMap<>();
+        updates.put("read", true);
+
+        mMessagesRef.child(chatId).child(messageId).updateChildren(updates)
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Log.e(TAG, "Error al marcar mensaje como leído: " + e.getMessage());
                     }
                 });
     }
@@ -320,12 +395,12 @@ public class FirebaseChatService {
                 });
     }
 
-    private void sendSystemMessage(String chatId, String text) {
+    private void sendSystemMessage(String chatId, String messageText) {
         Message systemMessage = new Message(
                 "system_" + System.currentTimeMillis(),
                 "system",
                 "system",
-                text,
+                messageText,
                 System.currentTimeMillis(),
                 Message.MessageType.SYSTEM
         );
@@ -333,28 +408,37 @@ public class FirebaseChatService {
         sendMessage(chatId, systemMessage, null);
     }
 
-    private void markMessageAsRead(String chatId, String messageId) {
-        Map<String, Object> updates = new HashMap<>();
-        updates.put("read", true);
+    // ✅ MEJORA: Método mejorado de cleanup con protección contra memory leaks
+    public void cleanup() {
+        try {
+            // Remover listener de chat summaries
+            if (chatSummariesListener != null && mChatSummariesRef != null) {
+                mChatSummariesRef.removeEventListener(chatSummariesListener);
+                chatSummariesListener = null;
+            }
 
-        mMessagesRef.child(chatId).child(messageId).updateChildren(updates)
-                .addOnFailureListener(new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception e) {
-                        Log.e(TAG, "Error al marcar mensaje como leído: " + e.getMessage());
-                    }
-                });
+            // Remover todos los listeners de mensajes
+            for (Map.Entry<String, ChildEventListener> entry : messageListeners.entrySet()) {
+                String chatId = entry.getKey();
+                ChildEventListener listener = entry.getValue();
+                if (listener != null && mMessagesRef != null) {
+                    mMessagesRef.child(chatId).removeEventListener(listener);
+                }
+            }
+            messageListeners.clear();
+
+            // Limpiar cache
+            messagesCache.clear();
+
+            Log.d(TAG, "FirebaseChatService cleanup completed");
+        } catch (Exception e) {
+            Log.e(TAG, "Error during cleanup: " + e.getMessage());
+        }
     }
 
-    public void cleanup() {
-        if (chatSummariesListener != null) {
-            mChatSummariesRef.removeEventListener(chatSummariesListener);
-        }
-
-        for (String chatId : messageListeners.keySet()) {
-            mMessagesRef.child(chatId).removeEventListener(messageListeners.get(chatId));
-        }
-
-        messageListeners.clear();
+    // ✅ MEJORA: Método para obtener estadísticas del cache (útil para debugging)
+    public void logCacheStats() {
+        Log.d(TAG, "Cache Stats - Chats cached: " + messagesCache.size() +
+                ", Active listeners: " + messageListeners.size());
     }
 }
