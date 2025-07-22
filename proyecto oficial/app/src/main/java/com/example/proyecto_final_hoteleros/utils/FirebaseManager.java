@@ -1061,8 +1061,7 @@ public class FirebaseManager {
                             try {
                                 UserModel user = UserModel.fromMap(document.getData());
                                 user.setUserId(document.getId());
-                                // Marcar como usuario activo/aprobado
-                                user.setActive(true);
+                                // ✅ NO FORZAR isActive - dejar que UserModel.fromMap() lea el valor real
                                 allUsers.add(user);
                             } catch (Exception e) {
                                 Log.e(TAG, "Error parseando usuario activo: " + e.getMessage());
