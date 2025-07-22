@@ -116,21 +116,32 @@ public class RegisterUserActivity extends AppCompatActivity {
 
         setContentView(R.layout.sistema_activity_register_user);
 
-        // ✅ CONFIGURAR WINDOW INSETS - APLICAR AL CONTENEDOR PRINCIPAL
+        // ✅ CONFIGURAR WINDOW INSETS - VERSIÓN CORREGIDA (SIN TOP PADDING)
         View rootLayout = findViewById(android.R.id.content).getRootView();
         ViewCompat.setOnApplyWindowInsetsListener(rootLayout, (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+            Insets ime = insets.getInsets(WindowInsetsCompat.Type.ime());
 
-            // Aplicar bottom padding al layout principal para evitar choques con navigation bar
+            boolean isKeyboardVisible = insets.isVisible(WindowInsetsCompat.Type.ime());
+
+            // 🎯 LÓGICA PARA REGISTRO: Solo bottom padding dinámico
+            int bottomPadding = Math.max(systemBars.bottom, ime.bottom);
+
+            // Aplicar al contenedor principal - SIN TOP PADDING
             View mainLayout = findViewById(android.R.id.content);
             if (mainLayout != null) {
                 mainLayout.setPadding(
                         mainLayout.getPaddingLeft(),
-                        mainLayout.getPaddingTop(),
+                        0,               // 🎯 SIN top padding - el XML maneja el margen
                         mainLayout.getPaddingRight(),
-                        systemBars.bottom  // 🎯 Bottom padding para navigation bar
+                        bottomPadding    // 🎯 Solo bottom padding dinámico
                 );
             }
+
+            // 🎯 LOG para debug
+            Log.d("RegisterKeyboard", "🎹 Teclado visible: " + isKeyboardVisible +
+                    " | NavBar: " + systemBars.bottom + " | IME: " + ime.bottom +
+                    " | Padding aplicado: " + bottomPadding);
 
             return insets;
         });
@@ -1070,7 +1081,7 @@ public class RegisterUserActivity extends AppCompatActivity {
         }
     }
 
-    // ✅ MÉTODO PARA HABILITAR EDGE-TO-EDGE CON ICONOS OSCUROS (VERSIÓN SEGURA)
+    // ✅ MÉTODO PARA HABILITAR EDGE-TO-EDGE CON ICONOS OSCUROS (VERSIÓN SEGURA) - ORIGINAL
     private void enableEdgeToEdge() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             getWindow().setDecorFitsSystemWindows(false);

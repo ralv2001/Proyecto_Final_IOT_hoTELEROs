@@ -42,12 +42,25 @@ public class AuthActivity extends AppCompatActivity implements MessagerRegister 
 
         setContentView(R.layout.sistema_activity_auth);
 
-        // ✅ CONFIGURAR WINDOW INSETS - SOLO BOTTOM PADDING
-        View fragmentContainer = findViewById(R.id.fragmentContainer);
-        ViewCompat.setOnApplyWindowInsetsListener(fragmentContainer, (v, insets) -> {
+        // ✅ CONFIGURAR WINDOW INSETS - VERSIÓN CORREGIDA (SIN TOP PADDING)
+        View rootLayout = findViewById(android.R.id.content).getRootView();
+        ViewCompat.setOnApplyWindowInsetsListener(rootLayout, (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            // 🎯 CLAVE: Solo bottom padding para navigation bar
-            v.setPadding(v.getPaddingLeft(), v.getPaddingTop(), v.getPaddingRight(), systemBars.bottom);
+            Insets ime = insets.getInsets(WindowInsetsCompat.Type.ime());
+
+            boolean isKeyboardVisible = insets.isVisible(WindowInsetsCompat.Type.ime());
+            int bottomPadding = Math.max(systemBars.bottom, ime.bottom);
+
+            View mainLayout = findViewById(android.R.id.content);
+            if (mainLayout != null) {
+                mainLayout.setPadding(
+                        mainLayout.getPaddingLeft(),
+                        0,               // 🎯 SIN top padding - el XML maneja el margen
+                        mainLayout.getPaddingRight(),
+                        bottomPadding    // 🎯 Solo bottom padding dinámico
+                );
+            }
+
             return insets;
         });
 
@@ -78,7 +91,6 @@ public class AuthActivity extends AppCompatActivity implements MessagerRegister 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             getWindow().setDecorFitsSystemWindows(false);
 
-            // 🎯 ICONOS OSCUROS PARA ANDROID 11+ (método seguro)
             getWindow().getDecorView().setSystemUiVisibility(
                     View.SYSTEM_UI_FLAG_LAYOUT_STABLE |
                             View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION |
@@ -87,16 +99,14 @@ public class AuthActivity extends AppCompatActivity implements MessagerRegister 
             );
 
         } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            // Android 6.0 - Android 10
             getWindow().getDecorView().setSystemUiVisibility(
                     View.SYSTEM_UI_FLAG_LAYOUT_STABLE |
                             View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION |
                             View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN |
-                            View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR  // 🎯 ICONOS OSCUROS
+                            View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
             );
 
         } else {
-            // Android 5.0 y anteriores (sin iconos oscuros)
             getWindow().getDecorView().setSystemUiVisibility(
                     View.SYSTEM_UI_FLAG_LAYOUT_STABLE |
                             View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION |

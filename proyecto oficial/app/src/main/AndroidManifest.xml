@@ -54,7 +54,7 @@
             android:name=".MainActivity"
             android:exported="true"
             android:configChanges="orientation|screenSize|keyboardHidden"
-            android:windowSoftInputMode="adjustPan|stateHidden">
+            android:windowSoftInputMode="adjustResize|stateHidden">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
@@ -65,8 +65,7 @@
             android:name=".AuthActivity"
             android:configChanges="orientation|screenSize|keyboardHidden"
             android:windowSoftInputMode="adjustResize|stateHidden"
-            android:exported="true"
-            android:screenOrientation="unspecified" />
+            android:exported="false" />
 
         <activity
             android:name=".client.ui.activity.HomeActivity"
@@ -82,29 +81,29 @@
         <!-- ========== ACTIVIDADES DE AUTENTICACIÓN (TUS CAMBIOS) ========== -->
         <activity
             android:name=".auth.register.UploadDriverDocumentsActivity"
-            android:windowSoftInputMode="adjustPan|stateHidden"
-            android:exported="false"
-            android:configChanges="orientation|screenSize|keyboardHidden" />
+            android:configChanges="orientation|screenSize|keyboardHidden"
+            android:windowSoftInputMode="adjustResize|stateHidden"
+            android:exported="false" />
 
         <activity
             android:name=".auth.register.RegisterVerifyActivity"
-            android:windowSoftInputMode="adjustPan|stateHidden"
-            android:exported="false"
-            android:configChanges="orientation|screenSize|keyboardHidden" />
+            android:configChanges="orientation|screenSize|keyboardHidden"
+            android:windowSoftInputMode="adjustResize|stateHidden"
+            android:exported="false" />
 
 
 
         <activity
             android:name=".auth.register.RegisterSuccessActivity"
-            android:windowSoftInputMode="adjustPan|stateHidden"
-            android:exported="false"
-            android:configChanges="orientation|screenSize|keyboardHidden" />
+            android:configChanges="orientation|screenSize|keyboardHidden"
+            android:windowSoftInputMode="adjustResize|stateHidden"
+            android:exported="false" />
 
         <activity
             android:name=".auth.register.AddProfilePhotoActivity"
-            android:windowSoftInputMode="adjustPan|stateHidden"
-            android:exported="false"
-            android:configChanges="orientation|screenSize|keyboardHidden" />
+            android:configChanges="orientation|screenSize|keyboardHidden"
+            android:windowSoftInputMode="adjustResize|stateHidden"
+            android:exported="false" />
 
         <activity
             android:name=".auth.register.RegisterUserActivity"

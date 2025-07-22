@@ -39,6 +39,34 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        // ✅ CONFIGURAR EDGE-TO-EDGE
+        enableEdgeToEdge();
+
+        setContentView(R.layout.sistema_activity_main);
+
+        // ✅ CONFIGURAR WINDOW INSETS - VERSIÓN CORREGIDA (SIN TOP PADDING)
+        View rootLayout = findViewById(android.R.id.content).getRootView();
+        ViewCompat.setOnApplyWindowInsetsListener(rootLayout, (v, insets) -> {
+            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+            Insets ime = insets.getInsets(WindowInsetsCompat.Type.ime());
+
+            boolean isKeyboardVisible = insets.isVisible(WindowInsetsCompat.Type.ime());
+            int bottomPadding = Math.max(systemBars.bottom, ime.bottom);
+
+            View mainLayout = findViewById(android.R.id.content);
+            if (mainLayout != null) {
+                mainLayout.setPadding(
+                        mainLayout.getPaddingLeft(),
+                        0,               // 🎯 SIN top padding - el XML maneja el margen
+                        mainLayout.getPaddingRight(),
+                        bottomPadding    // 🎯 Solo bottom padding dinámico
+                );
+            }
+
+            return insets;
+        });
+
         // Inicializar Firebase (añade esta línea)
         FirebaseApp.initializeApp(this);
 
@@ -48,25 +76,8 @@ public class MainActivity extends AppCompatActivity {
         // Verificar si hay vinculación pendiente de GitHub
         //checkPendingGitHubLink();
 
-
         // En caso se necesite crear de nuevo el SuperAdmin porque se borró:
         //recreateSuperAdmin();
-
-        // ✅ CONFIGURAR EDGE-TO-EDGE
-        enableEdgeToEdge();
-
-        setContentView(R.layout.sistema_activity_main);
-
-        // ✅ CONFIGURAR WINDOW INSETS - EDGE-TO-EDGE COMPLETO
-        View mainContainer = findViewById(R.id.main);
-        ViewCompat.setOnApplyWindowInsetsListener(mainContainer, (v, insets) -> {
-            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-
-            // Para MainActivity: solo bottom padding para navigation bar
-            // El status bar se maneja por el background image
-            v.setPadding(v.getPaddingLeft(), v.getPaddingTop(), v.getPaddingRight(), systemBars.bottom);
-            return insets;
-        });
 
         // Configuración de botón de registro
         MaterialButton btnRegister = findViewById(R.id.btnRegister);
@@ -422,7 +433,6 @@ public class MainActivity extends AppCompatActivity {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             getWindow().setDecorFitsSystemWindows(false);
 
-            // 🎯 ICONOS OSCUROS PARA ANDROID 11+ (método seguro)
             getWindow().getDecorView().setSystemUiVisibility(
                     View.SYSTEM_UI_FLAG_LAYOUT_STABLE |
                             View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION |
@@ -431,16 +441,14 @@ public class MainActivity extends AppCompatActivity {
             );
 
         } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            // Android 6.0 - Android 10
             getWindow().getDecorView().setSystemUiVisibility(
                     View.SYSTEM_UI_FLAG_LAYOUT_STABLE |
                             View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION |
                             View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN |
-                            View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR  // 🎯 ICONOS OSCUROS
+                            View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
             );
 
         } else {
-            // Android 5.0 y anteriores (sin iconos oscuros)
             getWindow().getDecorView().setSystemUiVisibility(
                     View.SYSTEM_UI_FLAG_LAYOUT_STABLE |
                             View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION |
