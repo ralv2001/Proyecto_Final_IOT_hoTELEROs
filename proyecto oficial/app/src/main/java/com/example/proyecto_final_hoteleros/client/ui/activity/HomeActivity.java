@@ -1,17 +1,21 @@
 package com.example.proyecto_final_hoteleros.client.ui.activity;
 
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.view.WindowInsetsController;
 import android.widget.Button;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
+import androidx.fragment.app.Fragment;
 
 import com.android.volley.BuildConfig;
 import com.example.proyecto_final_hoteleros.R;
@@ -48,7 +52,10 @@ public class HomeActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        EdgeToEdge.enable(this);
+
+        // ✅ CONFIGURAR EDGE-TO-EDGE
+        enableEdgeToEdge();
+
         setContentView(R.layout.client_activity_home);
 
         // ========== INICIALIZAR MANAGERS ==========
@@ -66,7 +73,7 @@ public class HomeActivity extends AppCompatActivity {
 
         UserDataManager.getInstance().setUserData(userId, userName, userFullName, userEmail, userType);
 
-// 🔥 VERIFICAR QUE SE GUARDÓ CORRECTAMENTE
+        // 🔥 VERIFICAR QUE SE GUARDÓ CORRECTAMENTE
         Log.d(TAG, "✅ Datos guardados. Verificando:");
         Log.d(TAG, "  UserDataManager.getUserId(): " + UserDataManager.getInstance().getUserId());
         Log.d(TAG, "  UserDataManager.getUserName(): " + UserDataManager.getInstance().getUserName());
@@ -88,10 +95,22 @@ public class HomeActivity extends AppCompatActivity {
         // Inicializar servicios de Firebase
         initializeFirebaseServices();
 
-        // Configurar sistema de insets para pantallas con notch
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main_container), (v, insets) -> {
+        // ✅ CONFIGURAR WINDOW INSETS - SIN PADDING CUANDO HAY TECLADO EN CHAT
+        View mainContainer = findViewById(R.id.main_container);
+        ViewCompat.setOnApplyWindowInsetsListener(mainContainer, (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
+            Insets ime = insets.getInsets(WindowInsetsCompat.Type.ime());
+
+            // 🎯 Si hay teclado, no aplicar padding bottom
+            boolean isKeyboardVisible = insets.isVisible(WindowInsetsCompat.Type.ime());
+            int bottomPadding = isKeyboardVisible ? 0 : systemBars.bottom;
+
+            v.setPadding(v.getPaddingLeft(), v.getPaddingTop(), v.getPaddingRight(), bottomPadding);
+
+            // 🎯 LOG para debug
+            Log.d("ChatKeyboard", "🎹 Teclado visible: " + isKeyboardVisible +
+                    " | NavBar: " + systemBars.bottom + " | Padding aplicado: " + bottomPadding);
+
             return insets;
         });
 
@@ -102,6 +121,7 @@ public class HomeActivity extends AppCompatActivity {
             );
         }
     }
+
     private void verifyAuthenticatedUser() {
         // ✅ Si ya tenemos todos los datos del intent, no hacer nada
         if (userId != null && userName != null && userType != null) {
@@ -614,5 +634,43 @@ public class HomeActivity extends AppCompatActivity {
                         Toast.makeText(HomeActivity.this, "Error de conexión: " + e.getMessage(), Toast.LENGTH_LONG).show();
                     }
                 });
+    }
+
+    // ✅ MÉTODO PARA HABILITAR EDGE-TO-EDGE CON STATUS BAR NARANJA
+    private void enableEdgeToEdge() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            getWindow().setDecorFitsSystemWindows(false);
+
+            // 🎯 STATUS BAR NARANJA
+            getWindow().setStatusBarColor(ContextCompat.getColor(this, R.color.orange));
+
+            // 🎯 ICONOS OSCUROS EN STATUS BAR (para que se vean sobre naranja)
+            try {
+                WindowInsetsController controller = getWindow().getInsetsController();
+                if (controller != null) {
+                    controller.setSystemBarsAppearance(
+                            WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS,
+                            WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS
+                    );
+                }
+            } catch (Exception e) {
+                // Fallback para dispositivos problemáticos
+                getWindow().getDecorView().setSystemUiVisibility(
+                        View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
+                );
+            }
+
+        } else {
+            // Android 10 y anteriores
+            getWindow().getDecorView().setSystemUiVisibility(
+                    View.SYSTEM_UI_FLAG_LAYOUT_STABLE |
+                            View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION |
+                            View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN |
+                            View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
+            );
+
+            // 🎯 STATUS BAR NARANJA
+            getWindow().setStatusBarColor(ContextCompat.getColor(this, R.color.orange));
+        }
     }
 }
