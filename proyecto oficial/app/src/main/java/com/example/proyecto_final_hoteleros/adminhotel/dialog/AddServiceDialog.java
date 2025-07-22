@@ -1,10 +1,13 @@
 package com.example.proyecto_final_hoteleros.adminhotel.dialog;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
@@ -27,6 +30,7 @@ import com.example.proyecto_final_hoteleros.adminhotel.dialog.IconSelectorDialog
 import com.example.proyecto_final_hoteleros.adminhotel.model.HotelServiceModel;
 import com.example.proyecto_final_hoteleros.adminhotel.utils.FirebaseServiceManager;
 import com.example.proyecto_final_hoteleros.adminhotel.utils.IconHelper;
+import com.example.proyecto_final_hoteleros.adminhotel.utils.ImageCompressor;
 import com.example.proyecto_final_hoteleros.utils.UniqueIdGenerator;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
@@ -365,7 +369,7 @@ public class AddServiceDialog extends AppCompatDialog {
         service.setIconKey(selectedIconKey);
         service.setServiceType(convertCategoryToType(serviceTypeStr));
         service.setPrice(price);
-        service.setConditionalAmount(0.0); // No hay condicionales desde este dialog
+        service.setConditionalAmount(0.0);
         service.setActive(true);
         service.setCreatedAt(new Date());
 
@@ -380,27 +384,75 @@ public class AddServiceDialog extends AppCompatDialog {
         }
         service.setHotelAdminId(currentUser.getUid());
 
-        // ✅ GUARDAR EN FIREBASE
+        // ✅ COMPRIMIR FOTOS ANTES DE SUBIR (SI HAY FOTOS)
+        if (servicePhotos != null && !servicePhotos.isEmpty()) {
+            Log.d(TAG, "📷 Comprimiendo " + servicePhotos.size() + " fotos antes de subir...");
+
+            // Comprimir en hilo separado para no bloquear UI
+            new Thread(() -> {
+                try {
+                    List<Uri> compressedPhotos = ImageCompressor.compressImages(context, servicePhotos);
+
+                    // Volver al hilo principal para continuar
+                    if (context instanceof Activity) {
+                        ((Activity) context).runOnUiThread(() -> {
+                            uploadServiceWithCompressedPhotos(service, compressedPhotos);
+                        });
+                    }
+                } catch (Exception e) {
+                    Log.e(TAG, "❌ Error comprimiendo fotos: " + e.getMessage());
+                    if (context instanceof Activity) {
+                        ((Activity) context).runOnUiThread(() -> {
+                            restoreButton();
+                            if (listener != null) {
+                                listener.onError("Error procesando imágenes: " + e.getMessage());
+                            }
+                        });
+                    }
+                }
+            }).start();
+        } else {
+            // ✅ SIN FOTOS: Subir servicio directamente
+            uploadServiceWithCompressedPhotos(service, new ArrayList<>());
+        }
+    }
+
+    private void uploadServiceWithCompressedPhotos(HotelServiceModel service, List<Uri> compressedPhotos) {
+        Log.d(TAG, "📤 Subiendo servicio con " + compressedPhotos.size() + " fotos comprimidas");
+
         if (firebaseServiceManager != null) {
-            firebaseServiceManager.createService(service, servicePhotos, new FirebaseServiceManager.ServiceCallback() {
+            firebaseServiceManager.createService(service, compressedPhotos, new FirebaseServiceManager.ServiceCallback() {
                 @Override
                 public void onSuccess(HotelServiceModel createdService) {
                     Log.d(TAG, "✅ Servicio creado exitosamente: " + createdService.getName());
 
-                    if (listener != null) {
-                        listener.onServiceAdded(createdService);
-                    }
+                    // ✅ LIMPIAR ARCHIVOS TEMPORALES
+                    ImageCompressor.cleanupTempFiles(context);
 
-                    dismiss();
+                    if (context instanceof Activity) {
+                        ((Activity) context).runOnUiThread(() -> {
+                            if (listener != null) {
+                                listener.onServiceAdded(createdService);
+                            }
+                            dismiss();
+                        });
+                    }
                 }
 
                 @Override
                 public void onError(String error) {
                     Log.e(TAG, "❌ Error creando servicio: " + error);
-                    restoreButton();
 
-                    if (listener != null) {
-                        listener.onError(error);
+                    // ✅ LIMPIAR ARCHIVOS TEMPORALES INCLUSO SI FALLA
+                    ImageCompressor.cleanupTempFiles(context);
+
+                    if (context instanceof Activity) {
+                        ((Activity) context).runOnUiThread(() -> {
+                            restoreButton();
+                            if (listener != null) {
+                                listener.onError(error);
+                            }
+                        });
                     }
                 }
             });
@@ -427,9 +479,22 @@ public class AddServiceDialog extends AppCompatDialog {
     }
 
     private void restoreButton() {
-        if (btnSave != null) {
-            btnSave.setEnabled(true);
-            btnSave.setText("💾 Guardar Servicio");
+        // ✅ ASEGURAR QUE SE EJECUTE EN EL HILO PRINCIPAL
+        if (context instanceof Activity) {
+            ((Activity) context).runOnUiThread(() -> {
+                if (btnSave != null) {
+                    btnSave.setEnabled(true);
+                    btnSave.setText("💾 Guardar Servicio");
+                }
+            });
+        } else {
+            // ✅ ALTERNATIVA: Usar Handler si no es Activity
+            new Handler(Looper.getMainLooper()).post(() -> {
+                if (btnSave != null) {
+                    btnSave.setEnabled(true);
+                    btnSave.setText("💾 Guardar Servicio");
+                }
+            });
         }
     }
 }
