@@ -50,7 +50,10 @@ public class DriverViajesFragment extends Fragment implements ViajesAdapter.Viaj
     // Managers
     private DriverPreferenceManager preferenceManager;
     private FirebaseManager firebaseManager;
+
+    // Listeners
     private ListenerRegistration checkoutListener;
+    private ListenerRegistration realtimeListener;
 
     // Estados
     private boolean isLoadingData = false;
@@ -95,7 +98,22 @@ public class DriverViajesFragment extends Fragment implements ViajesAdapter.Viaj
     private void setupListeners() {
         btnRefresh.setOnClickListener(v -> {
             Log.d(TAG, "Botón refresh presionado");
-            cargarSolicitudes();
+
+            // ✅ AGREGAR OPCIÓN DE CREAR DATOS REALES
+            if (solicitudesList.isEmpty()) {
+                new androidx.appcompat.app.AlertDialog.Builder(getContext())
+                        .setTitle("Crear Solicitudes")
+                        .setMessage("No hay solicitudes. ¿Crear algunas con hoteles reales de Firebase?")
+                        .setPositiveButton("Sí, crear", (dialog, which) -> {
+                            crearReservasRealesYRecargar();
+                        })
+                        .setNegativeButton("Solo recargar", (dialog, which) -> {
+                            cargarSolicitudes();
+                        })
+                        .show();
+            } else {
+                cargarSolicitudes();
+            }
         });
     }
 
@@ -152,32 +170,25 @@ public class DriverViajesFragment extends Fragment implements ViajesAdapter.Viaj
             Log.d(TAG, "Ya se están cargando datos, ignorando solicitud");
             return;
         }
+
         // ✅ VERIFICAR ESTADO DEL TAXISTA PRIMERO:
         if (!isDriverAvailable()) {
             Log.d(TAG, "⚠️ Taxista no disponible, no cargar solicitudes");
-
-            // Mostrar mensaje y lista vacía
             solicitudesList.clear();
             adapter.notifyDataSetChanged();
             updateVisibility();
-
             if (tvSolicitudesCount != null) {
-                tvSolicitudesCount.setText("Activa el estado 'En servicio' para recibir solicitudes");
+                tvSolicitudesCount.setText("⚠️ Activa 'En servicio' en el mapa para recibir solicitudes");
             }
-
             return;
         }
 
-        if (isLoadingData) {
-            Log.d(TAG, "Ya se están cargando datos, ignorando solicitud");
-            return;
-        }
-
-        Log.d(TAG, "🔄 Cargando solicitudes de checkout...");
+        Log.d(TAG, "🔄 Cargando solicitudes de checkout desde Firebase...");
         isLoadingData = true;
         showLoadingState();
 
-        firebaseManager.getCheckoutReservations(new FirebaseManager.CheckoutCallback() {
+        // ✅ USAR EL NUEVO MÉTODO CORRECTO
+        firebaseManager.getCheckoutRequests(new FirebaseManager.CheckoutCallback() {
             @Override
             public void onSuccess(List<CheckoutReservation> reservations) {
                 Log.d(TAG, "✅ " + reservations.size() + " reservas obtenidas de Firebase");
@@ -185,8 +196,9 @@ public class DriverViajesFragment extends Fragment implements ViajesAdapter.Viaj
                 // Convertir CheckoutReservation a SolicitudViaje
                 List<SolicitudViaje> nuevasSolicitudes = new ArrayList<>();
                 for (CheckoutReservation reservation : reservations) {
-                    if (reservation.isPending()) { // Solo mostrar pendientes
-                        SolicitudViaje solicitud = SolicitudViaje.fromCheckoutReservation(reservation);
+                    // ✅ FILTRAR SOLO RESERVAS PENDIENTES
+                    if ("pending".equals(reservation.getTaxiStatus())) {
+                        SolicitudViaje solicitud = convertirReservaASolicitud(reservation);
                         nuevasSolicitudes.add(solicitud);
                         Log.d(TAG, "📋 Convertida: " + solicitud.getHotelName() + " - " + solicitud.getClientName());
                     }
@@ -203,6 +215,17 @@ public class DriverViajesFragment extends Fragment implements ViajesAdapter.Viaj
                         isLoadingData = false;
 
                         Log.d(TAG, "🎯 UI actualizada con " + solicitudesList.size() + " solicitudes");
+
+                        // ✅ MENSAJE DE ESTADO AL USUARIO
+                        if (nuevasSolicitudes.isEmpty()) {
+                            Toast.makeText(getContext(),
+                                    "📭 No hay solicitudes pendientes por el momento",
+                                    Toast.LENGTH_SHORT).show();
+                        } else {
+                            Toast.makeText(getContext(),
+                                    "✅ " + nuevasSolicitudes.size() + " solicitud(es) encontrada(s)",
+                                    Toast.LENGTH_SHORT).show();
+                        }
                     });
                 }
             }
@@ -213,12 +236,57 @@ public class DriverViajesFragment extends Fragment implements ViajesAdapter.Viaj
 
                 if (getActivity() != null) {
                     getActivity().runOnUiThread(() -> {
-                        // En caso de error, cargar datos de ejemplo para testing
-                        cargarDatosEjemplo();
+                        // ✅ CAMBIAR ESTA PARTE - NO usar datos hardcodeados
+                        // En lugar de cargarDatosEjemplo(), crear reservas reales
+                        Log.w(TAG, "🏨 Creando reservas reales de hoteles de Firebase...");
+                        crearReservasRealesYRecargar();
+
+                        Toast.makeText(getContext(),
+                                "⚠️ Creando solicitudes con hoteles reales...\nPor favor espera un momento.",
+                                Toast.LENGTH_LONG).show();
+                    });
+                }
+            }
+        });
+    }
+
+    /**
+     * Crear reservas reales usando hoteles de Firebase
+     */
+    private void crearReservasRealesYRecargar() {
+        Log.d(TAG, "🏨 Creando reservas con hoteles reales de Firebase...");
+
+        firebaseManager.createSampleCheckoutReservations(new FirebaseManager.DataCallback() {
+            @Override
+            public void onSuccess() {
+                Log.d(TAG, "✅ Reservas reales creadas exitosamente");
+
+                // Esperar 2 segundos y recargar
+                new Handler().postDelayed(() -> {
+                    if (getActivity() != null) {
+                        getActivity().runOnUiThread(() -> {
+                            cargarSolicitudes(); // Recargar con datos reales
+                            Toast.makeText(getContext(),
+                                    "✅ Solicitudes creadas con hoteles reales",
+                                    Toast.LENGTH_SHORT).show();
+                        });
+                    }
+                }, 2000);
+            }
+
+            @Override
+            public void onError(String error) {
+                Log.e(TAG, "❌ Error creando reservas reales: " + error);
+
+                if (getActivity() != null) {
+                    getActivity().runOnUiThread(() -> {
+                        // Solo si falla todo, usar datos mínimos de ejemplo
+                        solicitudesList.clear();
+                        updateVisibility();
                         isLoadingData = false;
 
                         Toast.makeText(getContext(),
-                                "Error conectando con servidor. Mostrando datos de ejemplo.",
+                                "❌ Error: " + error + "\nIntenta refrescar más tarde",
                                 Toast.LENGTH_LONG).show();
                     });
                 }
@@ -243,7 +311,7 @@ public class DriverViajesFragment extends Fragment implements ViajesAdapter.Viaj
     }
 
     /**
-     * Configurar listener en tiempo real para nuevas reservas
+     * Configurar listener en tiempo real MEJORADO
      */
     private void setupRealtimeListener() {
         Log.d(TAG, "🔄 Configurando listener en tiempo real...");
@@ -261,7 +329,7 @@ public class DriverViajesFragment extends Fragment implements ViajesAdapter.Viaj
             return;
         }
 
-        checkoutListener = firebaseManager.listenToCheckoutReservations(
+        checkoutListener = firebaseManager.setupCheckoutRealtimeListener(
                 new FirebaseManager.RealtimeCheckoutCallback() {
                     @Override
                     public void onNewReservation(CheckoutReservation reservation) {
@@ -275,15 +343,27 @@ public class DriverViajesFragment extends Fragment implements ViajesAdapter.Viaj
 
                         if (getActivity() != null) {
                             getActivity().runOnUiThread(() -> {
-                                SolicitudViaje nuevaSolicitud = SolicitudViaje.fromCheckoutReservation(reservation);
+                                SolicitudViaje nuevaSolicitud = convertirReservaASolicitud(reservation);
                                 solicitudesList.add(0, nuevaSolicitud);
                                 adapter.notifyItemInserted(0);
                                 actualizarContador();
                                 updateVisibility();
 
+                                // ✅ NOTIFICACIÓN VISUAL Y SONORA
                                 Toast.makeText(getContext(),
-                                        "Nueva solicitud: " + reservation.getHotelName(),
+                                        "🆕 Nueva solicitud: " + reservation.getHotelName(),
                                         Toast.LENGTH_LONG).show();
+
+                                // ✅ VIBRACIÓN OPCIONAL
+                                try {
+                                    android.os.Vibrator vibrator = (android.os.Vibrator)
+                                            getContext().getSystemService(android.content.Context.VIBRATOR_SERVICE);
+                                    if (vibrator != null) {
+                                        vibrator.vibrate(500); // 500ms vibración
+                                    }
+                                } catch (Exception e) {
+                                    Log.w(TAG, "No se pudo vibrar: " + e.getMessage());
+                                }
                             });
                         }
                     }
@@ -291,7 +371,8 @@ public class DriverViajesFragment extends Fragment implements ViajesAdapter.Viaj
                     @Override
                     public void onReservationUpdated(CheckoutReservation reservation) {
                         Log.d(TAG, "🔄 Reserva actualizada: " + reservation.getId());
-                        if (!reservation.isPending()) {
+                        // ✅ VERIFICAR STATUS CORRECTO:
+                        if (!"pending".equals(reservation.getTaxiStatus())) {
                             removeReservationFromList(reservation.getId());
                         }
                     }
@@ -305,38 +386,47 @@ public class DriverViajesFragment extends Fragment implements ViajesAdapter.Viaj
                     @Override
                     public void onError(String error) {
                         Log.e(TAG, "❌ Error en listener: " + error);
+                        if (getActivity() != null) {
+                            getActivity().runOnUiThread(() -> {
+                                Toast.makeText(getContext(),
+                                        "Error de conexión: " + error,
+                                        Toast.LENGTH_SHORT).show();
+                            });
+                        }
                     }
                 });
+
+        Log.d(TAG, "✅ Listener en tiempo real configurado");
     }
 
-    private void removeReservationFromList(String reservationId) {
-        if (getActivity() != null) {
-            getActivity().runOnUiThread(() -> {
-                for (int i = 0; i < solicitudesList.size(); i++) {
-                    SolicitudViaje solicitud = solicitudesList.get(i);
-                    if (reservationId.equals(solicitud.getReservationId())) {
-                        solicitudesList.remove(i);
-                        adapter.notifyItemRemoved(i);
-                        actualizarContador();
-                        updateVisibility();
-                        break;
-                    }
-                }
-            });
-        }
-    }
+
 
     @Override
     public void onDestroy() {
         super.onDestroy();
 
-        // ✅ LIMPIAR LISTENER SIEMPRE:
+        // ✅ LIMPIAR TODOS LOS LISTENERS CORRECTAMENTE
         if (checkoutListener != null) {
             checkoutListener.remove();
             checkoutListener = null;
-            Log.d(TAG, "🧹 Listener de checkout removido en onDestroy");
+            Log.d(TAG, "🧹 checkoutListener removido en onDestroy");
         }
+
+        if (realtimeListener != null) {
+            realtimeListener.remove();
+            realtimeListener = null;
+            Log.d(TAG, "🧹 realtimeListener removido en onDestroy");
+        }
+
+        // ✅ LIMPIAR REFERENCIAS PARA EVITAR MEMORY LEAKS
+        solicitudesList = null;
+        adapter = null;
+        preferenceManager = null;
+        firebaseManager = null;
+
+        Log.d(TAG, "🧹 DriverViajesFragment destruido y recursos limpiados");
     }
+
 
     /**
      * Actualizar contador de solicitudes
@@ -567,53 +657,94 @@ public class DriverViajesFragment extends Fragment implements ViajesAdapter.Viaj
     }
 
     /**
-     * Generar datos de ejemplo
+     * Generar datos mínimos de ejemplo (solo para casos extremos)
      */
     private List<SolicitudViaje> generarDatosEjemplo() {
-        List<SolicitudViaje> ejemplos = new ArrayList<>();
+        Log.d(TAG, "⚠️ Usando datos mínimos de emergencia");
 
-        // Ejemplo 1: Servicio de checkout
-        SolicitudViaje checkout1 = new SolicitudViaje();
-        checkout1.setId("checkout_001");
-        checkout1.setReservationId("res_001");
-        checkout1.setHotelName("Hotel Gran Plaza");
-        checkout1.setClientName("Juan Pérez");
-        checkout1.setClientPhone("+51 987 654 321");
-        checkout1.setOriginAddress("Av. La Marina 123, San Miguel");
-        checkout1.setDestinationAddress("Aeropuerto Jorge Chávez");
-        checkout1.setCheckoutTime("11:30");
-        checkout1.setEstimatedTime(25);
-        checkout1.setTipoServicio("checkout_gratuito");
-        checkout1.setStatus("Checkout Pendiente");
-        checkout1.setLocation("San Miguel");
-        checkout1.setNotes("Cliente esperando en lobby, equipaje pesado");
-        checkout1.setUrgent(true);
-        checkout1.setPrice(0.0);
-        checkout1.setRating(4.8f);
-        checkout1.setImageUrl("https://cf.bstatic.com/xdata/images/hotel/max1024x768/237363319.jpg");
-        ejemplos.add(checkout1);
+        // Lista vacía - forzar que use datos reales de Firebase
+        return new ArrayList<>();
+    }
 
-        // Ejemplo 2: Otro servicio de checkout
-        SolicitudViaje checkout2 = new SolicitudViaje();
-        checkout2.setId("checkout_002");
-        checkout2.setReservationId("res_002");
-        checkout2.setHotelName("Hotel Miraflores Park");
-        checkout2.setClientName("María García");
-        checkout2.setClientPhone("+51 987 123 456");
-        checkout2.setOriginAddress("Av. Malecón 456, Miraflores");
-        checkout2.setDestinationAddress("Aeropuerto Jorge Chávez");
-        checkout2.setCheckoutTime("14:15");
-        checkout2.setEstimatedTime(30);
-        checkout2.setTipoServicio("checkout_gratuito");
-        checkout2.setStatus("Checkout Pendiente");
-        checkout2.setLocation("Miraflores");
-        checkout2.setNotes("Vuelo internacional, llegar 3 horas antes");
-        checkout2.setUrgent(true);
-        checkout2.setPrice(0.0);
-        checkout2.setRating(4.5f);
-        checkout2.setImageUrl("");
-        ejemplos.add(checkout2);
+    // ========== MÉTODOS PARA CONVERSIÓN Y LISTENER ==========
 
-        return ejemplos;
+    /**
+     * Convertir CheckoutReservation a SolicitudViaje (SIMPLIFICADO PARA TU CLASE)
+     */
+    private SolicitudViaje convertirReservaASolicitud(CheckoutReservation reservation) {
+        SolicitudViaje solicitud = new SolicitudViaje();
+
+        // ✅ DATOS ESENCIALES (usando tus métodos existentes)
+        solicitud.setId(reservation.getId());
+        solicitud.setReservationId(reservation.getId());
+        solicitud.setHotelName(reservation.getHotelName());
+        solicitud.setClientName(reservation.getClientName());
+        solicitud.setClientPhone(reservation.getClientPhone());
+        solicitud.setOriginAddress(reservation.getHotelAddress());
+        solicitud.setDestinationAddress("Aeropuerto Internacional Jorge Chávez");
+        solicitud.setCheckoutTime(reservation.getCheckoutTime());
+
+        // ✅ USAR TUS MÉTODOS EXISTENTES
+        solicitud.setTipoServicio("checkout_gratuito"); // Tu método existente
+        solicitud.setEstimatedTime(reservation.getEstimatedDuration()); // Tu método existente
+        solicitud.setEstimatedDistance(reservation.getEstimatedDistance()); // Nuevo método
+        solicitud.setCreatedAt(reservation.getCreatedAt()); // Nuevo método
+
+        // ✅ DATOS FIJOS
+        solicitud.setStatus("Checkout Pendiente");
+        solicitud.setPrice(0.0); // Gratuito
+        solicitud.setLocation(extractLocationFromAddress(reservation.getHotelAddress()));
+        solicitud.setNotes(reservation.getNotes());
+        solicitud.setUrgent(false);
+        solicitud.setRating(4.5f);
+        solicitud.setImageUrl("");
+
+        return solicitud;
+    }
+
+    /**
+     * Extraer distrito/zona de la dirección completa
+     */
+    private String extractLocationFromAddress(String fullAddress) {
+        if (fullAddress == null) return "Lima";
+
+        // Buscar patrones comunes de distritos de Lima
+        String[] districts = {"Miraflores", "San Isidro", "Barranco", "San Miguel",
+                "Cercado de Lima", "Lima Centro", "Surco", "La Molina",
+                "Callao", "Jesús María", "Magdalena", "Pueblo Libre"};
+
+        for (String district : districts) {
+            if (fullAddress.toLowerCase().contains(district.toLowerCase())) {
+                return district;
+            }
+        }
+
+        return "Lima"; // Valor por defecto
+    }
+
+
+    /**
+     * Remover reserva de la lista local
+     */
+    private void removeReservationFromList(String reservationId) {
+        if (getActivity() != null) {
+            getActivity().runOnUiThread(() -> {
+                for (int i = 0; i < solicitudesList.size(); i++) {
+                    SolicitudViaje solicitud = solicitudesList.get(i);
+                    if (reservationId.equals(solicitud.getReservationId()) ||
+                            reservationId.equals(solicitud.getId())) {
+                        solicitudesList.remove(i);
+                        adapter.notifyItemRemoved(i);
+                        actualizarContador();
+                        updateVisibility();
+
+                        Toast.makeText(getContext(),
+                                "Solicitud actualizada: " + solicitud.getHotelName(),
+                                Toast.LENGTH_SHORT).show();
+                        break;
+                    }
+                }
+            });
+        }
     }
 }

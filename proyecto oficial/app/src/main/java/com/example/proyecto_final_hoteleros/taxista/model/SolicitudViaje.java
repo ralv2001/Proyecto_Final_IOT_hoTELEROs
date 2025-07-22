@@ -23,15 +23,21 @@ public class SolicitudViaje implements Parcelable {
     private String destinationAddress;
     private int estimatedTime;
 
-    // NUEVOS CAMPOS PARA TAXI SERVICE
+    // CAMPOS PARA TAXI SERVICE
     private String tipoServicio; // "checkout_gratuito", "viaje_normal", etc.
     private String checkoutTime;
     private String clientPhone;
     private String reservationId; // ID de la reserva original
 
+    // ✅ NUEVOS CAMPOS NECESARIOS
+    private double estimatedDistance; // Para distancia estimada
+    private long createdAt; // Para timestamp de creación
+
     // Constructor vacío
     public SolicitudViaje() {
         this.tipoServicio = "viaje_normal";
+        this.estimatedDistance = 15.0; // Default 15km
+        this.createdAt = System.currentTimeMillis();
     }
 
     // Constructor existente (mantener tal como está)
@@ -57,6 +63,8 @@ public class SolicitudViaje implements Parcelable {
         this.destinationAddress = destination;
         this.estimatedTime = estimatedTime;
         this.tipoServicio = "viaje_normal";
+        this.estimatedDistance = 15.0; // Default
+        this.createdAt = System.currentTimeMillis();
     }
 
     // NUEVO: Constructor para servicios de checkout
@@ -79,6 +87,8 @@ public class SolicitudViaje implements Parcelable {
         solicitud.setPrice(0.0); // Es gratuito
         solicitud.setRating(4.5f); // Rating por defecto
         solicitud.setImageUrl("https://cf.bstatic.com/xdata/images/hotel/max1024x768/237363319.jpg");
+        solicitud.setEstimatedDistance(reservation.getEstimatedDistance());
+        solicitud.setCreatedAt(reservation.getCreatedAt());
         return solicitud;
     }
 
@@ -92,7 +102,7 @@ public class SolicitudViaje implements Parcelable {
         return "Lima";
     }
 
-    // Constructor para Parcelable (ACTUALIZAR)
+    // Constructor para Parcelable (ACTUALIZADO)
     protected SolicitudViaje(Parcel in) {
         id = in.readString();
         hotelName = in.readString();
@@ -111,14 +121,18 @@ public class SolicitudViaje implements Parcelable {
         originAddress = in.readString();
         destinationAddress = in.readString();
         estimatedTime = in.readInt();
-        // NUEVOS CAMPOS
+        // CAMPOS EXISTENTES
         tipoServicio = in.readString();
         checkoutTime = in.readString();
         clientPhone = in.readString();
         reservationId = in.readString();
+        // ✅ NUEVOS CAMPOS
+        estimatedDistance = in.readDouble();
+        createdAt = in.readLong();
     }
 
-    // NUEVOS GETTERS Y SETTERS
+    // ========== GETTERS Y SETTERS EXISTENTES (mantener todos) ==========
+
     public String getTipoServicio() { return tipoServicio; }
     public void setTipoServicio(String tipoServicio) { this.tipoServicio = tipoServicio; }
 
@@ -131,7 +145,21 @@ public class SolicitudViaje implements Parcelable {
     public String getReservationId() { return reservationId; }
     public void setReservationId(String reservationId) { this.reservationId = reservationId; }
 
-    // Métodos de utilidad
+    // ✅ NUEVOS GETTERS Y SETTERS NECESARIOS
+    public double getEstimatedDistance() { return estimatedDistance; }
+    public void setEstimatedDistance(double estimatedDistance) { this.estimatedDistance = estimatedDistance; }
+
+    public long getCreatedAt() { return createdAt; }
+    public void setCreatedAt(long createdAt) { this.createdAt = createdAt; }
+
+    // ✅ MÉTODOS ALIAS PARA COMPATIBILIDAD
+    public String getServiceType() { return tipoServicio; }
+    public void setServiceType(String serviceType) { this.tipoServicio = serviceType; }
+
+    public int getEstimatedDuration() { return estimatedTime; }
+    public void setEstimatedDuration(int estimatedDuration) { this.estimatedTime = estimatedDuration; }
+
+    // Métodos de utilidad existentes
     public boolean isCheckoutService() {
         return "checkout_gratuito".equals(tipoServicio);
     }
@@ -151,7 +179,7 @@ public class SolicitudViaje implements Parcelable {
         }
     }
 
-    // Getters y setters existentes (mantener todos)
+    // Getters y setters existentes (todos los que ya tenías)
     public String getId() { return id; }
     public void setId(String id) { this.id = id; }
 
@@ -223,11 +251,14 @@ public class SolicitudViaje implements Parcelable {
         dest.writeString(originAddress);
         dest.writeString(destinationAddress);
         dest.writeInt(estimatedTime);
-        // NUEVOS CAMPOS
+        // CAMPOS EXISTENTES
         dest.writeString(tipoServicio);
         dest.writeString(checkoutTime);
         dest.writeString(clientPhone);
         dest.writeString(reservationId);
+        // ✅ NUEVOS CAMPOS
+        dest.writeDouble(estimatedDistance);
+        dest.writeLong(createdAt);
     }
 
     @Override
