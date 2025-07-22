@@ -129,20 +129,16 @@ public class UsuariosAdapter extends RecyclerView.Adapter<UsuariosAdapter.Usuari
 
         private void showMoreOptions(View anchor, Usuario usuario, OnUsuarioActionListener actionListener) {
             androidx.appcompat.widget.PopupMenu popup = new androidx.appcompat.widget.PopupMenu(anchor.getContext(), anchor);
-            popup.inflate(R.menu.menu_usuario_options);
+
+            // ✅ SOLO UNA OPCIÓN: Ver información
+            android.view.Menu menu = popup.getMenu();
+            menu.add(0, 1001, 0, "Ver información")
+                    .setIcon(R.drawable.ic_info);
 
             popup.setOnMenuItemClickListener(item -> {
-                if (actionListener != null) {
-                    if (item.getItemId() == R.id.action_edit) {
-                        actionListener.onUsuarioAction(usuario, "edit");
-                        return true;
-                    } else if (item.getItemId() == R.id.action_view_activity) {
-                        actionListener.onUsuarioAction(usuario, "view_activity");
-                        return true;
-                    } else if (item.getItemId() == R.id.action_reset_password) {
-                        actionListener.onUsuarioAction(usuario, "reset_password");
-                        return true;
-                    }
+                if (actionListener != null && item.getItemId() == 1001) {
+                    actionListener.onUsuarioAction(usuario, "view_info");
+                    return true;
                 }
                 return false;
             });

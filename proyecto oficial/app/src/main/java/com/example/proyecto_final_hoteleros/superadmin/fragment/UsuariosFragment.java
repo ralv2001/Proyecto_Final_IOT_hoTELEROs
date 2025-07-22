@@ -22,6 +22,10 @@ import com.example.proyecto_final_hoteleros.utils.FirebaseManager;
 import java.util.ArrayList;
 import java.util.List;
 
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
+import androidx.core.graphics.Insets;
+
 public class UsuariosFragment extends Fragment {
 
     private RecyclerView rvUsuarios;
@@ -530,17 +534,8 @@ public class UsuariosFragment extends Fragment {
                 case "toggle_status":
                     toggleUsuarioStatus(usuario);
                     break;
-                case "view_details":
-                    viewUsuarioDetails(usuario);
-                    break;
-                case "edit":
-                    editUsuario(usuario);
-                    break;
-                case "view_activity":
-                    viewUsuarioActivity(usuario);
-                    break;
-                case "reset_password":
-                    resetPassword(usuario);
+                case "view_info":
+                    showUserInformation(usuario);
                     break;
                 default:
                     android.util.Log.w("UsuariosFragment", "Acción no reconocida: " + action);
@@ -686,29 +681,6 @@ public class UsuariosFragment extends Fragment {
         loadData(); // ✅ ESTO ESTÁ CORRECTO
     }
 
-    private void viewUsuarioDetails(Usuario usuario) {
-        android.widget.Toast.makeText(getContext(), "Ver detalles de " + usuario.getName(), android.widget.Toast.LENGTH_SHORT).show();
-    }
-
-    private void editUsuario(Usuario usuario) {
-        android.widget.Toast.makeText(getContext(), "Editar " + usuario.getName(), android.widget.Toast.LENGTH_SHORT).show();
-    }
-
-    private void viewUsuarioActivity(Usuario usuario) {
-        android.widget.Toast.makeText(getContext(), "Ver actividad de " + usuario.getName(), android.widget.Toast.LENGTH_SHORT).show();
-    }
-
-    private void resetPassword(Usuario usuario) {
-        new androidx.appcompat.app.AlertDialog.Builder(getContext())
-                .setTitle("Restablecer contraseña")
-                .setMessage("¿Estás seguro que deseas restablecer la contraseña de " + usuario.getName() + "?")
-                .setPositiveButton("Restablecer", (dialog, which) -> {
-                    android.widget.Toast.makeText(getContext(), "Contraseña restablecida para " + usuario.getName(), android.widget.Toast.LENGTH_SHORT).show();
-                })
-                .setNegativeButton("Cancelar", (dialog, which) -> dialog.dismiss())
-                .show();
-    }
-
     private void showFilterOptions() {
         String[] options = {"Todos", "Clientes", "Admins de Hotel", "Taxistas", "Activos", "Inactivos"};
         new androidx.appcompat.app.AlertDialog.Builder(getContext())
@@ -769,5 +741,84 @@ public class UsuariosFragment extends Fragment {
                 android.widget.Toast.LENGTH_SHORT).show();
 
         android.util.Log.d("UsuariosFragment", "Filtro aplicado - " + statusText + ": " + filteredList.size());
+    }
+
+    private void showUserInformation(Usuario usuario) {
+        Log.d("UsuariosFragment", "📋 Mostrando información de: " + usuario.getName());
+
+        // Construir información según el tipo de usuario
+        StringBuilder info = new StringBuilder();
+
+        // 📋 INFORMACIÓN BÁSICA (todos los usuarios)
+        info.append("👤 INFORMACIÓN PERSONAL\n");
+        info.append("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n");
+        info.append("📛 Nombre: ").append(usuario.getName()).append("\n");
+        info.append("📧 Email: ").append(usuario.getEmail()).append("\n");
+        info.append("👥 Tipo: ").append(usuario.getUserTypeText()).append("\n");
+        info.append("📅 Registrado: ").append(usuario.getRegistrationDate()).append("\n");
+        info.append("⚡ Estado: ").append(usuario.getStatusText()).append("\n");
+
+        // 📱 INFORMACIÓN ADICIONAL según tipo
+        if (usuario.getPhoneNumber() != null && !usuario.getPhoneNumber().isEmpty()) {
+            info.append("📞 Teléfono: ").append(usuario.getPhoneNumber()).append("\n");
+        }
+
+        // 📋 INFORMACIÓN ESPECÍFICA POR TIPO
+        switch (usuario.getUserType()) {
+            case "CLIENTE":
+                info.append("\n🛡️ INFORMACIÓN DE CLIENTE\n");
+                info.append("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
+                info.append("• Puede realizar reservas\n");
+                info.append("• Acceso a servicios de taxi\n");
+                if (usuario.getLastLoginDate() != null) {
+                    info.append("🕐 Último acceso: ").append(usuario.getLastLoginDate()).append("\n");
+                }
+                break;
+
+            case "ADMIN_HOTEL":
+                info.append("\n🏨 INFORMACIÓN DE ADMIN HOTEL\n");
+                info.append("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
+                info.append("• Gestiona reservas del hotel\n");
+                info.append("• Administra servicios\n");
+                info.append("• Acceso al panel administrativo\n");
+                break;
+
+            case "TAXISTA":
+                info.append("\n🚗 INFORMACIÓN DE TAXISTA\n");
+                info.append("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
+                info.append("• Conductor aprobado\n");
+                info.append("• Puede recibir viajes\n");
+                info.append("• Documentos verificados\n");
+                break;
+
+            case "TAXISTA_PENDIENTE":
+                info.append("\n🕒 INFORMACIÓN DE TAXISTA PENDIENTE\n");
+                info.append("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
+                info.append("• En proceso de verificación\n");
+                info.append("• Documentos bajo revisión\n");
+                info.append("• Acceso limitado\n");
+                break;
+
+            case "SUPERADMIN":
+                info.append("\n⚙️ INFORMACIÓN DE SUPER ADMIN\n");
+                info.append("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
+                info.append("• Acceso completo al sistema\n");
+                info.append("• Gestión de todos los usuarios\n");
+                info.append("• Control total de la plataforma\n");
+                break;
+        }
+
+        // 🚨 NOTA IMPORTANTE
+        info.append("\n📝 NOTA\n");
+        info.append("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
+        info.append("Esta información es solo de lectura.\n");
+
+        // Mostrar el diálogo
+        new androidx.appcompat.app.AlertDialog.Builder(getContext())
+                .setTitle("📋 Información del Usuario")
+                .setMessage(info.toString())
+                .setPositiveButton("✅ Entendido", (dialog, which) -> dialog.dismiss())
+                .setIcon(R.drawable.ic_info)
+                .show();
     }
 }
