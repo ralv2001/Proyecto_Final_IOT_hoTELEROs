@@ -22,6 +22,10 @@ import com.example.proyecto_final_hoteleros.superadmin.models.ChartData;
 import java.util.ArrayList;
 import java.util.List;
 
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
+import androidx.core.graphics.Insets;
+
 public class ReportesFragment extends Fragment {
 
     private RecyclerView rvMetrics, rvCharts;
@@ -39,6 +43,19 @@ public class ReportesFragment extends Fragment {
         loadData();
 
         return view;
+    }
+
+    // ✅ AGREGAR ESTE MÉTODO NUEVO DESPUÉS DE onCreateView
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+
+        // ✅ CONFIGURAR WINDOW INSETS
+        ViewCompat.setOnApplyWindowInsetsListener(view, (v, insets) -> {
+            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+            v.setPadding(v.getPaddingLeft(), v.getPaddingTop(), v.getPaddingRight(), systemBars.bottom);
+            return insets;
+        });
     }
 
     private void initViews(View view) {

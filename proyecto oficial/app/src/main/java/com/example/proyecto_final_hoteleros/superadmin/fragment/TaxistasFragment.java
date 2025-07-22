@@ -22,6 +22,10 @@ import com.example.proyecto_final_hoteleros.models.UserModel;
 import java.util.ArrayList;
 import java.util.List;
 
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
+import androidx.core.graphics.Insets;
+
 public class TaxistasFragment extends Fragment implements TaxistasAdapter.OnTaxistaActionListener {
 
     private RecyclerView rvTaxistas;
@@ -47,6 +51,19 @@ public class TaxistasFragment extends Fragment implements TaxistasAdapter.OnTaxi
         // Al final del método onCreateView(), antes del return view;
         applyInitialFilter();
         return view;
+    }
+
+    // ✅ AGREGAR ESTE MÉTODO NUEVO DESPUÉS DE onCreateView
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+
+        // ✅ CONFIGURAR WINDOW INSETS
+        ViewCompat.setOnApplyWindowInsetsListener(view, (v, insets) -> {
+            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+            v.setPadding(v.getPaddingLeft(), v.getPaddingTop(), v.getPaddingRight(), systemBars.bottom);
+            return insets;
+        });
     }
 
     // 🔥 MÉTODO ACTUALIZADO: Aplicar filtro inicial si viene de dashboard
@@ -472,9 +489,6 @@ public class TaxistasFragment extends Fragment implements TaxistasAdapter.OnTaxi
         taxistasAdapter.updateList(filteredTaxistas);
 
         String statusText = status.equals("PENDING") ? "pendientes" : "aprobados";
-        android.widget.Toast.makeText(getContext(),
-                "Mostrando " + filteredTaxistas.size() + " taxistas " + statusText,
-                android.widget.Toast.LENGTH_SHORT).show();
 
         android.util.Log.d("TaxistasFragment", "Filtro aplicado - " + statusText + ": " + filteredTaxistas.size());
     }

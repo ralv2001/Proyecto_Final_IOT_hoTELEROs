@@ -30,6 +30,10 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
+import androidx.core.graphics.Insets;
+
 public class AdminsFragment extends Fragment {
 
     private RecyclerView rvAdmins;
@@ -62,6 +66,20 @@ public class AdminsFragment extends Fragment {
         return view;
     }
 
+    // ✅ AGREGAR ESTE MÉTODO NUEVO DESPUÉS DE onCreateView
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+
+        // ✅ CONFIGURAR WINDOW INSETS
+        ViewCompat.setOnApplyWindowInsetsListener(view, (v, insets) -> {
+            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+            v.setPadding(v.getPaddingLeft(), v.getPaddingTop(), v.getPaddingRight(), systemBars.bottom);
+            return insets;
+        });
+    }
+
+
     private void initViews(View view) {
         android.util.Log.d("AdminsFragment", "=== INICIO initViews ===");
 
@@ -73,7 +91,7 @@ public class AdminsFragment extends Fragment {
         etSearch = view.findViewById(R.id.et_search);
         layoutSearch = view.findViewById(R.id.layout_search);
         ivSearchToggle = view.findViewById(R.id.iv_search_toggle);
-        ivFilter = view.findViewById(R.id.iv_filter);
+        //ivFilter = view.findViewById(R.id.iv_filter);
         chipAll = view.findViewById(R.id.chip_all);
         chipActive = view.findViewById(R.id.chip_active);
         chipInactive = view.findViewById(R.id.chip_inactive);
@@ -121,37 +139,33 @@ public class AdminsFragment extends Fragment {
 
         if (isSearchVisible) {
             layoutSearch.setVisibility(View.VISIBLE);
-            // Animar entrada
             layoutSearch.setAlpha(0f);
             layoutSearch.animate()
                     .alpha(1f)
                     .setDuration(200)
                     .start();
 
-            // Cambiar icono
-            ivSearchToggle.setImageResource(R.drawable.ic_close);
+            // ✅ Usar ícono personalizado de cerrar
+            ivSearchToggle.setImageResource(R.drawable.ic_close_superadmin);
 
-            // Enfocar en el campo de búsqueda
             etSearch.requestFocus();
             android.view.inputmethod.InputMethodManager imm =
                     (android.view.inputmethod.InputMethodManager) getActivity().getSystemService(android.content.Context.INPUT_METHOD_SERVICE);
             imm.showSoftInput(etSearch, android.view.inputmethod.InputMethodManager.SHOW_IMPLICIT);
 
         } else {
-            // Animar salida
             layoutSearch.animate()
                     .alpha(0f)
                     .setDuration(200)
                     .withEndAction(() -> {
                         layoutSearch.setVisibility(View.GONE);
-                        etSearch.setText(""); // Limpiar búsqueda
+                        etSearch.setText("");
                     })
                     .start();
 
-            // Cambiar icono
-            ivSearchToggle.setImageResource(R.drawable.ic_search);
+            // ✅ Restaurar ícono personalizado de búsqueda
+            ivSearchToggle.setImageResource(R.drawable.ic_search_superadmin);
 
-            // Ocultar teclado
             android.view.inputmethod.InputMethodManager imm =
                     (android.view.inputmethod.InputMethodManager) getActivity().getSystemService(android.content.Context.INPUT_METHOD_SERVICE);
             imm.hideSoftInputFromWindow(etSearch.getWindowToken(), 0);
@@ -308,10 +322,6 @@ public class AdminsFragment extends Fragment {
                         updateAdminsList(admins);
                         showLoading(false);
 
-                        // 🔥 NUEVO: Notificar que los datos se actualizaron
-                        android.widget.Toast.makeText(getContext(),
-                                "✅ Lista actualizada: " + admins.size() + " admins",
-                                android.widget.Toast.LENGTH_SHORT).show();
                     });
                 }
             }
@@ -400,17 +410,11 @@ public class AdminsFragment extends Fragment {
             case "toggle_status":
                 toggleAdminStatus(admin);
                 break;
-            case "view_details":
-                viewAdminDetails(admin);
+            case "view_info":
+                showAdminInformation(admin);
                 break;
-            case "edit":
-                editAdmin(admin);
-                break;
-            case "view_hotel":
-                viewHotelDetails(admin);
-                break;
-            case "reset_password":
-                resetAdminPassword(admin);
+            default:
+                Log.w("AdminsFragment", "Acción no reconocida: " + action);
                 break;
         }
     }
@@ -604,10 +608,6 @@ public class AdminsFragment extends Fragment {
                         updateAdminsList(admins);
                         showLoading(false);
 
-                        // Mostrar confirmación con número de intento
-                        android.widget.Toast.makeText(getContext(),
-                                "🔄 Lista actualizada: " + admins.size() + " admins (intento " + (attemptCount + 1) + ")",
-                                android.widget.Toast.LENGTH_SHORT).show();
                     });
                 }
             }
@@ -645,6 +645,60 @@ public class AdminsFragment extends Fragment {
 
         // 🔥 USAR REFRESH CON DELAY EN VEZ DEL INMEDIATO
         refreshAdminsListWithDelay();
+    }
+
+
+    private void showAdminInformation(AdminUser admin) {
+        Log.d("AdminsFragment", "📋 Mostrando información de: " + admin.getName());
+
+        // Construir información del administrador
+        StringBuilder info = new StringBuilder();
+
+        // 📋 INFORMACIÓN BÁSICA
+        info.append("🏨 INFORMACIÓN DEL ADMINISTRADOR\n");
+        info.append("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n");
+        info.append("📛 Nombre: ").append(admin.getName()).append("\n");
+        info.append("📧 Email: ").append(admin.getEmail()).append("\n");
+        info.append("🏨 Hotel: ").append(admin.getHotelName()).append("\n");
+        info.append("📅 Registrado: ").append(admin.getRegistrationDate()).append("\n");
+        info.append("⚡ Estado: ").append(admin.getStatusText()).append("\n");
+
+        // 🔧 PERMISOS Y RESPONSABILIDADES
+        info.append("\n🔧 PERMISOS DE ADMINISTRADOR\n");
+        info.append("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
+        info.append("• Gestionar reservas del hotel\n");
+        info.append("• Administrar servicios disponibles\n");
+        info.append("• Ver reportes del hotel\n");
+        info.append("• Gestionar disponibilidad de habitaciones\n");
+        info.append("• Coordinar con el equipo de taxi\n");
+
+        // 📊 INFORMACIÓN DEL ESTADO
+        if (admin.isActive()) {
+            info.append("\n✅ ESTADO ACTIVO\n");
+            info.append("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
+            info.append("• Acceso completo al sistema\n");
+            info.append("• Puede gestionar reservas\n");
+            info.append("• Notificaciones habilitadas\n");
+        } else {
+            info.append("\n❌ ESTADO INACTIVO\n");
+            info.append("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
+            info.append("• Acceso suspendido temporalmente\n");
+            info.append("• No puede gestionar reservas\n");
+            info.append("• Notificaciones deshabilitadas\n");
+        }
+
+        // 📝 NOTA IMPORTANTE
+        info.append("\n📝 NOTA\n");
+        info.append("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
+        info.append("Esta información es solo de lectura.\n");
+
+        // Mostrar el diálogo
+        new androidx.appcompat.app.AlertDialog.Builder(getContext())
+                .setTitle("🏨 Información del Administrador")
+                .setMessage(info.toString())
+                .setPositiveButton("✅ Entendido", (dialog, which) -> dialog.dismiss())
+                .setIcon(R.drawable.ic_info)
+                .show();
     }
 
 }

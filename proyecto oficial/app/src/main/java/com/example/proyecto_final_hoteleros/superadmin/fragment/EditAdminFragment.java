@@ -23,6 +23,10 @@ import com.google.android.material.textfield.TextInputEditText;
 import java.util.HashMap;
 import java.util.Map;
 
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
+import androidx.core.graphics.Insets;
+
 public class EditAdminFragment extends Fragment {
 
     private static final String TAG = "EditAdminFragment";
@@ -54,6 +58,19 @@ public class EditAdminFragment extends Fragment {
         setupClickListeners();
 
         return view;
+    }
+
+    // ✅ AGREGAR ESTE MÉTODO NUEVO DESPUÉS DE onCreateView
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+
+        // ✅ CONFIGURAR WINDOW INSETS
+        ViewCompat.setOnApplyWindowInsetsListener(view, (v, insets) -> {
+            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+            v.setPadding(v.getPaddingLeft(), v.getPaddingTop(), v.getPaddingRight(), systemBars.bottom);
+            return insets;
+        });
     }
 
     private void initViews(View view) {

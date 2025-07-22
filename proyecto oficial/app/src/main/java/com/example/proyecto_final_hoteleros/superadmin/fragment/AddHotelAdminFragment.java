@@ -32,6 +32,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
+import androidx.core.graphics.Insets;
+
 public class AddHotelAdminFragment extends Fragment {
 
     private static final String TAG = "AddHotelAdminFragment";
@@ -59,6 +63,19 @@ public class AddHotelAdminFragment extends Fragment {
         loadFormFields();
 
         return view;
+    }
+
+    // ✅ AGREGAR ESTE MÉTODO NUEVO DESPUÉS DE onCreateView
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+
+        // ✅ CONFIGURAR WINDOW INSETS
+        ViewCompat.setOnApplyWindowInsetsListener(view, (v, insets) -> {
+            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+            v.setPadding(v.getPaddingLeft(), v.getPaddingTop(), v.getPaddingRight(), systemBars.bottom);
+            return insets;
+        });
     }
 
     private void initViews(View view) {
