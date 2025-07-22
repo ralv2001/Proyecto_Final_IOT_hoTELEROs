@@ -42,6 +42,7 @@ public class TaxiConfirmationDialog extends DialogFragment {
     private TextView tvReservationDates;
     private TextView tvMessage;
     private TextView tvValidityMessage;
+    private TextView tvAmountInfo;
     private ImageView ivTaxiIcon;
     private MaterialButton btnConfirmTaxi;
     private MaterialButton btnDeclineTaxi;
@@ -71,6 +72,13 @@ public class TaxiConfirmationDialog extends DialogFragment {
         if (getArguments() != null) {
             reservation = getArguments().getParcelable(ARG_RESERVATION);
         }
+
+        // ✅ VERIFICAR ELEGIBILIDAD ANTES DE MOSTRAR
+        if (reservation == null || !reservation.isEligibleForFreeTaxi()) {
+            Log.w(TAG, "⚠️ Reserva no elegible para taxi, cerrando diálogo");
+            dismiss();
+            return;
+        }
     }
 
     @NonNull
@@ -80,6 +88,8 @@ public class TaxiConfirmationDialog extends DialogFragment {
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
         if (dialog.getWindow() != null) {
             dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+            // ✅ AGREGAR ANIMACIONES DE ENTRADA
+            dialog.getWindow().getAttributes().windowAnimations = R.style.DialogAnimation;
         }
         return dialog;
     }
@@ -95,9 +105,13 @@ public class TaxiConfirmationDialog extends DialogFragment {
         super.onViewCreated(view, savedInstanceState);
 
         initViews(view);
-        setupUI();
+        setupReservationInfo();
         setupClickListeners();
-        updateValidityMessage(); // ✅ CAMBIADO: llamar directamente a updateValidityMessage
+
+        // ✅ VERIFICAR VALIDEZ EN TIEMPO REAL
+        if (!isTaxiValidToday()) {
+            handleExpiredTaxi();
+        }
     }
 
     private void initViews(View view) {
@@ -111,10 +125,10 @@ public class TaxiConfirmationDialog extends DialogFragment {
         btnClose = view.findViewById(R.id.btn_close);
     }
 
-    private void setupUI() {
+    private void setupReservationInfo() {
         if (reservation == null) return;
 
-        // ✅ INFORMACIÓN BÁSICA DE LA RESERVA
+        // ✅ INFORMACIÓN BÁSICA
         if (tvHotelName != null) {
             tvHotelName.setText(reservation.getHotelName());
         }
@@ -123,94 +137,152 @@ public class TaxiConfirmationDialog extends DialogFragment {
             tvReservationDates.setText(reservation.getDate());
         }
 
-        // ✅ MENSAJE PRINCIPAL
+        // ✅ MENSAJE PRINCIPAL PERSONALIZADO
         if (tvMessage != null) {
-            tvMessage.setText(
-                    "¡Tu estadía ha finalizado! Como tu reserva incluyó servicio de taxi gratuito, " +
-                            "¿te gustaría confirmar el servicio de taxi al aeropuerto?"
+            String message = String.format(
+                    "🎉 ¡Felicidades! Tu estadía en %s superó los S/ %.2f, " +
+                            "por lo que tienes derecho a nuestro servicio de taxi gratuito al aeropuerto.",
+                    reservation.getHotelName(),
+                    Reservation.MONTO_MINIMO_TAXI_GRATIS
             );
+            tvMessage.setText(message);
         }
 
-        // ✅ VERIFICAR SI AÚN ES VÁLIDO (mismo día del checkout)
-        updateValidityMessage();
+        // ✅ INFORMACIÓN DEL MONTO
+        if (tvAmountInfo != null) {
+            String amountText = String.format(
+                    "💰 Total de tu estadía: S/ %.2f\n" +
+                            "✅ Mínimo requerido: S/ %.2f",
+                    reservation.getFinalTotal(),
+                    Reservation.MONTO_MINIMO_TAXI_GRATIS
+            );
+            tvAmountInfo.setText(amountText);
+        }
+
+        // ✅ MENSAJE DE VALIDEZ CON CONTEO REGRESIVO
+        setupValidityMessage();
     }
 
-    private void updateValidityMessage() {
+    private void setupValidityMessage() {
         if (tvValidityMessage == null) return;
 
-        try {
-            boolean isValidToday = isTaxiValidToday();
+        Date checkOutDate = parseCheckOutDate(reservation.getDate());
+        if (checkOutDate != null) {
+            Calendar today = Calendar.getInstance();
+            Calendar checkOut = Calendar.getInstance();
+            checkOut.setTime(checkOutDate);
 
-            if (isValidToday) {
-                tvValidityMessage.setText("✅ Válido solo hoy. Una vez que pase el día, ya no podrás solicitar el taxi gratuito.");
-                tvValidityMessage.setTextColor(getResources().getColor(android.R.color.holo_green_light, null));
+            // ✅ VERIFICAR SI ES EL MISMO DÍA
+            if (isSameDay(today.getTime(), checkOutDate)) {
+                // Es hoy - mostrar que es válido hasta las 23:59
+                Calendar endOfDay = Calendar.getInstance();
+                endOfDay.set(Calendar.HOUR_OF_DAY, 23);
+                endOfDay.set(Calendar.MINUTE, 59);
 
-                // Habilitar botones
-                if (btnConfirmTaxi != null) btnConfirmTaxi.setEnabled(true);
-                if (btnDeclineTaxi != null) btnDeclineTaxi.setEnabled(true);
+                long hoursLeft = (endOfDay.getTimeInMillis() - System.currentTimeMillis()) / (1000 * 60 * 60);
+                long minutesLeft = ((endOfDay.getTimeInMillis() - System.currentTimeMillis()) % (1000 * 60 * 60)) / (1000 * 60);
 
+                String validityText = String.format(
+                        "⏰ Válido solo hoy hasta las 23:59\n" +
+                                "Tiempo restante: %d horas y %d minutos",
+                        Math.max(0, hoursLeft), Math.max(0, minutesLeft)
+                );
+                tvValidityMessage.setText(validityText);
+                tvValidityMessage.setTextColor(getResources().getColor(R.color.orange_primary, null));
             } else {
-                tvValidityMessage.setText("❌ El período de validez ha expirado. Solo era válido el día del checkout.");
-                tvValidityMessage.setTextColor(getResources().getColor(android.R.color.holo_red_light, null));
-
-                // Deshabilitar botones de confirmación
-                if (btnConfirmTaxi != null) {
-                    btnConfirmTaxi.setEnabled(false);
-                    btnConfirmTaxi.setText("Expirado");
-                }
-                if (btnDeclineTaxi != null) {
-                    btnDeclineTaxi.setEnabled(false);
-                    btnDeclineTaxi.setText("Expirado");
-                }
+                // No es el día del checkout
+                tvValidityMessage.setText("❌ Servicio de taxi ya expirado");
+                tvValidityMessage.setTextColor(getResources().getColor(R.color.warning_red, null));
             }
-
-        } catch (Exception e) {
-            Log.e(TAG, "❌ Error verificando validez: " + e.getMessage());
-            tvValidityMessage.setText("⚠️ No se pudo verificar la validez del servicio.");
-            tvValidityMessage.setTextColor(getResources().getColor(R.color.warning_orange, null));
+        } else {
+            tvValidityMessage.setText("ℹ️ Disponible solo el día del checkout");
         }
     }
 
     private boolean isTaxiValidToday() {
-        try {
-            Date checkoutDate = parseCheckOutDate(reservation.getDate());
-            if (checkoutDate == null) return false;
+        if (reservation == null) return false;
 
-            // Comparar solo las fechas (ignorar horas)
-            Calendar checkoutCal = Calendar.getInstance();
-            checkoutCal.setTime(checkoutDate);
-            checkoutCal.set(Calendar.HOUR_OF_DAY, 0);
-            checkoutCal.set(Calendar.MINUTE, 0);
-            checkoutCal.set(Calendar.SECOND, 0);
-            checkoutCal.set(Calendar.MILLISECOND, 0);
+        Date checkOutDate = parseCheckOutDate(reservation.getDate());
+        if (checkOutDate == null) return false;
 
-            Calendar todayCal = Calendar.getInstance();
-            todayCal.set(Calendar.HOUR_OF_DAY, 0);
-            todayCal.set(Calendar.MINUTE, 0);
-            todayCal.set(Calendar.SECOND, 0);
-            todayCal.set(Calendar.MILLISECOND, 0);
-
-            // ✅ VÁLIDO SOLO EL MISMO DÍA DEL CHECKOUT
-            return checkoutCal.getTimeInMillis() == todayCal.getTimeInMillis();
-
-        } catch (Exception e) {
-            Log.e(TAG, "❌ Error verificando validez de fecha: " + e.getMessage());
-            return false;
-        }
+        Date today = new Date();
+        return isSameDay(today, checkOutDate) && isWithinValidHours();
     }
 
-    private Date parseCheckOutDate(String dateString) {
+    private boolean isSameDay(Date date1, Date date2) {
+        Calendar cal1 = Calendar.getInstance();
+        Calendar cal2 = Calendar.getInstance();
+        cal1.setTime(date1);
+        cal2.setTime(date2);
+
+        return cal1.get(Calendar.YEAR) == cal2.get(Calendar.YEAR) &&
+                cal1.get(Calendar.DAY_OF_YEAR) == cal2.get(Calendar.DAY_OF_YEAR);
+    }
+
+    private boolean isWithinValidHours() {
+        Calendar now = Calendar.getInstance();
+        int hour = now.get(Calendar.HOUR_OF_DAY);
+        // Válido todo el día (0-23), pero podrías restringir a horarios específicos
+        return hour >= 0 && hour <= 23;
+    }
+
+    /**
+     * ✅ MÉTODO ESTÁTICO PARA VERIFICAR SI DEBE MOSTRARSE EL DIÁLOGO
+     */
+    public static boolean shouldShowForReservation(Reservation reservation) {
+        if (reservation == null) {
+            Log.d(TAG, "🚖 Reserva null, no mostrar");
+            return false;
+        }
+
+        if (reservation.getStatus() != Reservation.STATUS_COMPLETED) {
+            Log.d(TAG, "🚖 Reserva no completada: " + reservation.getStatusText());
+            return false;
+        }
+
+        if (!reservation.isEligibleForFreeTaxi()) {
+            Log.d(TAG, "🚖 No elegible para taxi: S/ " + reservation.getFinalTotal() + " < S/ " + Reservation.MONTO_MINIMO_TAXI_GRATIS);
+            return false;
+        }
+
+        // ✅ VERIFICAR SI ES EL MISMO DÍA DEL CHECKOUT
+        Date checkOutDate = parseCheckOutDateStatic(reservation.getDate());
+        if (checkOutDate == null) {
+            Log.d(TAG, "🚖 No se pudo parsear fecha de checkout: " + reservation.getDate());
+            return false;
+        }
+
+        Date today = new Date();
+        Calendar cal1 = Calendar.getInstance();
+        Calendar cal2 = Calendar.getInstance();
+        cal1.setTime(today);
+        cal2.setTime(checkOutDate);
+
+        boolean isSameDay = cal1.get(Calendar.YEAR) == cal2.get(Calendar.YEAR) &&
+                cal1.get(Calendar.DAY_OF_YEAR) == cal2.get(Calendar.DAY_OF_YEAR);
+
+        Log.d(TAG, "🚖 Validación para " + reservation.getHotelName() + ": " +
+                (isSameDay ? "SÍ es hoy" : "NO es hoy") +
+                " (Checkout: " + new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(checkOutDate) + ")");
+
+        return isSameDay;
+    }
+
+    private static Date parseCheckOutDateStatic(String dateString) {
         try {
-            // Formato esperado: "10 May - 15 May, 2025"
-            if (dateString.contains(" - ")) {
+            if (dateString != null && dateString.contains(" - ")) {
                 String checkOutPart = dateString.split(" - ")[1].trim();
                 SimpleDateFormat parser = new SimpleDateFormat("dd MMM, yyyy", Locale.getDefault());
                 return parser.parse(checkOutPart);
             }
-        } catch (ParseException e) {
-            Log.e(TAG, "❌ Error parseando fecha de checkout: " + dateString);
+        } catch (Exception e) {
+            Log.e(TAG, "❌ Error parseando fecha estática: " + dateString + " - " + e.getMessage());
         }
         return null;
+    }
+
+    private Date parseCheckOutDate(String dateString) {
+        return parseCheckOutDateStatic(dateString);
     }
 
     private void setupClickListeners() {
@@ -246,6 +318,24 @@ public class TaxiConfirmationDialog extends DialogFragment {
         }
     }
 
+    private void handleExpiredTaxi() {
+        Log.w(TAG, "⚠️ Servicio de taxi expirado para: " + reservation.getHotelName());
+
+        if (tvMessage != null) {
+            tvMessage.setText("❌ Lo sentimos, el servicio de taxi gratuito ya no está disponible.");
+        }
+
+        if (btnConfirmTaxi != null) {
+            btnConfirmTaxi.setEnabled(false);
+            btnConfirmTaxi.setText("Servicio expirado");
+            btnConfirmTaxi.setAlpha(0.5f);
+        }
+
+        if (btnDeclineTaxi != null) {
+            btnDeclineTaxi.setText("Entendido");
+        }
+    }
+
     private void confirmTaxiService() {
         Log.d(TAG, "🚖 Confirmando servicio de taxi para reserva: " + reservation.getReservationId());
 
@@ -257,6 +347,37 @@ public class TaxiConfirmationDialog extends DialogFragment {
             btnConfirmTaxi.setText("Confirmando...");
         }
 
+        // ✅ VERIFICAR ESTADO ANTES DE PROCEDER
+        FirebaseReservationManager.getInstance().checkTaxiConfirmationStatus(
+                reservation.getReservationId(),
+                new FirebaseReservationManager.TaxiStatusCallback() {
+                    @Override
+                    public void onStatusChecked(boolean isConfirmed, long confirmedAt) {
+                        if (isConfirmed) {
+                            // Ya está confirmado
+                            Log.d(TAG, "ℹ️ Taxi ya confirmado previamente");
+                            Toast.makeText(getContext(), "ℹ️ Ya has confirmado este servicio", Toast.LENGTH_SHORT).show();
+
+                            if (listener != null) {
+                                listener.onNavigateToTaxiFlow(reservation);
+                            }
+                            dismiss();
+                        } else {
+                            // Proceder con confirmación
+                            proceedWithConfirmation();
+                        }
+                    }
+
+                    @Override
+                    public void onError(String error) {
+                        Log.w(TAG, "⚠️ Error verificando estado, procediendo: " + error);
+                        proceedWithConfirmation();
+                    }
+                }
+        );
+    }
+
+    private void proceedWithConfirmation() {
         FirebaseReservationManager.getInstance().confirmTaxiService(
                 reservation.getReservationId(),
                 true,
@@ -358,35 +479,31 @@ public class TaxiConfirmationDialog extends DialogFragment {
     }
 
     private void setButtonsEnabled(boolean enabled) {
-        if (btnConfirmTaxi != null) btnConfirmTaxi.setEnabled(enabled);
-        if (btnDeclineTaxi != null) btnDeclineTaxi.setEnabled(enabled);
+        if (btnConfirmTaxi != null) {
+            btnConfirmTaxi.setEnabled(enabled);
+        }
+        if (btnDeclineTaxi != null) {
+            btnDeclineTaxi.setEnabled(enabled);
+        }
     }
 
     @Override
     public void onStart() {
         super.onStart();
-
-        // Configurar tamaño del diálogo
-        if (getDialog() != null && getDialog().getWindow() != null) {
-            getDialog().getWindow().setLayout(
-                    ViewGroup.LayoutParams.MATCH_PARENT,
+        // ✅ CONFIGURAR TAMAÑO DEL DIÁLOGO
+        Dialog dialog = getDialog();
+        if (dialog != null && dialog.getWindow() != null) {
+            dialog.getWindow().setLayout(
+                    (int) (getResources().getDisplayMetrics().widthPixels * 0.9),
                     ViewGroup.LayoutParams.WRAP_CONTENT
             );
         }
     }
 
-    /**
-     * ✅ MÉTODO ESTÁTICO PARA VERIFICAR SI DEBE MOSTRARSE EL DIÁLOGO
-     */
-    public static boolean shouldShowForReservation(Reservation reservation) {
-        if (reservation == null) return false;
-
-        // Solo para reservas completadas con taxi incluido
-        if (reservation.getStatus() != Reservation.STATUS_COMPLETED) return false;
-        if (!reservation.isEligibleForFreeTaxi()) return false;
-
-        // Verificar si ya fue confirmado/declinado
-        // (esto se podría mejorar con una consulta a Firebase, pero por simplicidad asumimos que no)
-        return true;
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        // ✅ LIMPIAR LISTENER PARA EVITAR MEMORY LEAKS
+        listener = null;
     }
 }
