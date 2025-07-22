@@ -12,7 +12,7 @@ public class HotelService implements Serializable {
     private String expandedDescription;
     private Double price;
     private String imageUrl;
-    private List<String> imageUrls; // ✅ NUEVO: Lista de fotos del servicio
+    private List<String> imageUrls; // ✅ Lista de fotos del servicio
     private String iconResourceName;
     private boolean isConditional;
     private String conditionalDescription;
@@ -21,15 +21,17 @@ public class HotelService implements Serializable {
     private int sortOrder;
     private String availability;
     private List<String> features;
-    private boolean isIncludedInRoom; // ✅ NUEVO: Si viene incluido en la habitación
+    private boolean isIncludedInRoom; // ✅ Si viene incluido en la habitación específica
 
     // Estados del servicio
     private boolean isSelected;
     private boolean isEligibleForFree;
     private boolean isExpanded;
+    private String serviceType; // "basic", "included", "paid", "conditional"
+    private boolean isFree;
 
     public enum ServiceCategory {
-        ROOM_INCLUDED("Incluidos en habitación", "room_included"),
+        ROOM_INCLUDED("Incluidos en habitación", "room_included"), // ✅ NUEVO
         ESSENTIALS("Servicios básicos", "free"),
         COMFORT("Comodidad", "paid"),
         WELLNESS("Bienestar", "paid"),
@@ -85,16 +87,76 @@ public class HotelService implements Serializable {
                 false, 999, "24/7", null, false);
     }
 
-    // Métodos auxiliares existentes...
+    // ✅ ARREGLADO: Método isFree() con lógica correcta
     public boolean isFree() {
-        return price == null || price == 0.0 || (isConditional && isEligibleForFree) || isIncludedInRoom;
+        // Si se estableció explícitamente como gratuito
+        if (isFree) return true;
+
+        // Si es básico, siempre es gratuito
+        if ("basic".equals(serviceType)) return true;
+
+        // Si es incluido en la habitación específica, es gratuito
+        if ("included".equals(serviceType) && isIncludedInRoom) return true;
+
+        // Si es condicional y está desbloqueado, es gratuito
+        if ("conditional".equals(serviceType) && isEligibleForFree) return true;
+
+        // Si no tiene precio o precio es 0
+        if (price == null || price == 0.0) return true;
+
+        return false;
     }
 
+    /**
+     * ✅ ARREGLADO: Determinar tipo de servicio con lógica mejorada
+     */
     public String getServiceType() {
-        if (isIncludedInRoom) return "room_included";
-        if (isFree() && !isConditional) return "free";
+        // ✅ Si se seteó desde Firebase, usar ese valor
+        if (serviceType != null && !serviceType.isEmpty()) {
+            return serviceType;
+        }
+
+        // ✅ MANTENER lógica existente como fallback
+        if (isIncludedInRoom) return "included";
+        if (isFree() && !isConditional) return "basic";
         if (isConditional) return "conditional";
         return "paid";
+    }
+
+    public void setFree(boolean free) {
+        this.isFree = free;
+    }
+
+    /**
+     * ✅ ARREGLADO: Configurar tipo de servicio con auto-configuración
+     */
+    public void setServiceType(String serviceType) {
+        this.serviceType = serviceType;
+
+        // ✅ Auto-configurar propiedades según el tipo de Firebase
+        switch (serviceType) {
+            case "basic":
+                this.isFree = true;
+                this.isIncludedInRoom = false;
+                this.isConditional = false;
+                break;
+            case "included":
+                this.isFree = true;
+                // isIncludedInRoom se determina por la habitación específica
+                this.isConditional = false;
+                break;
+            case "paid":
+                this.isFree = false;
+                this.isIncludedInRoom = false;
+                this.isConditional = false;
+                break;
+            case "conditional":
+                // Para condicionales (taxi), se determina dinámicamente
+                this.isConditional = true;
+                this.isIncludedInRoom = false;
+                // isFree se determina con isEligibleForFree
+                break;
+        }
     }
 
     // ✅ NUEVOS getters y setters
@@ -113,6 +175,39 @@ public class HotelService implements Serializable {
             return imageUrls.get(0);
         }
         return imageUrl;
+    }
+
+    // ✅ ARREGLADO: Método getPriceDisplay con lógica mejorada
+    public String getPriceDisplay() {
+        if (isFree()) {
+            if ("basic".equals(serviceType)) {
+                return "✓ Básico";
+            } else if ("included".equals(serviceType) && isIncludedInRoom) {
+                return "✓ Incluido";
+            } else if ("conditional".equals(serviceType) && isEligibleForFree) {
+                return "¡DESBLOQUEADO!";
+            } else {
+                return "✓ Incluido";
+            }
+        }
+        return String.format("S/. %.2f", price != null ? price : 0.0);
+    }
+
+    /**
+     * ✅ ARREGLADO: Badge condicional con mensaje dinámico
+     */
+    public String getConditionalBadgeText() {
+        if (!isConditional) return "";
+
+        if (conditionalDescription != null && !conditionalDescription.isEmpty()) {
+            return conditionalDescription;
+        }
+
+        if (isEligibleForFree) {
+            return "🎉 ¡Incluido con tu reserva! (Ahorro: S/. " + String.format("%.2f", price != null ? price : 60.0) + ")";
+        }
+
+        return "💡 Se desbloquea con reservas mayores";
     }
 
     // Resto de getters y setters existentes...
@@ -154,20 +249,5 @@ public class HotelService implements Serializable {
     public Double getEffectivePrice() {
         if (isFree()) return 0.0;
         return price != null ? price : 0.0;
-    }
-
-    public String getPriceDisplay() {
-        if (isFree()) {
-            return isConditional && isEligibleForFree ? "¡GRATIS!" : "✓ Incluido";
-        }
-        return String.format("S/. %.2f", price);
-    }
-
-    public String getConditionalBadgeText() {
-        if (!isConditional) return "";
-        if (isEligibleForFree) {
-            return "🎉 ¡Incluido con tu reserva! (Ahorro: S/. " + String.format("%.2f", price) + ")";
-        }
-        return "💡 " + conditionalDescription;
     }
 }
