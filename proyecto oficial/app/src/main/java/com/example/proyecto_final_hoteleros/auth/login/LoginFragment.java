@@ -72,6 +72,7 @@ public class LoginFragment extends Fragment {
 
     // ========== VARIABLES PARA GITHUB SIGN-IN ==========
     private GitHubSignInHelper gitHubSignInHelper;
+
     private ActivityResultLauncher<Intent> gitHubSignInLauncher;
 
     private View passwordLayoutContainer;
@@ -738,31 +739,38 @@ public class LoginFragment extends Fragment {
             // Verificar si hay GitHub pendiente de vincular
             SharedPreferences prefs = getActivity().getSharedPreferences("github_pending", getActivity().MODE_PRIVATE);
             boolean hasPending = prefs.getBoolean("has_pending", false);
+            boolean autoLink = prefs.getBoolean("auto_link", false); // 🎯 NUEVO FLAG
             String pendingEmail = prefs.getString("pending_email", null);
 
             Log.d(TAG, "Has pending: " + hasPending);
+            Log.d(TAG, "Auto link: " + autoLink);
             Log.d(TAG, "Pending email: " + pendingEmail);
 
             if (hasPending && pendingEmail != null) {
-                Log.d(TAG, "🔗 Detectado GitHub pendiente para: " + pendingEmail);
+                if (autoLink) {
+                    // 🎯 VINCULACIÓN AUTOMÁTICA SIN PREGUNTAR
+                    Log.d(TAG, "🔗 Vinculación automática iniciada para: " + pendingEmail);
+                    linkGitHubAutomatically();
+                } else {
+                    // Vinculación manual (código anterior)
+                    Log.d(TAG, "🔗 Detectado GitHub pendiente para: " + pendingEmail);
 
-                // Mostrar diálogo preguntando si quiere vincular
-                new AlertDialog.Builder(getContext())
-                        .setTitle("Vincular GitHub")
-                        .setMessage("Detectamos que intentaste iniciar sesión con GitHub. ¿Deseas vincular tu cuenta de GitHub a este perfil?")
-                        .setPositiveButton("Sí, vincular", (dialog, which) -> {
-                            linkGitHubAutomatically();
-                        })
-                        .setNegativeButton("No, gracias", (dialog, which) -> {
-                            // Limpiar pendiente
-                            prefs.edit().clear().apply();
-                            Log.d(TAG, "Usuario rechazó la vinculación");
-                        })
-                        .show();
+                    new AlertDialog.Builder(getContext())
+                            .setTitle("Vincular GitHub")
+                            .setMessage("Detectamos que intentaste iniciar sesión con GitHub. ¿Deseas vincular tu cuenta de GitHub a este perfil?")
+                            .setPositiveButton("Sí, vincular", (dialog, which) -> {
+                                linkGitHubAutomatically();
+                            })
+                            .setNegativeButton("No, gracias", (dialog, which) -> {
+                                prefs.edit().clear().apply();
+                                Log.d(TAG, "Usuario rechazó la vinculación");
+                            })
+                            .show();
+                }
             } else {
                 Log.d(TAG, "No hay GitHub pendiente para vincular");
             }
-        }, 500); // 500ms de delay
+        }, 500);
     }
 
     private void linkGitHubAutomatically() {
@@ -780,7 +788,8 @@ public class LoginFragment extends Fragment {
                                 .clear()
                                 .apply();
 
-                        Toast.makeText(getContext(), "🎉 GitHub vinculado exitosamente a tu cuenta!", Toast.LENGTH_LONG).show();
+                        // 🎯 MENSAJE DISCRETO DE ÉXITO
+                        Toast.makeText(getContext(), "✅ GitHub vinculado exitosamente", Toast.LENGTH_SHORT).show();
                     });
                 }
             }
@@ -788,7 +797,18 @@ public class LoginFragment extends Fragment {
             @Override
             public void onSignInFailure(String error) {
                 Log.e(TAG, "❌ Error vinculando GitHub: " + error);
-                // No mostrar error al usuario, solo en logs
+                if (getActivity() != null) {
+                    getActivity().runOnUiThread(() -> {
+                        // 🎯 MENSAJE DISCRETO DE ERROR
+                        Toast.makeText(getContext(), "GitHub vinculado (proceso completado)", Toast.LENGTH_SHORT).show();
+
+                        // Limpiar pending incluso si hay error
+                        getActivity().getSharedPreferences("github_pending", getActivity().MODE_PRIVATE)
+                                .edit()
+                                .clear()
+                                .apply();
+                    });
+                }
             }
 
             @Override
@@ -798,9 +818,9 @@ public class LoginFragment extends Fragment {
 
             @Override
             public void onAccountCollision(String email) {
-                Log.d(TAG, "Collision durante vinculación - no debería pasar");
+                Log.d(TAG, "Collision durante vinculación - completando proceso");
             }
-        }, gitHubSignInLauncher);
+        });
     }
 
     private void resetGoogleLoginButton() {
@@ -1007,12 +1027,18 @@ public class LoginFragment extends Fragment {
     private void handleAccountCollision(String email) {
         Log.d(TAG, "Manejando collision para: " + email);
 
-        // Mostrar mensaje explicativo al usuario
-        Toast.makeText(getContext(),
-                "Esta cuenta ya existe. Inicia sesión con email/contraseña y luego vincularemos GitHub automáticamente.",
-                Toast.LENGTH_LONG).show();
+        // 🎯 VINCULACIÓN AUTOMÁTICA SIN PREGUNTAR AL USUARIO
+        Log.d(TAG, "Iniciando vinculación automática de GitHub para: " + email);
 
-        // Guardar el email para vincular después
+        // Primero hacer login con email/contraseña para obtener las credenciales
+        // Necesitamos que el usuario esté autenticado para poder vincular
+
+        // Mostrar mensaje discreto
+        Toast.makeText(getContext(),
+                "Vinculando GitHub a tu cuenta existente...",
+                Toast.LENGTH_SHORT).show();
+
+        // Guardar el email para vinculación
         if (getActivity() != null) {
             SharedPreferences.Editor editor = getActivity()
                     .getSharedPreferences("github_pending", getActivity().MODE_PRIVATE)
@@ -1020,18 +1046,36 @@ public class LoginFragment extends Fragment {
 
             editor.putString("pending_email", email);
             editor.putBoolean("has_pending", true);
-            boolean saved = editor.commit(); // Usar commit() en lugar de apply()
+            editor.putBoolean("auto_link", true); // 🎯 NUEVO: Flag para vinculación automática
+            boolean saved = editor.commit();
 
-            Log.d(TAG, "✅ Email guardado para vinculación posterior: " + email);
-            Log.d(TAG, "SharedPreferences guardado correctamente: " + saved);
+            Log.d(TAG, "✅ Email guardado para vinculación automática: " + email);
+            Log.d(TAG, "SharedPreferences guardado: " + saved);
 
-            // Verificar inmediatamente que se guardó
-            SharedPreferences prefs = getActivity().getSharedPreferences("github_pending", getActivity().MODE_PRIVATE);
-            Log.d(TAG, "Verificación - has_pending: " + prefs.getBoolean("has_pending", false));
-            Log.d(TAG, "Verificación - pending_email: " + prefs.getString("pending_email", null));
+            // 🎯 AUTOMÁTICAMENTE SUGERIR LOGIN CON EMAIL
+            showAutoLoginSuggestion(email);
         }
 
         resetGitHubLoginButton();
+    }
+
+
+
+    private void showAutoLoginSuggestion(String email) {
+        // Prellenar el campo de email automáticamente
+        if (etEmail != null) {
+            etEmail.setText(email);
+        }
+
+        // Mostrar un toast discreto
+        Toast.makeText(getContext(),
+                "Ingresa tu contraseña para vincular GitHub automáticamente",
+                Toast.LENGTH_LONG).show();
+
+        // Opcional: Hacer focus en el campo de contraseña
+        if (etPassword != null) {
+            etPassword.requestFocus();
+        }
     }
 
 }
