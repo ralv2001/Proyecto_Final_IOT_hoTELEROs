@@ -52,17 +52,16 @@ public class SuperAdminActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // ✅ CONFIGURAR EDGE-TO-EDGE
+        // ✅ CONFIGURAR EDGE-TO-EDGE (VERSIÓN SIMPLE)
         enableEdgeToEdge();
 
         setContentView(R.layout.superadmin_activity_super_admin);
 
-        // ✅ CONFIGURAR WINDOW INSETS PARA RESPETAR BARRAS DEL SISTEMA
-        View mainLayout = findViewById(R.id.fragment_container); // ✅ Este es el ID correcto
+        // ✅ CONFIGURAR WINDOW INSETS - VERSIÓN SIMPLE ORIGINAL
+        View mainLayout = findViewById(R.id.fragment_container);
         ViewCompat.setOnApplyWindowInsetsListener(mainLayout, (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            // ✅ SOLO aplicar bottom padding para navigation bar
-            // El header naranja maneja su propio top padding
+            // 🎯 SOLO bottom padding simple - como era antes
             v.setPadding(v.getPaddingLeft(), v.getPaddingTop(), v.getPaddingRight(), systemBars.bottom);
             return insets;
         });
@@ -603,13 +602,27 @@ public class SuperAdminActivity extends AppCompatActivity {
         // FirebaseManager.getInstance().saveAdminLog(logData);
     }
 
-    // ✅ MÉTODO PARA HABILITAR EDGE-TO-EDGE
+    // ✅ MÉTODO PARA HABILITAR EDGE-TO-EDGE (VERSIÓN SUPERADMIN - ICONOS BLANCOS)
     private void enableEdgeToEdge() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            // Android 11+
             getWindow().setDecorFitsSystemWindows(false);
+
+            getWindow().getDecorView().setSystemUiVisibility(
+                    View.SYSTEM_UI_FLAG_LAYOUT_STABLE |
+                            View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION |
+                            View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                    // 🎯 SIN LIGHT_STATUS_BAR = iconos blancos para fondo naranja
+            );
+
+        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            getWindow().getDecorView().setSystemUiVisibility(
+                    View.SYSTEM_UI_FLAG_LAYOUT_STABLE |
+                            View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION |
+                            View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                    // 🎯 SIN LIGHT_STATUS_BAR = iconos blancos
+            );
+
         } else {
-            // Android 10 y anteriores
             getWindow().getDecorView().setSystemUiVisibility(
                     View.SYSTEM_UI_FLAG_LAYOUT_STABLE |
                             View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION |
