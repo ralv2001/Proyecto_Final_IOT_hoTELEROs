@@ -6,9 +6,12 @@ import android.app.AlertDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
+import android.graphics.Color;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.view.WindowInsetsController;
 import android.widget.LinearLayout;
 import android.widget.Toast;
 
@@ -45,16 +48,23 @@ public class MainActivity extends AppCompatActivity {
         // Verificar si hay vinculación pendiente de GitHub
         //checkPendingGitHubLink();
 
-        EdgeToEdge.enable(this);
-        setContentView(R.layout.sistema_activity_main);
 
         // En caso se necesite crear de nuevo el SuperAdmin porque se borró:
         //recreateSuperAdmin();
 
-        // Configurar sistema de insets para pantallas con notch
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
+        // ✅ CONFIGURAR EDGE-TO-EDGE
+        enableEdgeToEdge();
+
+        setContentView(R.layout.sistema_activity_main);
+
+        // ✅ CONFIGURAR WINDOW INSETS - EDGE-TO-EDGE COMPLETO
+        View mainContainer = findViewById(R.id.main);
+        ViewCompat.setOnApplyWindowInsetsListener(mainContainer, (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
+
+            // Para MainActivity: solo bottom padding para navigation bar
+            // El status bar se maneja por el background image
+            v.setPadding(v.getPaddingLeft(), v.getPaddingTop(), v.getPaddingRight(), systemBars.bottom);
             return insets;
         });
 
@@ -404,6 +414,39 @@ public class MainActivity extends AppCompatActivity {
                 // No debería pasar en vinculación
             }
         }, null);
+    }
+
+
+    // ✅ MÉTODO PARA HABILITAR EDGE-TO-EDGE CON ICONOS OSCUROS (VERSIÓN SEGURA)
+    private void enableEdgeToEdge() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            getWindow().setDecorFitsSystemWindows(false);
+
+            // 🎯 ICONOS OSCUROS PARA ANDROID 11+ (método seguro)
+            getWindow().getDecorView().setSystemUiVisibility(
+                    View.SYSTEM_UI_FLAG_LAYOUT_STABLE |
+                            View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION |
+                            View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN |
+                            View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
+            );
+
+        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            // Android 6.0 - Android 10
+            getWindow().getDecorView().setSystemUiVisibility(
+                    View.SYSTEM_UI_FLAG_LAYOUT_STABLE |
+                            View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION |
+                            View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN |
+                            View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR  // 🎯 ICONOS OSCUROS
+            );
+
+        } else {
+            // Android 5.0 y anteriores (sin iconos oscuros)
+            getWindow().getDecorView().setSystemUiVisibility(
+                    View.SYSTEM_UI_FLAG_LAYOUT_STABLE |
+                            View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION |
+                            View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+            );
+        }
     }
 
 

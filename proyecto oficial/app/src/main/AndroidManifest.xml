@@ -63,9 +63,9 @@
 
         <activity
             android:name=".AuthActivity"
-            android:exported="true"
             android:configChanges="orientation|screenSize|keyboardHidden"
-            android:windowSoftInputMode="adjustPan|stateHidden"
+            android:windowSoftInputMode="adjustResize|stateHidden"
+            android:exported="true"
             android:screenOrientation="unspecified" />
 
         <activity
@@ -108,10 +108,9 @@
 
         <activity
             android:name=".auth.register.RegisterUserActivity"
-            android:exported="false"
             android:configChanges="orientation|screenSize|keyboardHidden"
-            android:screenOrientation="unspecified"
-            android:windowSoftInputMode="adjustPan|stateHidden" />
+            android:windowSoftInputMode="adjustResize|stateHidden"
+            android:exported="false" />
 
         <activity
             android:name=".auth.password.SuccessActivity"
