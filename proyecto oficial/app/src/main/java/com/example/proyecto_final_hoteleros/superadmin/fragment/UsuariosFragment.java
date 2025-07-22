@@ -67,7 +67,7 @@ public class UsuariosFragment extends Fragment {
         etSearch = view.findViewById(R.id.et_search);
         layoutSearch = view.findViewById(R.id.layout_search);
         ivSearchToggle = view.findViewById(R.id.iv_search_toggle);
-        ivFilter = view.findViewById(R.id.iv_filter);
+        // ivFilter = view.findViewById(R.id.iv_filter); // ❌ COMENTAR/REMOVER ESTA LÍNEA
         ivStats = view.findViewById(R.id.iv_stats);
         chipAll = view.findViewById(R.id.chip_all);
         chipClients = view.findViewById(R.id.chip_clients);
