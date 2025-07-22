@@ -113,7 +113,7 @@
 
         <activity
             android:name=".auth.password.SuccessActivity"
-            android:windowSoftInputMode="adjustPan|stateHidden"
+            android:windowSoftInputMode="adjustResize|stateHidden"
             android:exported="false"
             android:configChanges="orientation|screenSize|keyboardHidden" />
 
@@ -126,8 +126,9 @@
         <!-- ========== ACTIVIDADES DE SUPERADMIN ========== -->
         <activity
             android:name=".superadmin.activity.SuperAdminActivity"
+            android:configChanges="orientation|screenSize|keyboardHidden"
             android:windowSoftInputMode="adjustResize|stateHidden"
-            android:exported="true" />
+            android:exported="false" />
 
         <activity
             android:name=".adminhotel.activity.AdminHotelActivity"
