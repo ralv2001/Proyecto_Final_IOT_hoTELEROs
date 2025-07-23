@@ -75,7 +75,8 @@
         <!-- Actividad del Taxista -->
         <activity
             android:name=".taxista.activity.DriverActivity"
-            android:windowSoftInputMode="adjustPan|stateHidden"
+            android:windowSoftInputMode="adjustResize|stateHidden"
+            android:configChanges="orientation|screenSize|keyboardHidden"
             android:exported="false" />
 
         <!-- ========== ACTIVIDADES DE AUTENTICACIÓN (TUS CAMBIOS) ========== -->
