@@ -133,96 +133,96 @@
                     android:src="@drawable/flecha_inicial" />
             </LinearLayout>
 
-            <!-- Opción "Continuar como superadmin" -->
+<!--            &lt;!&ndash; Opción "Continuar como superadmin" &ndash;&gt;-->
 
-            <!-- Comentar esta parte más adelante -->
-            <LinearLayout
-                android:id="@+id/layoutContinueAsSuperadmin"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="24dp"
-                android:clickable="true"
-                android:focusable="true"
-                android:gravity="center_vertical"
-                android:orientation="horizontal">
-
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginEnd="4dp"
-                    android:fontFamily="@font/inter_18pt_medium"
-                    android:letterSpacing="-0.025"
-                    android:text="Continuar como superadmin"
-                    android:textColor="#0C0D0E"
-                    android:textSize="16sp" />
-
-                <ImageView
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
-                    android:src="@drawable/flecha_inicial" />
-
-            </LinearLayout>
-            <!-- Opción "Continuar como admin de hoel" -->
-
-            <!-- Comentar esta parte más adelante -->
-            <LinearLayout
-                android:id="@+id/layoutContinueAsAdminHotel"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="24dp"
-                android:clickable="true"
-                android:focusable="true"
-                android:gravity="center_vertical"
-                android:orientation="horizontal">
+<!--            &lt;!&ndash; Comentar esta parte más adelante &ndash;&gt;-->
+<!--            <LinearLayout-->
+<!--                android:id="@+id/layoutContinueAsSuperadmin"-->
+<!--                android:layout_width="wrap_content"-->
+<!--                android:layout_height="wrap_content"-->
+<!--                android:layout_marginTop="24dp"-->
+<!--                android:clickable="true"-->
+<!--                android:focusable="true"-->
+<!--                android:gravity="center_vertical"-->
+<!--                android:orientation="horizontal">-->
 
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginEnd="4dp"
-                    android:fontFamily="@font/inter_18pt_medium"
-                    android:letterSpacing="-0.025"
-                    android:text="Continuar como admin de hotel"
-                    android:textColor="#0C0D0E"
-                    android:textSize="16sp" />
+<!--                <TextView-->
+<!--                    android:layout_width="wrap_content"-->
+<!--                    android:layout_height="wrap_content"-->
+<!--                    android:layout_marginEnd="4dp"-->
+<!--                    android:fontFamily="@font/inter_18pt_medium"-->
+<!--                    android:letterSpacing="-0.025"-->
+<!--                    android:text="Continuar como superadmin"-->
+<!--                    android:textColor="#0C0D0E"-->
+<!--                    android:textSize="16sp" />-->
 
-                <ImageView
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
-                    android:src="@drawable/flecha_inicial" />
+<!--                <ImageView-->
+<!--                    android:layout_width="24dp"-->
+<!--                    android:layout_height="24dp"-->
+<!--                    android:src="@drawable/flecha_inicial" />-->
 
-            </LinearLayout>
-            <LinearLayout
-                android:id="@+id/layoutContinueAsTaxiDriver"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="24dp"
-                android:clickable="true"
-                android:focusable="true"
-                android:gravity="center_vertical"
-                android:orientation="horizontal">
+<!--            </LinearLayout>-->
+<!--            &lt;!&ndash; Opción "Continuar como admin de hoel" &ndash;&gt;-->
 
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginEnd="4dp"
-                    android:fontFamily="@font/inter_18pt_medium"
-                    android:letterSpacing="-0.025"
-                    android:text="Continuar como taxista"
-                    android:textColor="#0C0D0E"
-                    android:textSize="16sp" />
-
-                <ImageView
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
-                    android:src="@drawable/flecha_inicial" />
-
-            </LinearLayout>
+<!--            &lt;!&ndash; Comentar esta parte más adelante &ndash;&gt;-->
+<!--            <LinearLayout-->
+<!--                android:id="@+id/layoutContinueAsAdminHotel"-->
+<!--                android:layout_width="wrap_content"-->
+<!--                android:layout_height="wrap_content"-->
+<!--                android:layout_marginTop="24dp"-->
+<!--                android:clickable="true"-->
+<!--                android:focusable="true"-->
+<!--                android:gravity="center_vertical"-->
+<!--                android:orientation="horizontal">-->
 
 
-            <!-- Comentar esta parte más adelante -->
+<!--                <TextView-->
+<!--                    android:layout_width="wrap_content"-->
+<!--                    android:layout_height="wrap_content"-->
+<!--                    android:layout_marginEnd="4dp"-->
+<!--                    android:fontFamily="@font/inter_18pt_medium"-->
+<!--                    android:letterSpacing="-0.025"-->
+<!--                    android:text="Continuar como admin de hotel"-->
+<!--                    android:textColor="#0C0D0E"-->
+<!--                    android:textSize="16sp" />-->
+
+<!--                <ImageView-->
+<!--                    android:layout_width="24dp"-->
+<!--                    android:layout_height="24dp"-->
+<!--                    android:src="@drawable/flecha_inicial" />-->
+
+<!--            </LinearLayout>-->
+<!--            <LinearLayout-->
+<!--                android:id="@+id/layoutContinueAsTaxiDriver"-->
+<!--                android:layout_width="wrap_content"-->
+<!--                android:layout_height="wrap_content"-->
+<!--                android:layout_marginTop="24dp"-->
+<!--                android:clickable="true"-->
+<!--                android:focusable="true"-->
+<!--                android:gravity="center_vertical"-->
+<!--                android:orientation="horizontal">-->
+
+
+<!--                <TextView-->
+<!--                    android:layout_width="wrap_content"-->
+<!--                    android:layout_height="wrap_content"-->
+<!--                    android:layout_marginEnd="4dp"-->
+<!--                    android:fontFamily="@font/inter_18pt_medium"-->
+<!--                    android:letterSpacing="-0.025"-->
+<!--                    android:text="Continuar como taxista"-->
+<!--                    android:textColor="#0C0D0E"-->
+<!--                    android:textSize="16sp" />-->
+
+<!--                <ImageView-->
+<!--                    android:layout_width="24dp"-->
+<!--                    android:layout_height="24dp"-->
+<!--                    android:src="@drawable/flecha_inicial" />-->
+
+<!--            </LinearLayout>-->
+
+
+<!--            &lt;!&ndash; Comentar esta parte más adelante &ndash;&gt;-->
 
         </LinearLayout>
     </ScrollView>

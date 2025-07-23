@@ -109,74 +109,74 @@ public class MainActivity extends AppCompatActivity {
                 finish();
             }
         });
-        LinearLayout layoutContinueAsSuperadmin = findViewById(R.id.layoutContinueAsSuperadmin);
-        layoutContinueAsSuperadmin.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                // Crear usuario superadmin si no existe
-                com.example.proyecto_final_hoteleros.utils.FirebaseManager firebaseManager =
-                        com.example.proyecto_final_hoteleros.utils.FirebaseManager.getInstance();
-
-                firebaseManager.createSuperAdminUser(new com.example.proyecto_final_hoteleros.utils.FirebaseManager.DataCallback() {
-                    @Override
-                    public void onSuccess() {
-                        Toast.makeText(MainActivity.this,
-                                "Usuario superadmin creado. Email: delgadoaquinor@gmail.com, Password: SuperAdmin123!",
-                                Toast.LENGTH_LONG).show();
-
-                        // Navegar al login
-                        goToAuth("login");
-                    }
-
-                    @Override
-                    public void onError(String error) {
-                        if (error.contains("email address is already in use")) {
-                            Toast.makeText(MainActivity.this,
-                                    "Superadmin ya existe. Ir a login",
-                                    Toast.LENGTH_SHORT).show();
-                            goToAuth("login");
-                        } else {
-                            Toast.makeText(MainActivity.this,
-                                    "Error: " + error,
-                                    Toast.LENGTH_SHORT).show();
-                        }
-                    }
-                });
-            }
-        });
+//        LinearLayout layoutContinueAsSuperadmin = findViewById(R.id.layoutContinueAsSuperadmin);
+//        layoutContinueAsSuperadmin.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                // Crear usuario superadmin si no existe
+//                com.example.proyecto_final_hoteleros.utils.FirebaseManager firebaseManager =
+//                        com.example.proyecto_final_hoteleros.utils.FirebaseManager.getInstance();
+//
+//                firebaseManager.createSuperAdminUser(new com.example.proyecto_final_hoteleros.utils.FirebaseManager.DataCallback() {
+//                    @Override
+//                    public void onSuccess() {
+//                        Toast.makeText(MainActivity.this,
+//                                "Usuario superadmin creado. Email: delgadoaquinor@gmail.com, Password: SuperAdmin123!",
+//                                Toast.LENGTH_LONG).show();
+//
+//                        // Navegar al login
+//                        goToAuth("login");
+//                    }
+//
+//                    @Override
+//                    public void onError(String error) {
+//                        if (error.contains("email address is already in use")) {
+//                            Toast.makeText(MainActivity.this,
+//                                    "Superadmin ya existe. Ir a login",
+//                                    Toast.LENGTH_SHORT).show();
+//                            goToAuth("login");
+//                        } else {
+//                            Toast.makeText(MainActivity.this,
+//                                    "Error: " + error,
+//                                    Toast.LENGTH_SHORT).show();
+//                        }
+//                    }
+//                });
+//            }
+//        });
 
         // Configuración de "Continuar como admin de hotel"
         // Configuración de "Continuar como admin de hotel"
         // Configuración de "Continuar como admin de hotel"
-        LinearLayout layoutContinueAsAdminHotel = findViewById(R.id.layoutContinueAsAdminHotel);
-        layoutContinueAsAdminHotel.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Toast.makeText(MainActivity.this, "Continuando como admin de hotel ...", Toast.LENGTH_SHORT).show();
+//        LinearLayout layoutContinueAsAdminHotel = findViewById(R.id.layoutContinueAsAdminHotel);
+//        layoutContinueAsAdminHotel.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                Toast.makeText(MainActivity.this, "Continuando como admin de hotel ...", Toast.LENGTH_SHORT).show();
+//
+//                // Autenticar o crear usuario de prueba para admin de hotel
+//                authenticateTestHotelAdmin();
+//            }
+//        });
 
-                // Autenticar o crear usuario de prueba para admin de hotel
-                authenticateTestHotelAdmin();
-            }
-        });
-
-        LinearLayout layoutContinueAsTaxiDriver = findViewById(R.id.layoutContinueAsTaxiDriver);
-        layoutContinueAsTaxiDriver.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Toast.makeText(MainActivity.this, "🚗 Continuando como taxista...", Toast.LENGTH_SHORT).show();
-
-                // Crear intent con datos simulados para testing
-                Intent intent = new Intent(MainActivity.this, DriverActivity.class);
-
-                // ⭐ AGREGAR ESTOS DATOS PARA QUE FUNCIONE CORRECTAMENTE
-                intent.putExtra("userId", "taxista_testing_" + System.currentTimeMillis());
-                intent.putExtra("userEmail", "taxista.testing@hoteleros.com");
-                intent.putExtra("userName", "Taxista de Prueba");
-                intent.putExtra("userType", "driver");
-
-                startActivity(intent);
-            }
-        });
+//        LinearLayout layoutContinueAsTaxiDriver = findViewById(R.id.layoutContinueAsTaxiDriver);
+//        layoutContinueAsTaxiDriver.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                Toast.makeText(MainActivity.this, "🚗 Continuando como taxista...", Toast.LENGTH_SHORT).show();
+//
+//                // Crear intent con datos simulados para testing
+//                Intent intent = new Intent(MainActivity.this, DriverActivity.class);
+//
+//                // ⭐ AGREGAR ESTOS DATOS PARA QUE FUNCIONE CORRECTAMENTE
+//                intent.putExtra("userId", "taxista_testing_" + System.currentTimeMillis());
+//                intent.putExtra("userEmail", "taxista.testing@hoteleros.com");
+//                intent.putExtra("userName", "Taxista de Prueba");
+//                intent.putExtra("userType", "driver");
+//
+//                startActivity(intent);
+//            }
+//        });
         // ========== TESTS DE CONCURRENCIA - COMENTADO PARA PRODUCCIÓN ==========
         /*
         findViewById(R.id.btnLogin).setOnLongClickListener(v -> {
