@@ -1398,6 +1398,8 @@
                 Log.d(TAG, "✅ Spinner GIF detenido");
             }
         }
+
+
     
     
     }

@@ -23,6 +23,10 @@ import com.google.android.material.textfield.TextInputEditText;
 import java.util.HashMap;
 import java.util.Map;
 
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
+import androidx.core.graphics.Insets;
+
 public class EditAdminFragment extends Fragment {
 
     private static final String TAG = "EditAdminFragment";
@@ -47,7 +51,7 @@ public class EditAdminFragment extends Fragment {
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_edit_admin, container, false);
+        View view = inflater.inflate(R.layout.superadmin_fragment_edit_admin, container, false);
 
         initViews(view);
         loadAdminData();

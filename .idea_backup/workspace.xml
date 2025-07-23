@@ -1,0 +1,1528 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AndroidLayouts">
+    <shared>
+      <config />
+    </shared>
+    <layouts>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/font/inter_medium.xml">
+        <config>
+          <theme>@style/Theme.Proyecto_Final_hoTELEROs</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/admin_hote_item_damage_detail.xml">
+        <config>
+          <theme>@style/Theme.Proyecto_Final_hoTELEROs</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/admin_hotel.xml">
+        <config>
+          <theme>@style/Theme.Proyecto_Final_hoTELEROs</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/admin_hotel_bottom_navigation.xml">
+        <config>
+          <theme>@style/Theme.Proyecto_Final_hoTELEROs</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/admin_hotel_dialog_add_basic_service.xml">
+        <config>
+          <theme>@style/Theme.Proyecto_Final_hoTELEROs</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/admin_hotel_dialog_add_damage.xml">
+        <config>
+          <theme>@style/Theme.Proyecto_Final_hoTELEROs</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/admin_hotel_dialog_add_payment_method.xml">
+        <config>
+          <theme>@style/Theme.Proyecto_Final_hoTELEROs</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/admin_hotel_dialog_add_room_type.xml">
+        <config>
+          <theme>@style/Theme.Proyecto_Final_hoTELEROs</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/admin_hotel_dialog_add_service.xml">
+        <config>
+          <theme>@style/Theme.Proyecto_Final_hoTELEROs</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/admin_hotel_dialog_checkout_details.xml">
+        <config>
+          <theme>@style/Theme.Proyecto_Final_hoTELEROs</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/admin_hotel_dialog_checkout_invoice.xml">
+        <config>
+          <theme>@style/Theme.Proyecto_Final_hoTELEROs</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/admin_hotel_dialog_icon_selector.xml">
+        <config>
+          <theme>@style/Theme.Proyecto_Final_hoTELEROs</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/admin_hotel_dialog_search_online_icons.xml">
+        <config>
+          <theme>@style/Theme.Proyecto_Final_hoTELEROs</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/admin_hotel_fragment_chat_admin.xml">
+        <config>
+          <theme>@style/Theme.Proyecto_Final_hoTELEROs</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/admin_hotel_fragment_chat_admin_conversacion.xml">
+        <config>
+          <theme>@style/Theme.Proyecto_Final_hoTELEROs</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/admin_hotel_fragment_checkout.xml">
+        <config>
+          <theme>@style/Theme.Proyecto_Final_hoTELEROs</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/admin_hotel_fragment_edit_profile.xml">
+        <config>
+          <theme>@style/Theme.Proyecto_Final_hoTELEROs</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/admin_hotel_fragment_help.xml">
+        <config>
+          <theme>@style/Theme.Proyecto_Final_hoTELEROs</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/admin_hotel_fragment_hotel_management.xml">
+        <config>
+          <theme>@style/Theme.Proyecto_Final_hoTELEROs</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/admin_hotel_fragment_notification_settings.xml">
+        <config>
+          <theme>@style/Theme.Proyecto_Final_hoTELEROs</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/admin_hotel_fragment_profile.xml">
+        <config>
+          <theme>@style/Theme.Proyecto_Final_hoTELEROs</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/admin_hotel_fragment_profile_management.xml">
+        <config>
+          <theme>@style/Theme.Proyecto_Final_hoTELEROs</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/admin_hotel_fragment_report_services.xml">
+        <config>
+          <theme>@style/Theme.Proyecto_Final_hoTELEROs</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/admin_hotel_fragment_report_users.xml">
+        <config>
+          <theme>@style/Theme.Proyecto_Final_hoTELEROs</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/admin_hotel_fragment_reports.xml">
+        <config>
+          <theme>@style/Theme.Proyecto_Final_hoTELEROs</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/admin_hotel_fragment_room_management.xml">
+        <config>
+          <theme>@style/Theme.Proyecto_Final_hoTELEROs</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/admin_hotel_fragment_service_management.xml">
+        <config>
+          <theme>@style/Theme.Proyecto_Final_hoTELEROs</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/admin_hotel_fragment_taxi.xml">
+        <config>
+          <theme>@style/Theme.Proyecto_Final_hoTELEROs</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/admin_hotel_item_basic_service.xml">
+        <config>
+          <theme>@style/Theme.Proyecto_Final_hoTELEROs</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/admin_hotel_item_chat.xml">
+        <config>
+          <theme>@style/Theme.Proyecto_Final_hoTELEROs</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/admin_hotel_item_checkout.xml">
+        <config>
+          <theme>@style/Theme.Proyecto_Final_hoTELEROs</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/admin_hotel_item_huesped.xml">
+        <config>
+          <theme>@style/Theme.Proyecto_Final_hoTELEROs</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/admin_hotel_item_icon_selector.xml">
+        <config>
+          <theme>@style/Theme.Proyecto_Final_hoTELEROs</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/admin_hotel_item_message_admin.xml">
+        <config>
+          <theme>@style/Theme.Proyecto_Final_hoTELEROs</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/admin_hotel_item_message_client.xml">
+        <config>
+          <theme>@style/Theme.Proyecto_Final_hoTELEROs</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/admin_hotel_item_message_system.xml">
+        <config>
+          <theme>@style/Theme.Proyecto_Final_hoTELEROs</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/admin_hotel_item_photo.xml">
+        <config>
+          <theme>@style/Theme.Proyecto_Final_hoTELEROs</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/admin_hotel_item_report_detail.xml">
+        <config>
+          <theme>@style/Theme.Proyecto_Final_hoTELEROs</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/admin_hotel_item_room_type.xml">
+        <config>
+          <theme>@style/Theme.Proyecto_Final_hoTELEROs</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/admin_hotel_item_service_chip.xml">
+        <config>
+          <theme>@style/Theme.Proyecto_Final_hoTELEROs</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/admin_hotel_item_service_detail.xml">
+        <config>
+          <theme>@style/Theme.Proyecto_Final_hoTELEROs</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/admin_hotel_item_service_management.xml">
+        <config>
+          <theme>@style/Theme.Proyecto_Final_hoTELEROs</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/admin_hotel_item_service_photo.xml">
+        <config>
+          <theme>@style/Theme.Proyecto_Final_hoTELEROs</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/admin_hotel_item_service_report.xml">
+        <config>
+          <theme>@style/Theme.Proyecto_Final_hoTELEROs</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/admin_hotel_item_service_selection.xml">
+        <config>
+          <theme>@style/Theme.Proyecto_Final_hoTELEROs</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/admin_hotel_item_taxi_status.xml">
+        <config>
+          <theme>@style/Theme.Proyecto_Final_hoTELEROs</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/admin_hotel_item_user_report.xml">
+        <config>
+          <theme>@style/Theme.Proyecto_Final_hoTELEROs</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/admin_hotel_item_usuario.xml">
+        <config>
+          <theme>@style/Theme.Proyecto_Final_hoTELEROs</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/client_activity_all_hotel_services.xml">
+        <config>
+          <theme>@style/Theme.Proyecto_Final_hoTELEROs</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/client_activity_home.xml">
+        <config>
+          <theme>@style/Theme.Proyecto_Final_hoTELEROs</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/client_activity_hotel_results.xml">
+        <config>
+          <theme>@style/Theme.Proyecto_Final_hoTELEROs</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/client_activity_hotel_services_preview.xml">
+        <config>
+          <theme>@style/Theme.Proyecto_Final_hoTELEROs</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/client_activity_location_selector.xml">
+        <config>
+          <theme>@style/Theme.Proyecto_Final_hoTELEROs</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/client_activity_notification_test.xml">
+        <config>
+          <theme>@style/Theme.Proyecto_Final_hoTELEROs</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/client_activity_view_all_services.xml">
+        <config>
+          <theme>@style/Theme.Proyecto_Final_hoTELEROs</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/client_bottom_navigation.xml">
+        <config>
+          <theme>@style/Theme.Proyecto_Final_hoTELEROs</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/client_bottom_sheet_cart.xml">
+        <config>
+          <theme>@style/Theme.Proyecto_Final_hoTELEROs</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/client_bottom_sheet_custom_date_picker.xml">
+        <config>
+          <theme>@style/Theme.Proyecto_Final_hoTELEROs</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/client_bottom_sheet_guest_count.xml">
+        <config>
+          <theme>@style/Theme.Proyecto_Final_hoTELEROs</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/client_custom_success_toast.xml">
+        <config>
+          <theme>@style/Theme.Proyecto_Final_hoTELEROs</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/client_dialog_add_payment.xml">
+        <config>
+          <theme>@style/Theme.Proyecto_Final_hoTELEROs</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/client_dialog_clear_cart.xml">
+        <config>
+          <theme>@style/Theme.Proyecto_Final_hoTELEROs</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/client_dialog_conditional_service.xml">
+        <config>
+          <theme>@style/Theme.Proyecto_Final_hoTELEROs</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/client_dialog_guests.xml">
+        <config>
+          <theme>@style/Theme.Proyecto_Final_hoTELEROs</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/client_dialog_modify_search.xml">
+        <config>
+          <theme>@style/Theme.Proyecto_Final_hoTELEROs</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/client_dialog_success.xml">
+        <config>
+          <theme>@style/Theme.Proyecto_Final_hoTELEROs</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/client_dialog_taxi_info.xml">
+        <config>
+          <theme>@style/Theme.Proyecto_Final_hoTELEROs</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/client_dialog_taxi_info_preview.xml">
+        <config>
+          <theme>@style/Theme.Proyecto_Final_hoTELEROs</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/client_dialog_taxi_offer.xml">
+        <config>
+          <theme>@style/Theme.Proyecto_Final_hoTELEROs</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/client_empty_state_view.xml">
+        <config>
+          <theme>@style/Theme.Proyecto_Final_hoTELEROs</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/client_fragment_all_reviews.xml">
+        <config>
+          <theme>@style/Theme.Proyecto_Final_hoTELEROs</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/client_fragment_booking_summary.xml">
+        <config>
+          <theme>@style/Theme.Proyecto_Final_hoTELEROs</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/client_fragment_chat.xml">
+        <config>
+          <theme>@style/Theme.Proyecto_Final_hoTELEROs</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/client_fragment_chat_conversation.xml">
+        <config>
+          <theme>@style/Theme.Proyecto_Final_hoTELEROs</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/client_fragment_edit_profile.xml">
+        <config>
+          <theme>@style/Theme.Proyecto_Final_hoTELEROs</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/client_fragment_historial.xml">
+        <config>
+          <theme>@style/Theme.Proyecto_Final_hoTELEROs</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/client_fragment_home.xml">
+        <config>
+          <theme>@style/Theme.Proyecto_Final_hoTELEROs</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/client_fragment_hotel_detail.xml">
+        <config>
+          <theme>@style/Theme.Proyecto_Final_hoTELEROs</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/client_fragment_hotel_selection.xml">
+        <config>
+          <theme>@style/Theme.Proyecto_Final_hoTELEROs</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/client_fragment_notification_settings.xml">
+        <config>
+          <theme>@style/Theme.Proyecto_Final_hoTELEROs</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/client_fragment_profile.xml">
+        <config>
+          <theme>@style/Theme.Proyecto_Final_hoTELEROs</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/client_fragment_reservation_detail.xml">
+        <config>
+          <theme>@style/Theme.Proyecto_Final_hoTELEROs</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/client_fragment_reservation_detail_professional.xml">
+        <config>
+          <theme>@style/Theme.Proyecto_Final_hoTELEROs</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/client_fragment_room_selection.xml">
+        <config>
+          <theme>@style/Theme.Proyecto_Final_hoTELEROs</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/client_item_calendar_day.xml">
+        <config>
+          <theme>@style/Theme.Proyecto_Final_hoTELEROs</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/client_item_chat.xml">
+        <config>
+          <theme>@style/Theme.Proyecto_Final_hoTELEROs</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/client_item_city_card.xml">
+        <config>
+          <theme>@style/Theme.Proyecto_Final_hoTELEROs</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/client_item_city_header.xml">
+        <config>
+          <theme>@style/Theme.Proyecto_Final_hoTELEROs</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/client_item_edit_profile_header.xml">
+        <config>
+          <theme>@style/Theme.Proyecto_Final_hoTELEROs</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/client_item_featured_service.xml">
+        <config>
+          <theme>@style/Theme.Proyecto_Final_hoTELEROs</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/client_item_gallery_image.xml">
+        <config>
+          <theme>@style/Theme.Proyecto_Final_hoTELEROs</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/client_item_gallery_thumbnail.xml">
+        <config>
+          <theme>@style/Theme.Proyecto_Final_hoTELEROs</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/client_item_hotel_card.xml">
+        <config>
+          <theme>@style/Theme.Proyecto_Final_hoTELEROs</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/client_item_hotel_image.xml">
+        <config>
+          <theme>@style/Theme.Proyecto_Final_hoTELEROs</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/client_item_hotel_result.xml">
+        <config>
+          <theme>@style/Theme.Proyecto_Final_hoTELEROs</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/client_item_image_thumbnail.xml">
+        <config>
+          <theme>@style/Theme.Proyecto_Final_hoTELEROs</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/client_item_location.xml">
+        <config>
+          <theme>@style/Theme.Proyecto_Final_hoTELEROs</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/client_item_message.xml">
+        <config>
+          <theme>@style/Theme.Proyecto_Final_hoTELEROs</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/client_item_message_hotel.xml">
+        <config>
+          <theme>@style/Theme.Proyecto_Final_hoTELEROs</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/client_item_message_system.xml">
+        <config>
+          <theme>@style/Theme.Proyecto_Final_hoTELEROs</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/client_item_message_user.xml">
+        <config>
+          <theme>@style/Theme.Proyecto_Final_hoTELEROs</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/client_item_nearby_place.xml">
+        <config>
+          <theme>@style/Theme.Proyecto_Final_hoTELEROs</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/client_item_notification.xml">
+        <config>
+          <theme>@style/Theme.Proyecto_Final_hoTELEROs</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/client_item_popular_hotel_card.xml">
+        <config>
+          <theme>@style/Theme.Proyecto_Final_hoTELEROs</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/client_item_profile_header.xml">
+        <config>
+          <theme>@style/Theme.Proyecto_Final_hoTELEROs</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/client_item_profile_menu.xml">
+        <config>
+          <theme>@style/Theme.Proyecto_Final_hoTELEROs</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/client_item_reservation_card.xml">
+        <config>
+          <theme>@style/Theme.Proyecto_Final_hoTELEROs</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/client_item_review_card.xml">
+        <config>
+          <theme>@style/Theme.Proyecto_Final_hoTELEROs</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/client_item_room_type.xml">
+        <config>
+          <theme>@style/Theme.Proyecto_Final_hoTELEROs</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/client_item_service_category_header.xml">
+        <config>
+          <theme>@style/Theme.Proyecto_Final_hoTELEROs</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/client_item_service_detail.xml">
+        <config>
+          <theme>@style/Theme.Proyecto_Final_hoTELEROs</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/client_item_service_improved.xml">
+        <config>
+          <theme>@style/Theme.Proyecto_Final_hoTELEROs</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/client_item_service_preview.xml">
+        <config>
+          <theme>@style/Theme.Proyecto_Final_hoTELEROs</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/client_item_service_view_only.xml">
+        <config>
+          <theme>@style/Theme.Proyecto_Final_hoTELEROs</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/client_list_item_dropdown.xml">
+        <config>
+          <theme>@style/Theme.Proyecto_Final_hoTELEROs</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/client_notification_fragment.xml">
+        <config>
+          <theme>@style/Theme.Proyecto_Final_hoTELEROs</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/client_shimmer_service_item.xml">
+        <config>
+          <theme>@style/Theme.Proyecto_Final_hoTELEROs</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/client_view_search_panel.xml">
+        <config>
+          <theme>@style/Theme.Proyecto_Final_hoTELEROs</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/dialog_cancel_reservation.xml">
+        <config>
+          <theme>@style/Theme.Proyecto_Final_hoTELEROs</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/dialog_checkout_confirmation.xml">
+        <config>
+          <theme>@style/Theme.Proyecto_Final_hoTELEROs</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/dialog_full_image.xml">
+        <config>
+          <theme>@style/Theme.Proyecto_Final_hoTELEROs</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/dialog_fullscreen_image.xml">
+        <config>
+          <theme>@style/Theme.Proyecto_Final_hoTELEROs</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/dialog_modify_dates.xml">
+        <config>
+          <theme>@style/Theme.Proyecto_Final_hoTELEROs</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/dialog_pending_bill.xml">
+        <config>
+          <theme>@style/Theme.Proyecto_Final_hoTELEROs</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/dialog_review.xml">
+        <config>
+          <theme>@style/Theme.Proyecto_Final_hoTELEROs</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/dialog_service_images.xml">
+        <config>
+          <theme>@style/Theme.Proyecto_Final_hoTELEROs</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/sistema_activity_auth.xml">
+        <config>
+          <theme>@style/Theme.Proyecto_Final_hoTELEROs</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/sistema_activity_main.xml">
+        <config>
+          <theme>@style/Theme.Proyecto_Final_hoTELEROs</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/sistema_add_profile_photo.xml">
+        <config>
+          <theme>@style/Theme.Proyecto_Final_hoTELEROs</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/taxi_activity_driver.xml">
+        <config>
+          <theme>@style/Theme.Proyecto_Final_hoTELEROs</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/taxi_bottom_navigation.xml">
+        <config>
+          <theme>@style/Theme.Proyecto_Final_hoTELEROs</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/taxi_fragment_available_hotels.xml">
+        <config>
+          <theme>@style/Theme.Proyecto_Final_hoTELEROs</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/taxi_fragment_driver_historial.xml">
+        <config>
+          <theme>@style/Theme.Proyecto_Final_hoTELEROs</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/taxi_fragment_driver_map.xml">
+        <config>
+          <theme>@style/Theme.Proyecto_Final_hoTELEROs</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/taxi_fragment_driver_perfil.xml">
+        <config>
+          <theme>@style/Theme.Proyecto_Final_hoTELEROs</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/taxi_fragment_driver_viajes.xml">
+        <config>
+          <theme>@style/Theme.Proyecto_Final_hoTELEROs</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/taxi_fragment_edit_driver_profile.xml">
+        <config>
+          <theme>@style/Theme.Proyecto_Final_hoTELEROs</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/taxi_fragment_map_detail.xml">
+        <config>
+          <theme>@style/Theme.Proyecto_Final_hoTELEROs</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/taxi_fragment_payment_methods.xml">
+        <config>
+          <theme>@style/Theme.Proyecto_Final_hoTELEROs</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/taxi_fragment_registro_viaje.xml">
+        <config>
+          <theme>@style/Theme.Proyecto_Final_hoTELEROs</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/taxi_fragment_trip_details.xml">
+        <config>
+          <theme>@style/Theme.Proyecto_Final_hoTELEROs</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/taxi_fragment_trip_history_details.xml">
+        <config>
+          <theme>@style/Theme.Proyecto_Final_hoTELEROs</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/taxi_item_available_hotel.xml">
+        <config>
+          <theme>@style/Theme.Proyecto_Final_hoTELEROs</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/taxi_item_edit_car_image.xml">
+        <config>
+          <theme>@style/Theme.Proyecto_Final_hoTELEROs</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/taxi_item_edit_editable_field.xml">
+        <config>
+          <theme>@style/Theme.Proyecto_Final_hoTELEROs</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/taxi_item_edit_profile_header.xml">
+        <config>
+          <theme>@style/Theme.Proyecto_Final_hoTELEROs</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/taxi_item_edit_readonly_field.xml">
+        <config>
+          <theme>@style/Theme.Proyecto_Final_hoTELEROs</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/taxi_item_edit_section_header.xml">
+        <config>
+          <theme>@style/Theme.Proyecto_Final_hoTELEROs</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/taxi_item_historial_viaje.xml">
+        <config>
+          <theme>@style/Theme.Proyecto_Final_hoTELEROs</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/taxi_item_payment_method.xml">
+        <config>
+          <theme>@style/Theme.Proyecto_Final_hoTELEROs</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/taxi_item_platform.xml">
+        <config>
+          <theme>@style/Theme.Proyecto_Final_hoTELEROs</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/taxi_item_profile_header.xml">
+        <config>
+          <theme>@style/Theme.Proyecto_Final_hoTELEROs</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/taxi_item_profile_menu.xml">
+        <config>
+          <theme>@style/Theme.Proyecto_Final_hoTELEROs</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/taxi_item_profile_statistics.xml">
+        <config>
+          <theme>@style/Theme.Proyecto_Final_hoTELEROs</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/taxi_item_solicitud_viaje.xml">
+        <config>
+          <theme>@style/Theme.Proyecto_Final_hoTELEROs</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/menu/bottom_navigation_menu.xml">
+        <config>
+          <theme>@style/Theme.Proyecto_Final_hoTELEROs</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/menu/service_management_menu.xml">
+        <config>
+          <theme>@style/Theme.Proyecto_Final_hoTELEROs</theme>
+        </config>
+      </layout>
+    </layouts>
+  </component>
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="NONE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="00d0f4e0-4f3c-498d-8f20-8e89abbc1268" name="Changes" comment="completando flujo de servicios y cuartos">
+      <change beforePath="$PROJECT_DIR$/app/build.gradle" beforeDir="false" afterPath="$PROJECT_DIR$/app/build.gradle" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/proyecto_final_hoteleros/MainActivity.java" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/proyecto_final_hoteleros/MainActivity.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/proyecto_final_hoteleros/auth/login/LoginFragment.java" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/proyecto_final_hoteleros/auth/login/LoginFragment.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/proyecto_final_hoteleros/auth/register/RegisterUserActivity.java" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/proyecto_final_hoteleros/auth/register/RegisterUserActivity.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/proyecto_final_hoteleros/auth/register/RegisterVerifyCodeFragment.java" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/proyecto_final_hoteleros/auth/register/RegisterVerifyCodeFragment.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/proyecto_final_hoteleros/database/dao/UserRegistrationDao.java" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/proyecto_final_hoteleros/database/dao/UserRegistrationDao.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/proyecto_final_hoteleros/repository/FileStorageRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/proyecto_final_hoteleros/repository/FileStorageRepository.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/proyecto_final_hoteleros/repository/UserRegistrationRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/proyecto_final_hoteleros/repository/UserRegistrationRepository.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/proyecto_final_hoteleros/superadmin/activity/SuperAdminActivity.java" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/proyecto_final_hoteleros/superadmin/activity/SuperAdminActivity.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/proyecto_final_hoteleros/superadmin/adapters/AdminsAdapter.java" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/proyecto_final_hoteleros/superadmin/adapters/AdminsAdapter.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/proyecto_final_hoteleros/superadmin/adapters/MetricsAdapter.java" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/proyecto_final_hoteleros/superadmin/adapters/MetricsAdapter.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/proyecto_final_hoteleros/superadmin/adapters/QuickAccessAdapter.java" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/proyecto_final_hoteleros/superadmin/adapters/QuickAccessAdapter.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/proyecto_final_hoteleros/superadmin/adapters/RecentActivityAdapter.java" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/proyecto_final_hoteleros/superadmin/adapters/RecentActivityAdapter.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/proyecto_final_hoteleros/superadmin/fragment/AddHotelAdminFragment.java" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/proyecto_final_hoteleros/superadmin/fragment/AddHotelAdminFragment.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/proyecto_final_hoteleros/superadmin/fragment/AdminsFragment.java" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/proyecto_final_hoteleros/superadmin/fragment/AdminsFragment.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/proyecto_final_hoteleros/superadmin/fragment/DashboardFragment.java" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/proyecto_final_hoteleros/superadmin/fragment/DashboardFragment.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/proyecto_final_hoteleros/superadmin/fragment/UsuariosFragment.java" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/proyecto_final_hoteleros/superadmin/fragment/UsuariosFragment.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/proyecto_final_hoteleros/superadmin/models/AdminUser.java" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/proyecto_final_hoteleros/superadmin/models/AdminUser.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/proyecto_final_hoteleros/superadmin/models/MetricItem.java" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/proyecto_final_hoteleros/superadmin/models/MetricItem.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/proyecto_final_hoteleros/superadmin/models/QuickAccessItem.java" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/proyecto_final_hoteleros/superadmin/models/QuickAccessItem.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/proyecto_final_hoteleros/superadmin/models/Usuario.java" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/proyecto_final_hoteleros/superadmin/models/Usuario.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/proyecto_final_hoteleros/utils/FirebaseManager.java" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/proyecto_final_hoteleros/utils/FirebaseManager.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/res/layout/sistema_fragment_login.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/layout/sistema_fragment_login.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/res/layout/sistema_fragment_verify_code.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/layout/sistema_fragment_verify_code.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/res/layout/superadmin_fragment_admins.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/layout/superadmin_fragment_admins.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/res/layout/superadmin_fragment_dashboard.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/layout/superadmin_fragment_dashboard.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/res/layout/superadmin_fragment_usuarios.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/layout/superadmin_fragment_usuarios.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/res/layout/superadmin_item_admin_user.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/layout/superadmin_item_admin_user.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/res/layout/superadmin_item_metric_card.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/layout/superadmin_item_metric_card.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/res/layout/superadmin_item_quick_access.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/layout/superadmin_item_quick_access.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/res/values/colors.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/values/colors.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/res/values/strings.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/values/strings.xml" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="ClangdSettings">
+    <option name="formatViaClangd" value="false" />
+  </component>
+  <component name="ExecutionTargetManager" SELECTED_TARGET="device_and_snapshot_combo_box_target[DeviceId(pluginId=LocalEmulator, isTemplate=false, identifier=path=C:\Users\Adrian Lopez\.android\avd\Pixel_4.avd)]" />
+  <component name="ExternalProjectsData">
+    <projectState path="$PROJECT_DIR$">
+      <ProjectState />
+    </projectState>
+  </component>
+  <component name="ExternalProjectsManager">
+    <system id="GRADLE">
+      <state>
+        <task path="$PROJECT_DIR$/app">
+          <activation />
+        </task>
+        <task path="$PROJECT_DIR$">
+          <activation />
+        </task>
+        <projects_view>
+          <tree_state>
+            <expand>
+              <path>
+                <item name="" type="6a2764b6:ExternalProjectsStructure$RootNode" />
+                <item name="Proyecto_Final_hoTELEROs" type="f1a62948:ProjectNode" />
+              </path>
+              <path>
+                <item name="" type="6a2764b6:ExternalProjectsStructure$RootNode" />
+                <item name="Proyecto_Final_hoTELEROs" type="f1a62948:ProjectNode" />
+                <item name="Tasks" type="e4a08cd1:TasksNode" />
+              </path>
+              <path>
+                <item name="" type="6a2764b6:ExternalProjectsStructure$RootNode" />
+                <item name="Proyecto_Final_hoTELEROs" type="f1a62948:ProjectNode" />
+                <item name="Tasks" type="e4a08cd1:TasksNode" />
+                <item name="other" type="c8890929:TasksNode$1" />
+              </path>
+              <path>
+                <item name="" type="6a2764b6:ExternalProjectsStructure$RootNode" />
+                <item name="Proyecto_Final_hoTELEROs" type="f1a62948:ProjectNode" />
+                <item name="app" type="2d1252cf:ModuleNode" />
+              </path>
+              <path>
+                <item name="" type="6a2764b6:ExternalProjectsStructure$RootNode" />
+                <item name="Proyecto_Final_hoTELEROs" type="f1a62948:ProjectNode" />
+                <item name="app" type="2d1252cf:ModuleNode" />
+                <item name="Tasks" type="e4a08cd1:TasksNode" />
+              </path>
+              <path>
+                <item name="" type="6a2764b6:ExternalProjectsStructure$RootNode" />
+                <item name="Proyecto_Final_hoTELEROs" type="f1a62948:ProjectNode" />
+                <item name="app" type="2d1252cf:ModuleNode" />
+                <item name="Tasks" type="e4a08cd1:TasksNode" />
+                <item name="other" type="c8890929:TasksNode$1" />
+              </path>
+            </expand>
+            <select />
+          </tree_state>
+        </projects_view>
+      </state>
+    </system>
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="valueResourceFile" />
+        <option value="Kotlin Class" />
+        <option value="Interface" />
+        <option value="AnnotationType" />
+        <option value="layoutResourceFile" />
+        <option value="Class" />
+        <option value="resourceFile" />
+      </list>
+    </option>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/app" />
+    <option name="ROOT_SYNC" value="DONT_SYNC" />
+  </component>
+  <component name="GitHubPullRequestSearchHistory">{
+  &quot;lastFilter&quot;: {
+    &quot;state&quot;: &quot;OPEN&quot;,
+    &quot;assignee&quot;: &quot;AdrianLopez012&quot;
+  }
+}</component>
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;https://github.com/ralv2001/Proyecto_Final_IOT_hoTELEROs.git&quot;,
+    &quot;accountId&quot;: &quot;9e557f8a-7948-4a33-be28-a8d82204825c&quot;
+  }
+}</component>
+  <component name="ProblemsViewState">
+    <option name="selectedTabId" value="CurrentFile" />
+  </component>
+  <component name="ProjectColorInfo">{
+  &quot;customColor&quot;: &quot;&quot;,
+  &quot;associatedIndex&quot;: 4
+}</component>
+  <component name="ProjectId" id="2wJy8SDGaRyqw4L9OucFzIP8rlg" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "Android App.Unnamed (1).executor": "Run",
+    "Android App.Unnamed.executor": "Run",
+    "Android App.app.executor": "Run",
+    "Gradle.Load Gradle Dependencies.executor": "Run",
+    "ResourceManagerPrefKey.ResourceType": "NAVIGATION",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.cidr.known.project.marker": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "RunOnceActivity.readMode.enableVisualFormatting": "true",
+    "cf.first.check.clang-format": "false",
+    "cidr.known.project.marker": "true",
+    "com.google.services.firebase.aqiPopupShown": "true",
+    "git-widget-placeholder": "master",
+    "kotlin-language-version-configured": "true",
+    "last_opened_file_path": "C:/Users/Adrian Lopez/Desktop/Proyecto_Final_IOT_hoTELEROs/proyecto oficial/app/src/main/res/drawable",
+    "project.structure.last.edited": "Modules",
+    "project.structure.proportion": "0.17",
+    "project.structure.side.proportion": "0.2",
+    "run.code.analysis.last.selected.profile": "pProject Default",
+    "settings.editor.selected.configurable": "memory.settings"
+  }
+}]]></component>
+  <component name="PsdUISettings">
+    <option name="MODULE_TAB" value="Default Config" />
+  </component>
+  <component name="RecentsManager">
+    <key name="CreateClassDialog.RecentsKey">
+      <recent name="com.example.proyecto_final_hoteleros.adminhotel.dialog" />
+      <recent name="com.google.android.material" />
+      <recent name="com.example.proyecto_final_hoteleros.database" />
+      <recent name="com.example.proyecto_final_hoteleros" />
+      <recent name="com.example.proyecto_final_hoteleros.client.fragment" />
+    </key>
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="C:\Users\Adrian Lopez\Desktop\Proyecto_Final_IOT_hoTELEROs\proyecto oficial\app\src\main\res\drawable" />
+    </key>
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Users\Adrian Lopez\Desktop\Proyecto_Final_IOT_hoTELEROs\proyecto oficial\app\src\main\res\drawable" />
+    </key>
+  </component>
+  <component name="RunManager" selected="Android App.app">
+    <configuration name="Unnamed (1)" type="AndroidRunConfigurationType" factoryName="Android App" activateToolWindowBeforeRun="false" nameIsGenerated="true">
+      <module name="Proyecto_Final_hoTELEROs.app" />
+      <option name="ANDROID_RUN_CONFIGURATION_SCHEMA_VERSION" value="1" />
+      <option name="DEPLOY" value="true" />
+      <option name="DEPLOY_APK_FROM_BUNDLE" value="false" />
+      <option name="DEPLOY_AS_INSTANT" value="false" />
+      <option name="ARTIFACT_NAME" value="" />
+      <option name="PM_INSTALL_OPTIONS" value="" />
+      <option name="ALL_USERS" value="false" />
+      <option name="ALWAYS_INSTALL_WITH_PM" value="false" />
+      <option name="ALLOW_ASSUME_VERIFIED" value="false" />
+      <option name="CLEAR_APP_STORAGE" value="false" />
+      <option name="DYNAMIC_FEATURES_DISABLED_LIST" value="" />
+      <option name="ACTIVITY_EXTRA_FLAGS" value="" />
+      <option name="MODE" value="default_activity" />
+      <option name="RESTORE_ENABLED" value="false" />
+      <option name="RESTORE_FILE" value="" />
+      <option name="RESTORE_FRESH_INSTALL_ONLY" value="false" />
+      <option name="CLEAR_LOGCAT" value="false" />
+      <option name="SHOW_LOGCAT_AUTOMATICALLY" value="false" />
+      <option name="TARGET_SELECTION_MODE" value="DEVICE_AND_SNAPSHOT_COMBO_BOX" />
+      <option name="SELECTED_CLOUD_MATRIX_CONFIGURATION_ID" value="-1" />
+      <option name="SELECTED_CLOUD_MATRIX_PROJECT_ID" value="" />
+      <option name="DEBUGGER_TYPE" value="Auto" />
+      <Auto>
+        <option name="USE_JAVA_AWARE_DEBUGGER" value="false" />
+        <option name="SHOW_STATIC_VARS" value="true" />
+        <option name="WORKING_DIR" value="" />
+        <option name="TARGET_LOGGING_CHANNELS" value="lldb process:gdb-remote packets" />
+        <option name="SHOW_OPTIMIZED_WARNING" value="true" />
+        <option name="ATTACH_ON_WAIT_FOR_DEBUGGER" value="false" />
+        <option name="DEBUG_SANDBOX_SDK" value="false" />
+      </Auto>
+      <Hybrid>
+        <option name="USE_JAVA_AWARE_DEBUGGER" value="false" />
+        <option name="SHOW_STATIC_VARS" value="true" />
+        <option name="WORKING_DIR" value="" />
+        <option name="TARGET_LOGGING_CHANNELS" value="lldb process:gdb-remote packets" />
+        <option name="SHOW_OPTIMIZED_WARNING" value="true" />
+        <option name="ATTACH_ON_WAIT_FOR_DEBUGGER" value="false" />
+        <option name="DEBUG_SANDBOX_SDK" value="false" />
+      </Hybrid>
+      <Java>
+        <option name="ATTACH_ON_WAIT_FOR_DEBUGGER" value="false" />
+        <option name="DEBUG_SANDBOX_SDK" value="false" />
+      </Java>
+      <Native>
+        <option name="USE_JAVA_AWARE_DEBUGGER" value="false" />
+        <option name="SHOW_STATIC_VARS" value="true" />
+        <option name="WORKING_DIR" value="" />
+        <option name="TARGET_LOGGING_CHANNELS" value="lldb process:gdb-remote packets" />
+        <option name="SHOW_OPTIMIZED_WARNING" value="true" />
+        <option name="ATTACH_ON_WAIT_FOR_DEBUGGER" value="false" />
+        <option name="DEBUG_SANDBOX_SDK" value="false" />
+      </Native>
+      <Profilers>
+        <option name="ADVANCED_PROFILING_ENABLED" value="false" />
+        <option name="STARTUP_PROFILING_ENABLED" value="false" />
+        <option name="STARTUP_CPU_PROFILING_ENABLED" value="false" />
+        <option name="STARTUP_CPU_PROFILING_CONFIGURATION_NAME" value="Java/Kotlin Method Sample (legacy)" />
+        <option name="STARTUP_NATIVE_MEMORY_PROFILING_ENABLED" value="false" />
+        <option name="NATIVE_MEMORY_SAMPLE_RATE_BYTES" value="2048" />
+      </Profilers>
+      <option name="DEEP_LINK" value="" />
+      <option name="ACTIVITY" value="" />
+      <option name="ACTIVITY_CLASS" value="" />
+      <option name="SEARCH_ACTIVITY_IN_GLOBAL_SCOPE" value="false" />
+      <option name="SKIP_ACTIVITY_VALIDATION" value="false" />
+      <method v="2">
+        <option name="Android.Gradle.BeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="Unnamed" type="AndroidRunConfigurationType" factoryName="Android App" activateToolWindowBeforeRun="false" nameIsGenerated="true">
+      <module name="Proyecto_Final_hoTELEROs.app" />
+      <option name="ANDROID_RUN_CONFIGURATION_SCHEMA_VERSION" value="1" />
+      <option name="DEPLOY" value="true" />
+      <option name="DEPLOY_APK_FROM_BUNDLE" value="false" />
+      <option name="DEPLOY_AS_INSTANT" value="false" />
+      <option name="ARTIFACT_NAME" value="" />
+      <option name="PM_INSTALL_OPTIONS" value="" />
+      <option name="ALL_USERS" value="false" />
+      <option name="ALWAYS_INSTALL_WITH_PM" value="false" />
+      <option name="ALLOW_ASSUME_VERIFIED" value="false" />
+      <option name="CLEAR_APP_STORAGE" value="false" />
+      <option name="DYNAMIC_FEATURES_DISABLED_LIST" value="" />
+      <option name="ACTIVITY_EXTRA_FLAGS" value="" />
+      <option name="MODE" value="default_activity" />
+      <option name="RESTORE_ENABLED" value="false" />
+      <option name="RESTORE_FILE" value="" />
+      <option name="RESTORE_FRESH_INSTALL_ONLY" value="false" />
+      <option name="CLEAR_LOGCAT" value="false" />
+      <option name="SHOW_LOGCAT_AUTOMATICALLY" value="false" />
+      <option name="TARGET_SELECTION_MODE" value="DEVICE_AND_SNAPSHOT_COMBO_BOX" />
+      <option name="SELECTED_CLOUD_MATRIX_CONFIGURATION_ID" value="-1" />
+      <option name="SELECTED_CLOUD_MATRIX_PROJECT_ID" value="" />
+      <option name="DEBUGGER_TYPE" value="Auto" />
+      <Auto>
+        <option name="USE_JAVA_AWARE_DEBUGGER" value="false" />
+        <option name="SHOW_STATIC_VARS" value="true" />
+        <option name="WORKING_DIR" value="" />
+        <option name="TARGET_LOGGING_CHANNELS" value="lldb process:gdb-remote packets" />
+        <option name="SHOW_OPTIMIZED_WARNING" value="true" />
+        <option name="ATTACH_ON_WAIT_FOR_DEBUGGER" value="false" />
+        <option name="DEBUG_SANDBOX_SDK" value="false" />
+      </Auto>
+      <Hybrid>
+        <option name="USE_JAVA_AWARE_DEBUGGER" value="false" />
+        <option name="SHOW_STATIC_VARS" value="true" />
+        <option name="WORKING_DIR" value="" />
+        <option name="TARGET_LOGGING_CHANNELS" value="lldb process:gdb-remote packets" />
+        <option name="SHOW_OPTIMIZED_WARNING" value="true" />
+        <option name="ATTACH_ON_WAIT_FOR_DEBUGGER" value="false" />
+        <option name="DEBUG_SANDBOX_SDK" value="false" />
+      </Hybrid>
+      <Java>
+        <option name="ATTACH_ON_WAIT_FOR_DEBUGGER" value="false" />
+        <option name="DEBUG_SANDBOX_SDK" value="false" />
+      </Java>
+      <Native>
+        <option name="USE_JAVA_AWARE_DEBUGGER" value="false" />
+        <option name="SHOW_STATIC_VARS" value="true" />
+        <option name="WORKING_DIR" value="" />
+        <option name="TARGET_LOGGING_CHANNELS" value="lldb process:gdb-remote packets" />
+        <option name="SHOW_OPTIMIZED_WARNING" value="true" />
+        <option name="ATTACH_ON_WAIT_FOR_DEBUGGER" value="false" />
+        <option name="DEBUG_SANDBOX_SDK" value="false" />
+      </Native>
+      <Profilers>
+        <option name="ADVANCED_PROFILING_ENABLED" value="false" />
+        <option name="STARTUP_PROFILING_ENABLED" value="false" />
+        <option name="STARTUP_CPU_PROFILING_ENABLED" value="false" />
+        <option name="STARTUP_CPU_PROFILING_CONFIGURATION_NAME" value="Java/Kotlin Method Sample (legacy)" />
+        <option name="STARTUP_NATIVE_MEMORY_PROFILING_ENABLED" value="false" />
+        <option name="NATIVE_MEMORY_SAMPLE_RATE_BYTES" value="2048" />
+      </Profilers>
+      <option name="DEEP_LINK" value="" />
+      <option name="ACTIVITY" value="" />
+      <option name="ACTIVITY_CLASS" value="" />
+      <option name="SEARCH_ACTIVITY_IN_GLOBAL_SCOPE" value="false" />
+      <option name="SKIP_ACTIVITY_VALIDATION" value="false" />
+      <method v="2">
+        <option name="Android.Gradle.BeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="app" type="AndroidRunConfigurationType" factoryName="Android App" activateToolWindowBeforeRun="false">
+      <module name="Proyecto_Final_hoTELEROs.app" />
+      <option name="ANDROID_RUN_CONFIGURATION_SCHEMA_VERSION" value="1" />
+      <option name="DEPLOY" value="true" />
+      <option name="DEPLOY_APK_FROM_BUNDLE" value="false" />
+      <option name="DEPLOY_AS_INSTANT" value="false" />
+      <option name="ARTIFACT_NAME" value="" />
+      <option name="PM_INSTALL_OPTIONS" value="" />
+      <option name="ALL_USERS" value="false" />
+      <option name="ALWAYS_INSTALL_WITH_PM" value="false" />
+      <option name="ALLOW_ASSUME_VERIFIED" value="false" />
+      <option name="CLEAR_APP_STORAGE" value="false" />
+      <option name="DYNAMIC_FEATURES_DISABLED_LIST" value="" />
+      <option name="ACTIVITY_EXTRA_FLAGS" value="" />
+      <option name="MODE" value="default_activity" />
+      <option name="RESTORE_ENABLED" value="false" />
+      <option name="RESTORE_FILE" value="" />
+      <option name="RESTORE_FRESH_INSTALL_ONLY" value="false" />
+      <option name="CLEAR_LOGCAT" value="false" />
+      <option name="SHOW_LOGCAT_AUTOMATICALLY" value="false" />
+      <option name="TARGET_SELECTION_MODE" value="DEVICE_AND_SNAPSHOT_COMBO_BOX" />
+      <option name="SELECTED_CLOUD_MATRIX_CONFIGURATION_ID" value="-1" />
+      <option name="SELECTED_CLOUD_MATRIX_PROJECT_ID" value="" />
+      <option name="DEBUGGER_TYPE" value="Auto" />
+      <Auto>
+        <option name="USE_JAVA_AWARE_DEBUGGER" value="false" />
+        <option name="SHOW_STATIC_VARS" value="true" />
+        <option name="WORKING_DIR" value="" />
+        <option name="TARGET_LOGGING_CHANNELS" value="lldb process:gdb-remote packets" />
+        <option name="SHOW_OPTIMIZED_WARNING" value="true" />
+        <option name="ATTACH_ON_WAIT_FOR_DEBUGGER" value="false" />
+        <option name="DEBUG_SANDBOX_SDK" value="false" />
+      </Auto>
+      <Hybrid>
+        <option name="USE_JAVA_AWARE_DEBUGGER" value="false" />
+        <option name="SHOW_STATIC_VARS" value="true" />
+        <option name="WORKING_DIR" value="" />
+        <option name="TARGET_LOGGING_CHANNELS" value="lldb process:gdb-remote packets" />
+        <option name="SHOW_OPTIMIZED_WARNING" value="true" />
+        <option name="ATTACH_ON_WAIT_FOR_DEBUGGER" value="false" />
+        <option name="DEBUG_SANDBOX_SDK" value="false" />
+      </Hybrid>
+      <Java>
+        <option name="ATTACH_ON_WAIT_FOR_DEBUGGER" value="false" />
+        <option name="DEBUG_SANDBOX_SDK" value="false" />
+      </Java>
+      <Native>
+        <option name="USE_JAVA_AWARE_DEBUGGER" value="false" />
+        <option name="SHOW_STATIC_VARS" value="true" />
+        <option name="WORKING_DIR" value="" />
+        <option name="TARGET_LOGGING_CHANNELS" value="lldb process:gdb-remote packets" />
+        <option name="SHOW_OPTIMIZED_WARNING" value="true" />
+        <option name="ATTACH_ON_WAIT_FOR_DEBUGGER" value="false" />
+        <option name="DEBUG_SANDBOX_SDK" value="false" />
+      </Native>
+      <Profilers>
+        <option name="ADVANCED_PROFILING_ENABLED" value="false" />
+        <option name="STARTUP_PROFILING_ENABLED" value="false" />
+        <option name="STARTUP_CPU_PROFILING_ENABLED" value="false" />
+        <option name="STARTUP_CPU_PROFILING_CONFIGURATION_NAME" value="Java/Kotlin Method Sample (legacy)" />
+        <option name="STARTUP_NATIVE_MEMORY_PROFILING_ENABLED" value="false" />
+        <option name="NATIVE_MEMORY_SAMPLE_RATE_BYTES" value="2048" />
+      </Profilers>
+      <option name="DEEP_LINK" value="" />
+      <option name="ACTIVITY" value="" />
+      <option name="ACTIVITY_CLASS" value="" />
+      <option name="SEARCH_ACTIVITY_IN_GLOBAL_SCOPE" value="false" />
+      <option name="SKIP_ACTIVITY_VALIDATION" value="false" />
+      <method v="2">
+        <option name="Android.Gradle.BeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <list>
+      <item itemvalue="Android App.app" />
+      <item itemvalue="Android App.Unnamed" />
+      <item itemvalue="Android App.Unnamed (1)" />
+    </list>
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="00d0f4e0-4f3c-498d-8f20-8e89abbc1268" name="Changes" comment="" />
+      <created>1745773813500</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1745773813500</updated>
+    </task>
+    <task id="LOCAL-00001" summary="Implementación historial de reservas en un 80% se añadio funcionalidades como más estados animaciones y más detalles a las cartas">
+      <option name="closed" value="true" />
+      <created>1745866390502</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1745866390502</updated>
+    </task>
+    <task id="LOCAL-00002" summary="Implementación mensajeria">
+      <option name="closed" value="true" />
+      <created>1746117196098</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1746117196098</updated>
+    </task>
+    <task id="LOCAL-00003" summary="mejoramiento de la logica de la eleccion check in check out">
+      <option name="closed" value="true" />
+      <created>1746139317899</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1746139317899</updated>
+    </task>
+    <task id="LOCAL-00004" summary="mejoramiento calendario servicios , mensajeria etc...">
+      <option name="closed" value="true" />
+      <created>1746679569163</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1746679569163</updated>
+    </task>
+    <task id="LOCAL-00005" summary="resumen de reserva">
+      <option name="closed" value="true" />
+      <created>1746687499153</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1746687499153</updated>
+    </task>
+    <task id="LOCAL-00006" summary="flujo tarjeta reserva de cuarto">
+      <option name="closed" value="true" />
+      <created>1746746102090</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1746746102090</updated>
+    </task>
+    <task id="LOCAL-00007" summary="INTEGRACION DE NOTIFIACCION EN LOS SETTINGS DEL PERFIL MEJORAMIENTO DEL FLUJO DEL USO DE LOCALIZACIÓN">
+      <option name="closed" value="true" />
+      <created>1747176011617</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1747176011617</updated>
+    </task>
+    <task id="LOCAL-00008" summary="actualizacióin del minSdK para compatibilidad con la version android 10 - mejorariemineto flujo de chat">
+      <option name="closed" value="true" />
+      <created>1747234595922</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL-00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1747234595922</updated>
+    </task>
+    <task id="LOCAL-00009" summary="implementacion chat en tiempo real">
+      <option name="closed" value="true" />
+      <created>1747369226305</created>
+      <option name="number" value="00009" />
+      <option name="presentableId" value="LOCAL-00009" />
+      <option name="project" value="LOCAL" />
+      <updated>1747369226305</updated>
+    </task>
+    <task id="LOCAL-00010" summary="mejora implementación de servicios">
+      <option name="closed" value="true" />
+      <created>1748471908343</created>
+      <option name="number" value="00010" />
+      <option name="presentableId" value="LOCAL-00010" />
+      <option name="project" value="LOCAL" />
+      <updated>1748471908343</updated>
+    </task>
+    <task id="LOCAL-00011" summary="solucion buf servicios">
+      <option name="closed" value="true" />
+      <created>1748486772457</created>
+      <option name="number" value="00011" />
+      <option name="presentableId" value="LOCAL-00011" />
+      <option name="project" value="LOCAL" />
+      <updated>1748486772457</updated>
+    </task>
+    <task id="LOCAL-00012" summary="giltros hoteles">
+      <option name="closed" value="true" />
+      <created>1748505427351</created>
+      <option name="number" value="00012" />
+      <option name="presentableId" value="LOCAL-00012" />
+      <option name="project" value="LOCAL" />
+      <updated>1748505427351</updated>
+    </task>
+    <task id="LOCAL-00013" summary="tarjeta arreglo">
+      <option name="closed" value="true" />
+      <created>1748561855259</created>
+      <option name="number" value="00013" />
+      <option name="presentableId" value="LOCAL-00013" />
+      <option name="project" value="LOCAL" />
+      <updated>1748561855259</updated>
+    </task>
+    <task id="LOCAL-00014" summary="Mejora en estructuración en el orden de los archivos">
+      <option name="closed" value="true" />
+      <created>1749010471135</created>
+      <option name="number" value="00014" />
+      <option name="presentableId" value="LOCAL-00014" />
+      <option name="project" value="LOCAL" />
+      <updated>1749010471135</updated>
+    </task>
+    <task id="LOCAL-00015" summary="Mejora en estructuración en el orden de los archivos">
+      <option name="closed" value="true" />
+      <created>1749019215310</created>
+      <option name="number" value="00015" />
+      <option name="presentableId" value="LOCAL-00015" />
+      <option name="project" value="LOCAL" />
+      <updated>1749019215310</updated>
+    </task>
+    <task id="LOCAL-00016" summary="Mejora parte de vista login - home">
+      <option name="closed" value="true" />
+      <created>1749023234063</created>
+      <option name="number" value="00016" />
+      <option name="presentableId" value="LOCAL-00016" />
+      <option name="project" value="LOCAL" />
+      <updated>1749023234063</updated>
+    </task>
+    <task id="LOCAL-00017" summary="Mejora parte de vista login-profile - cerrar sesion(nombre)">
+      <option name="closed" value="true" />
+      <created>1749024241627</created>
+      <option name="number" value="00017" />
+      <option name="presentableId" value="LOCAL-00017" />
+      <option name="project" value="LOCAL" />
+      <updated>1749024241627</updated>
+    </task>
+    <task id="LOCAL-00018" summary="Mejoramiento orden de clases en java y layouts">
+      <option name="closed" value="true" />
+      <created>1749063775023</created>
+      <option name="number" value="00018" />
+      <option name="presentableId" value="LOCAL-00018" />
+      <option name="project" value="LOCAL" />
+      <updated>1749063775023</updated>
+    </task>
+    <task id="LOCAL-00019" summary="implementacion chat entre cliente -admin . mejoramiento de navegacion">
+      <option name="closed" value="true" />
+      <created>1749075244691</created>
+      <option name="number" value="00019" />
+      <option name="presentableId" value="LOCAL-00019" />
+      <option name="project" value="LOCAL" />
+      <updated>1749075244691</updated>
+    </task>
+    <task id="LOCAL-00020" summary="mejor uso de navegacino mejor estrcutracion de la parte de diseño de detalles del hotel">
+      <option name="closed" value="true" />
+      <created>1749102038062</created>
+      <option name="number" value="00020" />
+      <option name="presentableId" value="LOCAL-00020" />
+      <option name="project" value="LOCAL" />
+      <updated>1749102038063</updated>
+    </task>
+    <task id="LOCAL-00021" summary="implementación vistas reseñas">
+      <option name="closed" value="true" />
+      <created>1749104459612</created>
+      <option name="number" value="00021" />
+      <option name="presentableId" value="LOCAL-00021" />
+      <option name="project" value="LOCAL" />
+      <updated>1749104459612</updated>
+    </task>
+    <task id="LOCAL-00022" summary="arreglo notificaciones">
+      <option name="closed" value="true" />
+      <created>1749187733704</created>
+      <option name="number" value="00022" />
+      <option name="presentableId" value="LOCAL-00022" />
+      <option name="project" value="LOCAL" />
+      <updated>1749187733705</updated>
+    </task>
+    <task id="LOCAL-00023" summary="mejoras en busqueda de resultados - mejoras en el historial de reservas">
+      <option name="closed" value="true" />
+      <created>1749318363153</created>
+      <option name="number" value="00023" />
+      <option name="presentableId" value="LOCAL-00023" />
+      <option name="project" value="LOCAL" />
+      <updated>1749318363154</updated>
+    </task>
+    <task id="LOCAL-00024" summary="LOGICA Y IMPLEMENTACION DEL MANEJO DE REUSLTADOS AL 100%">
+      <option name="closed" value="true" />
+      <created>1749505199575</created>
+      <option name="number" value="00024" />
+      <option name="presentableId" value="LOCAL-00024" />
+      <option name="project" value="LOCAL" />
+      <updated>1749505199575</updated>
+    </task>
+    <task id="LOCAL-00025" summary="implemernaciones finales cliente - admin hotel 50%">
+      <option name="closed" value="true" />
+      <created>1749768525607</created>
+      <option name="number" value="00025" />
+      <option name="presentableId" value="LOCAL-00025" />
+      <option name="project" value="LOCAL" />
+      <updated>1749768525607</updated>
+    </task>
+    <task id="LOCAL-00026" summary="perdon gente">
+      <option name="closed" value="true" />
+      <created>1749774173797</created>
+      <option name="number" value="00026" />
+      <option name="presentableId" value="LOCAL-00026" />
+      <option name="project" value="LOCAL" />
+      <updated>1749774173797</updated>
+    </task>
+    <task id="LOCAL-00027" summary="probando con commit al inicio">
+      <option name="closed" value="true" />
+      <created>1750300976162</created>
+      <option name="number" value="00027" />
+      <option name="presentableId" value="LOCAL-00027" />
+      <option name="project" value="LOCAL" />
+      <updated>1750300976162</updated>
+    </task>
+    <task id="LOCAL-00028" summary=":(">
+      <option name="closed" value="true" />
+      <created>1750561112784</created>
+      <option name="number" value="00028" />
+      <option name="presentableId" value="LOCAL-00028" />
+      <option name="project" value="LOCAL" />
+      <updated>1750561112784</updated>
+    </task>
+    <task id="LOCAL-00029" summary="mejora perfil de hotel">
+      <option name="closed" value="true" />
+      <created>1750786826285</created>
+      <option name="number" value="00029" />
+      <option name="presentableId" value="LOCAL-00029" />
+      <option name="project" value="LOCAL" />
+      <updated>1750786826285</updated>
+    </task>
+    <task id="LOCAL-00030" summary="mejora perfil de hotel">
+      <option name="closed" value="true" />
+      <created>1750786961670</created>
+      <option name="number" value="00030" />
+      <option name="presentableId" value="LOCAL-00030" />
+      <option name="project" value="LOCAL" />
+      <updated>1750786961670</updated>
+    </task>
+    <task id="LOCAL-00031" summary="mejora perfil de hotel">
+      <option name="closed" value="true" />
+      <created>1750881722923</created>
+      <option name="number" value="00031" />
+      <option name="presentableId" value="LOCAL-00031" />
+      <option name="project" value="LOCAL" />
+      <updated>1750881722923</updated>
+    </task>
+    <task id="LOCAL-00032" summary="completando flujo de servicios y cuartos">
+      <option name="closed" value="true" />
+      <created>1750921812787</created>
+      <option name="number" value="00032" />
+      <option name="presentableId" value="LOCAL-00032" />
+      <option name="project" value="LOCAL" />
+      <updated>1750921812787</updated>
+    </task>
+    <option name="localTasksCounter" value="33" />
+    <servers />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="resumen de reserva" />
+    <MESSAGE value="flujo tarjeta reserva de cuarto" />
+    <MESSAGE value="INTEGRACION DE NOTIFIACCION EN LOS SETTINGS DEL PERFIL MEJORAMIENTO DEL FLUJO DEL USO DE LOCALIZACIÓN" />
+    <MESSAGE value="actualizacióin del minSdK para compatibilidad con la version android 10 - mejorariemineto flujo de chat" />
+    <MESSAGE value="implementacion chat en tiempo real" />
+    <MESSAGE value="mejora implementación de servicios" />
+    <MESSAGE value="solucion buf servicios" />
+    <MESSAGE value="giltros hoteles" />
+    <MESSAGE value="tarjeta arreglo" />
+    <MESSAGE value="Mejora en estructuración en el orden de los archivos" />
+    <MESSAGE value="Mejora parte de vista login - home" />
+    <MESSAGE value="Mejora parte de vista login-profile - cerrar sesion(nombre)" />
+    <MESSAGE value="Mejoramiento orden de clases en java y layouts" />
+    <MESSAGE value="implementacion chat entre cliente -admin . mejoramiento de navegacion" />
+    <MESSAGE value="mejor uso de navegacino mejor estrcutracion de la parte de diseño de detalles del hotel" />
+    <MESSAGE value="implementación vistas reseñas" />
+    <MESSAGE value="arreglo notificaciones" />
+    <MESSAGE value="mejoras en busqueda de resultados - mejoras en el historial de reservas" />
+    <MESSAGE value="LOGICA Y IMPLEMENTACION DEL MANEJO DE REUSLTADOS AL 100%" />
+    <MESSAGE value="implemernaciones finales cliente - admin hotel 50%" />
+    <MESSAGE value="perdon gente" />
+    <MESSAGE value="probando con commit al inicio" />
+    <MESSAGE value=":(" />
+    <MESSAGE value="mejora perfil de hotel" />
+    <MESSAGE value="completando flujo de servicios y cuartos" />
+    <option name="LAST_COMMIT_MESSAGE" value="completando flujo de servicios y cuartos" />
+  </component>
+  <component name="play_dynamic_filters_status">
+    <option name="appIdToCheckInfo">
+      <map>
+        <entry key="com.example.proyecto_final_hoteleros">
+          <value>
+            <CheckInfo lastCheckTimestamp="1750872439122" />
+          </value>
+        </entry>
+        <entry key="com.example.proyecto_final_hoteleros.test">
+          <value>
+            <CheckInfo lastCheckTimestamp="1750872439122" />
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+</project>

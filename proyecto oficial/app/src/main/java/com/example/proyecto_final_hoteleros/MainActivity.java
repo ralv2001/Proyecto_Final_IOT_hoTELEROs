@@ -1,22 +1,23 @@
 package com.example.proyecto_final_hoteleros;
 
+import com.example.proyecto_final_hoteleros.adminhotel.utils.FirebaseServiceManager;
 import com.google.firebase.auth.FirebaseAuth;
 import android.app.AlertDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
+import android.graphics.Color;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.view.WindowInsetsController;
 import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import com.example.proyecto_final_hoteleros.client.ui.activity.HomeActivity;
-import com.example.proyecto_final_hoteleros.superadmin.activity.SuperAdminActivity;
 import com.example.proyecto_final_hoteleros.taxista.activity.DriverActivity;
 import com.example.proyecto_final_hoteleros.utils.AwsFileManager;
-import com.example.proyecto_final_hoteleros.utils.ConcurrencyTestHelper;
-import com.example.proyecto_final_hoteleros.utils.DatabaseTestHelper;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -26,7 +27,6 @@ import androidx.core.view.WindowInsetsCompat;
 
 import com.example.proyecto_final_hoteleros.adminhotel.activity.AdminHotelActivity;
 import com.example.proyecto_final_hoteleros.utils.FirebaseManager;
-import com.example.proyecto_final_hoteleros.utils.FirebaseTestHelper;
 import com.example.proyecto_final_hoteleros.utils.GitHubSignInHelper;
 import com.google.android.material.button.MaterialButton;
 import com.google.firebase.FirebaseApp;
@@ -39,27 +39,45 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        // ✅ CONFIGURAR EDGE-TO-EDGE
+        enableEdgeToEdge();
+
+        setContentView(R.layout.sistema_activity_main);
+
+        // ✅ CONFIGURAR WINDOW INSETS - VERSIÓN CORREGIDA (SIN TOP PADDING)
+        View rootLayout = findViewById(android.R.id.content).getRootView();
+        ViewCompat.setOnApplyWindowInsetsListener(rootLayout, (v, insets) -> {
+            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+            Insets ime = insets.getInsets(WindowInsetsCompat.Type.ime());
+
+            boolean isKeyboardVisible = insets.isVisible(WindowInsetsCompat.Type.ime());
+            int bottomPadding = Math.max(systemBars.bottom, ime.bottom);
+
+            View mainLayout = findViewById(android.R.id.content);
+            if (mainLayout != null) {
+                mainLayout.setPadding(
+                        mainLayout.getPaddingLeft(),
+                        0,               // 🎯 SIN top padding - el XML maneja el margen
+                        mainLayout.getPaddingRight(),
+                        bottomPadding    // 🎯 Solo bottom padding dinámico
+                );
+            }
+
+            return insets;
+        });
+
         // Inicializar Firebase (añade esta línea)
         FirebaseApp.initializeApp(this);
 
         // Inicializar Firebase Auth  <-- AGREGAR ESTA LÍNEA
         firebaseAuth = FirebaseAuth.getInstance();
-
+        FirebaseServiceManager firebaseServiceManager = FirebaseServiceManager.getInstance(this);
         // Verificar si hay vinculación pendiente de GitHub
         //checkPendingGitHubLink();
 
-        EdgeToEdge.enable(this);
-        setContentView(R.layout.sistema_activity_main);
-
         // En caso se necesite crear de nuevo el SuperAdmin porque se borró:
         //recreateSuperAdmin();
-
-        // Configurar sistema de insets para pantallas con notch
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
-            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
-            return insets;
-        });
 
         // Configuración de botón de registro
         MaterialButton btnRegister = findViewById(R.id.btnRegister);
@@ -88,7 +106,7 @@ public class MainActivity extends AppCompatActivity {
 
                 Intent intent = new Intent(MainActivity.this, HomeActivity.class);
                 startActivity(intent);
-                finish(); // Opcional: cerrar MainActivity
+                finish();
             }
         });
         LinearLayout layoutContinueAsSuperadmin = findViewById(R.id.layoutContinueAsSuperadmin);
@@ -128,29 +146,37 @@ public class MainActivity extends AppCompatActivity {
         });
 
         // Configuración de "Continuar como admin de hotel"
+        // Configuración de "Continuar como admin de hotel"
+        // Configuración de "Continuar como admin de hotel"
         LinearLayout layoutContinueAsAdminHotel = findViewById(R.id.layoutContinueAsAdminHotel);
         layoutContinueAsAdminHotel.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Toast.makeText(MainActivity.this, "Continuando como admin de hotel ...", Toast.LENGTH_SHORT).show();
 
-                // Iniciar la HomeActivity que contiene el contenedor de fragmentos
-                Intent intent = new Intent(MainActivity.this, AdminHotelActivity.class);
-                startActivity(intent);
+                // Autenticar o crear usuario de prueba para admin de hotel
+                authenticateTestHotelAdmin();
             }
         });
+
         LinearLayout layoutContinueAsTaxiDriver = findViewById(R.id.layoutContinueAsTaxiDriver);
         layoutContinueAsTaxiDriver.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Toast.makeText(MainActivity.this, "Continuando como taxista...", Toast.LENGTH_SHORT).show();
+                Toast.makeText(MainActivity.this, "🚗 Continuando como taxista...", Toast.LENGTH_SHORT).show();
 
-                // Iniciar la HomeActivity que contiene el contenedor de fragmentos
+                // Crear intent con datos simulados para testing
                 Intent intent = new Intent(MainActivity.this, DriverActivity.class);
+
+                // ⭐ AGREGAR ESTOS DATOS PARA QUE FUNCIONE CORRECTAMENTE
+                intent.putExtra("userId", "taxista_testing_" + System.currentTimeMillis());
+                intent.putExtra("userEmail", "taxista.testing@hoteleros.com");
+                intent.putExtra("userName", "Taxista de Prueba");
+                intent.putExtra("userType", "driver");
+
                 startActivity(intent);
             }
         });
-
         // ========== TESTS DE CONCURRENCIA - COMENTADO PARA PRODUCCIÓN ==========
         /*
         findViewById(R.id.btnLogin).setOnLongClickListener(v -> {
@@ -167,7 +193,99 @@ public class MainActivity extends AppCompatActivity {
         */
 
     }
+    // ✅ MÉTODO PARA AUTENTICAR ADMIN DE HOTEL DE PRUEBA
+    private void authenticateTestHotelAdmin() {
+        String testEmail = "adminhotel@test.com";
+        String testPassword = "AdminHotel123!";
 
+        // Intentar hacer login primero
+        firebaseAuth.signInWithEmailAndPassword(testEmail, testPassword)
+                .addOnSuccessListener(authResult -> {
+                    Log.d("MainActivity", "✅ Admin de hotel autenticado exitosamente");
+                    Toast.makeText(MainActivity.this, "✅ Autenticado como Admin de Hotel", Toast.LENGTH_SHORT).show();
+
+                    // Ir al AdminHotelActivity
+                    Intent intent = new Intent(MainActivity.this, AdminHotelActivity.class);
+                    startActivity(intent);
+                })
+                .addOnFailureListener(e -> {
+                    Log.d("MainActivity", "Usuario no existe, creándolo...");
+
+                    // Si falla el login, crear el usuario
+                    createTestHotelAdmin(testEmail, testPassword);
+                });
+    }
+    private void createTestHotelAdmin(String email, String password) {
+        firebaseAuth.createUserWithEmailAndPassword(email, password)
+                .addOnSuccessListener(authResult -> {
+                    Log.d("MainActivity", "✅ Usuario admin de hotel creado exitosamente");
+
+                    // Crear perfil del usuario en Firestore
+                    String userId = authResult.getUser().getUid();
+                    createHotelAdminProfile(userId, email);
+                })
+                .addOnFailureListener(e -> {
+                    Log.e("MainActivity", "❌ Error creando admin de hotel: " + e.getMessage());
+
+                    if (e.getMessage() != null && e.getMessage().contains("email address is already in use")) {
+                        // Si el email ya existe, intentar login otra vez
+                        Toast.makeText(MainActivity.this,
+                                "Usuario ya existe, reintentando login...",
+                                Toast.LENGTH_SHORT).show();
+                        authenticateTestHotelAdmin();
+                    } else {
+                        Toast.makeText(MainActivity.this,
+                                "Error: " + e.getMessage(),
+                                Toast.LENGTH_LONG).show();
+                    }
+                });
+    }
+
+    private void createHotelAdminProfile(String userId, String email) {
+        FirebaseManager firebaseManager = FirebaseManager.getInstance();
+
+        // Crear el modelo de usuario para admin de hotel
+        com.example.proyecto_final_hoteleros.models.UserModel adminUser = new com.example.proyecto_final_hoteleros.models.UserModel();
+        adminUser.setUserId(userId);  // ✅ AGREGAR ESTO
+        adminUser.setEmail(email);
+        adminUser.setNombres("Admin");
+        adminUser.setApellidos("Hotel Test");
+        adminUser.setUserType("hotel_admin");  // IMPORTANTE: Este es el rol que necesita!
+        adminUser.setTelefono("999888777");
+        adminUser.setDireccion("Hotel Central Lima");
+        adminUser.setNumeroDocumento("12345678");
+        adminUser.setTipoDocumento("DNI");
+        adminUser.setFechaNacimiento("01/01/1985");
+        adminUser.setActive(true);
+
+        // Guardar en Firestore
+        firebaseManager.saveUserData(userId, adminUser, new FirebaseManager.DataCallback() {
+            @Override
+            public void onSuccess() {
+                Log.d("MainActivity", "✅ Perfil de admin hotel creado");
+                Toast.makeText(MainActivity.this,
+                        "✅ Admin de Hotel creado y autenticado",
+                        Toast.LENGTH_LONG).show();
+
+                // ✅ MEJORADO: Ir al AdminHotelActivity con datos
+                Intent intent = new Intent(MainActivity.this, AdminHotelActivity.class);
+                intent.putExtra("userId", userId);
+                intent.putExtra("userName", "Admin Hotel Test");
+                intent.putExtra("userEmail", email);
+                intent.putExtra("userType", "hotel_admin");
+                startActivity(intent);
+                finish(); // ✅ AGREGAR para cerrar MainActivity
+            }
+
+            @Override
+            public void onError(String error) {
+                Log.e("MainActivity", "❌ Error creando perfil: " + error);
+                Toast.makeText(MainActivity.this,
+                        "Error creando perfil: " + error,
+                        Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
     @Override
     public void onConfigurationChanged(Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
@@ -306,7 +424,37 @@ public class MainActivity extends AppCompatActivity {
             public void onAccountCollision(String email) {
                 // No debería pasar en vinculación
             }
-        }, null);
+        });
+    }
+
+
+    // ✅ MÉTODO PARA HABILITAR EDGE-TO-EDGE CON ICONOS OSCUROS (VERSIÓN SEGURA)
+    private void enableEdgeToEdge() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            getWindow().setDecorFitsSystemWindows(false);
+
+            getWindow().getDecorView().setSystemUiVisibility(
+                    View.SYSTEM_UI_FLAG_LAYOUT_STABLE |
+                            View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION |
+                            View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN |
+                            View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
+            );
+
+        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            getWindow().getDecorView().setSystemUiVisibility(
+                    View.SYSTEM_UI_FLAG_LAYOUT_STABLE |
+                            View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION |
+                            View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN |
+                            View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
+            );
+
+        } else {
+            getWindow().getDecorView().setSystemUiVisibility(
+                    View.SYSTEM_UI_FLAG_LAYOUT_STABLE |
+                            View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION |
+                            View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+            );
+        }
     }
 
 

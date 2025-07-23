@@ -22,12 +22,19 @@ import com.example.proyecto_final_hoteleros.models.UserModel;
 import java.util.ArrayList;
 import java.util.List;
 
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
+import androidx.core.graphics.Insets;
+
 public class TaxistasFragment extends Fragment implements TaxistasAdapter.OnTaxistaActionListener {
 
     private RecyclerView rvTaxistas;
     private TaxistasAdapter taxistasAdapter;
     private LinearLayout layoutEmptyState;
     private FirebaseManager firebaseManager;
+
+    private List<TaxistaUser> allTaxistas = new ArrayList<>();
+
 
     @Nullable
     @Override
@@ -40,7 +47,27 @@ public class TaxistasFragment extends Fragment implements TaxistasAdapter.OnTaxi
         setupRecyclerView();
         loadDataFromFirebase(); // 🔥 Cambiar a datos reales
 
+
+        // Al final del método onCreateView(), antes del return view;
+        applyInitialFilter();
         return view;
+    }
+
+
+    // 🔥 MÉTODO ACTUALIZADO: Aplicar filtro inicial si viene de dashboard
+    private void applyInitialFilter() {
+        if (getArguments() != null) {
+            String initialFilter = getArguments().getString("initial_filter");
+            android.util.Log.d("TaxistasFragment", "Filtro inicial recibido: " + initialFilter);
+
+            if ("PENDING".equals(initialFilter)) {
+                // Esperar a que los datos se carguen antes de filtrar
+                new android.os.Handler().postDelayed(() -> {
+                    android.util.Log.d("TaxistasFragment", "Aplicando filtro inicial: PENDING");
+                    filterTaxistasByStatus("PENDING");
+                }, 1000); // Esperar 1 segundo para que los datos se carguen
+            }
+        }
     }
 
     private void initViews(View view) {
@@ -158,8 +185,11 @@ public class TaxistasFragment extends Fragment implements TaxistasAdapter.OnTaxi
         return sdf.format(new java.util.Date(timestamp));
     }
 
-    // 🔥 NUEVO MÉTODO: Actualizar lista de taxistas
+    // 🔥 MÉTODO ACTUALIZADO: Actualizar lista de taxistas
     private void updateTaxistasList(List<TaxistaUser> taxistas) {
+        // ✅ IMPORTANTE: Almacenar todos los taxistas para filtros
+        this.allTaxistas = new ArrayList<>(taxistas);
+
         if (taxistasAdapter != null) {
             taxistasAdapter.updateData(taxistas);
             android.util.Log.d("TaxistasFragment", "Adapter actualizado con " + taxistas.size() + " taxistas");
@@ -447,9 +477,6 @@ public class TaxistasFragment extends Fragment implements TaxistasAdapter.OnTaxi
         taxistasAdapter.updateList(filteredTaxistas);
 
         String statusText = status.equals("PENDING") ? "pendientes" : "aprobados";
-        android.widget.Toast.makeText(getContext(),
-                "Mostrando " + filteredTaxistas.size() + " taxistas " + statusText,
-                android.widget.Toast.LENGTH_SHORT).show();
 
         android.util.Log.d("TaxistasFragment", "Filtro aplicado - " + statusText + ": " + filteredTaxistas.size());
     }
@@ -499,6 +526,9 @@ public class TaxistasFragment extends Fragment implements TaxistasAdapter.OnTaxi
 
         return taxistas;
     }
+
+
+
 
 
 

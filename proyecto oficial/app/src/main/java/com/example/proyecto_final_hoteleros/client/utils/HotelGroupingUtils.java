@@ -4,178 +4,278 @@ import android.content.Context;
 import android.util.Log;
 
 import com.example.proyecto_final_hoteleros.client.data.model.Hotel;
-import com.example.proyecto_final_hoteleros.client.data.model.HotelGroup;
 import com.example.proyecto_final_hoteleros.client.data.model.CityHeader;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class HotelGroupingUtils {
 
-    public static List<Object> groupHotelsByCity(List<Hotel> allHotels) {
+    private static final String TAG = "HotelGroupingUtils";
+
+    // ✅ CIUDADES DEL PERÚ ACTUALIZADAS con Firebase
+    private static final String[] PERU_CITIES = {
+            "lima", "cusco", "cuzco", "arequipa", "piura", "trujillo", "iquitos",
+            "chiclayo", "huancayo", "tacna", "puno", "ayacucho", "cajamarca",
+            "tumbes", "chachapoyas", "leymebamba", "tambopata", "puerto maldonado",
+            "madre de dios", "amazonas", "ancash", "apurimac", "huanuco", "junin",
+            "lambayeque", "la libertad", "loreto", "moquegua", "pasco", "san martin",
+            "ucayali", "callao"
+    };
+
+    /**
+     * ✅ MÉTODO PRINCIPAL: Agrupa hoteles por ciudad/departamento
+     */
+    public static List<Object> groupHotelsByCity(List<Hotel> hotels) {
+        if (hotels == null || hotels.isEmpty()) {
+            Log.d(TAG, "Lista de hoteles vacía o nula");
+            return new ArrayList<>();
+        }
+
+        Log.d(TAG, "Agrupando " + hotels.size() + " hoteles por ciudad");
+
+        Map<String, List<Hotel>> cityGroups = new HashMap<>();
+
+        for (Hotel hotel : hotels) {
+            String city = extractCityFromLocation(hotel.getLocation());
+            if (city == null) {
+                city = "otros"; // Fallback
+            }
+
+            // Capitalizar primera letra
+            String capitalizedCity = city.substring(0, 1).toUpperCase() + city.substring(1);
+
+            if (!cityGroups.containsKey(capitalizedCity)) {
+                cityGroups.put(capitalizedCity, new ArrayList<>());
+            }
+            cityGroups.get(capitalizedCity).add(hotel);
+        }
+
+        // Convertir a lista con headers
         List<Object> groupedItems = new ArrayList<>();
-        Map<String, List<Hotel>> cityGroups = new LinkedHashMap<>();
 
-        String[] priorityCities = {"Lima", "Cusco", "Arequipa", "Piura", "Amazonas", "Madre de Dios", "Valle Sagrado"};
+        // Ordenar ciudades alfabéticamente
+        List<String> sortedCities = new ArrayList<>(cityGroups.keySet());
+        Collections.sort(sortedCities);
 
-        for (String city : priorityCities) {
-            cityGroups.put(city, new ArrayList<>());
-        }
-
-        List<Hotel> otherCities = new ArrayList<>();
-
-        for (Hotel hotel : allHotels) {
-            String location = hotel.getLocation();
-            boolean foundCity = false;
-
-            for (String city : priorityCities) {
-                if (location.toLowerCase().contains(city.toLowerCase())) {
-                    cityGroups.get(city).add(hotel);
-                    foundCity = true;
-                    break;
-                }
-            }
-
-            if (!foundCity) {
-                otherCities.add(hotel);
-            }
-        }
-
-        for (Map.Entry<String, List<Hotel>> entry : cityGroups.entrySet()) {
-            List<Hotel> cityHotels = entry.getValue();
+        for (String city : sortedCities) {
+            List<Hotel> cityHotels = cityGroups.get(city);
             if (!cityHotels.isEmpty()) {
-                groupedItems.add(new CityHeader(entry.getKey(), cityHotels.size()));
+                // Agregar header de ciudad
+                groupedItems.add(new CityHeader(city, cityHotels.size()));
+
+                // Ordenar hoteles de la ciudad por rating
+                Collections.sort(cityHotels, (h1, h2) -> {
+                    try {
+                        double rating1 = Double.parseDouble(h1.getRating());
+                        double rating2 = Double.parseDouble(h2.getRating());
+                        return Double.compare(rating2, rating1); // Descendente
+                    } catch (NumberFormatException e) {
+                        return 0;
+                    }
+                });
+
+                // Agregar hoteles
                 groupedItems.addAll(cityHotels);
             }
         }
 
-        if (!otherCities.isEmpty()) {
-            groupedItems.add(new CityHeader("Otros destinos", otherCities.size()));
-            groupedItems.addAll(otherCities);
-        }
-
+        Log.d(TAG, "Agrupación completada: " + groupedItems.size() + " items en " + sortedCities.size() + " ciudades");
         return groupedItems;
     }
 
-    public static Map<String, List<Hotel>> groupHotelsByCityMap(List<Hotel> allHotels) {
-        Map<String, List<Hotel>> cityGroups = new LinkedHashMap<>();
-        String[] priorityCities = {"Lima", "Cusco", "Arequipa", "Piura", "Amazonas", "Madre de Dios", "Valle Sagrado"};
+    /**
+     * ✅ NUEVO: Crear mapa de hoteles por ciudad (para HomeFragment)
+     */
+    public static Map<String, List<Hotel>> groupHotelsByCityMap(List<Hotel> hotels) {
+        Map<String, List<Hotel>> cityGroups = new HashMap<>();
 
-        for (String city : priorityCities) {
-            cityGroups.put(city, new ArrayList<>());
+        if (hotels == null) {
+            return cityGroups;
         }
 
-        List<Hotel> otherCities = new ArrayList<>();
-
-        for (Hotel hotel : allHotels) {
-            String location = hotel.getLocation();
-            boolean foundCity = false;
-
-            for (String city : priorityCities) {
-                if (location.toLowerCase().contains(city.toLowerCase())) {
-                    cityGroups.get(city).add(hotel);
-                    foundCity = true;
-                    break;
-                }
+        for (Hotel hotel : hotels) {
+            String city = extractCityFromLocation(hotel.getLocation());
+            if (city == null) {
+                city = "otros"; // Fallback
             }
 
-            if (!foundCity) {
-                otherCities.add(hotel);
+            String capitalizedCity = city.substring(0, 1).toUpperCase() + city.substring(1);
+
+            if (!cityGroups.containsKey(capitalizedCity)) {
+                cityGroups.put(capitalizedCity, new ArrayList<>());
             }
-        }
-
-        cityGroups.entrySet().removeIf(entry -> entry.getValue().isEmpty());
-
-        if (!otherCities.isEmpty()) {
-            cityGroups.put("Otros destinos", otherCities);
+            cityGroups.get(capitalizedCity).add(hotel);
         }
 
         return cityGroups;
     }
 
-    public static List<Hotel> sortByDistance(List<Hotel> hotels, String referenceLocation) {
-        return sortByDistance(hotels, referenceLocation, null);
-    }
+    /**
+     * ✅ FILTRAR HOTELES CERCANOS - Optimizado para Firebase
+     */
+    public static List<Hotel> filterHotelsByProximity(List<Hotel> hotels, String userLocation, Context context) {
+        List<Hotel> nearbyHotels = new ArrayList<>();
 
-    public static List<Hotel> sortByDistance(List<Hotel> hotels, String referenceLocation, Context context) {
-        List<Hotel> sortedHotels = new ArrayList<>(hotels);
+        if (hotels == null || hotels.isEmpty()) {
+            Log.d(TAG, "No hay hoteles para filtrar proximidad");
+            return nearbyHotels;
+        }
 
-        double userLat = -12.046374; // Lima por defecto
-        double userLon = -77.042793;
+        String userCity = userLocation != null ? userLocation.toLowerCase().trim() : "";
 
+        // ✅ OBTENER CIUDAD ACTUAL DEL USUARIO DESDE LOCATIONMANAGER
         if (context != null) {
             UserLocationManager locationManager = UserLocationManager.getInstance(context);
-            userLat = locationManager.getCurrentLatitude();
-            userLon = locationManager.getCurrentLongitude();
+            userCity = locationManager.getCurrentCity().toLowerCase().trim();
         }
 
-        final double finalUserLat = userLat;
-        final double finalUserLon = userLon;
+        Log.d(TAG, "🔍 Filtrando hoteles cercanos para ciudad del usuario: '" + userCity + "'");
+        Log.d(TAG, "📊 Total hoteles a revisar: " + hotels.size());
 
-        sortedHotels.sort((h1, h2) -> {
-            double distance1 = HotelDistanceCalculator.calculateDistanceToHotel(h1, finalUserLat, finalUserLon);
-            double distance2 = HotelDistanceCalculator.calculateDistanceToHotel(h2, finalUserLat, finalUserLon);
-            return Double.compare(distance1, distance2);
-        });
+        for (Hotel hotel : hotels) {
+            String hotelLocation = hotel.getLocation() != null ? hotel.getLocation().toLowerCase().trim() : "";
+            String hotelCity = extractCityFromLocation(hotelLocation);
 
-        return sortedHotels;
-    }
+            Log.d(TAG, "🏨 Revisando hotel: " + hotel.getName());
+            Log.d(TAG, "   📍 Ubicación hotel: '" + hotelLocation + "'");
+            Log.d(TAG, "   🏙️ Ciudad extraída: '" + hotelCity + "'");
 
-    public static List<Hotel> sortByPrice(List<Hotel> hotels, boolean ascending) {
-        List<Hotel> sortedHotels = new ArrayList<>(hotels);
+            boolean isNearby = false;
 
-        sortedHotels.sort((h1, h2) -> {
-            int price1 = extractPrice(h1.getPrice());
-            int price2 = extractPrice(h2.getPrice());
-            return ascending ? Integer.compare(price1, price2) : Integer.compare(price2, price1);
-        });
+            // ✅ MEJORAR LÓGICA DE COMPARACIÓN
+            if (hotelCity != null && hotelCity.equals(userCity)) {
+                isNearby = true;
+                Log.d(TAG, "   ✅ COINCIDENCIA POR CIUDAD EXTRAÍDA");
+            }
+            // ✅ VERIFICAR SI LA UBICACIÓN COMPLETA CONTIENE LA CIUDAD DEL USUARIO
+            else if (hotelLocation.contains(userCity)) {
+                isNearby = true;
+                Log.d(TAG, "   ✅ COINCIDENCIA POR CONTIENE CIUDAD");
+            }
+            // ✅ VERIFICAR VARIACIONES COMUNES DE NOMBRES DE CIUDADES
+            else if (isCityVariation(userCity, hotelLocation)) {
+                isNearby = true;
+                Log.d(TAG, "   ✅ COINCIDENCIA POR VARIACIÓN DE CIUDAD");
+            }
 
-        return sortedHotels;
-    }
-
-    public static List<Hotel> sortByRating(List<Hotel> hotels) {
-        List<Hotel> sortedHotels = new ArrayList<>(hotels);
-
-        sortedHotels.sort((h1, h2) -> {
-            float rating1 = parseRating(h1.getRating());
-            float rating2 = parseRating(h2.getRating());
-            return Float.compare(rating2, rating1); // Descendente (mejor rating primero)
-        });
-
-        return sortedHotels;
-    }
-
-    private static int extractPrice(String priceText) {
-        try {
-            String cleanPrice = priceText.replace("S/", "").replace(",", "").trim();
-            return Integer.parseInt(cleanPrice);
-        } catch (NumberFormatException e) {
-            return Integer.MAX_VALUE; // Si no se puede parsear, va al final
+            if (isNearby) {
+                nearbyHotels.add(hotel);
+                Log.d(TAG, "   🎯 HOTEL AGREGADO A CERCANOS");
+            } else {
+                Log.d(TAG, "   ❌ Hotel no está cerca");
+            }
         }
-    }
 
-    private static float parseRating(String ratingText) {
-        try {
-            return Float.parseFloat(ratingText);
-        } catch (NumberFormatException e) {
-            return 0.0f; // Si no se puede parsear, rating mínimo
+        // ✅ ORDENAR POR RATING DESCENDENTE
+        Collections.sort(nearbyHotels, (h1, h2) -> {
+            try {
+                double rating1 = Double.parseDouble(h1.getRating());
+                double rating2 = Double.parseDouble(h2.getRating());
+                return Double.compare(rating2, rating1);
+            } catch (NumberFormatException e) {
+                return 0;
+            }
+        });
+
+        Log.d(TAG, "🏆 RESULTADO FINAL - Hoteles cercanos encontrados: " + nearbyHotels.size());
+        for (Hotel hotel : nearbyHotels) {
+            Log.d(TAG, "   ✅ " + hotel.getName() + " - " + hotel.getLocation());
         }
+
+        return nearbyHotels;
+    }
+    private static boolean isCityVariation(String userCity, String hotelLocation) {
+        // Manejar variaciones comunes
+        if (userCity.equals("lima")) {
+            return hotelLocation.contains("lima") ||
+                    hotelLocation.contains("miraflores") ||
+                    hotelLocation.contains("san isidro") ||
+                    hotelLocation.contains("barranco") ||
+                    hotelLocation.contains("surco") ||
+                    hotelLocation.contains("callao");
+        }
+
+        if (userCity.equals("cusco") || userCity.equals("cuzco")) {
+            return hotelLocation.contains("cusco") || hotelLocation.contains("cuzco");
+        }
+
+        // Agregar más variaciones según necesidad
+        return false;
     }
 
+
+    /**
+     * ✅ FILTRAR HOTELES POPULARES - Basado en rating
+     */
+    public static List<Hotel> filterPopularHotels(List<Hotel> hotels) {
+        if (hotels == null || hotels.isEmpty()) {
+            Log.d(TAG, "No hay hoteles para filtrar populares");
+            return new ArrayList<>();
+        }
+
+        Log.d(TAG, "Filtrando hoteles populares de " + hotels.size() + " hoteles");
+
+        List<Hotel> popularHotels = new ArrayList<>(hotels);
+
+        // Ordenar por rating descendente
+        Collections.sort(popularHotels, (h1, h2) -> {
+            try {
+                double rating1 = Double.parseDouble(h1.getRating());
+                double rating2 = Double.parseDouble(h2.getRating());
+                return Double.compare(rating2, rating1);
+            } catch (NumberFormatException e) {
+                return 0;
+            }
+        });
+
+        // Tomar solo los mejores (con rating >= 4.5)
+        List<Hotel> topRatedHotels = new ArrayList<>();
+        for (Hotel hotel : popularHotels) {
+            try {
+                double rating = Double.parseDouble(hotel.getRating());
+                if (rating >= 4.5) {
+                    topRatedHotels.add(hotel);
+                }
+
+                // Limitar a 15 hoteles populares
+                if (topRatedHotels.size() >= 15) {
+                    break;
+                }
+            } catch (NumberFormatException e) {
+                // Si no se puede parsear el rating, agregarlo al final
+                if (topRatedHotels.size() < 15) {
+                    topRatedHotels.add(hotel);
+                }
+            }
+        }
+
+        Log.d(TAG, "Hoteles populares encontrados: " + topRatedHotels.size());
+        return topRatedHotels;
+    }
+
+    /**
+     * ✅ BUSCAR HOTELES POR CIUDAD ESPECÍFICA
+     */
     public static List<Hotel> getHotelsForCity(List<Hotel> allHotels, String cityName) {
         List<Hotel> cityHotels = new ArrayList<>();
 
-        if (cityName == null || cityName.trim().isEmpty()) {
+        if (allHotels == null || cityName == null) {
+            Log.d(TAG, "Parámetros nulos en getHotelsForCity");
             return cityHotels;
         }
 
         String searchCity = cityName.toLowerCase().trim();
-        Log.d("HotelGroupingUtils", "Buscando hoteles en ciudad: '" + searchCity + "'");
+        Log.d(TAG, "Buscando hoteles para ciudad: '" + searchCity + "'");
 
         for (Hotel hotel : allHotels) {
-            String hotelLocation = hotel.getLocation().toLowerCase();
+            String hotelLocation = hotel.getLocation() != null ? hotel.getLocation().toLowerCase() : "";
             String hotelCity = extractCityFromLocation(hotelLocation);
 
-            // ✅ BÚSQUEDA MÁS PRECISA
             boolean matchesCity = false;
 
             // 1. Coincidencia exacta con ciudad extraída
@@ -186,20 +286,24 @@ public class HotelGroupingUtils {
             else if (hotelLocation.contains(searchCity)) {
                 matchesCity = true;
             }
-            // 3. El nombre del hotel contiene la ciudad
+            // 3. Verificar nombre del hotel
             else if (hotel.getName().toLowerCase().contains(searchCity)) {
                 matchesCity = true;
             }
 
             if (matchesCity) {
                 cityHotels.add(hotel);
-                Log.d("HotelGroupingUtils", "Hotel coincidente: " + hotel.getName() + " en " + hotel.getLocation());
+                Log.d(TAG, "Hotel coincidente: " + hotel.getName() + " en " + hotel.getLocation());
             }
         }
 
-        Log.d("HotelGroupingUtils", "Total hoteles encontrados para '" + searchCity + "': " + cityHotels.size());
+        Log.d(TAG, "Total hoteles encontrados para '" + searchCity + "': " + cityHotels.size());
         return cityHotels;
     }
+
+    /**
+     * ✅ MÉTODO MEJORADO: getHotelsForCitySpecific
+     */
     public static List<Hotel> getHotelsForCitySpecific(List<Hotel> allHotels, String searchLocation) {
         List<Hotel> results = new ArrayList<>();
 
@@ -210,9 +314,11 @@ public class HotelGroupingUtils {
         String searchTerm = searchLocation.toLowerCase().trim();
         String cityFromLocation = extractCityFromLocation(searchTerm);
 
+        Log.d(TAG, "Búsqueda específica para: '" + searchTerm + "', ciudad extraída: '" + cityFromLocation + "'");
+
         // Primero agregar hoteles de la ciudad específica
         for (Hotel hotel : allHotels) {
-            String hotelLocation = hotel.getLocation().toLowerCase();
+            String hotelLocation = hotel.getLocation() != null ? hotel.getLocation().toLowerCase() : "";
             String hotelCity = extractCityFromLocation(hotelLocation);
 
             if (cityFromLocation != null && cityFromLocation.equals(hotelCity)) {
@@ -224,8 +330,8 @@ public class HotelGroupingUtils {
         if (results.size() < 3) {
             for (Hotel hotel : allHotels) {
                 if (!results.contains(hotel)) {
-                    String hotelLocation = hotel.getLocation().toLowerCase();
-                    String hotelName = hotel.getName().toLowerCase();
+                    String hotelLocation = hotel.getLocation() != null ? hotel.getLocation().toLowerCase() : "";
+                    String hotelName = hotel.getName() != null ? hotel.getName().toLowerCase() : "";
 
                     if (hotelLocation.contains(searchTerm) || hotelName.contains(searchTerm)) {
                         results.add(hotel);
@@ -234,188 +340,112 @@ public class HotelGroupingUtils {
             }
         }
 
+        Log.d(TAG, "Resultados específicos encontrados: " + results.size());
         return results;
     }
 
-    public static String extractCityFromLocation(String location) {
-        if (location == null) return null;
-
-        String[] cities = {"lima", "cusco", "arequipa", "piura", "trujillo", "iquitos",
-                "chiclayo", "huancayo", "tacna", "puno", "ayacucho", "cajamarca",
-                "tumbes", "chachapoyas", "leymebamba", "tambopata", "puerto maldonado"};
-        String locationLower = location.toLowerCase();
-
-        // ✅ BÚSQUEDA MÁS ESPECÍFICA - priorizar coincidencias exactas
-        for (String city : cities) {
-            if (locationLower.contains(city)) {
-                Log.d("HotelGroupingUtils", "Ciudad extraída: '" + city + "' de ubicación: '" + location + "'");
-                return city;
-            }
-        }
-
-        Log.d("HotelGroupingUtils", "No se pudo extraer ciudad de: '" + location + "'");
-        return null;
-    }
-
-    public static int getTotalHotelsCount(List<HotelGroup> groups) {
-        int total = 0;
-        for (HotelGroup group : groups) {
-            total += group.getTotalHotels();
-        }
-        return total;
-    }
-
-    public static List<Hotel> filterHotelsByProximity(List<Hotel> hotels, String userLocation) {
-        return filterHotelsByProximity(hotels, userLocation, null);
-    }
-
-    public static List<Hotel> filterHotelsByProximity(List<Hotel> hotels, String userLocation, Context context) {
-        List<Hotel> nearbyHotels = new ArrayList<>();
-
-        double userLat = -12.046374; // Lima por defecto
-        double userLon = -77.042793;
-
-        if (context != null) {
-            UserLocationManager locationManager = UserLocationManager.getInstance(context);
-            userLat = locationManager.getCurrentLatitude();
-            userLon = locationManager.getCurrentLongitude();
-            userLocation = locationManager.getCurrentCity().toLowerCase();
-        }
-
-        // Filtrar por ciudad y cercanía
-        for (Hotel hotel : hotels) {
-            String hotelLocation = hotel.getLocation().toLowerCase();
-
-            // Si está en la misma ciudad
-            if (hotelLocation.contains(userLocation.toLowerCase())) {
-                double distance = HotelDistanceCalculator.calculateDistanceToHotel(hotel, userLat, userLon);
-                if (distance < 20.0) { // Menos de 20km
-                    nearbyHotels.add(hotel);
-                }
-            }
-        }
-
-        // Si no hay suficientes hoteles cercanos, incluir más de la misma ciudad
-        if (nearbyHotels.size() < 5) {
-            for (Hotel hotel : hotels) {
-                if (!nearbyHotels.contains(hotel)) {
-                    String hotelLocation = hotel.getLocation().toLowerCase();
-                    if (hotelLocation.contains(userLocation.toLowerCase())) {
-                        nearbyHotels.add(hotel);
-                        if (nearbyHotels.size() >= 8) break;
-                    }
-                }
-            }
-        }
-
-        // Ordenar por distancia
-        return sortByDistance(nearbyHotels, userLocation, context);
-    }
-
-    public static List<Hotel> filterPopularHotels(List<Hotel> hotels) {
-        List<Hotel> popularHotels = new ArrayList<>();
-
-        // Primero filtrar por rating alto
-        for (Hotel hotel : hotels) {
-            try {
-                float rating = Float.parseFloat(hotel.getRating());
-                if (rating >= 4.5) {
-                    popularHotels.add(hotel);
-                }
-            } catch (NumberFormatException e) {
-                // Ignorar hoteles sin rating válido
-            }
-        }
-
-        // Si no hay suficientes, incluir hoteles de marcas reconocidas
-        if (popularHotels.size() < 5) {
-            String[] premiumBrands = {"belmond", "marriott", "hilton", "inkaterra",
-                    "westin", "country club", "skylodge", "tambo"};
-
-            for (Hotel hotel : hotels) {
-                if (popularHotels.contains(hotel)) continue;
-
-                String name = hotel.getName().toLowerCase();
-                for (String brand : premiumBrands) {
-                    if (name.contains(brand)) {
-                        popularHotels.add(hotel);
-                        break;
-                    }
-                }
-
-                if (popularHotels.size() >= 10) break;
-            }
-        }
-
-        // Si aún no hay suficientes, incluir hoteles con rating >= 4.0
-        if (popularHotels.size() < 8) {
-            for (Hotel hotel : hotels) {
-                if (popularHotels.contains(hotel)) continue;
-
-                try {
-                    float rating = Float.parseFloat(hotel.getRating());
-                    if (rating >= 4.0) {
-                        popularHotels.add(hotel);
-                        if (popularHotels.size() >= 12) break;
-                    }
-                } catch (NumberFormatException e) {
-                    // Ignorar
-                }
-            }
-        }
-
-        // Ordenar por rating
-        return sortByRating(popularHotels);
-    }
-
-    public static List<Hotel> searchHotels(List<Hotel> hotels, String query) {
+    /**
+     * ✅ BÚSQUEDA GENERAL DE HOTELES
+     */
+    public static List<Hotel> searchHotels(List<Hotel> allHotels, String searchTerm) {
         List<Hotel> results = new ArrayList<>();
 
-        if (query == null || query.trim().isEmpty()) {
-            return new ArrayList<>(hotels);
+        if (allHotels == null || searchTerm == null || searchTerm.trim().isEmpty()) {
+            return results;
         }
 
-        String searchQuery = query.toLowerCase().trim();
+        String search = searchTerm.toLowerCase().trim();
+        Log.d(TAG, "Búsqueda general para: '" + search + "'");
 
-        for (Hotel hotel : hotels) {
-            String name = hotel.getName().toLowerCase();
-            String location = hotel.getLocation().toLowerCase();
+        for (Hotel hotel : allHotels) {
+            String hotelName = hotel.getName() != null ? hotel.getName().toLowerCase() : "";
+            String hotelLocation = hotel.getLocation() != null ? hotel.getLocation().toLowerCase() : "";
 
-            if (name.contains(searchQuery) || location.contains(searchQuery)) {
+            if (hotelName.contains(search) || hotelLocation.contains(search)) {
                 results.add(hotel);
             }
         }
 
+        // Ordenar por relevancia (los que contienen el término en el nombre primero)
+        Collections.sort(results, (h1, h2) -> {
+            boolean h1NameMatch = h1.getName().toLowerCase().contains(search);
+            boolean h2NameMatch = h2.getName().toLowerCase().contains(search);
+
+            if (h1NameMatch && !h2NameMatch) return -1;
+            if (!h1NameMatch && h2NameMatch) return 1;
+
+            // Si ambos coinciden en nombre o ubicación, ordenar por rating
+            try {
+                double rating1 = Double.parseDouble(h1.getRating());
+                double rating2 = Double.parseDouble(h2.getRating());
+                return Double.compare(rating2, rating1);
+            } catch (NumberFormatException e) {
+                return 0;
+            }
+        });
+
+        Log.d(TAG, "Resultados de búsqueda encontrados: " + results.size());
         return results;
     }
 
-    public static List<Hotel> filterHotelsByRatingRange(List<Hotel> hotels, float minRating, float maxRating) {
-        List<Hotel> filteredHotels = new ArrayList<>();
+    /**
+     * ✅ EXTRAER CIUDAD DE UBICACIÓN - Mejorado
+     */
+    public static String extractCityFromLocation(String location) {
+        if (location == null || location.trim().isEmpty()) {
+            return null;
+        }
 
-        for (Hotel hotel : hotels) {
-            try {
-                float rating = Float.parseFloat(hotel.getRating());
-                if (rating >= minRating && rating <= maxRating) {
-                    filteredHotels.add(hotel);
-                }
-            } catch (NumberFormatException e) {
-                // Si no tiene rating válido, no incluir
+        String locationLower = location.toLowerCase().trim();
+
+        Log.d(TAG, "🔍 Extrayendo ciudad de: '" + location + "'");
+
+        // ✅ BÚSQUEDA MÁS PRECISA - ORDEN IMPORTA
+        // Buscar ciudades más específicas primero
+        if (locationLower.contains("san isidro")) return "lima";
+        if (locationLower.contains("miraflores")) return "lima";
+        if (locationLower.contains("barranco")) return "lima";
+        if (locationLower.contains("surco")) return "lima";
+        if (locationLower.contains("callao")) return "lima";
+
+        // Luego ciudades principales
+        for (String city : PERU_CITIES) {
+            if (locationLower.contains(city)) {
+                Log.d(TAG, "✅ Ciudad extraída: '" + city + "'");
+                return city;
             }
         }
 
-        return filteredHotels;
+        Log.d(TAG, "❌ No se pudo extraer ciudad de: '" + location + "'");
+        return null;
     }
 
-    public static List<Hotel> filterHotelsByPriceRange(List<Hotel> hotels, int minPrice, int maxPrice) {
-        List<Hotel> filteredHotels = new ArrayList<>();
-
-        for (Hotel hotel : hotels) {
-            int price = extractPrice(hotel.getPrice());
-            if (price >= minPrice && price <= maxPrice) {
-                filteredHotels.add(hotel);
+    /**
+     * ✅ CONTAR TOTAL DE HOTELES EN GRUPOS
+     */
+    public static int getTotalHotelsCount(List<Object> groupedItems) {
+        int count = 0;
+        for (Object item : groupedItems) {
+            if (item instanceof Hotel) {
+                count++;
             }
         }
+        return count;
+    }
 
-        return filteredHotels;
+    /**
+     * ✅ VERIFICAR SI UN HOTEL ESTÁ EN UNA CIUDAD ESPECÍFICA
+     */
+    public static boolean isHotelInCity(Hotel hotel, String cityName) {
+        if (hotel == null || cityName == null) {
+            return false;
+        }
+
+        String targetCity = cityName.toLowerCase().trim();
+        String hotelLocation = hotel.getLocation() != null ? hotel.getLocation().toLowerCase() : "";
+        String hotelCity = extractCityFromLocation(hotelLocation);
+
+        return (hotelCity != null && hotelCity.equals(targetCity)) ||
+                hotelLocation.contains(targetCity);
     }
 }

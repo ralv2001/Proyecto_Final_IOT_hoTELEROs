@@ -22,6 +22,10 @@ import com.example.proyecto_final_hoteleros.superadmin.models.ChartData;
 import java.util.ArrayList;
 import java.util.List;
 
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
+import androidx.core.graphics.Insets;
+
 public class ReportesFragment extends Fragment {
 
     private RecyclerView rvMetrics, rvCharts;

@@ -1,5 +1,6 @@
 package com.example.proyecto_final_hoteleros.superadmin.fragment;
 
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -31,6 +32,10 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
+import androidx.core.graphics.Insets;
 
 public class AddHotelAdminFragment extends Fragment {
 
@@ -99,7 +104,7 @@ public class AddHotelAdminFragment extends Fragment {
     private void loadFormFields() {
         fieldsList.clear();
 
-        // Información del Administrador (SEPARADO: nombre y apellido)
+        // NO incluir header - solo los campos
         fieldsList.add(new HotelAdminField("admin_nombres", "Nombres del Administrador",
                 "Ej: Juan Carlos", R.drawable.ic_profile, "text", true));
         fieldsList.add(new HotelAdminField("admin_apellidos", "Apellidos del Administrador",
@@ -130,9 +135,16 @@ public class AddHotelAdminFragment extends Fragment {
 
         // Validar email
         String email = formData.get("admin_email");
-        if (email != null && !email.isEmpty() && !isValidEmail(email)) {
-            errors.add("• Email inválido");
+        if (email != null && !email.isEmpty()) {
+            if (!isValidEmail(email)) {
+                errors.add("• Email inválido");
+            } else {
+                // 🔥 NUEVA VALIDACIÓN: Verificar si el email ya existe
+                checkEmailExistsBeforeCreate(email, errors, formData);
+                return; // Salir aquí para manejar la validación asíncrona
+            }
         }
+
 
         // Validar contraseñas
         String password = formData.get("admin_password");
@@ -153,6 +165,30 @@ public class AddHotelAdminFragment extends Fragment {
 
         // Si todo está correcto, crear el administrador
         showCreateConfirmation(formData);
+    }
+    private void checkEmailExistsBeforeCreate(String email, List<String> errors, Map<String, String> formData) {
+        FirebaseManager.getInstance().checkIfEmailExists(email, new FirebaseManager.AuthCallback() {
+            @Override
+            public void onSuccess(String result) {
+                // Email ya existe
+                if (getActivity() != null) {
+                    getActivity().runOnUiThread(() -> {
+                        errors.add("• Este email ya está registrado en el sistema");
+                        showValidationErrors(errors);
+                    });
+                }
+            }
+
+            @Override
+            public void onError(String error) {
+                // Email no existe, continuar con creación
+                if (getActivity() != null) {
+                    getActivity().runOnUiThread(() -> {
+                        showCreateConfirmation(formData);
+                    });
+                }
+            }
+        });
     }
 
     private boolean isValidEmail(String email) {

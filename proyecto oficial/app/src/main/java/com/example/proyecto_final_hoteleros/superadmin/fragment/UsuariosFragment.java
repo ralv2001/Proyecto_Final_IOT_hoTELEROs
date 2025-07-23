@@ -22,6 +22,10 @@ import com.example.proyecto_final_hoteleros.utils.FirebaseManager;
 import java.util.ArrayList;
 import java.util.List;
 
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
+import androidx.core.graphics.Insets;
+
 public class UsuariosFragment extends Fragment {
 
     private RecyclerView rvUsuarios;
@@ -51,6 +55,9 @@ public class UsuariosFragment extends Fragment {
         setupRecyclerView();
         loadData();
 
+        // Al final del método onCreateView(), antes del return view;
+        applyInitialFilter();
+
         return view;
     }
 
@@ -64,7 +71,7 @@ public class UsuariosFragment extends Fragment {
         etSearch = view.findViewById(R.id.et_search);
         layoutSearch = view.findViewById(R.id.layout_search);
         ivSearchToggle = view.findViewById(R.id.iv_search_toggle);
-        ivFilter = view.findViewById(R.id.iv_filter);
+        // ivFilter = view.findViewById(R.id.iv_filter); // ❌ COMENTAR/REMOVER ESTA LÍNEA
         ivStats = view.findViewById(R.id.iv_stats);
         chipAll = view.findViewById(R.id.chip_all);
         chipClients = view.findViewById(R.id.chip_clients);
@@ -398,6 +405,12 @@ public class UsuariosFragment extends Fragment {
             usuario.setName(userModel.getFullName());
             usuario.setEmail(userModel.getEmail());
             usuario.setUserType(mapUserType(userModel.getUserType()));
+
+            // 🔍 LOG TEMPORAL PARA DEBUG
+            Log.d("UsuariosFragment", "🔍 Usuario: " + userModel.getFullName() +
+                    " - UserModel.isActive(): " + userModel.isActive() +
+                    " - Tipo: " + userModel.getUserType());
+
             usuario.setActive(userModel.isActive());
             usuario.setRegistrationDate(formatTimestamp(userModel.getCreatedAt()));
             usuario.setPhoneNumber(userModel.getTelefono());
@@ -521,17 +534,8 @@ public class UsuariosFragment extends Fragment {
                 case "toggle_status":
                     toggleUsuarioStatus(usuario);
                     break;
-                case "view_details":
-                    viewUsuarioDetails(usuario);
-                    break;
-                case "edit":
-                    editUsuario(usuario);
-                    break;
-                case "view_activity":
-                    viewUsuarioActivity(usuario);
-                    break;
-                case "reset_password":
-                    resetPassword(usuario);
+                case "view_info":
+                    showUserInformation(usuario);
                     break;
                 default:
                     android.util.Log.w("UsuariosFragment", "Acción no reconocida: " + action);
@@ -544,41 +548,137 @@ public class UsuariosFragment extends Fragment {
     }
 
     private void toggleUsuarioStatus(Usuario usuario) {
+        Log.d("UsuariosFragment", "🔄 Iniciando toggle de estado para: " + usuario.getName());
+
         String action = usuario.isActive() ? "desactivar" : "activar";
+        String title = action.substring(0, 1).toUpperCase() + action.substring(1) + " usuario";
+        String message = "¿Estás seguro que deseas " + action + " a " + usuario.getName() + "?";
+
+        // Validaciones adicionales para desactivación
+        if (usuario.isActive() && needsExtraValidation(usuario)) {
+            message += "\n\n⚠️ Este usuario tiene un rol importante en el sistema.";
+        }
+
         new androidx.appcompat.app.AlertDialog.Builder(getContext())
-                .setTitle(action.substring(0, 1).toUpperCase() + action.substring(1) + " usuario")
-                .setMessage("¿Estás seguro que deseas " + action + " a " + usuario.getName() + "?")
+                .setTitle(title)
+                .setMessage(message)
                 .setPositiveButton(action.substring(0, 1).toUpperCase() + action.substring(1), (dialog, which) -> {
-                    usuario.setActive(!usuario.isActive());
-                    usuariosAdapter.notifyDataSetChanged();
-                    String message = usuario.isActive() ? "Usuario activado" : "Usuario desactivado";
-                    android.widget.Toast.makeText(getContext(), message, android.widget.Toast.LENGTH_SHORT).show();
+                    performStatusToggle(usuario);
                 })
                 .setNegativeButton("Cancelar", (dialog, which) -> dialog.dismiss())
+                .setIcon(usuario.isActive() ? R.drawable.ic_warning : R.drawable.ic_check)
                 .show();
     }
 
-    private void viewUsuarioDetails(Usuario usuario) {
-        android.widget.Toast.makeText(getContext(), "Ver detalles de " + usuario.getName(), android.widget.Toast.LENGTH_SHORT).show();
+    private boolean needsExtraValidation(Usuario usuario) {
+        // Validar si es admin de hotel o taxista con reservas
+        return "ADMIN_HOTEL".equals(usuario.getUserType()) || "TAXISTA".equals(usuario.getUserType());
     }
 
-    private void editUsuario(Usuario usuario) {
-        android.widget.Toast.makeText(getContext(), "Editar " + usuario.getName(), android.widget.Toast.LENGTH_SHORT).show();
+    private void performStatusToggle(Usuario usuario) {
+        Log.d("UsuariosFragment", "🔄 Ejecutando cambio de estado para: " + usuario.getName());
+
+        // Mostrar loading
+        showLoading(true);
+
+        // Validar primero si se puede desactivar
+        if (usuario.isActive()) {
+            FirebaseManager.getInstance().canDeactivateUser(
+                    usuario.getId(),
+                    mapUserTypeToFirebase(usuario.getUserType()),
+                    new FirebaseManager.BooleanCallback() {
+                        @Override
+                        public void onResult(boolean canProceed, String message) {
+                            if (canProceed) {
+                                executeStatusChange(usuario);
+                            } else {
+                                if (getActivity() != null) {
+                                    getActivity().runOnUiThread(() -> {
+                                        showLoading(false);
+                                        showError("No se puede desactivar: " + message);
+                                    });
+                                }
+                            }
+                        }
+                    }
+            );
+        } else {
+            // Para activar, no necesita validaciones especiales
+            executeStatusChange(usuario);
+        }
     }
 
-    private void viewUsuarioActivity(Usuario usuario) {
-        android.widget.Toast.makeText(getContext(), "Ver actividad de " + usuario.getName(), android.widget.Toast.LENGTH_SHORT).show();
+    private void executeStatusChange(Usuario usuario) {
+        boolean newStatus = !usuario.isActive();
+        String actionText = newStatus ? "activar" : "desactivar";
+
+        Log.d("UsuariosFragment", "🔄 Ejecutando " + actionText + " en Firebase para: " + usuario.getName());
+
+        FirebaseManager.getInstance().toggleUserStatus(usuario.getId(), newStatus, new FirebaseManager.DataCallback() {
+            @Override
+            public void onSuccess() {
+                Log.d("UsuariosFragment", "✅ Estado actualizado exitosamente en Firebase");
+
+                if (getActivity() != null) {
+                    getActivity().runOnUiThread(() -> {
+                        // Actualizar objeto local
+                        usuario.setActive(newStatus);
+
+                        // Actualizar adapter
+                        if (usuariosAdapter != null) {
+                            usuariosAdapter.notifyDataSetChanged();
+                        }
+
+                        // Mostrar mensaje de éxito
+                        String successMessage = usuario.isActive() ?
+                                "✅ Usuario activado exitosamente" :
+                                "🚫 Usuario desactivado exitosamente";
+
+                        android.widget.Toast.makeText(getContext(), successMessage, android.widget.Toast.LENGTH_SHORT).show();
+
+                        // Opcional: Refrescar lista completa para asegurar sincronización
+                        refreshUsersList();
+
+                        showLoading(false);
+                    });
+                }
+            }
+
+            @Override
+            public void onError(String error) {
+                Log.e("UsuariosFragment", "❌ Error actualizando estado: " + error);
+
+                if (getActivity() != null) {
+                    getActivity().runOnUiThread(() -> {
+                        showError("Error " + actionText.substring(0, actionText.length() - 1) + "ando usuario: " + error);
+                        showLoading(false);
+                    });
+                }
+            }
+        });
     }
 
-    private void resetPassword(Usuario usuario) {
-        new androidx.appcompat.app.AlertDialog.Builder(getContext())
-                .setTitle("Restablecer contraseña")
-                .setMessage("¿Estás seguro que deseas restablecer la contraseña de " + usuario.getName() + "?")
-                .setPositiveButton("Restablecer", (dialog, which) -> {
-                    android.widget.Toast.makeText(getContext(), "Contraseña restablecida para " + usuario.getName(), android.widget.Toast.LENGTH_SHORT).show();
-                })
-                .setNegativeButton("Cancelar", (dialog, which) -> dialog.dismiss())
-                .show();
+    // Método auxiliar para mapear tipos de usuario al formato de Firebase
+    private String mapUserTypeToFirebase(String displayUserType) {
+        switch (displayUserType) {
+            case "CLIENTE":
+                return "client";
+            case "TAXISTA":
+            case "TAXISTA_PENDIENTE":
+                return "driver";
+            case "ADMIN_HOTEL":
+                return "hotel_admin";
+            case "SUPERADMIN":
+                return "superadmin";
+            default:
+                return "unknown";
+        }
+    }
+
+    // Método para refrescar la lista completa
+    private void refreshUsersList() {
+        Log.d("UsuariosFragment", "🔄 Refrescando lista de usuarios...");
+        loadData(); // ✅ ESTO ESTÁ CORRECTO
     }
 
     private void showFilterOptions() {
@@ -589,6 +689,136 @@ public class UsuariosFragment extends Fragment {
                     // Implementar filtrado
                     android.widget.Toast.makeText(getContext(), "Filtro: " + options[which], android.widget.Toast.LENGTH_SHORT).show();
                 })
+                .show();
+    }
+
+
+    // 🔥 NUEVO: Aplicar filtro inicial si viene de dashboard
+    private void applyInitialFilter() {
+        if (getArguments() != null) {
+            String initialFilter = getArguments().getString("initial_filter");
+            android.util.Log.d("UsuariosFragment", "Filtro inicial recibido: " + initialFilter);
+
+            if ("ALL".equals(initialFilter)) {
+                // Mostrar todos los usuarios
+                currentFilter = "ALL";
+                android.util.Log.d("UsuariosFragment", "Aplicando filtro inicial: TODOS");
+            } else if ("ACTIVE".equals(initialFilter)) {
+                // Mostrar solo usuarios activos
+                currentFilter = "ACTIVE";
+                android.util.Log.d("UsuariosFragment", "Aplicando filtro inicial: ACTIVOS");
+
+                // Esperar a que los datos se carguen antes de filtrar
+                new android.os.Handler().postDelayed(() -> {
+                    filterUsuariosByStatus("ACTIVE");
+                }, 1000);
+            }
+        }
+    }
+
+    // 🔥 NUEVO: Filtrar usuarios por estado
+    private void filterUsuariosByStatus(String status) {
+        if (usuariosAdapter == null || allUsuarios.isEmpty()) {
+            android.widget.Toast.makeText(getContext(), "Cargando usuarios...", android.widget.Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        List<Usuario> filteredList = new ArrayList<>();
+
+        for (Usuario usuario : allUsuarios) {
+            if ("ACTIVE".equals(status) && usuario.isActive()) {
+                filteredList.add(usuario);
+            } else if ("ALL".equals(status)) {
+                filteredList.add(usuario);
+            }
+        }
+
+        usuariosAdapter.updateData(filteredList);
+
+        String statusText = "ACTIVE".equals(status) ? "activos" : "todos";
+        android.widget.Toast.makeText(getContext(),
+                "Mostrando " + filteredList.size() + " usuarios " + statusText,
+                android.widget.Toast.LENGTH_SHORT).show();
+
+        android.util.Log.d("UsuariosFragment", "Filtro aplicado - " + statusText + ": " + filteredList.size());
+    }
+
+    private void showUserInformation(Usuario usuario) {
+        Log.d("UsuariosFragment", "📋 Mostrando información de: " + usuario.getName());
+
+        // Construir información según el tipo de usuario
+        StringBuilder info = new StringBuilder();
+
+        // 📋 INFORMACIÓN BÁSICA (todos los usuarios)
+        info.append("👤 INFORMACIÓN PERSONAL\n");
+        info.append("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n");
+        info.append("📛 Nombre: ").append(usuario.getName()).append("\n");
+        info.append("📧 Email: ").append(usuario.getEmail()).append("\n");
+        info.append("👥 Tipo: ").append(usuario.getUserTypeText()).append("\n");
+        info.append("📅 Registrado: ").append(usuario.getRegistrationDate()).append("\n");
+        info.append("⚡ Estado: ").append(usuario.getStatusText()).append("\n");
+
+        // 📱 INFORMACIÓN ADICIONAL según tipo
+        if (usuario.getPhoneNumber() != null && !usuario.getPhoneNumber().isEmpty()) {
+            info.append("📞 Teléfono: ").append(usuario.getPhoneNumber()).append("\n");
+        }
+
+        // 📋 INFORMACIÓN ESPECÍFICA POR TIPO
+        switch (usuario.getUserType()) {
+            case "CLIENTE":
+                info.append("\n🛡️ INFORMACIÓN DE CLIENTE\n");
+                info.append("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
+                info.append("• Puede realizar reservas\n");
+                info.append("• Acceso a servicios de taxi\n");
+                if (usuario.getLastLoginDate() != null) {
+                    info.append("🕐 Último acceso: ").append(usuario.getLastLoginDate()).append("\n");
+                }
+                break;
+
+            case "ADMIN_HOTEL":
+                info.append("\n🏨 INFORMACIÓN DE ADMIN HOTEL\n");
+                info.append("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
+                info.append("• Gestiona reservas del hotel\n");
+                info.append("• Administra servicios\n");
+                info.append("• Acceso al panel administrativo\n");
+                break;
+
+            case "TAXISTA":
+                info.append("\n🚗 INFORMACIÓN DE TAXISTA\n");
+                info.append("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
+                info.append("• Conductor aprobado\n");
+                info.append("• Puede recibir viajes\n");
+                info.append("• Documentos verificados\n");
+                break;
+
+            case "TAXISTA_PENDIENTE":
+                info.append("\n🕒 INFORMACIÓN DE TAXISTA PENDIENTE\n");
+                info.append("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
+                info.append("• En proceso de verificación\n");
+                info.append("• Documentos bajo revisión\n");
+                info.append("• Acceso limitado\n");
+                break;
+
+            case "SUPERADMIN":
+                info.append("\n⚙️ INFORMACIÓN DE SUPER ADMIN\n");
+                info.append("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
+                info.append("• Acceso completo al sistema\n");
+                info.append("• Gestión de todos los usuarios\n");
+                info.append("• Control total de la plataforma\n");
+                break;
+        }
+
+        // 🚨 NOTA IMPORTANTE
+        info.append("\n📝 NOTA\n");
+        info.append("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
+        info.append("Esta información es solo de lectura.\n");
+
+        // Mostrar el diálogo
+        new androidx.appcompat.app.AlertDialog.Builder(getContext())
+                .setTitle("📋 Información del Usuario")
+                .setMessage(info.toString())
+                .setPositiveButton("✅ Entendido", (dialog, which) -> dialog.dismiss())
+                .setIcon(R.drawable.ic_info)
                 .show();
     }
 }

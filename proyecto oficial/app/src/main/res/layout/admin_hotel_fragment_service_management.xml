@@ -1,51 +1,56 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/background_light">
+    android:background="@color/background">
 
-    <!-- Header -->
+    <!-- Header con el mismo diseño del perfil -->
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/headerContainer"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:background="@drawable/bg_header_gradient"
-        android:padding="16dp"
+        android:background="@color/orange"
+        android:paddingHorizontal="24dp"
+        android:paddingVertical="16dp"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
 
+        <!-- Botón Volver -->
         <ImageView
             android:id="@+id/ivBack"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
             android:src="@drawable/ic_arrow_back"
-            android:background="@drawable/bg_circle_white"
-            android:padding="8dp"
-            app:tint="@color/orange"
+            app:tint="@android:color/white"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:clickable="true"
+            android:focusable="true"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintBottom_toBottomOf="parent" />
 
+        <!-- Título -->
         <TextView
+            android:id="@+id/tvTitle"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:text="🎯 Gestión de Servicios"
+            android:text="🛎️ Gestión de Servicios"
             android:textSize="20sp"
             android:textStyle="bold"
             android:textColor="@android:color/white"
-            android:fontFamily="@font/poppins_semibold"
-            android:gravity="center"
+            android:fontFamily="@font/poppins_bold"
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="16dp"
             app:layout_constraintStart_toEndOf="@id/ivBack"
-            app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintBottom_toBottomOf="parent" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
-    <!-- Contenido Principal Scrollable -->
+    <!-- ScrollView principal -->
     <ScrollView
         android:layout_width="0dp"
         android:layout_height="0dp"
@@ -59,17 +64,18 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="16dp">
+            android:padding="20dp">
 
-            <!-- SECCIÓN: SERVICIOS BÁSICOS (desde perfil del hotel) -->
-            <com.google.android.material.card.MaterialCardView
+            <!-- SECCIÓN: SERVICIOS BÁSICOS -->
+            <androidx.cardview.widget.CardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
                 app:cardCornerRadius="16dp"
                 app:cardElevation="4dp"
-                app:strokeColor="@color/orange"
-                app:strokeWidth="1dp">
+                app:strokeColor="#4CAF50"
+                app:strokeWidth="1dp"
+                app:cardBackgroundColor="@android:color/white">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -77,7 +83,7 @@
                     android:orientation="vertical"
                     android:padding="20dp">
 
-                    <!-- Header de Servicios Básicos -->
+                    <!-- Header -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
@@ -88,90 +94,80 @@
                         <ImageView
                             android:layout_width="24dp"
                             android:layout_height="24dp"
-                            android:src="@drawable/ic_hotel"
-                            app:tint="@color/orange"
+                            android:src="@drawable/ic_check_circle"
+                            app:tint="#4CAF50"
                             android:layout_marginEnd="8dp" />
 
                         <TextView
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:text="🛏️ Servicios Básicos"
-                            android:textSize="18sp"
+                            android:text="Servicios Básicos"
+                            android:textSize="16sp"
                             android:textStyle="bold"
-                            android:textColor="@color/text_primary"
+                            android:textColor="#212121"
                             android:fontFamily="@font/poppins_semibold" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Incluido - Básico"
-                            android:textSize="12sp"
-                            android:textColor="@color/orange"
-                            android:textStyle="bold"
-                            android:background="@drawable/bg_chip_orange"
-                            android:paddingHorizontal="8dp"
-                            android:paddingVertical="4dp" />
 
                     </LinearLayout>
 
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="Servicios agregados desde el perfil del hotel. Estos se incluyen automáticamente en todas las habitaciones."
-                        android:textSize="12sp"
-                        android:textColor="@color/text_secondary"
-                        android:layout_marginBottom="16dp" />
-
-                    <!-- RecyclerView para Servicios Básicos -->
+                    <!-- ✅ CORREGIDO: RecyclerView para servicios básicos con configuración mejorada -->
                     <androidx.recyclerview.widget.RecyclerView
                         android:id="@+id/rvBasicServices"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:nestedScrollingEnabled="false"
-                        android:layout_marginBottom="12dp" />
+                        android:clipToPadding="false"
+                        android:clipChildren="false"
+                        android:scrollbars="none"
+                        android:overScrollMode="never"
+                        android:focusable="false"
+                        android:focusableInTouchMode="false"
+                        android:minHeight="60dp"
+                        android:paddingTop="4dp"
+                        android:paddingBottom="4dp"
+                        tools:listitem="@layout/admin_hotel_item_service_management"
+                        tools:itemCount="3" />
 
-                    <!-- Estado vacío para servicios básicos -->
+                    <!-- Empty state para servicios básicos -->
                     <LinearLayout
                         android:id="@+id/layoutBasicServicesEmpty"
                         android:layout_width="match_parent"
-                        android:layout_height="80dp"
+                        android:layout_height="wrap_content"
                         android:orientation="vertical"
                         android:gravity="center"
+                        android:padding="20dp"
                         android:visibility="gone">
 
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="📋 No hay servicios básicos configurados"
-                            android:textSize="14sp"
-                            android:textColor="@color/text_secondary"
-                            android:gravity="center" />
+                        <ImageView
+                            android:layout_width="64dp"
+                            android:layout_height="64dp"
+                            android:src="@drawable/ic_check_circle"
+                            app:tint="#E0E0E0"
+                            android:layout_marginBottom="8dp" />
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Ve al perfil del hotel para agregar servicios básicos"
-                            android:textSize="11sp"
+                            android:text="No hay servicios básicos"
+                            android:textSize="14sp"
                             android:textColor="@color/text_secondary"
-                            android:gravity="center"
-                            android:layout_marginTop="4dp" />
+                            android:fontFamily="@font/inter_medium" />
 
                     </LinearLayout>
 
                 </LinearLayout>
-
-            </com.google.android.material.card.MaterialCardView>
+            </androidx.cardview.widget.CardView>
 
             <!-- SECCIÓN: SERVICIOS INCLUIDOS -->
-            <com.google.android.material.card.MaterialCardView
+            <androidx.cardview.widget.CardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
                 app:cardCornerRadius="16dp"
                 app:cardElevation="4dp"
-                app:strokeColor="@color/green"
-                app:strokeWidth="1dp">
+                app:strokeColor="#2196F3"
+                app:strokeWidth="1dp"
+                app:cardBackgroundColor="@android:color/white">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -179,7 +175,7 @@
                     android:orientation="vertical"
                     android:padding="20dp">
 
-                    <!-- Header de Servicios Incluidos -->
+                    <!-- Header -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
@@ -190,62 +186,79 @@
                         <ImageView
                             android:layout_width="24dp"
                             android:layout_height="24dp"
-                            android:src="@drawable/ic_service"
-                            app:tint="@color/green"
+                            android:src="@drawable/ic_star"
+                            app:tint="#2196F3"
                             android:layout_marginEnd="8dp" />
 
                         <TextView
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:text="✅ Servicios Incluidos"
-                            android:textSize="18sp"
+                            android:text="Servicios Incluidos"
+                            android:textSize="16sp"
                             android:textStyle="bold"
                             android:textColor="@color/text_primary"
                             android:fontFamily="@font/poppins_semibold" />
 
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Incluido"
-                            android:textSize="12sp"
-                            android:textColor="@color/green"
-                            android:textStyle="bold"
-                            android:background="@drawable/bg_chip_green"
-                            android:paddingHorizontal="8dp"
-                            android:paddingVertical="4dp" />
-
                     </LinearLayout>
 
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="Servicios adicionales que ofreces sin costo extra para mejorar la experiencia del huésped."
-                        android:textSize="12sp"
-                        android:textColor="@color/text_secondary"
-                        android:layout_marginBottom="16dp" />
-
-                    <!-- RecyclerView para Servicios Incluidos -->
+                    <!-- ✅ CORREGIDO: RecyclerView para servicios incluidos con misma configuración -->
                     <androidx.recyclerview.widget.RecyclerView
                         android:id="@+id/rvIncludedServices"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:nestedScrollingEnabled="false"
-                        android:layout_marginBottom="12dp" />
+                        android:clipToPadding="false"
+                        android:clipChildren="false"
+                        android:scrollbars="none"
+                        android:overScrollMode="never"
+                        android:focusable="false"
+                        android:focusableInTouchMode="false"
+                        android:minHeight="60dp"
+                        android:paddingTop="4dp"
+                        android:paddingBottom="4dp"
+                        tools:listitem="@layout/admin_hotel_item_service_management" />
+
+                    <!-- Empty state para servicios incluidos -->
+                    <LinearLayout
+                        android:id="@+id/layoutIncludedServicesEmpty"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:gravity="center"
+                        android:padding="20dp"
+                        android:visibility="gone">
+
+                        <ImageView
+                            android:layout_width="64dp"
+                            android:layout_height="64dp"
+                            android:src="@drawable/ic_star"
+                            app:tint="#E0E0E0"
+                            android:layout_marginBottom="8dp" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="No hay servicios incluidos"
+                            android:textSize="14sp"
+                            android:textColor="@color/text_secondary"
+                            android:fontFamily="@font/inter_medium" />
+
+                    </LinearLayout>
 
                 </LinearLayout>
+            </androidx.cardview.widget.CardView>
 
-            </com.google.android.material.card.MaterialCardView>
-
-            <!-- SECCIÓN: SERVICIOS PAGADOS -->
-            <com.google.android.material.card.MaterialCardView
+            <!-- SECCIÓN: SERVICIOS DE PAGO -->
+            <androidx.cardview.widget.CardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
                 app:cardCornerRadius="16dp"
                 app:cardElevation="4dp"
-                app:strokeColor="@color/blue"
-                app:strokeWidth="1dp">
+                app:strokeColor="@color/red"
+                app:strokeWidth="1dp"
+                app:cardBackgroundColor="@android:color/white">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -253,7 +266,7 @@
                     android:orientation="vertical"
                     android:padding="20dp">
 
-                    <!-- Header de Servicios Pagados -->
+                    <!-- Header -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
@@ -264,197 +277,200 @@
                         <ImageView
                             android:layout_width="24dp"
                             android:layout_height="24dp"
-                            android:src="@drawable/ic_promo"
-                            app:tint="@color/blue"
+                            android:src="@drawable/ic_payment"
+                            app:tint="@color/red"
                             android:layout_marginEnd="8dp" />
 
                         <TextView
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:text="💰 Servicios Pagados"
-                            android:textSize="18sp"
+                            android:text="Servicios de Pago"
+                            android:textSize="16sp"
                             android:textStyle="bold"
                             android:textColor="@color/text_primary"
                             android:fontFamily="@font/poppins_semibold" />
 
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Pagado"
-                            android:textSize="12sp"
-                            android:textColor="@color/blue"
-                            android:textStyle="bold"
-                            android:background="@drawable/bg_chip_blue"
-                            android:paddingHorizontal="8dp"
-                            android:paddingVertical="4dp" />
-
                     </LinearLayout>
 
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="Servicios premium que generas ingresos adicionales para tu hotel."
-                        android:textSize="12sp"
-                        android:textColor="@color/text_secondary"
-                        android:layout_marginBottom="16dp" />
-
-                    <!-- RecyclerView para Servicios Pagados -->
+                    <!-- ✅ CORREGIDO: RecyclerView para servicios de pago con misma configuración -->
                     <androidx.recyclerview.widget.RecyclerView
                         android:id="@+id/rvPaidServices"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:nestedScrollingEnabled="false"
-                        android:layout_marginBottom="12dp" />
+                        android:clipToPadding="false"
+                        android:clipChildren="false"
+                        android:scrollbars="none"
+                        android:overScrollMode="never"
+                        android:focusable="false"
+                        android:focusableInTouchMode="false"
+                        android:minHeight="60dp"
+                        android:paddingTop="4dp"
+                        android:paddingBottom="4dp"
+                        tools:listitem="@layout/admin_hotel_item_service_management" />
+
+                    <!-- Empty state para servicios de pago -->
+                    <LinearLayout
+                        android:id="@+id/layoutPaidServicesEmpty"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:gravity="center"
+                        android:padding="20dp"
+                        android:visibility="gone">
+
+                        <ImageView
+                            android:layout_width="64dp"
+                            android:layout_height="64dp"
+                            android:src="@drawable/ic_payment"
+                            app:tint="#E0E0E0"
+                            android:layout_marginBottom="8dp" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="No hay servicios de pago"
+                            android:textSize="14sp"
+                            android:textColor="@color/text_secondary"
+                            android:fontFamily="@font/inter_medium" />
+
+                    </LinearLayout>
 
                 </LinearLayout>
+            </androidx.cardview.widget.CardView>
 
-            </com.google.android.material.card.MaterialCardView>
-
-            <!-- SECCIÓN: SERVICIOS CONDICIONALES -->
-            <com.google.android.material.card.MaterialCardView
+            <!-- ✅ SECCIÓN: CONFIGURACIÓN DE TAXI - MANTIENE EL DISEÑO ACTUAL -->
+            <androidx.cardview.widget.CardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="24dp"
-                app:cardCornerRadius="16dp"
-                app:cardElevation="4dp"
-                app:strokeColor="@color/purple"
-                app:strokeWidth="1dp">
+                android:layout_marginBottom="80dp"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="2dp"
+                app:strokeColor="@color/orange"
+                app:strokeWidth="1dp"
+                app:cardBackgroundColor="@android:color/white">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                    android:padding="20dp">
+                    android:padding="12dp">
 
-                    <!-- Header de Servicios Condicionales -->
+                    <!-- Header compacto -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="horizontal"
                         android:gravity="center_vertical"
-                        android:layout_marginBottom="12dp">
+                        android:layout_marginBottom="8dp">
 
                         <ImageView
-                            android:layout_width="24dp"
-                            android:layout_height="24dp"
+                            android:layout_width="18dp"
+                            android:layout_height="18dp"
                             android:src="@drawable/ic_taxi"
-                            app:tint="@color/purple"
-                            android:layout_marginEnd="8dp" />
+                            app:tint="@color/orange"
+                            android:layout_marginEnd="6dp" />
 
                         <TextView
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:text="🎯 Servicios Condicionales"
-                            android:textSize="18sp"
+                            android:text="🚕 Configuración de Taxi"
+                            android:textSize="13sp"
                             android:textStyle="bold"
                             android:textColor="@color/text_primary"
                             android:fontFamily="@font/poppins_semibold" />
 
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Condicional"
-                            android:textSize="12sp"
-                            android:textColor="@color/purple"
-                            android:textStyle="bold"
-                            android:background="@drawable/bg_chip_purple"
-                            android:paddingHorizontal="8dp"
-                            android:paddingVertical="4dp" />
-
                     </LinearLayout>
 
+                    <!-- Descripción mínima -->
                     <TextView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="Servicios que se activan automáticamente cuando el huésped alcanza un monto determinado en su factura."
-                        android:textSize="12sp"
+                        android:text="Monto mínimo para taxi gratuito"
+                        android:textSize="10sp"
                         android:textColor="@color/text_secondary"
-                        android:layout_marginBottom="16dp" />
+                        android:fontFamily="@font/inter_regular"
+                        android:layout_marginBottom="8dp" />
 
-                    <!-- Configuración del Taxi Gratis -->
+                    <!-- Layout horizontal ultra compacto -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:background="@drawable/bg_special_offer"
-                        android:padding="16dp"
-                        android:layout_marginBottom="16dp">
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:background="@drawable/rounded_border"
+                        android:padding="8dp">
 
+                        <!-- Ícono -->
+                        <ImageView
+                            android:layout_width="16dp"
+                            android:layout_height="16dp"
+                            android:src="@drawable/ic_payment"
+                            app:tint="@color/orange"
+                            android:layout_marginEnd="6dp" />
+
+                        <!-- Prefijo -->
                         <TextView
-                            android:layout_width="match_parent"
+                            android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="🚕 Taxi Gratis al Aeropuerto"
-                            android:textSize="16sp"
-                            android:textStyle="bold"
+                            android:text="S/. "
+                            android:textSize="12sp"
                             android:textColor="@color/text_primary"
-                            android:layout_marginBottom="8dp" />
+                            android:fontFamily="@font/inter_medium" />
 
-                        <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:orientation="horizontal"
-                            android:gravity="center_vertical">
+                        <!-- Campo de texto simple -->
+                        <EditText
+                            android:id="@+id/etTaxiMinAmount"
+                            android:layout_width="0dp"
+                            android:layout_height="32dp"
+                            android:layout_weight="1"
+                            android:background="@android:color/transparent"
+                            android:hint="0.00"
+                            android:textSize="12sp"
+                            android:textColor="@color/text_primary"
+                            android:textColorHint="@color/text_secondary"
+                            android:inputType="numberDecimal"
+                            android:fontFamily="@font/inter_regular"
+                            android:layout_marginEnd="8dp"
+                            android:paddingHorizontal="4dp" />
 
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="Activar cuando el gasto supere: S/ "
-                                android:textSize="14sp"
-                                android:textColor="@color/text_primary" />
-
-                            <com.google.android.material.textfield.TextInputEditText
-                                android:id="@+id/etSpecialTaxiAmount"
-                                android:layout_width="100dp"
-                                android:layout_height="40dp"
-                                android:hint="500.00"
-                                android:inputType="numberDecimal"
-                                android:textSize="14sp"
-                                android:textStyle="bold"
-                                android:textColor="@color/purple"
-                                android:background="@drawable/bg_input_special"
-                                android:gravity="center"
-                                android:layout_marginHorizontal="8dp" />
-
-                            <com.google.android.material.button.MaterialButton
-                                android:id="@+id/btnSaveSpecialOffer"
-                                android:layout_width="wrap_content"
-                                android:layout_height="36dp"
-                                android:text="💾 Guardar"
-                                android:textSize="12sp"
-                                app:backgroundTint="@color/purple"
-                                app:cornerRadius="8dp"
-                                android:textColor="@android:color/white" />
-
-                        </LinearLayout>
+                        <!-- Botón mini -->
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnSaveTaxiConfig"
+                            android:layout_width="wrap_content"
+                            android:layout_height="32dp"
+                            android:text="Guardar"
+                            android:textSize="10sp"
+                            android:textColor="@android:color/white"
+                            android:backgroundTint="@color/orange"
+                            app:cornerRadius="6dp"
+                            android:fontFamily="@font/inter_semibold"
+                            android:minWidth="60dp"
+                            android:minHeight="32dp"
+                            android:paddingHorizontal="8dp"
+                            android:paddingVertical="0dp"
+                            style="@style/Widget.MaterialComponents.Button" />
 
                     </LinearLayout>
 
-                    <!-- RecyclerView para Servicios Condicionales -->
-                    <androidx.recyclerview.widget.RecyclerView
-                        android:id="@+id/rvConditionalServices"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:nestedScrollingEnabled="false" />
-
                 </LinearLayout>
-
-            </com.google.android.material.card.MaterialCardView>
+            </androidx.cardview.widget.CardView>
 
         </LinearLayout>
-
     </ScrollView>
 
-    <!-- FAB para Añadir Servicio -->
+    <!-- ✅ ÚNICO BOTÓN PARA AGREGAR SERVICIOS - FAB -->
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fabAddService"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_margin="24dp"
-        android:src="@drawable/ic_add_service"
-        app:backgroundTint="@color/orange"
+        android:src="@drawable/ic_add"
+        android:backgroundTint="@color/orange"
         app:tint="@android:color/white"
+        app:borderWidth="0dp"
+        android:layout_margin="24dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintBottom_toBottomOf="parent" />
 

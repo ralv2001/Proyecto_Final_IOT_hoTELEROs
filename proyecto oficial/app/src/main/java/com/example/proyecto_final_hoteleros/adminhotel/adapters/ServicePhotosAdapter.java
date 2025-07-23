@@ -1,6 +1,7 @@
 package com.example.proyecto_final_hoteleros.adminhotel.adapters;
 
 import android.net.Uri;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -14,6 +15,8 @@ import com.example.proyecto_final_hoteleros.R;
 import java.util.List;
 
 public class ServicePhotosAdapter extends RecyclerView.Adapter<ServicePhotosAdapter.PhotoViewHolder> {
+
+    private static final String TAG = "ServicePhotosAdapter";
 
     public interface OnPhotoActionListener {
         void onRemovePhoto(int position);
@@ -51,10 +54,24 @@ public class ServicePhotosAdapter extends RecyclerView.Adapter<ServicePhotosAdap
             super(itemView);
             ivPhoto = itemView.findViewById(R.id.ivPhoto);
             ivRemove = itemView.findViewById(R.id.ivRemove);
+
+            // ✅ SOLO ESTE LOG PARA VERIFICAR EL PROBLEMA
+            if (ivPhoto == null) {
+                Log.e(TAG, "❌ ERROR: ivPhoto es NULL! Layout: admin_hotel_item_service_photo");
+            }
+            if (ivRemove == null) {
+                Log.e(TAG, "❌ ERROR: ivRemove es NULL! Layout: admin_hotel_item_service_photo");
+            }
         }
 
         public void bind(Uri photoUri, int position) {
-            // Cargar imagen con Glide
+            // ✅ SOLO AGREGAMOS ESTA VALIDACIÓN MÍNIMA
+            if (ivPhoto == null) {
+                Log.e(TAG, "❌ ivPhoto es null en bind() - No se puede cargar imagen");
+                return;
+            }
+
+            // El resto del código EXACTAMENTE IGUAL que antes
             Glide.with(itemView.getContext())
                     .load(photoUri)
                     .transform(new CenterCrop(), new RoundedCorners(16))
@@ -63,11 +80,13 @@ public class ServicePhotosAdapter extends RecyclerView.Adapter<ServicePhotosAdap
                     .into(ivPhoto);
 
             // Click para remover
-            ivRemove.setOnClickListener(v -> {
-                if (listener != null) {
-                    listener.onRemovePhoto(position);
-                }
-            });
+            if (ivRemove != null) {
+                ivRemove.setOnClickListener(v -> {
+                    if (listener != null) {
+                        listener.onRemovePhoto(position);
+                    }
+                });
+            }
         }
     }
 }

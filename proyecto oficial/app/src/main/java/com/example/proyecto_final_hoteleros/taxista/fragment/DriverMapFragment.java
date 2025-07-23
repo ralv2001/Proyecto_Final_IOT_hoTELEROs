@@ -3,20 +3,26 @@ package com.example.proyecto_final_hoteleros.taxista.fragment;
 import android.Manifest;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.res.ColorStateList;
 import android.content.res.Resources;
 import android.graphics.Color;
 import android.location.Location;
+import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.Looper;
+import android.os.SystemClock;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.Interpolator;
+import android.view.animation.LinearInterpolator;
 import android.widget.CompoundButton;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -29,10 +35,13 @@ import androidx.fragment.app.Fragment;
 
 import com.bumptech.glide.Glide;
 import com.example.proyecto_final_hoteleros.R;
+import com.example.proyecto_final_hoteleros.taxista.activity.DriverActivity;
 import com.example.proyecto_final_hoteleros.taxista.model.DriverProfile;
+import com.example.proyecto_final_hoteleros.taxista.services.DirectionsService;
 import com.example.proyecto_final_hoteleros.taxista.services.MockNotificationService;
 import com.example.proyecto_final_hoteleros.taxista.utils.DriverPreferenceManager;
 import com.example.proyecto_final_hoteleros.taxista.utils.NotificationHelper;
+import com.example.proyecto_final_hoteleros.utils.FirebaseManager;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationRequest;
@@ -45,13 +54,16 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.MapStyleOptions;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.Polyline;
+import com.google.android.gms.maps.model.PolylineOptions;
+import com.google.android.material.button.MaterialButton;
+import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
-import android.os.Handler;
-import android.os.SystemClock;
-import android.view.animation.LinearInterpolator;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -60,43 +72,91 @@ import de.hdodenhof.circleimageview.CircleImageView;
 
 public class DriverMapFragment extends Fragment implements OnMapReadyCallback {
 
+    private static final String TAG = "DriverMapFragment";
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 1;
     private static final double SERVICE_RADIUS_METERS = 5000;
 
-    private Marker driverMarker;
+    // Mapa y ubicación (existente)
     private GoogleMap mMap;
     private FusedLocationProviderClient fusedLocationClient;
     private LocationCallback locationCallback;
     private LocationRequest locationRequest;
     private boolean shouldCenterCamera = true;
+    private boolean isLocationUpdatesActive = false;
+    private boolean hasLocationPermission = false;
+
+    // Marcadores (existente + nuevo)
+    private Marker driverMarker;
+    private List<Marker> hotelMarkers;
+    private Marker destinationMarker; // 🆕 NUEVO
+    private Polyline currentRoute; // 🆕 NUEVO
+
+    // Servicios (existente + nuevo)
+    private DriverPreferenceManager preferenceManager;
+    private NotificationHelper notificationHelper;
+    private MockNotificationService mockNotificationService;
+    private DirectionsService directionsService; // 🆕 NUEVO
+
+    // Vistas existentes
     private CardView cardEstadoTaxista;
     private TextView tvEstadoServicio;
     private Switch switchDisponible;
     private FloatingActionButton btnMyLocation;
-    private boolean isLocationUpdatesActive = false;
-    private boolean hasLocationPermission = false;
     private FloatingActionButton btnZoomIn;
     private FloatingActionButton btnZoomOut;
-    private List<Marker> hotelMarkers;
     private CircleImageView ivProfilePhoto;
     private TextView tvDriverName;
     private ImageView ivNotifications;
-    private int notificationCount = 0;
     private TextView tvNotificationBadge;
-    private DriverPreferenceManager preferenceManager;
-    private NotificationHelper notificationHelper;
-    private MockNotificationService mockNotificationService;
+
+    // 🆕 NUEVAS VISTAS PARA SERVICIO ACTIVO
+    private MaterialCardView cardServicioActivo;
+    private TextView tvClienteName;
+    private TextView tvHotelName;
+    private TextView tvDestinationAddress;
+    private TextView tvDistanceTime;
+    private TextView tvServiceStatus;
+    private MaterialButton btnIniciarNavegacion;
+    private MaterialButton btnCompletarServicio;
+    private LinearLayout headerServicioActivo;
+    private LinearLayout contenidoExpandible;
+    private ImageView iconExpandCollapse;
+    private MaterialButton btnMostrarRuta;
+    private boolean isCardExpanded = false;
+
+    // Estado (existente + nuevo)
+    private int notificationCount = 0;
+    private LatLng currentDriverLocation; // 🆕 NUEVO
+    private String activeServiceDestination; // 🆕 NUEVO
+    private String activeServiceClientName; // 🆕 NUEVO
+    private String activeServiceHotelName; // 🆕 NUEVO
+    private String activeServiceClientPhone; // 🆕 NUEVO
 
     public DriverMapFragment() {
         // Constructor vacío requerido
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.taxi_fragment_driver_map, container, false);
 
-        // Inicializar vistas
+        // Inicializar vistas existentes
+        initializeExistingViews(view);
+
+        // 🆕 INICIALIZAR NUEVAS VISTAS
+        initializeNewViews(view);
+
+        // Configurar listeners existentes
+        setupExistingListeners(view); // ✅ PASAR VIEW COMO PARÁMETRO
+
+        // 🆕 CONFIGURAR NUEVOS LISTENERS
+        setupNewListeners();
+
+        return view;
+    }
+
+    private void initializeExistingViews(View view) {
+        // Vistas existentes
         ivProfilePhoto = view.findViewById(R.id.ivProfilePhoto);
         tvDriverName = view.findViewById(R.id.tvDriverName);
         ivNotifications = view.findViewById(R.id.ivNotifications);
@@ -110,8 +170,28 @@ public class DriverMapFragment extends Fragment implements OnMapReadyCallback {
 
         notificationCount = 3;
         updateNotificationBadge();
+    }
 
-        // Configurar listeners
+    // 🆕 INICIALIZAR NUEVAS VISTAS
+    private void initializeNewViews(View view) {
+        cardServicioActivo = view.findViewById(R.id.cardServicioActivo);
+        tvClienteName = view.findViewById(R.id.tvClienteName);
+        tvHotelName = view.findViewById(R.id.tvHotelName);
+        tvDestinationAddress = view.findViewById(R.id.tvDestinationAddress);
+        tvDistanceTime = view.findViewById(R.id.tvDistanceTime);
+        tvServiceStatus = view.findViewById(R.id.tvServiceStatus);
+        btnIniciarNavegacion = view.findViewById(R.id.btnIniciarNavegacion);
+        btnCompletarServicio = view.findViewById(R.id.btnCompletarServicio);
+        headerServicioActivo = view.findViewById(R.id.headerServicioActivo);
+        contenidoExpandible = view.findViewById(R.id.contenidoExpandible);
+        iconExpandCollapse = view.findViewById(R.id.iconExpandCollapse);
+        tvDestinationAddress = view.findViewById(R.id.tvDestinationAddress);
+        btnMostrarRuta = view.findViewById(R.id.btnMostrarRuta);
+
+    }
+
+    private void setupExistingListeners(View view) { // ⭐ AGREGAR PARÁMETRO VIEW
+        // Listeners existentes
         switchDisponible.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
@@ -151,20 +231,466 @@ public class DriverMapFragment extends Fragment implements OnMapReadyCallback {
             }
         });
 
+        // ✅ AHORA CON VIEW DISPONIBLE:
         FloatingActionButton btnTestNotification = view.findViewById(R.id.btnTestNotification);
-        btnTestNotification.setOnClickListener(new View.OnClickListener() {
+        if (btnTestNotification != null) {
+            btnTestNotification.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    if (mockNotificationService != null) {
+                        showNotificationTestMenu();
+                    }
+                }
+            });
+        }
+    }
+
+    // 🆕 CONFIGURAR NUEVOS LISTENERS
+    private void setupNewListeners() {
+        if (btnIniciarNavegacion != null) {
+            btnIniciarNavegacion.setOnClickListener(v -> startExternalNavigation());
+        }
+        if (btnMostrarRuta != null) {
+            btnMostrarRuta.setOnClickListener(v -> mostrarRutaEnMapa());
+        }
+        if (headerServicioActivo != null) {
+            headerServicioActivo.setOnClickListener(v -> toggleCardExpansion());
+        }
+
+
+        if (btnCompletarServicio != null) {
+            btnCompletarServicio.setOnClickListener(v -> openQRScanner());
+        }
+    }
+
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+
+        Log.d(TAG, "🗺️ Inicializando DriverMapFragment con funcionalidad completa");
+
+        // Inicializar servicios existentes
+        preferenceManager = new DriverPreferenceManager(requireContext());
+        notificationHelper = new NotificationHelper(requireContext());
+        mockNotificationService = new MockNotificationService(notificationHelper, preferenceManager);
+
+        // 🆕 INICIALIZAR NUEVO SERVICIO
+        directionsService = new DirectionsService(requireContext());
+
+        loadSavedState();
+
+        // Configurar mapa
+        SupportMapFragment mapFragment = (SupportMapFragment) getChildFragmentManager()
+                .findFragmentById(R.id.map);
+        if (mapFragment != null) {
+            mapFragment.getMapAsync(this);
+        }
+
+        // Configurar ubicación
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireActivity());
+        createLocationRequest();
+
+        locationCallback = new LocationCallback() {
             @Override
-            public void onClick(View v) {
-                if (mockNotificationService != null) {
-                    showNotificationTestMenu();
+            public void onLocationResult(LocationResult locationResult) {
+                if (locationResult == null) return;
+
+                for (Location location : locationResult.getLocations()) {
+                    updateLocationOnMap(location);
+                    // 🆕 ACTUALIZAR UBICACIÓN ACTUAL
+                    currentDriverLocation = new LatLng(location.getLatitude(), location.getLongitude());
+                }
+            }
+        };
+
+        // 🆕 VERIFICAR ARGUMENTOS DE SERVICIO
+        checkServiceArguments();
+
+        checkLocationPermission();
+
+        Log.d(TAG, "✅ DriverMapFragment inicializado completamente");
+    }
+
+    // 🆕 VERIFICAR ARGUMENTOS DE SERVICIO
+    private void checkServiceArguments() {
+        Bundle args = getArguments();
+        if (args != null) {
+            activeServiceDestination = args.getString("destination_address");
+            activeServiceClientName = args.getString("client_name");
+            activeServiceHotelName = args.getString("destination_name");
+            activeServiceClientPhone = args.getString("client_phone");
+            String serviceType = args.getString("service_type");
+
+            Log.d(TAG, "🔍 ARGUMENTOS RECIBIDOS:");
+            Log.d(TAG, "destination_address: " + activeServiceDestination);
+            Log.d(TAG, "client_name: " + activeServiceClientName);
+            Log.d(TAG, "destination_name: " + activeServiceHotelName);
+            Log.d(TAG, "service_type: " + serviceType);
+
+            if (activeServiceDestination != null && serviceType != null) {
+                Log.d(TAG, "🎯 Servicio activo detectado: " + activeServiceHotelName);
+                showActiveService();
+
+                if (mMap != null) {
+                    geocodeAndShowRoute();
+                }
+            } else {
+                Log.w(TAG, "⚠️ No hay argumentos de servicio o están incompletos");
+                hideActiveService(); // ✅ AGREGAR ESTA LÍNEA
+            }
+        } else {
+            Log.w(TAG, "⚠️ No hay argumentos en el fragment");
+            hideActiveService(); // ✅ AGREGAR ESTA LÍNEA
+        }
+    }
+    private void hideActiveService() {
+        if (cardServicioActivo != null) {
+            cardServicioActivo.setVisibility(View.GONE);
+            Log.d(TAG, "🫥 Card de servicio activo ocultada");
+        }
+
+        // Limpiar variables de servicio
+        activeServiceDestination = null;
+        activeServiceClientName = null;
+        activeServiceHotelName = null;
+        activeServiceClientPhone = null;
+
+        // Limpiar ruta del mapa
+        clearServiceFromMap();
+    }
+
+    // 🆕 MOSTRAR SERVICIO ACTIVO
+    private void showActiveService() {
+        if (cardServicioActivo != null) {
+            cardServicioActivo.setVisibility(View.VISIBLE);
+
+            if (tvClienteName != null && activeServiceClientName != null) {
+                tvClienteName.setText("🚕 " + activeServiceClientName +
+                        (activeServiceHotelName != null ? " - " + activeServiceHotelName : ""));
+            }
+
+            if (tvHotelName != null && activeServiceHotelName != null) {
+                tvHotelName.setText("🏨 " + activeServiceHotelName);
+            }
+
+            if (tvDestinationAddress != null && activeServiceDestination != null) {
+                tvDestinationAddress.setText("📍 " + activeServiceDestination);
+            }
+
+            if (tvServiceStatus != null) {
+                tvServiceStatus.setText("● EN CURSO");
+            }
+
+            if (tvDistanceTime != null) {
+                tvDistanceTime.setText("📏 Calculando ruta...");
+            }
+
+            // Empezar colapsada
+            isCardExpanded = false;
+            contenidoExpandible.setVisibility(View.GONE);
+            if (iconExpandCollapse != null) {
+                iconExpandCollapse.setRotation(0);
+            }
+
+            Log.d(TAG, "✅ Card desplegable mostrada (colapsada)");
+        }
+    }
+
+    // 🆕 GEOCODIFICAR Y MOSTRAR RUTA
+    private void geocodeAndShowRoute() {
+        if (directionsService == null || activeServiceDestination == null) {
+            Log.w(TAG, "No se puede geocodificar: servicio o destino nulo");
+            return;
+        }
+
+        Log.d(TAG, "🔍 Geocodificando destino: " + activeServiceDestination);
+
+        directionsService.geocodeAddress(activeServiceDestination, new DirectionsService.GeocodeCallback() {
+            @Override
+            public void onSuccess(LatLng destinationLocation) {
+                Log.d(TAG, "✅ Destino geocodificado: " + destinationLocation);
+                showDestinationMarker(destinationLocation);
+
+                if (currentDriverLocation != null) {
+                    calculateAndShowRoute(currentDriverLocation, destinationLocation);
+                } else {
+                    // Usar ubicación por defecto (Lima centro) hasta obtener ubicación real
+                    LatLng defaultLocation = new LatLng(-12.0464, -77.0428);
+                    calculateAndShowRoute(defaultLocation, destinationLocation);
+                }
+            }
+
+            @Override
+            public void onError(String error) {
+                Log.e(TAG, "❌ Error geocodificando: " + error);
+                if (getContext() != null) {
+                    Toast.makeText(getContext(), "Error encontrando ubicación: " + error, Toast.LENGTH_LONG).show();
                 }
             }
         });
-
-        return view;
     }
 
-    // MÉTODO MOVIDO FUERA DE onCreateView() - ESTA ES LA CORRECCIÓN PRINCIPAL
+    // 🆕 MOSTRAR MARCADOR DE DESTINO
+    private void showDestinationMarker(LatLng location) {
+        if (mMap != null) {
+            if (destinationMarker != null) {
+                destinationMarker.remove();
+            }
+
+            destinationMarker = mMap.addMarker(new MarkerOptions()
+                    .position(location)
+                    .title(activeServiceHotelName != null ? activeServiceHotelName : "Destino")
+                    .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED)));
+
+            Log.d(TAG, "📍 Marcador de destino agregado");
+        }
+    }
+
+    // 🆕 CALCULAR Y MOSTRAR RUTA
+    private void calculateAndShowRoute(LatLng origin, LatLng destination) {
+        Log.d(TAG, "🛣️ Calculando ruta desde " + origin + " hasta " + destination);
+
+        directionsService.getDirections(origin, destination, new DirectionsService.DirectionsCallback() {
+            @Override
+            public void onSuccess(List<LatLng> route, String distance, String duration) {
+                Log.d(TAG, "✅ Ruta calculada: " + distance + ", " + duration);
+
+                // Mostrar ruta en el mapa
+                showRouteOnMap(route);
+
+                // Actualizar información de distancia/tiempo en la card
+                updateDistanceTime(distance, duration);
+
+                // Ajustar zoom para mostrar toda la ruta
+                zoomToFitRoute(origin, destination);
+
+                // Mensaje de éxito
+                if (getContext() != null) {
+                    Toast.makeText(getContext(),
+                            "✅ Ruta calculada: " + distance + " en " + duration,
+                            Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onError(String error) {
+                Log.e(TAG, "❌ Error calculando ruta: " + error);
+                if (getContext() != null) {
+                    Toast.makeText(getContext(),
+                            "❌ Error calculando ruta: " + error,
+                            Toast.LENGTH_LONG).show();
+                }
+            }
+        });
+    }
+
+    // 🆕 MOSTRAR RUTA EN EL MAPA
+    private void showRouteOnMap(List<LatLng> route) {
+        if (mMap != null && route != null && !route.isEmpty()) {
+            // Remover ruta anterior
+            if (currentRoute != null) {
+                currentRoute.remove();
+            }
+
+            // ✅ RUTA MÁS VISIBLE Y ATRACTIVA:
+            PolylineOptions polylineOptions = new PolylineOptions()
+                    .addAll(route)
+                    .width(12) // ✅ Más gruesa
+                    .color(Color.parseColor("#2196F3")) // ✅ Azul más vibrante
+                    .geodesic(true)
+                    .pattern(null); // ✅ Línea sólida
+
+            currentRoute = mMap.addPolyline(polylineOptions);
+
+            Log.d(TAG, "🗺️ Ruta dibujada en el mapa con " + route.size() + " puntos (línea azul gruesa)");
+
+            // ✅ AGREGAR ANIMACIÓN SUTIL AL MAPA:
+            if (getContext() != null) {
+                // Pequeña vibración para feedback táctil
+                android.os.Vibrator vibrator = (android.os.Vibrator) getContext().getSystemService(android.content.Context.VIBRATOR_SERVICE);
+                if (vibrator != null) {
+                    vibrator.vibrate(100); // 100ms de vibración
+                }
+            }
+        }
+    }
+
+    // 🆕 ACTUALIZAR DISTANCIA Y TIEMPO
+    private void updateDistanceTime(String distance, String duration) {
+        if (tvDistanceTime != null) {
+            tvDistanceTime.setText("📏 " + distance + " • ⏱️ " + duration);
+        }
+    }
+
+    // 🆕 AJUSTAR ZOOM PARA MOSTRAR LA RUTA COMPLETA
+    private void zoomToFitRoute(LatLng origin, LatLng destination) {
+        if (mMap != null) {
+            LatLngBounds.Builder builder = new LatLngBounds.Builder();
+            builder.include(origin);
+            builder.include(destination);
+
+            LatLngBounds bounds = builder.build();
+            int padding = 150; // Padding en píxeles
+
+            mMap.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, padding));
+        }
+    }
+
+    // 🆕 INICIAR NAVEGACIÓN EXTERNA
+    private void startExternalNavigation() {
+        if (activeServiceDestination != null) {
+            try {
+                String uri = "google.navigation:q=" + activeServiceDestination.replace(" ", "+");
+                Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(uri));
+                intent.setPackage("com.google.android.apps.maps");
+
+                if (intent.resolveActivity(requireContext().getPackageManager()) != null) {
+                    startActivity(intent);
+                    Toast.makeText(getContext(), "🧭 Navegación iniciada en Google Maps", Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(getContext(), "Google Maps no está instalado", Toast.LENGTH_SHORT).show();
+                }
+            } catch (Exception e) {
+                Log.e(TAG, "Error abriendo navegación externa: " + e.getMessage());
+                Toast.makeText(getContext(), "Error abriendo navegación", Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
+    private void mostrarRutaEnMapa() {
+        if (activeServiceDestination != null) {
+            Log.d(TAG, "🛣️ Mostrando ruta completa en el mapa...");
+
+            // Colapsar la card después de presionar el botón
+            if (isCardExpanded) {
+                toggleCardExpansion();
+            }
+
+            // Geocodificar destino si no tenemos la ubicación
+            directionsService.geocodeAddress(activeServiceDestination, new DirectionsService.GeocodeCallback() {
+                @Override
+                public void onSuccess(LatLng destinationLocation) {
+                    Log.d(TAG, "✅ Destino geocodificado: " + destinationLocation);
+
+                    // Si tenemos ubicación actual, calcular ruta
+                    if (currentDriverLocation != null) {
+                        calculateAndShowRoute(currentDriverLocation, destinationLocation);
+                    } else {
+                        // Usar ubicación por defecto de Lima centro
+                        LatLng limaCenter = new LatLng(-12.0464, -77.0428);
+                        calculateAndShowRoute(limaCenter, destinationLocation);
+                    }
+
+                    // Mostrar mensaje al usuario
+                    Toast.makeText(getContext(),
+                            "🛣️ Ruta mostrada en el mapa\n📍 Sigue la línea azul",
+                            Toast.LENGTH_LONG).show();
+                }
+
+                @Override
+                public void onError(String error) {
+                    Log.e(TAG, "❌ Error geocodificando: " + error);
+                    Toast.makeText(getContext(),
+                            "❌ Error mostrando ruta: " + error,
+                            Toast.LENGTH_SHORT).show();
+                }
+            });
+        } else {
+            Log.w(TAG, "⚠️ No hay destino configurado");
+            Toast.makeText(getContext(),
+                    "⚠️ Destino no disponible",
+                    Toast.LENGTH_SHORT).show();
+        }
+    }
+    private void toggleCardExpansion() {
+        if (isCardExpanded) {
+            // Colapsar
+            contenidoExpandible.setVisibility(View.GONE);
+            if (iconExpandCollapse != null) {
+                iconExpandCollapse.setRotation(0);
+            }
+            isCardExpanded = false;
+            Log.d(TAG, "📦 Card colapsada");
+        } else {
+            // Expandir
+            contenidoExpandible.setVisibility(View.VISIBLE);
+            if (iconExpandCollapse != null) {
+                iconExpandCollapse.setRotation(180);
+            }
+            isCardExpanded = true;
+            Log.d(TAG, "📂 Card expandida");
+        }
+    }
+
+
+    /**
+     * Abrir escáner de QR para finalizar servicio
+     */
+    private void openQRScanner() {
+        if (activeServiceDestination != null && activeServiceClientName != null && activeServiceHotelName != null) {
+            Log.d(TAG, "📱 Abriendo escáner QR para finalizar servicio...");
+
+            // Crear fragment de finalización con QR
+            ServiceCompletionFragment completionFragment = ServiceCompletionFragment.newInstance(
+                    "temp_reservation_id", // En una implementación completa, esto sería el ID real
+                    activeServiceClientName,
+                    activeServiceHotelName
+            );
+
+            // Navegar al escáner
+            if (getParentFragmentManager() != null) {
+                getParentFragmentManager().beginTransaction()
+                        .replace(R.id.fragment_container, completionFragment)
+                        .addToBackStack("qr_scanner")
+                        .commit();
+
+                Log.d(TAG, "✅ Navegación al escáner QR completada");
+            }
+        } else {
+            Log.w(TAG, "⚠️ No hay servicio activo para finalizar");
+            Toast.makeText(getContext(),
+                    "⚠️ No hay servicio activo para finalizar",
+                    Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    // 🆕 COMPLETAR SERVICIO
+    private void completeService() {
+        Toast.makeText(getContext(), "✅ Servicio completado exitosamente", Toast.LENGTH_SHORT).show();
+
+        // Limpiar mapa
+        clearServiceFromMap();
+
+        // Ocultar card de servicio activo
+        if (cardServicioActivo != null) {
+            cardServicioActivo.setVisibility(View.GONE);
+        }
+
+        // Limpiar variables de servicio
+        activeServiceDestination = null;
+        activeServiceClientName = null;
+        activeServiceHotelName = null;
+        activeServiceClientPhone = null;
+
+        Log.d(TAG, "🧹 Servicio completado y limpiado");
+    }
+
+    // 🆕 LIMPIAR SERVICIO DEL MAPA
+    private void clearServiceFromMap() {
+        if (mMap != null) {
+            if (destinationMarker != null) {
+                destinationMarker.remove();
+                destinationMarker = null;
+            }
+
+            if (currentRoute != null) {
+                currentRoute.remove();
+                currentRoute = null;
+            }
+        }
+    }
+
+    // MÉTODOS EXISTENTES (mantener exactamente como están)
+
     private void showNotificationTestMenu() {
         String[] options = {
                 "🚗 Solicitud de viaje",
@@ -177,27 +703,25 @@ public class DriverMapFragment extends Fragment implements OnMapReadyCallback {
                 .setTitle("Probar Notificaciones")
                 .setItems(options, (dialog, which) -> {
                     switch (which) {
-                        case 0: // Solicitud de viaje
+                        case 0:
                             if (mockNotificationService != null) {
                                 mockNotificationService.sendRandomTripNotification();
                             }
                             break;
-                        case 1: // Viaje completado
+                        case 1:
                             addNotification("Viaje completado exitosamente");
                             break;
-                        case 2: // Ganancias
+                        case 2:
                             if (mockNotificationService != null) {
                                 mockNotificationService.sendTestEarningsNotification();
                             }
                             break;
-                        case 3: // General
+                        case 3:
                             if (mockNotificationService != null) {
                                 mockNotificationService.sendTestGeneralNotification();
                             }
                             break;
                     }
-
-                    // Agregar notificación local también
                     addNotification("Nueva notificación de prueba: " + options[which]);
                 })
                 .setNegativeButton("Cancelar", null)
@@ -295,71 +819,145 @@ public class DriverMapFragment extends Fragment implements OnMapReadyCallback {
             preferenceManager.setDriverAvailable(isAvailable);
             preferenceManager.setDriverStatus(isAvailable ? "En servicio" : "Fuera de servicio");
         }
+        // Notificar a otros fragments sobre el cambio de estado
+        if (getActivity() instanceof DriverActivity) {
+            DriverActivity activity = (DriverActivity) getActivity();
+
+            // Si cambió a disponible, refrescar viajes
+            if (isAvailable) {
+                activity.refreshViajesFragment();
+            }
+        }
     }
 
+
+    /**
+     * Agregar hoteles reales de Firebase al mapa
+     */
     private void addNearbyHotels(LatLng driverLocation) {
+        Log.d(TAG, "🏨 Cargando hoteles reales de Firebase para el mapa...");
+
+        // Limpiar hoteles anteriores
         if (hotelMarkers != null) {
             for (Marker marker : hotelMarkers) {
                 marker.remove();
             }
         }
-
         hotelMarkers = new ArrayList<>();
-        Random random = new Random();
 
-        for (int i = 0; i < 5; i++) {
-            double r = SERVICE_RADIUS_METERS * 0.8 * Math.sqrt(random.nextDouble());
-            double theta = random.nextDouble() * 2 * Math.PI;
-
-            double lat = driverLocation.latitude + r * Math.cos(theta) / 111000;
-            double lng = driverLocation.longitude + r * Math.sin(theta) / (111000 * Math.cos(driverLocation.latitude * Math.PI/180));
-
-            LatLng hotelLocation = new LatLng(lat, lng);
-
-            MarkerOptions markerOptions = new MarkerOptions()
-                    .position(hotelLocation)
-                    .title("Hotel " + (i+1))
-                    .snippet("Hotel asociado a la app")
-                    .icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_hotelitos_20));
-
-            Marker hotelMarker = mMap.addMarker(markerOptions);
-            hotelMarkers.add(hotelMarker);
-        }
-    }
-
-    @Override
-    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
-        super.onViewCreated(view, savedInstanceState);
-
-        preferenceManager = new DriverPreferenceManager(requireContext());
-        notificationHelper = new NotificationHelper(requireContext());
-        mockNotificationService = new MockNotificationService(notificationHelper, preferenceManager);
-
-        loadSavedState();
-
-        SupportMapFragment mapFragment = (SupportMapFragment) getChildFragmentManager()
-                .findFragmentById(R.id.map);
-        if (mapFragment != null) {
-            mapFragment.getMapAsync(this);
-        }
-
-        fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireActivity());
-        createLocationRequest();
-
-        locationCallback = new LocationCallback() {
+        // Obtener hoteles reales de Firebase
+        FirebaseManager firebaseManager = FirebaseManager.getInstance();
+        firebaseManager.getActiveHotels(new FirebaseManager.HotelCallback() {
             @Override
-            public void onLocationResult(LocationResult locationResult) {
-                if (locationResult == null) {
-                    return;
-                }
-                for (Location location : locationResult.getLocations()) {
-                    updateLocationOnMap(location);
+            public void onSuccess(List<FirebaseManager.Hotel> hotels) {
+                Log.d(TAG, "✅ " + hotels.size() + " hoteles reales obtenidos para el mapa");
+
+                if (getActivity() != null) {
+                    getActivity().runOnUiThread(() -> {
+                        addHotelsToMap(hotels, driverLocation);
+                    });
                 }
             }
+
+            @Override
+            public void onError(String error) {
+                Log.e(TAG, "❌ Error obteniendo hoteles reales: " + error);
+                Log.w(TAG, "🔄 Fallback: usando hoteles de ejemplo en el mapa");
+
+                if (getActivity() != null) {
+                    getActivity().runOnUiThread(() -> {
+                        addFallbackHotelsToMap(driverLocation);
+                    });
+                }
+            }
+        });
+    }
+
+    /**
+     * Agregar hoteles reales al mapa
+     */
+    private void addHotelsToMap(List<FirebaseManager.Hotel> hotels, LatLng driverLocation) {
+        int hotelCount = 0;
+
+        for (FirebaseManager.Hotel hotel : hotels) {
+            try {
+                LatLng hotelLocation = new LatLng(hotel.latitude, hotel.longitude);
+
+                // Calcular distancia al taxista
+                float distance = calculateDistance(driverLocation, hotelLocation);
+
+                MarkerOptions markerOptions = new MarkerOptions()
+                        .position(hotelLocation)
+                        .title("🏨 " + hotel.getDisplayName())
+                        .snippet("📍 " + hotel.getDisplayAddress() + "\n📏 " + String.format("%.1f km", distance))
+                        .icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_hotelitos_20));
+
+                Marker hotelMarker = mMap.addMarker(markerOptions);
+                hotelMarkers.add(hotelMarker);
+                hotelCount++;
+
+                Log.d(TAG, "🏨 Hotel agregado: " + hotel.getDisplayName() +
+                        " (" + String.format("%.1f km", distance) + ")");
+
+            } catch (Exception e) {
+                Log.e(TAG, "❌ Error agregando hotel al mapa: " + e.getMessage());
+            }
+        }
+
+        Log.d(TAG, "✅ " + hotelCount + " hoteles reales agregados al mapa");
+    }
+
+    /**
+     * Hoteles de fallback si falla Firebase
+     */
+    private void addFallbackHotelsToMap(LatLng driverLocation) {
+        // Solo algunos hoteles básicos como fallback
+        String[][] fallbackHotels = {
+                {"Hotel Lima Centro", "Jr. De la Unión 789, Cercado de Lima", "-12.0458", "-77.0311"},
+                {"Hotel San Isidro", "Av. República de Panamá 321, San Isidro", "-12.0931", "-77.0465"},
+                {"Hotel Miraflores", "Av. Malecón Balta 1298, Miraflores", "-12.1231", "-77.0319"}
         };
 
-        checkLocationPermission();
+        for (String[] hotelData : fallbackHotels) {
+            try {
+                String nombre = hotelData[0];
+                String direccion = hotelData[1];
+                double lat = Double.parseDouble(hotelData[2]);
+                double lng = Double.parseDouble(hotelData[3]);
+
+                LatLng hotelLocation = new LatLng(lat, lng);
+                float distance = calculateDistance(driverLocation, hotelLocation);
+
+                MarkerOptions markerOptions = new MarkerOptions()
+                        .position(hotelLocation)
+                        .title("🏨 " + nombre)
+                        .snippet("📍 " + direccion + "\n📏 " + String.format("%.1f km", distance))
+                        .icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_hotelitos_20));
+
+                Marker hotelMarker = mMap.addMarker(markerOptions);
+                hotelMarkers.add(hotelMarker);
+
+            } catch (Exception e) {
+                Log.e(TAG, "❌ Error agregando hotel fallback: " + e.getMessage());
+            }
+        }
+
+        Log.d(TAG, "✅ Hoteles de fallback agregados al mapa");
     }
+
+    /**
+     * Calcular distancia entre dos puntos
+     */
+    private float calculateDistance(LatLng point1, LatLng point2) {
+        float[] results = new float[1];
+        android.location.Location.distanceBetween(
+                point1.latitude, point1.longitude,
+                point2.latitude, point2.longitude,
+                results
+        );
+        return results[0] / 1000; // Convertir a km
+    }
+
 
     private void loadSavedState() {
         boolean isAvailable = preferenceManager.isDriverAvailable();
@@ -370,11 +968,9 @@ public class DriverMapFragment extends Fragment implements OnMapReadyCallback {
         notificationCount = savedNotificationCount;
         updateNotificationBadge();
 
-        // 🔥 CARGAR DATOS REALES DEL USUARIO LOGUEADO
         loadRealDriverDataForMap();
     }
 
-    // 🔥 NUEVO MÉTODO PARA CARGAR DATOS REALES EN EL MAPA
     private void loadRealDriverDataForMap() {
         if (getActivity() instanceof com.example.proyecto_final_hoteleros.taxista.activity.DriverActivity) {
             com.example.proyecto_final_hoteleros.taxista.activity.DriverActivity activity =
@@ -387,28 +983,23 @@ public class DriverMapFragment extends Fragment implements OnMapReadyCallback {
             Log.d("DriverMapFragment", "UserId: " + userId);
             Log.d("DriverMapFragment", "Name: " + userName);
 
-            // 🔥 SI TENEMOS DATOS BÁSICOS, MOSTRARLOS INMEDIATAMENTE
             if (userName != null && !userName.isEmpty()) {
                 tvDriverName.setText(userName);
             } else {
                 tvDriverName.setText("Conductor");
             }
 
-            // 🔥 CARGAR DATOS COMPLETOS DESDE FIREBASE
             if (userId != null && !userId.isEmpty()) {
                 loadCompleteDriverDataFromFirebase(userId);
             } else {
-                // Si no hay userId, usar datos por defecto
                 ivProfilePhoto.setImageResource(R.drawable.perfil);
             }
         } else {
-            // Fallback si no podemos obtener datos del Activity
             tvDriverName.setText("Conductor");
             ivProfilePhoto.setImageResource(R.drawable.perfil);
         }
     }
 
-    // 🔥 CARGAR DATOS COMPLETOS DESDE FIREBASE PARA EL MAPA
     private void loadCompleteDriverDataFromFirebase(String userId) {
         Log.d("DriverMapFragment", "🔄 Cargando datos completos desde Firebase para el mapa");
 
@@ -419,16 +1010,11 @@ public class DriverMapFragment extends Fragment implements OnMapReadyCallback {
             @Override
             public void onUserFound(com.example.proyecto_final_hoteleros.models.UserModel user) {
                 Log.d("DriverMapFragment", "✅ Datos del usuario obtenidos para el mapa");
-                Log.d("DriverMapFragment", "Nombre: " + user.getFullName());
-                Log.d("DriverMapFragment", "Foto: " + user.getPhotoUrl());
 
-                // 🔥 ACTUALIZAR UI EN EL HILO PRINCIPAL
                 if (getActivity() != null && isAdded()) {
                     getActivity().runOnUiThread(() -> {
-                        // Actualizar nombre
                         tvDriverName.setText(user.getFullName());
 
-                        // Cargar foto de perfil con Glide
                         if (user.getPhotoUrl() != null && !user.getPhotoUrl().isEmpty()) {
                             com.bumptech.glide.Glide.with(DriverMapFragment.this)
                                     .load(user.getPhotoUrl())
@@ -448,7 +1034,6 @@ public class DriverMapFragment extends Fragment implements OnMapReadyCallback {
             @Override
             public void onUserNotFound() {
                 Log.w("DriverMapFragment", "⚠️ Usuario no encontrado para el mapa");
-                // Mantener datos por defecto
                 if (getActivity() != null && isAdded()) {
                     getActivity().runOnUiThread(() -> {
                         ivProfilePhoto.setImageResource(R.drawable.perfil);
@@ -459,7 +1044,6 @@ public class DriverMapFragment extends Fragment implements OnMapReadyCallback {
             @Override
             public void onError(String error) {
                 Log.e("DriverMapFragment", "❌ Error cargando datos para el mapa: " + error);
-                // Mantener datos por defecto
                 if (getActivity() != null && isAdded()) {
                     getActivity().runOnUiThread(() -> {
                         ivProfilePhoto.setImageResource(R.drawable.perfil);
@@ -478,6 +1062,7 @@ public class DriverMapFragment extends Fragment implements OnMapReadyCallback {
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
+        Log.d(TAG, "🗺️ Mapa listo, configurando...");
 
         try {
             boolean success = googleMap.setMapStyle(
@@ -497,14 +1082,18 @@ public class DriverMapFragment extends Fragment implements OnMapReadyCallback {
         if (hasLocationPermission) {
             enableMyLocation();
         }
+
+        // 🆕 SI HAY SERVICIO ACTIVO, MOSTRAR RUTA
+        if (activeServiceDestination != null) {
+            geocodeAndShowRoute();
+        }
     }
 
     private void enableMyLocation() {
-        if (mMap == null) {
-            return;
-        }
+        if (mMap == null) return;
 
         try {
+            // ✅ HABILITAR EL PUNTO AZUL PREDETERMINADO DE GOOGLE MAPS
             mMap.setMyLocationEnabled(true);
             mMap.getUiSettings().setMyLocationButtonEnabled(false);
             getCurrentLocation();
@@ -527,6 +1116,7 @@ public class DriverMapFragment extends Fragment implements OnMapReadyCallback {
                         if (location != null) {
                             updateLocationOnMap(location);
                             LatLng currentLatLng = new LatLng(location.getLatitude(), location.getLongitude());
+                            currentDriverLocation = currentLatLng; // 🆕 GUARDAR UBICACIÓN ACTUAL
                             mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(currentLatLng, 15f));
                             addNearbyHotels(currentLatLng);
                         } else {
@@ -573,44 +1163,23 @@ public class DriverMapFragment extends Fragment implements OnMapReadyCallback {
         if (mMap != null && location != null) {
             LatLng currentLatLng = new LatLng(location.getLatitude(), location.getLongitude());
 
+            // Guardar ubicación
             if (preferenceManager != null) {
                 preferenceManager.saveDriverLocation(location.getLatitude(), location.getLongitude());
             }
 
-            if (driverMarker == null) {
-                try {
-                    MarkerOptions markerOptions = new MarkerOptions()
-                            .position(currentLatLng)
-                            .title("Mi ubicación");
+            // ✅ ACTUALIZAR UBICACIÓN ACTUAL (para otros usos como rutas)
+            currentDriverLocation = currentLatLng;
 
-                    try {
-                        BitmapDescriptor icon = BitmapDescriptorFactory.fromResource(R.drawable.ic_hotelitos_20);
-                        markerOptions.icon(icon);
-                    } catch (Exception e) {
-                        Log.e("DriverMapFragment", "Error al cargar icono personalizado: " + e.getMessage());
-                    }
+            // ✅ NO CREAR MARCADORES PERSONALIZADOS
+            // El punto azul predeterminado de Google Maps ya muestra tu ubicación
 
-                    driverMarker = mMap.addMarker(markerOptions);
-                } catch (Exception e) {
-                    Log.e("DriverMapFragment", "Error al añadir marcador: " + e.getMessage());
-                }
-            } else {
-                driverMarker.setPosition(currentLatLng);
-
-                if (location.hasBearing()) {
-                    driverMarker.setRotation(location.getBearing());
-                }
-            }
-
+            // Centrar cámara solo la primera vez
             if (shouldCenterCamera) {
                 mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(currentLatLng, 16f));
                 shouldCenterCamera = false;
             }
         }
-    }
-
-    private void updateDriverLocationInDatabase(LatLng location) {
-        // Implementar actualización en base de datos
     }
 
     private void createLocationRequest() {
@@ -667,6 +1236,28 @@ public class DriverMapFragment extends Fragment implements OnMapReadyCallback {
         }
     }
 
+    // Solo agregar este método:
+    private void openServiceCompletion() {
+        if (activeServiceClientName != null && activeServiceHotelName != null) {
+            Log.d(TAG, "🎯 Abriendo escáner de QR...");
+
+            ServiceCompletionFragment completionFragment = ServiceCompletionFragment.newInstance(
+                    "temp_reservation_id",
+                    activeServiceClientName,
+                    activeServiceHotelName
+            );
+
+            if (getParentFragmentManager() != null) {
+                getParentFragmentManager().beginTransaction()
+                        .replace(R.id.fragment_container, completionFragment)
+                        .addToBackStack("qr_scan")
+                        .commit();
+            }
+        } else {
+            Toast.makeText(getContext(), "No hay servicio activo", Toast.LENGTH_SHORT).show();
+        }
+    }
+
     private void requestLocationPermission() {
         requestPermissions(
                 new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
@@ -715,5 +1306,15 @@ public class DriverMapFragment extends Fragment implements OnMapReadyCallback {
     public void onDestroy() {
         super.onDestroy();
         stopLocationUpdates();
+
+        // 🆕 LIMPIAR RECURSOS
+        if (currentRoute != null) {
+            currentRoute.remove();
+        }
+        if (destinationMarker != null) {
+            destinationMarker.remove();
+        }
+
+        Log.d(TAG, "🧹 DriverMapFragment destruido y recursos limpiados");
     }
 }

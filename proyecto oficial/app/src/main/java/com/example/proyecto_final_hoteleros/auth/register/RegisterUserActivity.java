@@ -2,6 +2,9 @@ package com.example.proyecto_final_hoteleros.auth.register;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.res.ResourcesCompat;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 import androidx.lifecycle.ViewModelProvider;
 
 import android.app.AlertDialog;
@@ -9,6 +12,8 @@ import android.app.DatePickerDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
+import android.graphics.Color;
+import android.os.Build;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.InputFilter;
@@ -16,11 +21,13 @@ import android.text.TextWatcher;
 import android.util.Log;
 import android.util.Patterns;
 import android.view.View;
+import android.view.WindowInsetsController;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -103,7 +110,41 @@ public class RegisterUserActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        // ✅ CONFIGURAR EDGE-TO-EDGE
+        enableEdgeToEdge();
+
         setContentView(R.layout.sistema_activity_register_user);
+
+        // ✅ CONFIGURAR WINDOW INSETS - VERSIÓN CORREGIDA (SIN TOP PADDING)
+        View rootLayout = findViewById(android.R.id.content).getRootView();
+        ViewCompat.setOnApplyWindowInsetsListener(rootLayout, (v, insets) -> {
+            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+            Insets ime = insets.getInsets(WindowInsetsCompat.Type.ime());
+
+            boolean isKeyboardVisible = insets.isVisible(WindowInsetsCompat.Type.ime());
+
+            // 🎯 LÓGICA PARA REGISTRO: Solo bottom padding dinámico
+            int bottomPadding = Math.max(systemBars.bottom, ime.bottom);
+
+            // Aplicar al contenedor principal - SIN TOP PADDING
+            View mainLayout = findViewById(android.R.id.content);
+            if (mainLayout != null) {
+                mainLayout.setPadding(
+                        mainLayout.getPaddingLeft(),
+                        0,               // 🎯 SIN top padding - el XML maneja el margen
+                        mainLayout.getPaddingRight(),
+                        bottomPadding    // 🎯 Solo bottom padding dinámico
+                );
+            }
+
+            // 🎯 LOG para debug
+            Log.d("RegisterKeyboard", "🎹 Teclado visible: " + isKeyboardVisible +
+                    " | NavBar: " + systemBars.bottom + " | IME: " + ime.bottom +
+                    " | Padding aplicado: " + bottomPadding);
+
+            return insets;
+        });
 
         // Obtener el tipo de usuario del intent
         if (getIntent() != null && getIntent().hasExtra("userType")) {
@@ -928,7 +969,6 @@ public class RegisterUserActivity extends AppCompatActivity {
     }
 
     // Nuevo método para guardar datos usando Room
-    // Nuevo método para guardar datos usando Room
     private void saveFormDataToDatabase() {
         // Primero guardar en ViewModel para compatibilidad (SOLO UNA VEZ)
         if (mViewModel != null) {
@@ -993,9 +1033,19 @@ public class RegisterUserActivity extends AppCompatActivity {
             // Crear nuevo registro - Room auto-generará el ID único
             // NO asignar manualmente registration.id = algo
 
-            userRegistrationRepository.saveUserRegistrationSafe(registration, new UserRegistrationRepository.RegistrationIdCallback() {
+            // 🔍 DEBUGGING: Estado de la base de datos ANTES de guardar
+            Log.d("RegisterUser", "🔍 ═══ DEBUGGING INICIO ═══");
+            Log.d("RegisterUser", "🔍 Email que se va a registrar: " + etEmail.getText().toString().trim());
+            Log.d("RegisterUser", "🔍 UserType: " + userType);
+            userRegistrationRepository.debugDatabaseState("ANTES de guardar nuevo usuario");
+
+            userRegistrationRepository.saveUserRegistration(registration, new UserRegistrationRepository.RegistrationIdCallback() {
                 @Override
                 public void onSuccess(int registrationId) {
+                    // 🔍 DEBUGGING: Estado después de guardar
+                    userRegistrationRepository.debugDatabaseState("DESPUÉS de guardar usuario con ID: " + registrationId);
+                    Log.d("RegisterUser", "🔍 ═══ DEBUGGING FIN ═══");
+
                     currentRegistrationId = registrationId;
                     Log.d("RegisterUser", "✅ Nuevo registro creado con ID único: " + registrationId);
                     runOnUiThread(() -> proceedToNextStep(registrationId));
@@ -1028,6 +1078,38 @@ public class RegisterUserActivity extends AppCompatActivity {
             intent.putExtra("userType", userType);
             intent.putExtra("registrationId", registrationId);
             startActivity(intent);
+        }
+    }
+
+    // ✅ MÉTODO PARA HABILITAR EDGE-TO-EDGE CON ICONOS OSCUROS (VERSIÓN SEGURA) - ORIGINAL
+    private void enableEdgeToEdge() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            getWindow().setDecorFitsSystemWindows(false);
+
+            // 🎯 ICONOS OSCUROS PARA ANDROID 11+ (método seguro)
+            getWindow().getDecorView().setSystemUiVisibility(
+                    View.SYSTEM_UI_FLAG_LAYOUT_STABLE |
+                            View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION |
+                            View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN |
+                            View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
+            );
+
+        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            // Android 6.0 - Android 10
+            getWindow().getDecorView().setSystemUiVisibility(
+                    View.SYSTEM_UI_FLAG_LAYOUT_STABLE |
+                            View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION |
+                            View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN |
+                            View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR  // 🎯 ICONOS OSCUROS
+            );
+
+        } else {
+            // Android 5.0 y anteriores (sin iconos oscuros)
+            getWindow().getDecorView().setSystemUiVisibility(
+                    View.SYSTEM_UI_FLAG_LAYOUT_STABLE |
+                            View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION |
+                            View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+            );
         }
     }
 }

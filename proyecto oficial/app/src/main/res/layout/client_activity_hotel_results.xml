@@ -397,5 +397,51 @@
         android:clipToPadding="false"
         app:layout_constraintTop_toBottomOf="@id/layout_smart_filters"
         app:layout_constraintBottom_toBottomOf="parent" />
+    <LinearLayout
+        android:id="@+id/loading_container"
+        android:layout_width="match_parent"
+        android:layout_height="200dp"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:visibility="gone"
+        android:layout_marginTop="32dp">
 
+        <ProgressBar
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:layout_marginBottom="16dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Cargando hoteles desde Firebase..."
+            android:textSize="16sp"
+            android:textColor="@android:color/darker_gray"
+            android:fontFamily="@font/poppins_regular" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Por favor espera un momento"
+            android:textSize="14sp"
+            android:textColor="@android:color/darker_gray"
+            android:fontFamily="@font/poppins_regular"
+            android:layout_marginTop="8dp"
+            android:alpha="0.7" />
+    </LinearLayout>
+
+    <!-- Empty state para HotelResultsActivity -->
+    <TextView
+        android:id="@+id/tv_empty_state"
+        android:layout_width="match_parent"
+        android:layout_height="200dp"
+        android:gravity="center"
+        android:text="No se encontraron hoteles"
+        android:textSize="16sp"
+        android:textColor="@android:color/darker_gray"
+        android:fontFamily="@font/poppins_regular"
+        android:visibility="gone"
+        android:drawableTop="@drawable/ic_empty_state"
+        android:drawablePadding="16dp"
+        android:layout_marginTop="32dp" />
 </androidx.constraintlayout.widget.ConstraintLayout>

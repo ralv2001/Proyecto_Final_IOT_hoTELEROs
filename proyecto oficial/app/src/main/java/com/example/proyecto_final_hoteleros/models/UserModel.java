@@ -86,7 +86,16 @@ public class UserModel {
         user.placaVehiculo = (String) map.get("placaVehiculo");
         user.photoUrl = (String) map.get("photoUrl");
         user.documentUrl = (String) map.get("documentUrl");
-        user.isActive = map.get("isActive") != null ? (Boolean) map.get("isActive") : true;
+        // Mejorar la lectura del campo isActive
+        if (map.containsKey("isActive") && map.get("isActive") != null) {
+            user.isActive = (Boolean) map.get("isActive");
+        } else if (map.containsKey("active") && map.get("active") != null) {
+            // Fallback para usuarios antiguos con campo "active"
+            user.isActive = (Boolean) map.get("active");
+        } else {
+            // Default: true para usuarios sin el campo (usuarios antiguos)
+            user.isActive = true;
+        }
         user.createdAt = map.get("createdAt") != null ? (Long) map.get("createdAt") : System.currentTimeMillis();
         user.updatedAt = map.get("updatedAt") != null ? (Long) map.get("updatedAt") : System.currentTimeMillis();
         return user;

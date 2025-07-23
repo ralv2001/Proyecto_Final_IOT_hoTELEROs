@@ -1,12 +1,17 @@
 package com.example.proyecto_final_hoteleros.superadmin.activity;
 
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 import androidx.activity.OnBackPressedCallback;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
@@ -22,7 +27,9 @@ import com.example.proyecto_final_hoteleros.superadmin.fragment.ReportesFragment
 import com.example.proyecto_final_hoteleros.superadmin.fragment.TaxistaDocumentsFragment;
 import com.example.proyecto_final_hoteleros.utils.FirebaseManager;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class SuperAdminActivity extends AppCompatActivity {
 
@@ -44,7 +51,20 @@ public class SuperAdminActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_super_admin);
+
+        // ✅ CONFIGURAR EDGE-TO-EDGE (VERSIÓN SIMPLE)
+        enableEdgeToEdge();
+
+        setContentView(R.layout.superadmin_activity_super_admin);
+
+        // ✅ CONFIGURAR WINDOW INSETS - VERSIÓN SIMPLE ORIGINAL
+        View mainLayout = findViewById(R.id.fragment_container);
+        ViewCompat.setOnApplyWindowInsetsListener(mainLayout, (v, insets) -> {
+            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+            // 🎯 SOLO bottom padding simple - como era antes
+            v.setPadding(v.getPaddingLeft(), v.getPaddingTop(), v.getPaddingRight(), systemBars.bottom);
+            return insets;
+        });
 
         // 🔥 MANEJO MODERNO DEL BACK BUTTON
         setupModernBackHandler();
@@ -286,6 +306,34 @@ public class SuperAdminActivity extends AppCompatActivity {
     public void navigateToReportes() {
         ReportesFragment reportesFragment = new ReportesFragment();
         loadFragment(reportesFragment, "REPORTES", true);
+    }
+
+    // 🔥 NUEVOS MÉTODOS: Navegación con filtros específicos
+    public void navigateToUsuariosWithFilter(String filter) {
+        Log.d(TAG, "Navegando a usuarios con filtro: " + filter);
+        UsuariosFragment usuariosFragment = new UsuariosFragment();
+
+        // Pasar el filtro como argumento
+        Bundle args = new Bundle();
+        args.putString("initial_filter", filter);
+        usuariosFragment.setArguments(args);
+
+        loadFragment(usuariosFragment, "USUARIOS", true);
+    }
+
+    public void navigateToTaxistasWithFilter(String filter) {
+        Log.d(TAG, "Navegando a taxistas con filtro: " + filter);
+        TaxistasFragment taxistasFragment = new TaxistasFragment();
+
+        // Pasar el filtro como argumento
+        Bundle args = new Bundle();
+        args.putString("initial_filter", filter);
+        taxistasFragment.setArguments(args);
+
+        loadFragment(taxistasFragment, "TAXISTAS", true);
+
+        // Actualizar referencia
+        this.taxistasFragment = taxistasFragment;
     }
 
     public void navigateToLogs() {
@@ -536,4 +584,50 @@ public class SuperAdminActivity extends AppCompatActivity {
         // La lógica se movió a handleCustomBackPress()
     }
     */
+
+    // Método para loggear acciones importantes del SuperAdmin
+    public void logSuperAdminAction(String action, String targetUser, String details) {
+        Log.d(TAG, "📋 ACCIÓN SUPERADMIN: " + action + " | Usuario: " + targetUser + " | Detalles: " + details);
+
+        // Opcional: Guardar en Firebase para auditoría
+        Map<String, Object> logData = new HashMap<>();
+        logData.put("adminId", getUserId());
+        logData.put("adminEmail", getUserEmail());
+        logData.put("action", action);
+        logData.put("targetUser", targetUser);
+        logData.put("details", details);
+        logData.put("timestamp", System.currentTimeMillis());
+
+        // Guardar en colección de logs (opcional)
+        // FirebaseManager.getInstance().saveAdminLog(logData);
+    }
+
+    // ✅ MÉTODO PARA HABILITAR EDGE-TO-EDGE (VERSIÓN SUPERADMIN - ICONOS BLANCOS)
+    private void enableEdgeToEdge() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            getWindow().setDecorFitsSystemWindows(false);
+
+            getWindow().getDecorView().setSystemUiVisibility(
+                    View.SYSTEM_UI_FLAG_LAYOUT_STABLE |
+                            View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION |
+                            View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                    // 🎯 SIN LIGHT_STATUS_BAR = iconos blancos para fondo naranja
+            );
+
+        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            getWindow().getDecorView().setSystemUiVisibility(
+                    View.SYSTEM_UI_FLAG_LAYOUT_STABLE |
+                            View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION |
+                            View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                    // 🎯 SIN LIGHT_STATUS_BAR = iconos blancos
+            );
+
+        } else {
+            getWindow().getDecorView().setSystemUiVisibility(
+                    View.SYSTEM_UI_FLAG_LAYOUT_STABLE |
+                            View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION |
+                            View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+            );
+        }
+    }
 }

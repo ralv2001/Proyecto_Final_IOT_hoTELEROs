@@ -1,17 +1,21 @@
 package com.example.proyecto_final_hoteleros.client.ui.activity;
 
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.view.WindowInsetsController;
 import android.widget.Button;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
+import androidx.fragment.app.Fragment;
 
 import com.android.volley.BuildConfig;
 import com.example.proyecto_final_hoteleros.R;
@@ -48,7 +52,10 @@ public class HomeActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        EdgeToEdge.enable(this);
+
+        // ✅ CONFIGURAR EDGE-TO-EDGE
+        enableEdgeToEdge();
+
         setContentView(R.layout.client_activity_home);
 
         // ========== INICIALIZAR MANAGERS ==========
@@ -66,7 +73,7 @@ public class HomeActivity extends AppCompatActivity {
 
         UserDataManager.getInstance().setUserData(userId, userName, userFullName, userEmail, userType);
 
-// 🔥 VERIFICAR QUE SE GUARDÓ CORRECTAMENTE
+        // 🔥 VERIFICAR QUE SE GUARDÓ CORRECTAMENTE
         Log.d(TAG, "✅ Datos guardados. Verificando:");
         Log.d(TAG, "  UserDataManager.getUserId(): " + UserDataManager.getInstance().getUserId());
         Log.d(TAG, "  UserDataManager.getUserName(): " + UserDataManager.getInstance().getUserName());
@@ -88,10 +95,22 @@ public class HomeActivity extends AppCompatActivity {
         // Inicializar servicios de Firebase
         initializeFirebaseServices();
 
-        // Configurar sistema de insets para pantallas con notch
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main_container), (v, insets) -> {
+        // ✅ CONFIGURAR WINDOW INSETS - SIN PADDING CUANDO HAY TECLADO EN CHAT
+        View mainContainer = findViewById(R.id.main_container);
+        ViewCompat.setOnApplyWindowInsetsListener(mainContainer, (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
+            Insets ime = insets.getInsets(WindowInsetsCompat.Type.ime());
+
+            // 🎯 Si hay teclado, no aplicar padding bottom
+            boolean isKeyboardVisible = insets.isVisible(WindowInsetsCompat.Type.ime());
+            int bottomPadding = isKeyboardVisible ? 0 : systemBars.bottom;
+
+            v.setPadding(v.getPaddingLeft(), v.getPaddingTop(), v.getPaddingRight(), bottomPadding);
+
+            // 🎯 LOG para debug
+            Log.d("ChatKeyboard", "🎹 Teclado visible: " + isKeyboardVisible +
+                    " | NavBar: " + systemBars.bottom + " | Padding aplicado: " + bottomPadding);
+
             return insets;
         });
 
@@ -103,6 +122,182 @@ public class HomeActivity extends AppCompatActivity {
         }
     }
 
+    private void verifyAuthenticatedUser() {
+        // ✅ Si ya tenemos todos los datos del intent, no hacer nada
+        if (userId != null && userName != null && userType != null) {
+            Log.d(TAG, "✅ Datos completos recibidos del intent");
+            return;
+        }
+
+        // ✅ Verificar si hay un usuario autenticado en Firebase
+        com.google.firebase.auth.FirebaseAuth firebaseAuth = com.google.firebase.auth.FirebaseAuth.getInstance();
+        com.google.firebase.auth.FirebaseUser currentUser = firebaseAuth.getCurrentUser();
+
+        if (currentUser != null) {
+            Log.d(TAG, "🔍 Usuario autenticado encontrado, cargando perfil...");
+
+            // ✅ Usuario autenticado pero sin datos en el intent
+            // Cargar datos desde Firebase y crearlos si no existen
+            loadUserProfileOrCreateDefault(currentUser);
+        } else {
+            Log.d(TAG, "👤 Usuario no autenticado - modo huésped");
+            // ✅ Usuario no autenticado (huésped) - configurar datos por defecto
+            setupGuestUser();
+        }
+    }
+
+
+    private void loadUserProfileOrCreateDefault(com.google.firebase.auth.FirebaseUser firebaseUser) {
+        String firebaseUserId = firebaseUser.getUid();
+        String firebaseEmail = firebaseUser.getEmail();
+
+        Log.d(TAG, "📥 Cargando perfil para: " + firebaseUserId);
+
+        com.example.proyecto_final_hoteleros.utils.FirebaseManager firebaseManager =
+                com.example.proyecto_final_hoteleros.utils.FirebaseManager.getInstance();
+
+        firebaseManager.getUserDataFromAnyCollection(firebaseUserId, new com.example.proyecto_final_hoteleros.utils.FirebaseManager.UserCallback() {
+            @Override
+            public void onUserFound(com.example.proyecto_final_hoteleros.models.UserModel user) {
+                Log.d(TAG, "✅ Perfil encontrado: " + user.getFullName());
+
+                runOnUiThread(() -> {
+                    // ✅ Actualizar datos con el perfil encontrado
+                    updateUserDataFromProfile(user);
+                });
+            }
+
+            @Override
+            public void onUserNotFound() {
+                Log.w(TAG, "⚠️ Perfil no encontrado, creando perfil básico de cliente...");
+
+                runOnUiThread(() -> {
+                    // ✅ Crear perfil básico de cliente
+                    createBasicClientProfile(firebaseUserId, firebaseEmail);
+                });
+            }
+
+            @Override
+            public void onError(String error) {
+                Log.e(TAG, "❌ Error cargando perfil: " + error);
+
+                runOnUiThread(() -> {
+                    // ✅ En caso de error, crear perfil básico para que funcione
+                    createBasicClientProfile(firebaseUserId, firebaseEmail);
+                });
+            }
+        });
+    }
+    private void updateUserDataFromProfile(com.example.proyecto_final_hoteleros.models.UserModel user) {
+        userId = user.getUserId();
+        userName = user.getFullName();
+        userFullName = user.getFullName();
+        userEmail = user.getEmail();
+        userType = user.getUserType() != null ? user.getUserType() : "client";  // ✅ DEFAULT a client
+
+        Log.d(TAG, "✅ Datos actualizados desde Firebase:");
+        Log.d(TAG, "   userId: " + userId);
+        Log.d(TAG, "   userName: " + userName);
+        Log.d(TAG, "   userType: " + userType);
+
+        // ✅ Actualizar UserDataManager
+        UserDataManager.getInstance().setUserData(userId, userName, userFullName, userEmail, userType);
+    }
+
+    // ✅ MÉTODO: Crear perfil básico de cliente
+    private void createBasicClientProfile(String firebaseUserId, String firebaseEmail) {
+        Log.d(TAG, "🚀 Creando perfil básico de cliente");
+
+        // ✅ Extraer nombre del email
+        String extractedName = extractNameFromEmail(firebaseEmail);
+        String[] nameParts = extractedName.split(" ");
+        String firstName = nameParts.length > 0 ? nameParts[0] : "Cliente";
+        String lastName = nameParts.length > 1 ? nameParts[1] : "";
+
+        // ✅ Crear modelo de usuario
+        com.example.proyecto_final_hoteleros.models.UserModel clientUser =
+                new com.example.proyecto_final_hoteleros.models.UserModel();
+        clientUser.setUserId(firebaseUserId);
+        clientUser.setEmail(firebaseEmail);
+        clientUser.setNombres(firstName);
+        clientUser.setApellidos(lastName);
+        clientUser.setUserType("client");  // ✅ CRÍTICO: Marcar como cliente
+        clientUser.setTelefono("");
+        clientUser.setDireccion("");
+        clientUser.setNumeroDocumento("");
+        clientUser.setTipoDocumento("DNI");
+        clientUser.setFechaNacimiento("01/01/1990");
+        clientUser.setActive(true);
+
+        // ✅ Intentar guardar en Firebase (pero no bloquear si falla)
+        com.example.proyecto_final_hoteleros.utils.FirebaseManager firebaseManager =
+                com.example.proyecto_final_hoteleros.utils.FirebaseManager.getInstance();
+
+        firebaseManager.saveUserData(firebaseUserId, clientUser, new com.example.proyecto_final_hoteleros.utils.FirebaseManager.DataCallback() {
+            @Override
+            public void onSuccess() {
+                Log.d(TAG, "✅ Perfil básico creado en Firebase");
+            }
+
+            @Override
+            public void onError(String error) {
+                Log.w(TAG, "⚠️ Error guardando perfil en Firebase: " + error);
+                Log.w(TAG, "⚠️ Continuando con datos en memoria...");
+            }
+        });
+
+        // ✅ Usar los datos inmediatamente (no esperar a Firebase)
+        updateUserDataFromProfile(clientUser);
+
+        // ✅ Mostrar mensaje al usuario
+        Toast.makeText(this, "Perfil configurado como cliente", Toast.LENGTH_SHORT).show();
+    }
+
+    private void setupGuestUser() {
+        userId = "guest_" + System.currentTimeMillis();
+        userName = "Huésped";
+        userFullName = "Huésped";
+        userEmail = "";
+        userType = "guest";
+
+        Log.d(TAG, "✅ Usuario configurado como huésped");
+
+        // ✅ Actualizar UserDataManager
+        UserDataManager.getInstance().setUserData(userId, userName, userFullName, userEmail, userType);
+    }
+    private String extractNameFromEmail(String email) {
+        if (email == null || !email.contains("@")) {
+            return "Cliente";
+        }
+
+        String localPart = email.split("@")[0];
+
+        // Reemplazar caracteres con espacios
+        localPart = localPart.replace(".", " ");
+        localPart = localPart.replace("_", " ");
+        localPart = localPart.replace("-", " ");
+
+        // Capitalizar cada palabra
+        StringBuilder result = new StringBuilder();
+        String[] words = localPart.split("\\s+");
+
+        for (String word : words) {
+            if (!word.isEmpty()) {
+                if (result.length() > 0) {
+                    result.append(" ");
+                }
+                result.append(capitalize(word));
+            }
+        }
+
+        return result.toString().isEmpty() ? "Cliente" : result.toString();
+    }
+
+    // ✅ MÉTODO AUXILIAR: Capitalizar primera letra
+    private String capitalize(String str) {
+        if (str == null || str.isEmpty()) return str;
+        return str.substring(0, 1).toUpperCase() + str.substring(1).toLowerCase();
+    }
     private void getUserDataFromIntent() {
         // 🔥 USAR LOS NOMBRES EXACTOS QUE ENVÍA LoginFragment
         userId = getIntent().getStringExtra("userId");
@@ -439,5 +634,43 @@ public class HomeActivity extends AppCompatActivity {
                         Toast.makeText(HomeActivity.this, "Error de conexión: " + e.getMessage(), Toast.LENGTH_LONG).show();
                     }
                 });
+    }
+
+    // ✅ MÉTODO PARA HABILITAR EDGE-TO-EDGE CON STATUS BAR NARANJA
+    private void enableEdgeToEdge() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            getWindow().setDecorFitsSystemWindows(false);
+
+            // 🎯 STATUS BAR NARANJA
+            getWindow().setStatusBarColor(ContextCompat.getColor(this, R.color.orange));
+
+            // 🎯 ICONOS OSCUROS EN STATUS BAR (para que se vean sobre naranja)
+            try {
+                WindowInsetsController controller = getWindow().getInsetsController();
+                if (controller != null) {
+                    controller.setSystemBarsAppearance(
+                            WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS,
+                            WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS
+                    );
+                }
+            } catch (Exception e) {
+                // Fallback para dispositivos problemáticos
+                getWindow().getDecorView().setSystemUiVisibility(
+                        View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
+                );
+            }
+
+        } else {
+            // Android 10 y anteriores
+            getWindow().getDecorView().setSystemUiVisibility(
+                    View.SYSTEM_UI_FLAG_LAYOUT_STABLE |
+                            View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION |
+                            View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN |
+                            View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
+            );
+
+            // 🎯 STATUS BAR NARANJA
+            getWindow().setStatusBarColor(ContextCompat.getColor(this, R.color.orange));
+        }
     }
 }

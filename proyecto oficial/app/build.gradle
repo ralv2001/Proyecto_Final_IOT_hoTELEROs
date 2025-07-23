@@ -46,6 +46,10 @@ dependencies {
     // ========== NUEVA LÍNEA PARA GOOGLE SIGN-IN ==========
     implementation 'com.google.android.gms:play-services-auth:20.7.0'
 
+    // ========== ZXING PARA ESCÁNER QR (AGREGAR ESTAS DOS LÍNEAS) ==========
+    implementation 'com.journeyapps:zxing-android-embedded:4.3.0'
+    implementation 'com.google.zxing:core:3.5.2'
+
     // ========== EXISTENTES ==========
     implementation 'com.facebook.shimmer:shimmer:0.5.0'
     implementation 'com.airbnb.android:lottie:3.4.0'

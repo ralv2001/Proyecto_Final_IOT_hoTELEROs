@@ -64,11 +64,14 @@ public class FileStorageRepository {
         void onError(String error);
     }
 
-    // Guardar archivo de forma asíncrona
     public void saveFile(int registrationId, String fileType, String originalName,
                          Uri tempUri, String mimeType, FileOperationCallback callback) {
         executor.execute(() -> {
             try {
+                // 🔍 DEBUGGING CASCADE: Log antes de guardar archivo
+                Log.d(TAG, "🗂️ CASCADE TEST: Guardando archivo para registro ID: " + registrationId);
+                Log.d(TAG, "🗂️ Archivo: " + originalName + " (Tipo: " + fileType + ")");
+
                 // Crear nombre único para el archivo
                 String fileName = generateUniqueFileName(originalName, fileType);
                 Log.d(TAG, "🔍 LOCAL SAVE DEBUG - Generated unique filename: " + fileName + " for registration: " + registrationId);
@@ -90,6 +93,10 @@ public class FileStorageRepository {
                 // Guardar en base de datos
                 long id = fileStorageDao.insertFile(fileEntity);
                 fileEntity.id = (int) id;
+
+                // 🔍 DEBUGGING CASCADE: Log después de guardar archivo
+                Log.d(TAG, "🗂️ CASCADE TEST: Archivo guardado exitosamente con File ID: " + id);
+                Log.d(TAG, "🗂️ Asociado a Registration ID: " + registrationId);
 
                 Log.d(TAG, "File saved successfully: " + fileName);
                 callback.onSuccess(fileEntity);
@@ -336,6 +343,35 @@ public class FileStorageRepository {
             } catch (Exception e) {
                 Log.e(TAG, "Error updating file", e);
                 callback.onError("Error al actualizar el archivo: " + e.getMessage());
+            }
+        });
+    }
+
+    // 🔍 MÉTODO DE DEBUGGING: Para ver todos los archivos en la base de datos
+    public void debugAllFiles(String context) {
+        executor.execute(() -> {
+            try {
+                List<FileStorageEntity> allFiles = fileStorageDao.getAllFiles();
+
+                Log.d(TAG, "🗂️ ═══════════════════════════════════════");
+                Log.d(TAG, "🗂️ DEBUGGING FILES STATE: " + context);
+                Log.d(TAG, "🗂️ Total archivos en Room: " + allFiles.size());
+                Log.d(TAG, "🗂️ ═══════════════════════════════════════");
+
+                for (int i = 0; i < allFiles.size(); i++) {
+                    FileStorageEntity file = allFiles.get(i);
+                    Log.d(TAG, "🗂️ Archivo " + (i + 1) + ":");
+                    Log.d(TAG, "   🆔 File ID: " + file.id);
+                    Log.d(TAG, "   🔗 Registration ID: " + file.registrationId);
+                    Log.d(TAG, "   📄 Nombre: " + file.originalName);
+                    Log.d(TAG, "   📁 Tipo: " + file.fileType);
+                    Log.d(TAG, "   🕐 Creado: " + new java.util.Date(file.createdAt));
+                    Log.d(TAG, "   ─────────────────────────────────────");
+                }
+
+                Log.d(TAG, "🗂️ ═══════════════════════════════════════");
+            } catch (Exception e) {
+                Log.e(TAG, "Error en debugging files state", e);
             }
         });
     }
